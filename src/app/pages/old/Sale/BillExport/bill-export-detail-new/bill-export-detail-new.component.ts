@@ -57,6 +57,8 @@ import { ClipboardService } from '../../../../../services/clipboard.service';
 import { BillImportChoseSerialComponent } from '../../../bill-import-technical/bill-import-chose-serial/bill-import-chose-serial.component';
 import { AppUserService } from '../../../../../services/app-user.service';
 import { BillImportDetailNewComponent } from '../../BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
+import { BillExportDetailFileComponent } from '../bill-export-detail-file/bill-export-detail-file.component';
+
 
 interface ProductSale {
     Id?: number;
@@ -93,6 +95,9 @@ interface BillExport {
     RequestDate: Date | string | null;
     IsApproved?: boolean;
     IsTransfer: boolean;
+    DeliveryTime?: Date | string | null;
+    IsAfterHours?: boolean;
+    ReceiverID?: number | null;
 }
 
 @Component({
@@ -115,6 +120,7 @@ interface BillExport {
         NzSpinModule,
         HasPermissionDirective,
         AngularSlickgridModule,
+        BillExportDetailFileComponent,
     ],
     templateUrl: './bill-export-detail-new.component.html',
     styleUrls: ['./bill-export-detail-new.component.css'],
@@ -141,6 +147,7 @@ export class BillExportDetailNewComponent
     productOptions: any[] = [];
     projectOptions: any[] = [];
     deletedDetailIds: any[] = [];
+    deletedFileIds: number[] = [];
 
     @Input() IDDetail: number = 0;
     @Input() checkConvert: any;
@@ -162,6 +169,7 @@ export class BillExportDetailNewComponent
     @Input() isFromProjectPartList: boolean = false;
     @Input() isFromWarehouseRelease: boolean = false;
     @Input() isReturnToSupplier: boolean = false;
+    @Input() isHoldingBorrow: boolean = false;
 
     cbbStatus: any = [
         { ID: 0, Name: 'Mượn' },
@@ -211,6 +219,8 @@ export class BillExportDetailNewComponent
         CreatDate: new Date(),
         RequestDate: new Date(),
         IsTransfer: false,
+        DeliveryTime: new Date(),
+        IsAfterHours: (new Date().getHours() < 8 || new Date().getHours() > 16 || (new Date().getHours() === 16 && new Date().getMinutes() > 0)),
     };
 
     @Input() dataTableBillExportDetail: any[] = [];
@@ -279,6 +289,9 @@ export class BillExportDetailNewComponent
             IsTransfer: [false],
             Reference: [''],
             WareHouseTranferID: [null],
+            DeliveryTime: [new Date(), [Validators.required]],
+            IsAfterHours: [new Date().getHours() < 8 || new Date().getHours() > 16 || (new Date().getHours() === 16 && new Date().getMinutes() > 0)],
+            ReceiverID: [null]
         });
 
         // Setup initial date validators based on default status
@@ -402,8 +415,14 @@ export class BillExportDetailNewComponent
                 CreatDate: new Date(),
                 RequestDate: new Date(),
                 IsTransfer: false,
+                DeliveryTime: new Date(),
+                IsAfterHours: (new Date().getHours() < 8 || new Date().getHours() > 16 || (new Date().getHours() === 16 && new Date().getMinutes() > 0)),
+                ReceiverID: currentEmployeeId
             };
             this.validateForm.patchValue(this.newBillExport);
+            this.validateForm.patchValue({
+                IsAfterHours: this.newBillExport.IsAfterHours
+            });
         }
 
         if (this.lstBillImportID && this.lstBillImportID.length > 0) {
@@ -422,6 +441,7 @@ export class BillExportDetailNewComponent
                 this.getNewCode();
             }, 500);
         } else if (
+            !this.isCheckmode &&
             !this.isBorrow &&
             !this.isFromProjectPartList &&
             !this.isFromWarehouseRelease &&
@@ -685,13 +705,16 @@ export class BillExportDetailNewComponent
 
     /** Luồng tạo phiếu mượn hàng */
     private handleBorrowFlow(): void {
+        const currentUserId = this.appUserService.id || 0;
         this.newBillExport.Status = 7;
         this.newBillExport.KhoTypeID = this.KhoTypeID;
+        this.newBillExport.UserID = currentUserId;
 
         this.validateForm.patchValue({
             Status: 7,
             KhoTypeID: this.KhoTypeID,
             RequestDate: new Date(),
+            UserID: currentUserId,
         });
 
         this.getNewCode();
@@ -708,7 +731,9 @@ export class BillExportDetailNewComponent
                 ProductCode: item.ProductCode || '',
                 ProductName: item.ProductName || '',
                 Unit: item.Unit || '',
-                TotalInventory: 0,
+                TotalInventory: item.TotalInventory || item.TotalQuantityLast || 0,
+                TotalQuantityKeep: item.TotalQuantityKeep || 0,
+                IsHoldingBorrow: item.IsHoldingBorrow !== undefined ? item.IsHoldingBorrow : true,
                 Qty: item.Qty || 0,
                 QuantityRemain: 0,
                 ProjectID: item.ProjectID || 0,
@@ -951,6 +976,24 @@ export class BillExportDetailNewComponent
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
+                formatter: (_row, _cell, value) => {
+                    if (value === null || value === undefined) return '';
+                    const formatted = new Intl.NumberFormat('vi-VN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    }).format(value);
+                    return `<span style="display:block; text-align:right;">${formatted}</span>`;
+                },
+            },
+            {
+                id: 'TotalQuantityKeep',
+                name: 'SL hàng giữ',
+                field: 'TotalQuantityKeep',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+                hidden: !this.isHoldingBorrow,
                 formatter: (_row, _cell, value) => {
                     if (value === null || value === undefined) return '';
                     const formatted = new Intl.NumberFormat('vi-VN', {
@@ -1279,6 +1322,37 @@ export class BillExportDetailNewComponent
                     return `<div style="text-align:center;"><i class="fas fa-download" style="cursor:pointer; color:#1890ff;" title="Tải File PO"></i></div>`;
                 },
             },
+            {
+                id: 'AddFile',
+                name: '<i class="fas fa-paperclip" style="color:#1890ff;" title=""></i>',
+                field: 'AddFile',
+                width: 40,
+                sortable: false,
+                filterable: false,
+                excludeFromHeaderMenu: true,
+                formatter: () => {
+                    return `<div style="text-align:center;"><i class="fas fa-plus" style="cursor:pointer; color:#1890ff;" title="Thêm file đính kèm"></i></div>`;
+                },
+            },
+            {
+                id: 'FileName',
+                name: 'File đính kèm',
+                field: 'FileName',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `
+                      <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                        <span title="${String(value).replace(/"/g, '&quot;')}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">${value}</span>
+                        <i class="fas fa-eye text-primary cursor-pointer ms-1" style="font-size: 13px;" title="Xem file đính kèm"></i>
+                      </div>
+                    `;
+                },
+            },
+
 
             {
                 id: 'POKHDetailID',
@@ -1301,6 +1375,9 @@ export class BillExportDetailNewComponent
         setTimeout(() => {
             // Hide columns that should not be visible, but preserve checkbox selector
             const hiddenColumnIds = ['SerialNumber', 'POKHDetailID'];
+            if (!this.isHoldingBorrow) {
+                hiddenColumnIds.push('TotalQuantityKeep');
+            }
             const visibleColumns = angularGrid.slickGrid.getColumns().filter(
                 (col: any) => col.id === '_checkbox_selector' || !hiddenColumnIds.includes(col.id)
             );
@@ -1394,7 +1471,84 @@ export class BillExportDetailNewComponent
                 }
             }
         }
+
+        // Handle Add File click
+        if (column.id === 'AddFile') {
+            if (clickedElement.classList.contains('fa-plus')) {
+                const item = args.grid.getDataItem(args.row);
+                this.openAddFileModal(item);
+            }
+        }
+
+        // Handle View File click in FileName column
+        if (column.id === 'FileName') {
+            if (clickedElement.classList.contains('fa-eye') || clickedElement.closest('.fa-eye')) {
+                const item = args.grid.getDataItem(args.row);
+                this.openAddFileModal(item);
+            }
+        }
     }
+
+    openAddFileModal(rowData: any): void {
+        if (!rowData) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                'Vui lòng chọn dòng hợp lệ để thêm file!'
+            );
+            return;
+        }
+
+        const modalRef = this.modalService.open(BillExportDetailFileComponent, {
+            size: 'md',
+            centered: true,
+            backdrop: 'static',
+            keyboard: false,
+        });
+
+        let currentFiles: any[] = [];
+        if (rowData.AttachedFiles) {
+            if (typeof rowData.AttachedFiles === 'string') {
+                try {
+                    currentFiles = JSON.parse(rowData.AttachedFiles);
+                } catch {
+                    currentFiles = [];
+                }
+            } else if (Array.isArray(rowData.AttachedFiles)) {
+                currentFiles = rowData.AttachedFiles;
+            }
+        }
+
+        modalRef.componentInstance.fileData = [...currentFiles];
+        modalRef.componentInstance.fileName = rowData.ProductCode || 'Sản phẩm';
+        modalRef.componentInstance.billExportDetailId = rowData.ID > 0 ? rowData.ID : 0;
+
+        modalRef.result.then(
+            (result) => {
+                if (result && result.fileData) {
+                    rowData.AttachedFiles = result.fileData;
+                    rowData.FileName = result.fileData.map((f: any) => f.FileName).join(', ');
+
+                    // Lưu ID các file bị xóa vào list tổng cấp component nếu ID > 0
+                    if (result.deletedFileIds && result.deletedFileIds.length > 0) {
+                        result.deletedFileIds.forEach((fileId: any) => {
+                            const id = Number(fileId);
+                            if (id > 0 && !this.deletedFileIds.includes(id)) {
+                                this.deletedFileIds.push(id);
+                            }
+                        });
+                    }
+
+                    this.angularGridDetail.gridService.updateItem(rowData);
+                    this.hasInventoryRelatedChange = true;
+                }
+            },
+            (reason) => {
+                console.log('File modal dismissed:', reason);
+            }
+        );
+    }
+
+
 
     /** Xử lý thay đổi giá trị cell (chọn sản phẩm, dự án, số lượng) */
     onCellChange(args: any): void {
@@ -1425,12 +1579,14 @@ export class BillExportDetailNewComponent
                 args.item.ProductName = selectedProduct.ProductName || '';
                 args.item.Unit = selectedProduct.Unit || '';
                 args.item.TotalInventory = selectedProduct.TotalInventory || 0;
+                args.item.TotalQuantityKeep = selectedProduct.TotalQuantityKeep || 0;
             } else {
                 args.item.ProductCode = '';
                 args.item.ProductNewCode = '';
                 args.item.ProductName = '';
                 args.item.Unit = '';
                 args.item.TotalInventory = 0;
+                args.item.TotalQuantityKeep = 0;
             }
 
             // ✅ Clear inventory allocation when ProductID changes
@@ -1479,6 +1635,7 @@ export class BillExportDetailNewComponent
                                 rowItem.ProductName = args.item.ProductName;
                                 rowItem.Unit = args.item.Unit;
                                 rowItem.TotalInventory = args.item.TotalInventory;
+                                rowItem.TotalQuantityKeep = args.item.TotalQuantityKeep;
                             }
                             // If editing ProjectID, copy related project fields
                             else if (field === 'ProjectID') {
@@ -1525,6 +1682,7 @@ export class BillExportDetailNewComponent
             ProductName: '',
             Unit: '',
             TotalInventory: 0,
+            TotalQuantityKeep: 0,
             Qty: 0,
             QuantityRemain: 0,
             ProjectID: 0,
@@ -1690,11 +1848,15 @@ export class BillExportDetailNewComponent
                         RequestDate: new Date(data.RequestDate),
                         IsApproved: data.IsApproved || false,
                         IsTransfer: data.IsTransfer || false,
+                        DeliveryTime: data.DeliveryTime ? new Date(data.DeliveryTime) : null,
+                        IsAfterHours: data.IsAfterHours || false,
+                        ReceiverID: data.ReceiverID || this.appUserService.id || null,
                     };
                     this.validateForm.patchValue(this.newBillExport);
                     this.validateForm.patchValue({
                         IsTransfer: data.IsTransfer || false,
                         WareHouseTranferID: data.WareHouseTranferID || null,
+                        IsAfterHours: data.IsAfterHours || false,
                     });
 
                     this.isLoadingEditData = true;
@@ -1724,12 +1886,13 @@ export class BillExportDetailNewComponent
 
     /** Lấy danh sách chi tiết phiếu xuất theo BillExport ID */
     getBillExportDetailID(): void {
+        if (!this.id || this.id <= 0) return; // Guard: không gọi API khi id không hợp lệ
         this.isLoading = true;
         this.billExportService.getBillExportDetail(this.id).subscribe({
             next: (res) => {
                 if (res?.data) {
                     const rawData = Array.isArray(res.data) ? res.data : [res.data];
-                    this.dataDetail = rawData.map((item: any) => {
+                    this.dataDetail = rawData.map((item: any, index: number) => {
                         const productInfo = this.productGridCollection.find(
                             (p: any) => p.value === item.ProductID
                         );
@@ -1738,6 +1901,7 @@ export class BillExportDetailNewComponent
                         );
 
                         return {
+                            id: index + 1,
                             ID: item.ID || 0,
                             POKHDetailID: item.POKHDetailID || 0,
                             ProductID: item.ProductID || 0,
@@ -1746,6 +1910,7 @@ export class BillExportDetailNewComponent
                             ProductName: item.ProductName || productInfo?.ProductName || '',
                             Unit: item.Unit || productInfo?.Unit || '',
                             TotalInventory: productInfo?.TotalInventory || 0,
+                            TotalQuantityKeep: item.TotalQuantityKeep || productInfo?.TotalQuantityKeep || 0,
                             Qty: item.Qty || 0,
                             QuantityRemain: item.QuantityRemain || 0,
                             ProjectID: item.ProjectID || 0,
@@ -1774,7 +1939,10 @@ export class BillExportDetailNewComponent
                             BillImportDetailID: item.BillImportDetailID || 0,
                             POKHDetailIDActual: item.POKHDetailIDActual || 0,
                             PONumber: item.PONumber || '',
+                            FileName: item.FileName || '',
+                            AttachedFiles: [],
                         };
+
                     });
                     this.refreshGrid();
                     setTimeout(() => this.updateDetailFooter(), 100);
@@ -1822,9 +1990,32 @@ export class BillExportDetailNewComponent
                         UserReceiver: item.UserReceiver || '',
                         CustomerResponse: item.CustomerResponse || '',
                         SerialNumber: item.SerialNumber || '',
-                        POKHID: item.POKHID || 0,
                         BillImportDetailID: item.BillImportDetailID || item.ID || 0,
+                        FileName: item.FileName || '',
+                        AttachedFiles: (() => {
+                            let files: any[] = [];
+                            if (item.AttachedFiles) {
+                                if (typeof item.AttachedFiles === 'string') {
+                                    try {
+                                        files = JSON.parse(item.AttachedFiles);
+                                    } catch {
+                                        files = [];
+                                    }
+                                } else if (Array.isArray(item.AttachedFiles)) {
+                                    files = item.AttachedFiles;
+                                }
+                            } else if (item.FileName) {
+                                files = item.FileName.split(',').map((name: string, idx: number) => ({
+                                    ID: 0,
+                                    FileName: name.trim(),
+                                    FilePath: '',
+                                    ServerPath: ''
+                                }));
+                            }
+                            return files;
+                        })(),
                     }));
+
                     this.refreshGrid();
                     setTimeout(() => this.updateDetailFooter(), 100);
                 }
@@ -1900,6 +2091,7 @@ export class BillExportDetailNewComponent
                                 ProductName: product.ProductName,
                                 Unit: product.Unit,
                                 TotalInventory: product.TotalQuantityLast || 0,
+                                TotalQuantityKeep: product.TotalQuantityKeep || 0,
                             }));
                     } else {
                         this.productGridCollection = [];
@@ -1970,6 +2162,20 @@ export class BillExportDetailNewComponent
         this.newBillExport.Status = value;
         this.updateColumnVisibility();
         this.updateDateValidators(value);
+
+        if (value === 0 || value === 7) {
+            const currentVal = this.validateForm.get('ReceiverID')?.value;
+            if (!currentVal || currentVal <= 0) {
+                const currentEmployeeId = this.appUserService.id || 0;
+                this.validateForm.patchValue({ ReceiverID: currentEmployeeId });
+            }
+
+            const currentUserId = this.validateForm.get('UserID')?.value;
+            if (!currentUserId || currentUserId <= 0) {
+                const currentEmployeeId = this.appUserService.id || 0;
+                this.validateForm.patchValue({ UserID: currentEmployeeId });
+            }
+        }
 
         // Lấy lại mã phiếu mới theo loại khi tạo mới (không phải edit)
         if (!this.isCheckmode) {
@@ -2416,6 +2622,10 @@ export class BillExportDetailNewComponent
             return { isValid: false, message: 'Xin hãy chọn nhân viên.' };
         }
 
+        if ((status === 0 || status === 7) && (!formValues.ReceiverID || formValues.ReceiverID <= 0)) {
+            return { isValid: false, message: 'Xin hãy chọn người nhận!' };
+        }
+
         if (!formValues.KhoTypeID || formValues.KhoTypeID <= 0) {
             return { isValid: false, message: 'Xin hãy chọn kho quản lý.' };
         }
@@ -2430,6 +2640,10 @@ export class BillExportDetailNewComponent
 
         if (status !== 6 && !formValues.CreatDate) {
             return { isValid: false, message: 'Xin hãy chọn Ngày xuất!' };
+        }
+
+        if (!formValues.DeliveryTime) {
+            return { isValid: false, message: 'Xin hãy chọn Thời gian nhận hàng!' };
         }
 
         if (this.dataDetail.length === 0) {
@@ -2582,11 +2796,12 @@ export class BillExportDetailNewComponent
         const insufficientMessages: string[] = [];
         const skipUnitNames = ['m', 'mét', 'met'];
 
-        // ✅ Nhóm theo ProductID + ProjectID + POKHDetailID
+        // ✅ Nhóm theo ProductID + ProjectID + POKHDetailID + IsHoldingBorrow
         const groups = new Map<string, {
             productID: number;
             projectID: number;
             pokhDetailID: number;
+            isHoldingBorrow: boolean;
             totalQty: number;
             sampleRow: any;
         }>();
@@ -2596,18 +2811,20 @@ export class BillExportDetailNewComponent
             const projectID = Number(row.ProjectID || 0);
             const pokhDetailID = Number(row.POKHDetailIDActual || row.POKHDetailID || 0);
             const qty = parseFloat(row.Qty || 0);
+            const isHoldingBorrow = row.IsHoldingBorrow === true || (this.isHoldingBorrow && (row.TotalInventory || row.TotalQuantityLast || 0) <= 0);
 
             if (productID <= 0 || qty <= 0) return;
 
             // ✅ Nếu có POKHDetailID thì ProjectID = 0
             const finalProjectID = pokhDetailID > 0 ? 0 : projectID;
-            const key = `${productID}-${finalProjectID}-${pokhDetailID}`;
+            const key = `${productID}-${finalProjectID}-${pokhDetailID}-${isHoldingBorrow ? 1 : 0}`;
 
             if (!groups.has(key)) {
                 groups.set(key, {
                     productID,
                     projectID: finalProjectID,
                     pokhDetailID,
+                    isHoldingBorrow,
                     totalQty: 0,
                     sampleRow: row
                 });
@@ -2617,11 +2834,12 @@ export class BillExportDetailNewComponent
         });
 
         // ✅ Kiểm tra từng nhóm
-        groups.forEach((group, key) => {
-            const invInfo = this.productInventoryDetailMap.get(key);
+        groups.forEach((group) => {
+            const mapKey = `${group.productID}-${group.projectID}-${group.pokhDetailID}`;
+            const invInfo = this.productInventoryDetailMap.get(mapKey);
 
             if (!invInfo) {
-                insufficientMessages.push(`Nhóm [${key}]: Chưa nạp được dữ liệu tồn kho.`);
+                insufficientMessages.push(`Nhóm [${mapKey}]: Chưa nạp được dữ liệu tồn kho.`);
                 return;
             }
 
@@ -2629,31 +2847,34 @@ export class BillExportDetailNewComponent
             const unit = (group.sampleRow?.Unit || '').toLowerCase().trim();
             if (skipUnitNames.includes(unit)) return;
 
-            // ✅ Tổng tồn = Giữ + Còn lại + Tồn CK
-            const totalStock = invInfo.totalQuantityKeep + invInfo.totalQuantityRemain + invInfo.totalQuantityLast;
+            const productDisplay = group.sampleRow?.ProductNewCode || group.sampleRow?.ProductCode || `ID:${group.productID}`;
 
-            if (group.totalQty > totalStock) {
-                const productDisplay = group.sampleRow?.ProductNewCode || group.sampleRow?.ProductCode || `ID:${group.productID}`;
-
-                let locationInfo = '';
-                if (group.projectID > 0) {
-                    locationInfo = ` (Dự án: ${group.projectID})`;
-                } else if (group.pokhDetailID > 0) {
-                    locationInfo = ` (POKH Detail: ${group.pokhDetailID})`;
+            // ✅ Trường hợp dòng mượn hàng giữ (IsHoldingBorrow = true) -> So sánh SL xuất với SL hàng giữ
+            if (group.isHoldingBorrow) {
+                const keepQty = invInfo.totalQuantityKeep;
+                if (group.totalQty > keepQty) {
+                    insufficientMessages.push(
+                        `[${productDisplay}]\n` +
+                        `SL xuất: ${group.totalQty.toFixed(2)} > SL hàng giữ: ${keepQty.toFixed(2)}`
+                    );
                 }
+            } else {
+                // ✅ Trường hợp bình thường -> So sánh SL xuất với tổng tồn kho
+                const totalStock = invInfo.totalQuantityKeep + invInfo.totalQuantityRemain + invInfo.totalQuantityLast;
 
-                const showKeepQty = group.projectID > 0 && group.pokhDetailID > 0;
+                if (group.totalQty > totalStock) {
+                    const showKeepQty = invInfo.totalQuantityKeep > 0 || group.projectID > 0 || group.pokhDetailID > 0;
 
-                const keepQtyText = showKeepQty
-                    ? `SL giữ: ${invInfo.totalQuantityKeep.toFixed(2)} + `
-                    : '';
+                    const keepQtyText = showKeepQty && invInfo.totalQuantityKeep > 0
+                        ? `SL giữ: ${invInfo.totalQuantityKeep.toFixed(2)} + `
+                        : '';
 
-                insufficientMessages.push(
-                    `[${productDisplay}]\n` +
-                    `SL xuất: ${group.totalQty.toFixed(2)} > Tổng tồn: ${totalStock.toFixed(2)}\n` +
-                    `(${keepQtyText}SL giữ: ${invInfo.totalQuantityRemain.toFixed(2)} + Tồn CK: ${invInfo.totalQuantityLast.toFixed(2)})`
-                );
-
+                    insufficientMessages.push(
+                        `[${productDisplay}]\n` +
+                        `SL xuất: ${group.totalQty.toFixed(2)} > Tổng tồn: ${totalStock.toFixed(2)}\n` +
+                        `(${keepQtyText}SL còn lại: ${invInfo.totalQuantityRemain.toFixed(2)} + Tồn CK: ${invInfo.totalQuantityLast.toFixed(2)})`
+                    );
+                }
             }
         });
 
@@ -2792,6 +3013,7 @@ export class BillExportDetailNewComponent
             productID: number;
             projectID: number;
             pokhDetailID: number;
+            sampleRow: any;
         }>();
 
         tableData.forEach((row: any) => {
@@ -2809,7 +3031,8 @@ export class BillExportDetailNewComponent
                 groups.set(key, {
                     productID,
                     projectID: finalProjectID,
-                    pokhDetailID
+                    pokhDetailID,
+                    sampleRow: row
                 });
             }
         });
@@ -2838,10 +3061,10 @@ export class BillExportDetailNewComponent
                     const dtExport = res.export || [];                     // Bảng 2: Export
                     const dtStock = res.stock || [];                       // Bảng 3: Stock
 
-                    // ✅ Tính toán tồn kho
-                    const totalQuantityKeep = inventoryProjects.length > 0
-                        ? Number(inventoryProjects[0].TotalQuantity || 0)
-                        : 0;
+                    // ✅ Tính toán tồn kho giữ (tổng từ API hoặc dùng fallback sampleRow.TotalQuantityKeep nếu projectID = 0)
+                    const totalKeepFromAPI = inventoryProjects.reduce((sum: number, inv: any) => sum + Number(inv.TotalQuantity || 0), 0);
+                    const fallbackKeep = Number(group.sampleRow?.TotalQuantityKeep || 0);
+                    const totalQuantityKeep = totalKeepFromAPI > 0 ? totalKeepFromAPI : fallbackKeep;
 
                     const totalImport = dtImport.length > 0
                         ? Number(dtImport[0].TotalImport || 0)
@@ -2937,9 +3160,11 @@ export class BillExportDetailNewComponent
                 UnitPricePOKH: row.UnitPricePOKH || 0,
                 UnitPricePurchase: row.UnitPricePurchase || 0,
                 BillCode: row.BillCode || '',
-                UserReceiver: row.UserReceiver || '',
+                FileIds: (row.AttachedFiles || []).map((f: any) => f.ID || f.fileID || 0).filter((id: number) => id > 0)
             };
         });
+
+
     }
 
     /** Kiểm tra số lượng serial đã đủ chưa trước khi lưu */
@@ -3039,64 +3264,69 @@ export class BillExportDetailNewComponent
                 }
             }
 
-            // --- 5. GỬI PAYLOAD LƯU ---
+            // --- 5. UPLOAD FILE ĐÍNH KÈM NẾU CÓ ---
+            const filesToUpload: File[] = [];
+            const fileMappings: { rowIndex: number; fileIndex: number }[] = [];
 
-            const wareHouseCode = this.dataCbbProductGroup.find((p: any) => p.ID === formValues.KhoTypeID);
-
-            const payload = {
-                BillExport: {
-                    ID: this.newBillExport.Id || 0,
-                    Code: formValues.Code,
-                    TypeBill: false,
-                    SupplierID: formValues.SupplierID,
-                    CustomerID: formValues.CustomerID,
-                    UserID: formValues.UserID,
-                    SenderID: formValues.SenderID,
-                    StockID: this.newBillExport.AddressStockID,
-                    Description: '',
-                    Address: formValues.Address,
-                    Status: formValues.Status,
-                    GroupID: this.newBillExport.GroupID,
-                    WarehouseType: wareHouseCode ? wareHouseCode.ProductGroupName : this.newBillExport.WarehouseType,
-                    KhoTypeID: formValues.KhoTypeID,
-                    CreatDate: this.toLocalISOString(formValues.CreatDate),
-                    CreatedDate: this.toLocalISOString(formValues.CreatDate),
-                    UpdatedDate: this.toLocalISOString(new Date()),
-                    ProductType: formValues.ProductType,
-                    AddressStockID: formValues.AddressStockID || this.newBillExport.AddressStockID,
-                    WarehouseID: this.newBillExport.WarehouseID,
-                    RequestDate: this.toLocalISOString(formValues.RequestDate),
-                    BillDocumentExportType: 2,
-                    IsApproved: this.newBillExport.IsApproved || false,
-                    IsTransfer: formValues.IsTransfer,
-                    WareHouseTranferID: formValues.WareHouseTranferID,
-                    IsPrepared: false,
-                    IsReceived: false,
-                    IsDeleted: false,
-                },
-                billExportDetail: this.mapTableDataToBillExportDetails(tableData),
-                DeletedDetailIds: this.deletedDetailIds || [],
-            };
-
-            this.billExportService.saveBillExport(payload).subscribe({
-                next: (res: any) => {
-                    if (res.status === 1) {
-                        this.notification.success(
-                            NOTIFICATION_TITLE.success,
-                            this.isCheckmode ? 'Cập nhật thành công!' : 'Thêm mới thành công!'
-                        );
-                        this.activeModal.close(true);
-                    } else {
-                        this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Lỗi khi lưu phiếu');
-                    }
-                    this.isSaving = false;
-                },
-                error: (err: any) => {
-                    console.log(err);
-                    this.showErrorNotification(err?.error?.message || err?.message);
-                    this.isSaving = false;
-                },
+            tableData.forEach((row: any, rowIndex: number) => {
+                if (row.AttachedFiles && Array.isArray(row.AttachedFiles)) {
+                    row.AttachedFiles.forEach((file: any, fileIndex: number) => {
+                        if (file.FileObject) {
+                            filesToUpload.push(file.FileObject);
+                            fileMappings.push({ rowIndex, fileIndex });
+                        }
+                    });
+                }
             });
+
+            if (filesToUpload.length > 0) {
+                console.log(`⏳ Đang upload ${filesToUpload.length} file đính kèm mới lên server...`);
+                this.billExportService.uploadFiles(filesToUpload).subscribe({
+                    next: (res) => {
+                        if (res?.status === 1 && Array.isArray(res.data)) {
+                            console.log('✅ Upload file thành công. Tiến hành lưu phiếu.');
+
+                            // Map đường dẫn server về đúng dòng chi tiết
+                            res.data.forEach((serverFile: any, index: number) => {
+                                const mapping = fileMappings[index];
+                                const row = tableData[mapping.rowIndex];
+                                const fileItem = row.AttachedFiles[mapping.fileIndex];
+
+                                fileItem.ID = serverFile.fileID || serverFile.ID || 0;
+                                fileItem.fileID = serverFile.fileID || serverFile.ID || 0;
+                                fileItem.FilePath = serverFile.filePath || serverFile.ServerPath || '';
+                                fileItem.ServerPath = serverFile.filePath || serverFile.ServerPath || '';
+                                delete fileItem.FileObject; // Xóa đối tượng File thô
+                                fileItem.IsNew = false;
+                            });
+
+                            // Cập nhật lại chuỗi tên file
+                            tableData.forEach((row: any) => {
+                                if (row.AttachedFiles) {
+                                    row.FileName = row.AttachedFiles.map((f: any) => f.FileName).join(', ');
+                                }
+                            });
+
+                            this.executeSaveBillExport(formValues, tableData);
+                        } else {
+                            this.isSaving = false;
+                            this.notification.error(
+                                NOTIFICATION_TITLE.error,
+                                res?.message || 'Có lỗi xảy ra khi upload file đính kèm.'
+                            );
+                        }
+                    },
+                    error: (err) => {
+                        this.isSaving = false;
+                        this.notification.error(
+                            NOTIFICATION_TITLE.error,
+                            err?.error?.message || err?.message || 'Lỗi kết nối khi upload file đính kèm.'
+                        );
+                    }
+                });
+            } else {
+                this.executeSaveBillExport(formValues, tableData);
+            }
 
         } catch (error: any) {
             console.error('Lỗi quy trình lưu:', error);
@@ -3104,6 +3334,74 @@ export class BillExportDetailNewComponent
             this.isSaving = false;
         }
     }
+
+    /** Thực hiện submit dữ liệu lưu phiếu xuất lên server */
+    private executeSaveBillExport(formValues: any, tableData: any[]): void {
+        const wareHouseCode = this.dataCbbProductGroup.find((p: any) => p.ID === formValues.KhoTypeID);
+
+        const payload = {
+            BillExport: {
+                ID: this.newBillExport.Id || 0,
+                Code: formValues.Code,
+                TypeBill: false,
+                SupplierID: formValues.SupplierID,
+                CustomerID: formValues.CustomerID,
+                UserID: formValues.UserID,
+                SenderID: formValues.SenderID,
+                StockID: this.newBillExport.AddressStockID,
+                Description: '',
+                Address: formValues.Address,
+                Status: formValues.Status,
+                GroupID: this.newBillExport.GroupID,
+                WarehouseType: wareHouseCode ? wareHouseCode.ProductGroupName : this.newBillExport.WarehouseType,
+                KhoTypeID: formValues.KhoTypeID,
+                CreatDate: this.toLocalISOString(formValues.CreatDate),
+                CreatedDate: this.toLocalISOString(formValues.CreatDate),
+                UpdatedDate: this.toLocalISOString(new Date()),
+                ProductType: formValues.ProductType,
+                AddressStockID: formValues.AddressStockID || this.newBillExport.AddressStockID,
+                WarehouseID: this.newBillExport.WarehouseID,
+                RequestDate: this.toLocalISOString(formValues.RequestDate),
+                DeliveryTime: formValues.DeliveryTime ? this.toLocalISOString(formValues.DeliveryTime) : null,
+                IsAfterHours: formValues.IsAfterHours || false,
+                BillDocumentExportType: 2,
+                IsApproved: this.newBillExport.IsApproved || false,
+                IsTransfer: formValues.IsTransfer,
+                WareHouseTranferID: formValues.WareHouseTranferID,
+                ReceiverID: ((this.newBillExport.Id || 0) === 0 && formValues.Status !== 0 && formValues.Status !== 7)
+                    ? 0
+                    : (formValues.ReceiverID || this.appUserService.id || 0),
+                IsPrepared: false,
+                IsReceived: false,
+                IsDeleted: false,
+            },
+            billExportDetail: this.mapTableDataToBillExportDetails(tableData),
+
+            DeletedDetailIds: this.deletedDetailIds || [],
+            DeletedFileIds: this.deletedFileIds || [],
+        };
+
+        this.billExportService.saveBillExport(payload).subscribe({
+            next: (res: any) => {
+                if (res.status === 1) {
+                    this.notification.success(
+                        NOTIFICATION_TITLE.success,
+                        this.isCheckmode ? 'Cập nhật thành công!' : 'Thêm mới thành công!'
+                    );
+                    this.activeModal.close(true);
+                } else {
+                    this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Lỗi khi lưu phiếu');
+                }
+                this.isSaving = false;
+            },
+            error: (err: any) => {
+                console.log(err);
+                this.showErrorNotification(err?.error?.message || err?.message);
+                this.isSaving = false;
+            },
+        });
+    }
+
     //#endregion
 
     //#region Download PO Files

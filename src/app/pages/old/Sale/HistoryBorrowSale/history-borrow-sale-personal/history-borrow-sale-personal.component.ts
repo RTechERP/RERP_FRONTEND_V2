@@ -34,6 +34,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
+import { BillExportDetailFileComponent } from '../../BillExport/bill-export-detail-file/bill-export-detail-file.component';
 import { PermissionService } from '../../../../../services/permission.service';
 import { AppUserService } from '../../../../../services/app-user.service';
 
@@ -55,7 +56,8 @@ import { AppUserService } from '../../../../../services/app-user.service';
     NzSpinModule,
     AngularSlickgridModule,
     MenubarModule,
-    NzDropDownModule
+    NzDropDownModule,
+    BillExportDetailFileComponent
   ],
   templateUrl: './history-borrow-sale-personal.component.html',
   styleUrl: './history-borrow-sale-personal.component.css'
@@ -289,6 +291,30 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
             filter: true,
           } as MultipleSelectOption,
         },
+      },
+      {
+        id: 'OverdueDays',
+        name: 'Số ngày quá hạn',
+        field: 'OverdueDays',
+        sortable: true,
+        filterable: true,
+        width: 130,
+        formatter: Formatters.decimal,
+        params: { minDecimal: 0, maxDecimal: 0 },
+        filter: { model: Filters['compoundInputNumber'] },
+        cssClass: 'text-end'
+      },
+      {
+        id: 'TotalExtend',
+        name: 'Số lần gia hạn',
+        field: 'TotalExtend',
+        sortable: true,
+        filterable: true,
+        width: 130,
+        formatter: Formatters.decimal,
+        params: { minDecimal: 0, maxDecimal: 0 },
+        filter: { model: Filters['compoundInputNumber'] },
+        cssClass: 'text-end'
       },
       {
         id: 'BorrowDate',
@@ -669,6 +695,62 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
 
       // Context menu
       enableContextMenu: true,
+      contextMenu: {
+          hideCloseButton: false,
+          hideCopyCellValueCommand: true,
+          commandTitle: '',
+          commandItems: [
+              {
+                  command: 'view-borrow-images',
+                  title: 'Xem ảnh mượn đồ',
+                  iconCssClass: 'fa-solid fa-image text-primary',
+                  positionOrder: 49,
+                  action: (_e, args) => {
+                      this.viewBorrowImages(args.dataContext);
+                  }
+              },
+              {
+                  command: 'copy-cell',
+                  title: 'Copy',
+                  iconCssClass: 'mdi mdi-content-copy',
+                  positionOrder: 50,
+                  action: (_e, args) => {
+                      const value = args.cell?.toString() || '';
+                      navigator.clipboard.writeText(value).catch(() => {
+                          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể copy!');
+                      });
+                  }
+              },
+              { divider: true, command: '', positionOrder: 51 },
+              {
+                  command: 'create-return',
+                  title: 'Tạo phiếu trả',
+                  iconCssClass: 'mdi mdi-file-document-plus',
+                  positionOrder: 52,
+                  action: (_e, args) => {
+                      this.createReturnFromContext(args.dataContext);
+                  }
+              },
+              {
+                  command: 'view-borrow',
+                  title: 'Chi tiết phiếu mượn',
+                  iconCssClass: 'mdi mdi-eye',
+                  positionOrder: 53,
+                  action: (_e, args) => {
+                      this.viewBorrowDetail(args.dataContext);
+                  }
+              },
+              {
+                  command: 'view-return',
+                  title: 'Chi tiết trả hàng',
+                  iconCssClass: 'mdi mdi-file-document',
+                  positionOrder: 54,
+                  action: (_e, args) => {
+                      this.viewReturnDetail(args.dataContext);
+                  }
+              },
+          ]
+      },
       enableGrouping: true,
       enableHtmlRendering: true,
       frozenColumn: 4,
@@ -975,6 +1057,26 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
     });
   }
 
+  viewBorrowImages(rowData: any) {
+    if (!rowData) return;
+
+    const borrowID = rowData.BorrowID;
+    if (!borrowID || borrowID === 0) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không có ảnh đăng ký mượn!');
+      return;
+    }
+
+    const modalRef = this.modalService.open(BillExportDetailFileComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      size: 'lg'
+    });
+
+    modalRef.componentInstance.billExportDetailId = borrowID;
+    modalRef.componentInstance.fileName = rowData.ProductName || rowData.BorrowCode || '';
+    modalRef.componentInstance.isHistoryBorrow = true;
+  }
+
   //#region Gia hạn
   disabledExtendDate = (current: Date): boolean => {
     const today = new Date();
@@ -1012,9 +1114,24 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
       return;
     }
 
-    this._extendSelectedIds = !this.appUserService.isAdmin ?
-      filteredRows.map((item: any) => item.BorrowID) :
-      selectedRows.map((item: any) => item.BorrowID);
+    let validRows = [];
+    if (!this.appUserService.isAdmin) {
+      const exceededLimitRows = filteredRows.filter((item: any) => Number(item.TotalExtend || 0) >= 3);
+      if (exceededLimitRows.length > 0) {
+        const codes = exceededLimitRows.map((item: any) => item.ProductCode || item.ProductNewCode).join(', ');
+        this.notification.warning('Thông báo', `Sản phẩm (${codes}) đã quá số lần gia hạn (tối đa 3 lần) nên bị bỏ qua. Vui lòng liên hệ với admin để gia hạn thêm!`);
+      }
+
+      validRows = filteredRows.filter((item: any) => Number(item.TotalExtend || 0) < 3);
+      if (validRows.length === 0) {
+        this.notification.warning('Thông báo', 'Không có sản phẩm hợp lệ nào đủ điều kiện để gia hạn!');
+        return;
+      }
+    } else {
+      validRows = selectedRows;
+    }
+
+    this._extendSelectedIds = validRows.map((item: any) => item.BorrowID);
     this.extendDate = new Date(new Date().setMonth(new Date().getMonth() + 1));
     this.extendModalVisible = true;
   }

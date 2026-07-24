@@ -181,10 +181,58 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
         // when enableCheckboxSelector: true is set in gridOptions
         this.columnDefinitions = [
             {
+                id: 'IsIncurredApproved',
+                name: 'Duyệt phát sinh',
+                field: 'IsIncurredApproved',
+                sortable: true,
+                filterable: true,
+                formatter: Formatters.checkmarkMaterial,
+                exportCustomFormatter: (_row, _cell, value) => {
+                    return value === true || value === 1 ? 'V' : 'X';
+                },
+                cssClass: 'text-center',
+                filter: {
+                    collection: [
+                        { value: '', label: '' },
+                        { value: true, label: 'Có' },
+                        { value: false, label: 'Không' },
+                    ],
+                    model: Filters['singleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                    } as MultipleSelectOption,
+                },
+                width: 90,
+            },
+            {
+                id: 'IsAfterHours',
+                name: 'Phát sinh',
+                field: 'IsAfterHours',
+                sortable: true,
+                filterable: true,
+                formatter: Formatters.checkmarkMaterial,
+                exportCustomFormatter: (_row, _cell, value) => {
+                    return value === true || value === 1 ? 'V' : 'X';
+                },
+                cssClass: 'text-center',
+                filter: {
+                    collection: [
+                        { value: '', label: '' },
+                        { value: true, label: 'Có' },
+                        { value: false, label: 'Không' },
+                    ],
+                    model: Filters['singleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                    } as MultipleSelectOption,
+                },
+                width: 60
+            },
+            {
                 id: 'IsApproved',
                 name: 'Nhận chứng từ',
                 field: 'IsApproved',
-                width: 100,
+                width: 80,
                 sortable: true,
                 filterable: true,
                 formatter: Formatters.checkmarkMaterial,
@@ -208,7 +256,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 id: 'DateStatus',
                 name: 'Ngày nhận',
                 field: 'DateStatus',
-                width: 120,
+                width: 100,
                 sortable: true,
                 filterable: true,
                 formatter: Formatters.date,
@@ -222,7 +270,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 id: 'nameStatus',
                 name: 'Trạng Thái',
                 field: 'nameStatus',
-                width: 120,
+                width: 80,
                 sortable: true,
                 filterable: true,
                 filter: {
@@ -237,7 +285,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 id: 'RequestDate',
                 name: 'Ngày yêu cầu xuất kho',
                 field: 'RequestDate',
-                width: 150,
+                width: 100,
                 sortable: true,
                 filterable: true,
                 formatter: Formatters.date,
@@ -251,7 +299,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 id: 'Code',
                 name: 'Số phiếu',
                 field: 'Code',
-                width: 150,
+                width: 100,
                 sortable: true,
                 filterable: true,
                 filter: {
@@ -270,7 +318,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 id: 'DepartmentName',
                 name: 'Phòng ban',
                 field: 'DepartmentName',
-                width: 150,
+                width: 100,
                 sortable: true,
                 filterable: true,
                 filter: {

@@ -20,7 +20,8 @@ export class InventoryService {
     Find: string,
     WarehouseCode: string,
     IsStock: boolean,
-    productGroupID: number
+    productGroupID: number,
+    isStandardized: boolean
   ): Observable<any> {
     const params: any = {
       checkAll: checkAll,
@@ -28,6 +29,7 @@ export class InventoryService {
       WarehouseCode: WarehouseCode.trim(),
       IsStock: IsStock,
       productGroupID: productGroupID.toString(),
+      IsStandardized: isStandardized
     };
     return this.httpclient.post(
       environment.host + `api/inventory/get-inventory`,
@@ -135,7 +137,7 @@ export class InventoryService {
     };
     return this.httpclient.post(`${environment.host}api/inventory/set-location-list`, params);
   }
-    getInventoryNotExport(
+  getInventoryNotExport(
     checkAll: boolean,
     Find: string,
     WarehouseCode: string,
@@ -158,4 +160,12 @@ export class InventoryService {
       params
     );
   }
+
+  // inventoryApprovedIsfix(data: any): Observable<any> {
+  //   return this.httpclient.post<any>(
+  //     environment.host + 'api/Inventory/inventory-approved-isfix',
+  //     data
+  //   );
+  // }
 }
+

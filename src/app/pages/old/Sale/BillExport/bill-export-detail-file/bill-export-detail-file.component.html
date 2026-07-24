@@ -1,0 +1,85 @@
+<div
+  class="modal-header bg-primary text-uppercase py-2 flex-shrink-0 text-white d-flex justify-content-between align-items-center">
+  <h6 class="modal-title text-white">Ảnh mượn đồ đính kèm - {{ fileName }}</h6>
+  <button type="button" class="btn-close btn-close-white" (click)="activeModal.dismiss()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-3" style="height: 50vh !important;">
+  <nz-spin [nzSpinning]="isUploading" nzTip="Đang tải tệp tin lên máy chủ...">
+    <!-- Drag & Drop Zone -->
+    <div *ngIf="!isHistoryBorrow" class="upload-dropzone" [class.dragover]="isDragOver" (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)" (drop)="onDrop($event)" (click)="triggerFileSelect(fileInput)">
+      <input type="file" #fileInput multiple accept="image/*" style="display: none;" (change)="onFileSelected($event)" />
+      <div class="dropzone-content text-center">
+        <i nz-icon nzType="cloud-upload" class="upload-icon"></i>
+        <p class="upload-text-main mt-2 mb-1">Kéo thả ảnh vào đây hoặc click để duyệt ảnh</p>
+        <span class="upload-text-sub text-muted">Chỉ hỗ trợ đính kèm các tệp tin dạng ảnh (*.jpg, *.png, *.jpeg...)</span>
+      </div>
+    </div>
+
+    <!-- Danh sách tệp đính kèm -->
+    <div class="file-list-container mt-3">
+      <h6 class="file-list-title mb-2 d-flex justify-content-between align-items-center">
+        <span>Ảnh đã chọn ({{ fileData.length }})</span>
+      </h6>
+
+      <div *ngIf="fileData.length === 0" class="no-files-alert text-center py-4 text-muted">
+        <i nz-icon nzType="inbox" style="font-size: 28px; opacity: 0.6;"></i>
+        <p class="mb-0 mt-1">Chưa có ảnh nào được đính kèm</p>
+      </div>
+
+      <div *ngIf="fileData.length > 0" class="file-items-scroll">
+        <div *ngFor="let file of fileData; let i = index" class="file-item-card d-flex p-2 mb-2">
+          <div class="d-flex align-items-start flex-grow-1 min-w-0">
+            <!-- Icon file -->
+            <div class="file-icon-wrapper me-2 flex-shrink-0">
+              <i nz-icon [nzType]="getFileIcon(file.FileName)" class="file-icon"
+                [ngClass]="getFileIconClass(file.FileName)"></i>
+            </div>
+            <!-- Thông tin file -->
+            <div class="file-info min-w-0">
+              <div class="file-name" [title]="file.FileName">{{ file.FileName }}</div>
+              <div class="file-size text-muted small mt-1">
+                {{ formatFileSize(file.FileSize) }}
+                <span *ngIf="file.IsNew" class="badge bg-success-subtle text-success ms-2 font-size-10">Mới</span>
+              </div>
+            </div>
+          </div>
+          <!-- Nút xem trước -->
+          <button type="button"
+            class="btn btn-sm btn-view-file ms-2 flex-shrink-0 align-self-start d-flex align-items-center justify-content-center"
+            (click)="previewFile(file)" title="Xem ảnh">
+            <i nz-icon nzType="eye" nzTheme="outline"></i>
+          </button>
+          <!-- Nút xóa -->
+          <button *ngIf="!isHistoryBorrow" type="button"
+            class="btn btn-sm btn-delete-file ms-2 flex-shrink-0 align-self-start d-flex align-items-center justify-content-center"
+            (click)="removeFile(i)" title="Xóa tệp">
+            <i nz-icon nzType="delete" nzTheme="outline"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </nz-spin>
+</div>
+
+<div class="modal-footer py-2 flex-shrink-0">
+  <button type="button" class="btn btn-secondary fs-12" (click)="activeModal.dismiss()" [disabled]="isUploading">
+    Đóng
+  </button>
+  <button *ngIf="!isHistoryBorrow" type="button" class="btn btn-primary fs-12 d-flex align-items-center" (click)="save()"
+    [disabled]="isUploading">
+    <i nz-icon nzType="save" class="me-1"></i> Lưu
+  </button>
+</div>
+
+<!-- Image Preview Overlay -->
+<div *ngIf="previewVisible" class="image-preview-overlay" (click)="closePreview()">
+  <div class="image-preview-container" (click)="$event.stopPropagation()">
+    <img [src]="previewImage" alt="Preview Image" class="preview-img" />
+    <button type="button" class="btn-close-preview" (click)="closePreview()">
+      <i nz-icon nzType="close" nzTheme="outline"></i>
+    </button>
+  </div>
+</div>

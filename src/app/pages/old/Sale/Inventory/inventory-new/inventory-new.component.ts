@@ -137,6 +137,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         checkedAll: true,
         Find: '',
         checkedStock: false,
+        isStandardized: true,
     };
 
     isWareHouseDP: boolean = false;
@@ -149,6 +150,8 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         WareHouseID: 0,
         ParentID: 0
     };
+
+    isHoldingBorrow: boolean = false;
 
 
 
@@ -683,17 +686,17 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         // resizeGrid() trả về Promise, reject của nó không bị try/catch đồng bộ bắt được
         // nên phải catch trên Promise để tránh unhandled rejection khi grid đang re-render/destroy
         try {
-            this.angularGridProductGroup?.resizerService?.resizeGrid()?.catch(() => {});
+            this.angularGridProductGroup?.resizerService?.resizeGrid()?.catch(() => { });
         } catch (e) {
             // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
         }
         try {
-            this.angularGridPGWarehouse?.resizerService?.resizeGrid()?.catch(() => {});
+            this.angularGridPGWarehouse?.resizerService?.resizeGrid()?.catch(() => { });
         } catch (e) {
             // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
         }
         try {
-            this.angularGridInventory?.resizerService?.resizeGrid()?.catch(() => {});
+            this.angularGridInventory?.resizerService?.resizeGrid()?.catch(() => { });
         } catch (e) {
             // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
         }
@@ -982,7 +985,8 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.searchParam.Find,
                 this.warehouseCode,
                 this.searchParam.checkedStock,
-                this.productGroupID
+                this.productGroupID,
+                this.searchParam.isStandardized
             )
             .subscribe({
                 next: (res) => {
@@ -1260,6 +1264,73 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     //#endregion
 
+    // openInventoryApprovedIsfix(isApproved: boolean) {
+    //     const selectedData = this.getSelectedInventoryRows();
+    //     if (!selectedData || selectedData.length === 0) {
+    //         this.notification.warning(
+    //             NOTIFICATION_TITLE.warning,
+    //             `Vui lòng chọn ít nhất 1 sản phẩm để ${isApproved ? 'duyệt' : 'hủy duyệt'}!`
+    //         );
+    //         return;
+    //     }
+
+    //     // Lọc các dòng có IsApproved khác với trạng thái mong muốn
+    //     const filteredData = selectedData.filter((row: any) => {
+    //         return row.IsApproved != isApproved && row.ID > 0;
+    //     });
+
+    //     if (filteredData.length === 0) {
+    //         this.notification.warning(
+    //             NOTIFICATION_TITLE.warning,
+    //             `Tất cả sản phẩm đã chọn đã ở trạng thái ${isApproved ? 'Đã duyệt' : 'Chưa duyệt'}!`
+    //         );
+    //         return;
+    //     }
+
+    //     const actionText = isApproved ? 'Duyệt' : 'Hủy duyệt';
+    //     this.modal.confirm({
+    //         nzTitle: `Xác nhận ${actionText}`,
+    //         nzContent: `Bạn có chắc chắn muốn ${actionText.toLowerCase()} cho ${filteredData.length} sản phẩm đã chọn không?`,
+    //         nzOkText: actionText,
+    //         nzCancelText: 'Hủy',
+    //         nzOkDanger: !isApproved,
+    //         nzOnOk: () => {
+    //             const payload = filteredData.map((row: any) => ({
+    //                 ID: row.ID,
+    //                 IsApproved: isApproved
+    //             }));
+
+    //             this.isLoadingInventory = true;
+    //             this.inventoryService.inventoryApprovedIsfix(payload).subscribe({
+    //                 next: (res: any) => {
+    //                     this.isLoadingInventory = false;
+    //                     if (res?.status === 1 || res?.success || res?.status === 'success') {
+    //                         this.notification.success(
+    //                             NOTIFICATION_TITLE.success,
+    //                             `${actionText} thành công!`
+    //                         );
+    //                         this.getAllProductSale();
+    //                     } else {
+    //                         this.notification.warning(
+    //                             NOTIFICATION_TITLE.warning,
+    //                             res?.message || `${actionText} thất bại!`
+    //                         );
+    //                     }
+    //                 },
+    //                 error: (err: any) => {
+    //                     this.isLoadingInventory = false;
+    //                     this.notification.create(
+    //                         NOTIFICATION_TYPE_MAP[err.status] || 'error',
+    //                         NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+    //                         err?.error?.message || `${err.error}\n${err.message}`,
+    //                         { nzStyle: { whiteSpace: 'pre-line' } }
+    //                     );
+    //                 }
+    //             });
+    //         }
+    //     });
+    // }
+
     //#region Borrow Request
 
     requestBorrow() {
@@ -1273,72 +1344,58 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 return;
             }
 
-            // Check if any selected product has TotalQuantityLast <= 0
-            const invalidProducts = selectedData.filter((row: any) => {
-                const totalQuantityLast = row.TotalQuantityLast || 0;
-                return totalQuantityLast <= 0;
-            });
+            // Phân loại các sản phẩm được chọn
+            const normalValidProducts = selectedData.filter((row: any) => (row.TotalQuantityLast || 0) > 0);
+            const holdingProducts = selectedData.filter((row: any) => (row.TotalQuantityLast || 0) <= 0 && (row.TotalQuantityKeep || 0) > 0);
+            const invalidProducts = selectedData.filter((row: any) => (row.TotalQuantityLast || 0) <= 0 && (row.TotalQuantityKeep || 0) <= 0);
 
-            // Filter valid products (TotalQuantityLast > 0)
-            const validProducts = selectedData.filter((row: any) => {
-                const totalQuantityLast = row.TotalQuantityLast || 0;
-                return totalQuantityLast > 0;
-            });
+            this.isHoldingBorrow = holdingProducts.length > 0 ? true : false;
 
-            // Show warning for invalid products
             if (invalidProducts.length > 0) {
                 const productNames = invalidProducts
                     .map((p: any) => p.ProductCode || p.ProductName)
                     .join(', ');
                 this.notification.warning(
                     NOTIFICATION_TITLE.warning,
-                    `Các sản phẩm sau có tồn cuối kỳ <= 0 và sẽ không được mượn:\n${productNames}`
+                    `Các sản phẩm sau không còn tồn kho và không có hàng giữ để mượn:\n${productNames}`
                 );
             }
 
-            // If no valid products remaining, stop
-            if (validProducts.length === 0) {
-                this.notification.warning(
-                    NOTIFICATION_TITLE.warning,
-                    'Không có sản phẩm nào hợp lệ để mượn!'
-                );
-                return;
-            }
+            if (holdingProducts.length > 0) {
+                const holdingProductNames = holdingProducts
+                    .map((p: any) => p.ProductCode || p.ProductName)
+                    .join(', ');
 
-            // Group valid selected rows by warehouse and product group
-            const groupedData = new Map<string, any[]>();
-
-            validProducts.forEach((row: any) => {
-                const warehouseID = row.WarehouseID || 0;
-                const khoTypeID = row.ProductGroupID || 0;
-                const key = `${warehouseID}_${khoTypeID}`;
-
-                if (!groupedData.has(key)) {
-                    groupedData.set(key, []);
+                this.modal.confirm({
+                    nzTitle: 'Thông báo',
+                    nzContent: `Sản phẩm ${holdingProductNames} không còn tồn kho, bạn có chắc chắn muốn Y/C mượn hàng từ hàng giữ dự án không?`,
+                    nzOnOk: () => {
+                        const finalValidProducts = [...normalValidProducts, ...holdingProducts];
+                        if (finalValidProducts.length === 0) {
+                            this.notification.warning(
+                                NOTIFICATION_TITLE.warning,
+                                'Không có sản phẩm nào hợp lệ để mượn!'
+                            );
+                            return;
+                        }
+                        this.processBorrowing(finalValidProducts);
+                    },
+                    nzOnCancel: () => {
+                        if (normalValidProducts.length > 0) {
+                            this.processBorrowing(normalValidProducts);
+                        }
+                    }
+                });
+            } else {
+                if (normalValidProducts.length === 0) {
+                    this.notification.warning(
+                        NOTIFICATION_TITLE.warning,
+                        'Không có sản phẩm nào hợp lệ để mượn!'
+                    );
+                    return;
                 }
-                groupedData.get(key)!.push(row);
-            });
-
-            if (groupedData.size > 1) {
-                this.notification.warning(
-                    NOTIFICATION_TITLE.warning,
-                    `Bạn chọn sản phẩm từ ${groupedData.size} kho.\nPhần mềm sẽ tự động tạo ${groupedData.size} phiếu mượn`
-                );
+                this.processBorrowing(normalValidProducts);
             }
-
-            // Open bill-export-detail modal for each group
-            groupedData.forEach((groupRows: any[], key: string) => {
-                const [warehouseID, khoTypeID] = key.split('_').map((x) => parseInt(x));
-
-                // Prepare data table with selected rows
-                const dtDetail = this.prepareDetailData(groupRows);
-
-                // Prepare lstTonCk
-                const lstTonCk = this.prepareTonCkData(groupRows);
-
-                // Open modal
-                this.openBillExportDetailModal(dtDetail, lstTonCk, warehouseID, khoTypeID);
-            });
         } catch (error: any) {
             this.notification.create(
                 NOTIFICATION_TYPE_MAP[error?.status] || 'error',
@@ -1347,6 +1404,43 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 { nzStyle: { whiteSpace: 'pre-line' } }
             );
         }
+    }
+
+    private processBorrowing(validProducts: any[]) {
+        // Group valid selected rows by warehouse and product group
+        const groupedData = new Map<string, any[]>();
+
+        validProducts.forEach((row: any) => {
+            const warehouseID = row.WarehouseID || 0;
+            const khoTypeID = row.ProductGroupID || 0;
+            const key = `${warehouseID}_${khoTypeID}`;
+
+            if (!groupedData.has(key)) {
+                groupedData.set(key, []);
+            }
+            groupedData.get(key)!.push(row);
+        });
+
+        if (groupedData.size > 1) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                `Bạn chọn sản phẩm từ ${groupedData.size} kho.\nPhần mềm sẽ tự động tạo ${groupedData.size} phiếu mượn`
+            );
+        }
+
+        // Open bill-export-detail modal for each group
+        groupedData.forEach((groupRows: any[], key: string) => {
+            const [warehouseID, khoTypeID] = key.split('_').map((x) => parseInt(x));
+
+            // Prepare data table with selected rows
+            const dtDetail = this.prepareDetailData(groupRows);
+
+            // Prepare lstTonCk
+            const lstTonCk = this.prepareTonCkData(groupRows);
+
+            // Open modal
+            this.openBillExportDetailModal(dtDetail, lstTonCk, warehouseID, khoTypeID);
+        });
     }
 
     private getSelectedInventoryRows(): any[] {
@@ -1377,6 +1471,8 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             Maker: row.Maker,
             NameNCC: row.NameNCC,
             AddressBox: row.AddressBox,
+            TotalQuantityKeep: row.TotalQuantityKeep,
+            IsHoldingBorrow: row.TotalQuantityLast > 0 ? false : true
         }));
     }
 
@@ -1384,6 +1480,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         return selectedRows.map((row: any) => ({
             ProductSaleID: row.ProductSaleID || row.ProductID,
             TotalQuantityLast: row.TotalQuantityLast,
+            TotalQuantityKeep: row.TotalQuantityKeep,
         }));
     }
 
@@ -1401,6 +1498,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         });
 
         modalRef.componentInstance.isBorrow = true;
+        modalRef.componentInstance.isHoldingBorrow = this.isHoldingBorrow;
         modalRef.componentInstance.selectedList = dtDetail;
         modalRef.componentInstance.lstTonCk = lstTonCk;
         modalRef.componentInstance.KhoTypeID = khoTypeID;
@@ -1457,6 +1555,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             const columns = [
                 { header: 'STT', key: 'stt', width: 8 },
                 { header: 'Tên nhóm', key: 'ProductGroupName', width: 20 },
+                { header: 'TBP duyệt', key: 'IsApproved', width: 12 },
                 { header: 'Tích xanh', key: 'IsFix', width: 10 },
                 { header: 'Mã sản phẩm', key: 'ProductCode', width: 15 },
                 { header: 'Tên sản phẩm', key: 'ProductName', width: 30 },
@@ -1523,6 +1622,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 const row = worksheet.addRow({
                     stt: index + 1,
                     ProductGroupName: item.ProductGroupName || '',
+                    IsApproved: item.IsApproved ? 'Có' : 'Không',
                     IsFix: item.IsFix ? 'Có' : 'Không',
                     ProductCode: item.ProductCode || '',
                     ProductName: item.ProductName || '',
@@ -1562,6 +1662,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
                 // Center align specific columns
                 row.getCell('stt').alignment = { horizontal: 'center', vertical: 'middle' };
+                row.getCell('IsApproved').alignment = { horizontal: 'center', vertical: 'middle' };
                 row.getCell('IsFix').alignment = { horizontal: 'center', vertical: 'middle' };
                 row.getCell('Unit').alignment = { horizontal: 'center', vertical: 'middle' };
 
@@ -1591,6 +1692,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             const footerRow = worksheet.addRow({
                 stt: '',
                 ProductGroupName: '',
+                IsApproved: '',
                 IsFix: '',
                 ProductCode: '',
                 ProductName: 'TỔNG',
@@ -1636,7 +1738,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 };
 
                 // Format number cells in footer
-                if (colNumber >= 11 && colNumber <= 17) {
+                if (colNumber >= 12 && colNumber <= 18) {
                     cell.alignment = { horizontal: 'right', vertical: 'middle' };
                     const v = cell.value as number;
                     cell.numFmt = (typeof v === 'number' && !Number.isInteger(v)) ? '#,##0.##' : '#,##0';
@@ -1728,6 +1830,27 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     buildPGWarehouseColumns(warehouseCode: string): Column[] {
         // console.log('buildPGWarehouseColumns warehouseCode:', warehouseCode);
         let columns: Column[] = [
+            {
+                id: 'IsApproved' + warehouseCode,
+                field: 'IsApproved',
+                name: 'TBP duyệt',
+                width: 100,
+                cssClass: 'text-center',
+                sortable: true,
+                filterable: true,
+                formatter: Formatters.iconBoolean,
+                params: { cssClass: 'mdi mdi-check' },
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [
+                        { value: true, label: 'Có' },
+                        { value: false, label: 'Không' },
+                    ],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
             {
                 id: 'IsFix' + warehouseCode,
                 field: 'IsFix',

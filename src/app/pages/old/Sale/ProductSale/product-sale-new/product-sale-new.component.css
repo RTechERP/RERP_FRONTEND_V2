@@ -24,8 +24,9 @@
 /* Text wrapping for long content */
 :host ::ng-deep .slick-cell {
   white-space: normal !important;
+  word-break: break-word !important;
   word-wrap: break-word !important;
-  overflow: visible !important;
+  overflow: hidden !important;
 }
 
 /* Center alignment for specific columns */

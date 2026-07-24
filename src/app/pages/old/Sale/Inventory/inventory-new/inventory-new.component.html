@@ -95,6 +95,8 @@
             <div style="display: flex; width: 40%" class="ms-auto inventory-new-ms-auto">
               <label nz-checkbox [(ngModel)]="searchParam.checkedStock" name="checkedStock"
                 (nzCheckedChange)="getAllProductSale()">Stock</label>
+              <label nz-checkbox [(ngModel)]="searchParam.isStandardized" name="isStandardized"
+                (nzCheckedChange)="getAllProductSale()">Tồn SP chuẩn hóa</label>
               <label nz-checkbox [(ngModel)]="searchParam.checkedAll" name="checkedAll"
                 (nzCheckedChange)="getAllProductSale()">Tất cả</label>
               <input type="text" nzSize="small" width="100px" [(ngModel)]="searchParam.Find" name="Find" nz-input

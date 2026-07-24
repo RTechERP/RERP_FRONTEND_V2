@@ -20,6 +20,7 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { DateTime } from 'luxon';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -35,8 +36,8 @@ import { CommonModule } from '@angular/common';
 import { HistoryDeleteBillComponent } from '../Modal/history-delete-bill/history-delete-bill.component';
 import { BillExportDetailComponent } from '../Modal/bill-export-detail/bill-export-detail.component';
 import { ActivatedRoute } from '@angular/router';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Subject, of, forkJoin } from 'rxjs';
+import { takeUntil, catchError } from 'rxjs/operators';
 import { AppUserService } from '../../../../../services/app-user.service';
 import { PermissionService } from '../../../../../services/permission.service';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
@@ -45,6 +46,22 @@ import { MenuItem } from 'primeng/api';
 import { BillExportDetailNewComponent } from '../bill-export-detail-new/bill-export-detail-new.component';
 import { ClipboardService } from '../../../../../services/clipboard.service';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { SafeUrlPipe } from '../../../../../../safeUrl.pipe';
+import pdfMake from 'pdfmake/build/pdfmake';
+import vfs from '../../../../../shared/pdf/vfs_fonts_custom.js';
+import { LOGO_RTC_BASE64 } from '../../../../../shared/pdf/logo-base64';
+
+(pdfMake as any).vfs = vfs;
+(pdfMake as any).fonts = {
+    Times: {
+        normal: 'TIMES.ttf',
+        bold: 'TIMESBD.ttf',
+        bolditalics: 'TIMESBI.ttf',
+        italics: 'TIMESI.ttf',
+    },
+};
+
 @Component({
     selector: 'app-bill-export-new',
     templateUrl: './bill-export-new.component.html',
@@ -56,6 +73,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
         AngularSlickgridModule,
         NzFormModule,
         NzInputModule,
+        NzInputNumberModule,
         NzButtonModule,
         NzSelectModule,
         NzDatePickerModule,
@@ -66,8 +84,10 @@ import { NzMessageService } from 'ng-zorro-antd/message';
         NzTabsModule,
         NzSpinModule,
         NzModalModule,
+        NzSwitchModule,
         HasPermissionDirective,
-        MenubarModule
+        MenubarModule,
+        SafeUrlPipe
     ],
 })
 export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -149,6 +169,19 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
 
     isMobile: boolean = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
     isShowModal: boolean = false;
+
+    tabs: any[] = [];
+    language: string = 'vi';
+    dataPrint: any;
+    showPreview: boolean = false;
+
+    preparedMarginTop: number = -1;
+    directorMarginTop: number = -1;
+    preparedWidth: number = 150;
+    directorWidth: number = 150;
+    preparedMarginLeft: number = 0;
+    directorMarginLeft: number = 20;
+    titleMarginTop: number = 0;
 
     @HostListener('window:resize', ['$event'])
     onResize(event: any) {
@@ -280,6 +313,42 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
 
     initMasterGrid() {
         this.columnDefinitionsMaster = [
+            {
+                id: 'IsIncurredApproved',
+                name: 'Duyệt phát sinh',
+                field: 'IsIncurredApproved',
+                sortable: true,
+                filterable: true,
+                type: FieldType.boolean,
+                filter: {
+                    model: Filters['singleSelect'],
+                    collection: [{ value: 'true', label: 'Có' }, { value: 'false', label: 'Không' }],
+                    collectionOptions: {
+                        addBlankEntry: true
+                    }
+                },
+                formatter: Formatters.checkmarkMaterial,
+                minWidth: 120,
+                maxWidth: 120,
+            },
+            {
+                id: 'IsAfterHours',
+                name: 'Phát sinh',
+                field: 'IsAfterHours',
+                sortable: true,
+                filterable: true,
+                type: FieldType.boolean,
+                filter: {
+                    model: Filters['singleSelect'],
+                    collection: [{ value: 'true', label: 'Có' }, { value: 'false', label: 'Không' }],
+                    collectionOptions: {
+                        addBlankEntry: true
+                    }
+                },
+                formatter: Formatters.checkmarkMaterial,
+                minWidth: 120,
+                maxWidth: 120,
+            },
             {
                 id: 'IsApproved',
                 name: 'Nhận chứng từ',
@@ -456,6 +525,36 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                 filter: { model: Filters['compoundDate'] },
                 minWidth: 150,
             },
+            {
+                id: 'DeliveryTime',
+                name: 'Ngày nhận hàng',
+                field: 'DeliveryTime',
+                sortable: true,
+                filterable: true,
+                formatter: Formatters.date,
+                exportCustomFormatter: Formatters.date,
+                type: 'date',
+                params: { dateFormat: 'DD/MM/YYYY hh:mm:ss' },
+                filter: { model: Filters['compoundDate'] },
+                minWidth: 150,
+            },
+            {
+                id: 'ReceiverFullName',
+                name: 'Người nhận hàng',
+                field: 'ReceiverFullName',
+                sortable: true,
+                filterable: true,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+                minWidth: 200,
+            },
             //             {
             //     id: 'CreatedDate',
             //     name: 'Ngày tạo',
@@ -539,76 +638,76 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
             },
         ];
 
-    this.gridOptionsMaster = {
-      autoResize: {
-        container: '.grid-container-master-' + this.componentId,
-        calculateAvailableSizeBy: 'container',
-        resizeDetection: 'container',
-      },
-      gridWidth: '100%',
-      enableAutoResize: true,
-      enableSorting: true,
-      enableFiltering: true,
-      enablePagination: false,
-      enableRowSelection: true,
-      enableCheckboxSelector: true,
-      enableRowMoveManager: false,
-      checkboxSelector: {
-        hideSelectAllCheckbox: false,
-        hideInFilterHeaderRow: false,
-        hideInColumnTitleRow: true,
-      },
-      rowSelectionOptions: {
-        selectActiveRow: false,
-      },
-      enableColumnPicker: true,
-      enableGridMenu: true,
-      autoHeight: false,
-      gridHeight: 450,
-      rowHeight: 66, // Height for 3 lines: 12px * 1.5 * 3 + padding
-      enableCellMenu: true,
-      cellMenu: {
-        commandItems: [
-          {
-            command: 'copy',
-            title: 'Sao chép (Copy)',
-            iconCssClass: 'fa fa-copy',
-            positionOrder: 2,
-            action: (_e, args) => {
-              this.clipboardService.copy(args.value);
+        this.gridOptionsMaster = {
+            autoResize: {
+                container: '.grid-container-master-' + this.componentId,
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
             },
-          },
-        ],
-      },
-      enableContextMenu: true,
-      contextMenu: {
-        commandItems: [
-          {
-            command: 'log',
-            title: 'Lịch sử thay đổi',
-            iconCssClass: 'fa-solid fa-clock-rotate-left text-primary',
-            positionOrder: 1,
-            action: (_e, args) => {
-              this.viewLogHistory(args.dataContext);
+            gridWidth: '100%',
+            enableAutoResize: true,
+            enableSorting: true,
+            enableFiltering: true,
+            enablePagination: false,
+            enableRowSelection: true,
+            enableCheckboxSelector: true,
+            enableRowMoveManager: false,
+            checkboxSelector: {
+                hideSelectAllCheckbox: false,
+                hideInFilterHeaderRow: false,
+                hideInColumnTitleRow: true,
             },
-          },
-          {
-            command: 'copy',
-            title: 'Sao chép (Copy)',
-            iconCssClass: 'fa fa-copy',
-            positionOrder: 2,
-            action: (_e, args) => {
-              this.clipboardService.copy(args.value);
+            rowSelectionOptions: {
+                selectActiveRow: false,
             },
-          },
-        ],
-      },
-      // Footer row configuration
-      createFooterRow: true,
-      showFooterRow: true,
-      footerRowHeight: 28,
-    };
-  }
+            enableColumnPicker: true,
+            enableGridMenu: true,
+            autoHeight: false,
+            gridHeight: 450,
+            rowHeight: 66, // Height for 3 lines: 12px * 1.5 * 3 + padding
+            enableCellMenu: true,
+            cellMenu: {
+                commandItems: [
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 2,
+                        action: (_e, args) => {
+                            this.clipboardService.copy(args.value);
+                        },
+                    },
+                ],
+            },
+            enableContextMenu: true,
+            contextMenu: {
+                commandItems: [
+                    {
+                        command: 'log',
+                        title: 'Lịch sử thay đổi',
+                        iconCssClass: 'fa-solid fa-clock-rotate-left text-primary',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            this.viewLogHistory(args.dataContext);
+                        },
+                    },
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 2,
+                        action: (_e, args) => {
+                            this.clipboardService.copy(args.value);
+                        },
+                    },
+                ],
+            },
+            // Footer row configuration
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
+        };
+    }
 
     initDetailGrid() {
         this.columnDefinitionsDetail = [
@@ -1243,39 +1342,39 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
     // Actions
     // ========================================
 
-  viewLogHistory(rowData: any): void {
-    if (!rowData || !rowData.ID) {
-      this.notification.warning('Thông báo', 'Dữ liệu phiếu không hợp lệ!');
-      return;
-    }
-    import('../Modal/bill-export-sale-log/bill-export-sale-log.component').then(
-      (m) => {
-        const modalRef = this.modal.create({
-          nzTitle: 'Lịch sử thay đổi phiếu xuất ' + (rowData.Code || ''),
-          nzContent: m.BillExportSaleLogComponent,
-          nzWidth: '1000px',
-          nzFooter: null,
-          nzStyle: { top: '20px' },
-          nzBodyStyle: {
-            height: 'calc(100vh - 100px)',
-            overflowY: 'auto',
-            padding: '0 !important',
-          },
-        });
-        // Gắn Input cho component
-        if (modalRef.componentInstance) {
-          modalRef.componentInstance.billExportID = rowData.ID;
+    viewLogHistory(rowData: any): void {
+        if (!rowData || !rowData.ID) {
+            this.notification.warning('Thông báo', 'Dữ liệu phiếu không hợp lệ!');
+            return;
         }
-      },
-    );
-  }
-
-  openModalBillExportDetail(isCheckmode: boolean) {
-    this.isCheckmode = isCheckmode;
-    if (this.isCheckmode === true && this.id === 0) {
-      this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất để sửa');
-      return;
+        import('../Modal/bill-export-sale-log/bill-export-sale-log.component').then(
+            (m) => {
+                const modalRef = this.modal.create({
+                    nzTitle: 'Lịch sử thay đổi phiếu xuất ' + (rowData.Code || ''),
+                    nzContent: m.BillExportSaleLogComponent,
+                    nzWidth: '1000px',
+                    nzFooter: null,
+                    nzStyle: { top: '20px' },
+                    nzBodyStyle: {
+                        height: 'calc(100vh - 100px)',
+                        overflowY: 'auto',
+                        padding: '0 !important',
+                    },
+                });
+                // Gắn Input cho component
+                if (modalRef.componentInstance) {
+                    modalRef.componentInstance.billExportID = rowData.ID;
+                }
+            },
+        );
     }
+
+    openModalBillExportDetail(isCheckmode: boolean) {
+        this.isCheckmode = isCheckmode;
+        if (this.isCheckmode === true && this.id === 0) {
+            this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất để sửa');
+            return;
+        }
 
         const modalRef = this.modalService.open(BillExportDetailNewComponent, {
             centered: true,
@@ -2111,8 +2210,8 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
     private applyDistinctFiltersToMaster(): void {
         if (!this.angularGridMaster?.slickGrid || !this.angularGridMaster?.dataView) return;
 
-    const data = this.angularGridMaster.dataView.getItems() as any[];
-    if (!data || data.length === 0) return;
+        const data = this.angularGridMaster.dataView.getItems() as any[];
+        if (!data || data.length === 0) return;
 
         const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
             const map = new Map<string, string>();
@@ -2154,8 +2253,8 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
     private applyDistinctFiltersToDetail(): void {
         if (!this.angularGridDetail?.slickGrid || !this.angularGridDetail?.dataView) return;
 
-    const data = this.angularGridDetail.dataView.getItems();
-    if (!data || data.length === 0) return;
+        const data = this.angularGridDetail.dataView.getItems();
+        if (!data || data.length === 0) return;
 
         const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
             const map = new Map<string, string>();
@@ -2244,6 +2343,25 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
             visible: this.canCancelDocument,
         });
 
+        // TBP duyệt
+        allItems.push({
+            label: 'TBP duyệt',
+            visible: this.permissionService.hasPermission('N32') || this.appUserService.isAdmin,
+            icon: 'fa-solid fa-user-check fa-lg text-primary',
+            items: [
+                {
+                    label: 'Duyệt',
+                    icon: 'fa-solid fa-check fa-lg text-success',
+                    command: () => this.approvedIncurred(true),
+                },
+                {
+                    label: 'Hủy duyệt',
+                    icon: 'fa-solid fa-xmark fa-lg text-danger',
+                    command: () => this.approvedIncurred(false),
+                }
+            ]
+        });
+
         // Đã xuất kho
         allItems.push({
             label: 'Đã xuất kho',
@@ -2328,6 +2446,13 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
             label: 'Báo cáo NCC',
             icon: 'fa-solid fa-file-invoice fa-lg text-primary',
             command: () => this.openModalBillExportReportNCC()
+        });
+
+        // In phiếu
+        allItems.push({
+            label: 'In phiếu',
+            icon: 'fa-solid fa-print fa-lg text-primary',
+            command: () => this.onPrintBillExport()
         });
 
         //Filter visible items
@@ -2613,4 +2738,508 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
 
     //#endregion
 
+
+    approvedIncurred(isApprove: boolean) {
+        const selectedRows = this.getSelectedRows();
+        if (!selectedRows || selectedRows.length === 0) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn dòng cần thực hiện!');
+            return;
+        }
+
+        // Lọc các dòng chưa có trạng thái mong muốn
+        const targetRows = selectedRows.filter((row: any) => row.IsIncurredApproved !== isApprove);
+        if (targetRows.length === 0) {
+            this.notification.info(
+                'Thông báo',
+                `Các dòng được chọn đều đã ở trạng thái ${isApprove ? 'đã duyệt' : 'chưa duyệt'}!`
+            );
+            return;
+        }
+
+        // Chỉ lấy ID và IsIncurredApproved
+        const payload = targetRows.map((row: any) => ({
+            ID: row.ID,
+            IsIncurredApproved: isApprove
+        }));
+
+        this.billExportService.approvedIncurred(payload).subscribe({
+            next: (res: any) => {
+                if (res.status === 1) {
+                    this.notification.success(
+                        NOTIFICATION_TITLE.success,
+                        res.message || (isApprove ? 'Duyệt thành công!' : 'Hủy duyệt thành công!')
+                    );
+                    this.onSearch();
+                } else {
+                    this.notification.error('Thông báo', res.message || 'Thực hiện thất bại!');
+                }
+            },
+            error: (err: any) => {
+                const errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra!';
+                this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+            }
+        });
+    }
+
+    //#endregion
+
+    // =================================================================
+    // PRINT PREVIEW LOGIC
+    // =================================================================
+    onPrintBillExport() {
+        const selectedRows = this.getSelectedRows();
+        if (!selectedRows || selectedRows.length === 0) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một phiếu để in!');
+            return;
+        }
+
+        this.isDetailLoad = true;
+        this.tabs = [];
+
+        const requests = selectedRows.map(row => {
+            const id = row.ID || row.Id || 0;
+            return forkJoin({
+                detail: this.billExportService.getDataPrintDetail(id),
+                master: this.billExportService.getDataPrint(id),
+                signature: this.billExportService.getImageSignature(id).pipe(
+                    catchError(() => of(null))
+                )
+            });
+        });
+
+        forkJoin(requests).subscribe({
+            next: (results) => {
+                results.forEach((res, index) => {
+
+                    console.log("res: ", res);
+
+                    const row = selectedRows[index];
+                    const billCode = row.Code || 'PXK';
+                    const id = row.ID || row.Id || 0;
+
+                    const details = res.detail?.data || [];
+                    const billExport = res.master?.data || row;
+                    const signatureData = res.signature?.status === 1 ? res.signature.data : null;
+
+                    const dataPrint = {
+                        billExport: billExport,
+                        billExportDetails: details.map((item: any, idx: number) => ({
+                            ...item,
+                            STT: item.STT || (idx + 1)
+                        })),
+                        signature: signatureData,
+                        taxCompany: {
+                            BuyerVietnamese: 'CÔNG TY CỔ PHẦN RTC TECHNOLOGY VIỆT NAM',
+                            AddressBuyerVienamese: 'Số A52, TT10, Khu đô thị mới Văn Quán, Phường Văn Quán, Quận Hà Đông, Hà Nội',
+                            TaxVietnamese: 'MST: 0106888888'
+                        }
+                    };
+
+                    this.tabs.push({
+                        title: billCode,
+                        url: '',
+                        docDefinition: null,
+                        isMerge: false,
+                        isShowSign: true,
+                        isShowSeal: true,
+                        isShowKkys: true,
+                        id: id,
+                        dataPrint: dataPrint,
+                        preparedMarginTopTab: -1,
+                        directorMarginTopTab: -1,
+                        preparedWidthTab: 150,
+                        directorWidthTab: 150,
+                        preparedMarginLeftTab: 0,
+                        directorMarginLeftTab: 0.53,
+                        titleMarginTopTab: 0,
+                    });
+                });
+
+                this.isDetailLoad = false;
+                this.showPreview = true;
+
+                // Render PDF cho từng tab
+                this.tabs.forEach((_, idx) => {
+                    this.renderPDF(idx);
+                });
+            },
+            error: (err) => {
+                this.isDetailLoad = false;
+                this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    err.error?.message || 'Có lỗi xảy ra khi lấy dữ liệu in'
+                );
+            }
+        });
+    }
+
+    toggleMerge(tab: any) {
+        this.setTab(tab);
+        let index = this.tabs.indexOf(tab);
+        this.renderPDF(index);
+    }
+
+    toggleSign(tab: any) {
+        this.setTab(tab);
+        let index = this.tabs.indexOf(tab);
+        this.renderPDF(index);
+    }
+
+    toggleSeal(tab: any) {
+        this.setTab(tab);
+        let index = this.tabs.indexOf(tab);
+        this.renderPDF(index);
+    }
+
+    toggleKkys(tab: any) {
+        this.setTab(tab);
+        let index = this.tabs.indexOf(tab);
+        this.renderPDF(index);
+    }
+
+    renderPDF(index: number) {
+        const tab = this.tabs[index];
+        if (!tab) return;
+
+        this.setTab(tab);
+
+        if (!tab.dataPrint) return;
+
+        let docDefinition: any = this.onCreatePDFLanguageVi(tab.dataPrint, tab.isShowSign, tab.isShowSeal, tab.isShowKkys);
+
+        tab.docDefinition = docDefinition;
+
+        pdfMake.createPdf(docDefinition).getBlob((blob: any) => {
+            tab.url = URL.createObjectURL(blob);
+        });
+    }
+
+    downloadPDF(index: number) {
+        const tab = this.tabs[index];
+        if (!tab) return;
+        if (!tab.docDefinition) {
+            console.error('Chưa có PDF cho tab này');
+            return;
+        }
+        let defaultTitle = 'PhieuXuatReportVietnamese';
+        let title = tab.docDefinition?.info?.title || defaultTitle;
+
+        pdfMake.createPdf(tab.docDefinition).download(title + '.pdf');
+    }
+
+    onCreatePDFLanguageVi(data: any, isShowSign: boolean, isShowSeal: boolean, isShowKkys: boolean = true) {
+        let billExport = data.billExport || {};
+        let billExportDetails = data.billExportDetails || [];
+        let taxCompany = data.taxCompany || {};
+        let signature = data.signature || {};
+        const tableFontSize = 6; // Biến cấu hình cỡ chữ riêng cho bảng
+        const textFontSize = 6;
+        let items: any = [];
+        for (let i = 0; i < billExportDetails.length; i++) {
+            let detail = billExportDetails[i];
+
+            let combinedNote = (detail.Note || '').trim();
+            combinedNote = this.splitLongText(combinedNote);
+            let noteCell: any = this.multiLineCell(combinedNote);
+            if (typeof noteCell === 'object' && noteCell !== null) {
+                noteCell.fontSize = tableFontSize;
+                noteCell.alignment = 'left';
+            } else {
+                noteCell = { text: noteCell, fontSize: tableFontSize, alignment: 'left' };
+            }
+
+            let item = [
+                { text: detail.STT || (i + 1), alignment: 'center', fontSize: tableFontSize },
+                { text: this.splitLongText(detail.ProductNewCode), alignment: 'center', fontSize: tableFontSize },
+                { text: this.splitLongText(detail.ProductCode), alignment: 'left', fontSize: tableFontSize },
+                { text: this.splitLongText(detail.ProductFullName), alignment: 'left', fontSize: tableFontSize },
+                { text: detail.ProductName || '', alignment: 'left', fontSize: tableFontSize },
+                { text: detail.Unit || '', alignment: 'center', fontSize: tableFontSize },
+                { text: this.formatNumber(detail.Qty || 0), alignment: 'center', fontSize: tableFontSize },
+                { text: this.splitLongText(detail.ProjectCodeText), alignment: 'left', fontSize: tableFontSize },
+                { text: detail.ProjectNameText || '', alignment: 'left', fontSize: tableFontSize },
+                { text: detail.ProductTypeText || '', alignment: 'left', fontSize: tableFontSize },
+                { text: detail.UnitPricePOKH ? this.formatNumber(detail.UnitPricePOKH) : '-', alignment: 'right', fontSize: tableFontSize },
+                { text: detail.UnitPricePurchase ? this.formatNumber(detail.UnitPricePurchase) : '-', alignment: 'right', fontSize: tableFontSize },
+                { text: billExport.WarehouseID = 1 ? detail.ProductGroupName : detail.WarehouseName , alignment: 'left', fontSize: tableFontSize },
+                noteCell
+            ];
+            items.push(item);
+        }
+
+        let cellDisplaySign = { text: '', style: '', margin: [0, 20, 0, 20] };
+
+        let picDeliver = signature.picDeliver || billExport.PicPrepared;
+        let cellPicPrepared: any =
+            !picDeliver
+                ? cellDisplaySign
+                : {
+                    image: 'data:image/png;base64,' + picDeliver,
+                    width: this.preparedWidth,
+                    margin: [this.preparedMarginLeft, this.preparedMarginTop, 0, 0],
+                    alignment: 'center'
+                };
+        if (!isShowSign) cellPicPrepared = cellDisplaySign;
+
+        let picReciver = signature.picReciver || billExport.PicDirector;
+        let cellPicDirector: any =
+            !picReciver
+                ? cellDisplaySign
+                : {
+                    image: 'data:image/png;base64,' + picReciver,
+                    width: this.directorWidth,
+                    margin: [this.directorMarginLeft, this.directorMarginTop, 0, 0],
+                    alignment: 'center'
+                };
+        if (!isShowSeal) cellPicDirector = cellDisplaySign;
+
+        const dateRequestExportStr = billExport.CreatDate
+            ? DateTime.fromISO(billExport.CreatDate).toFormat('dd/MM/yyyy HH:mm:ss')
+            : '';
+        const creatDateStr = billExport.CreatedDate
+            ? DateTime.fromISO(billExport.CreatedDate).toFormat('dd/MM/yyyy HH:mm:ss')
+            : '';
+
+        let docDefinition = {
+            pageOrientation: 'portrait',
+            pageMargins: [20, 20, 20, 20],
+            info: {
+                title: billExport.Code || 'PXK',
+            },
+            content: [
+                // Header (Logo text, Company info, QR Code)
+                {
+                    columns: [
+                        {
+                            image: LOGO_RTC_BASE64,
+                            width: 120,
+                            alignment: 'center'
+                        },
+                        {
+                            stack: [
+                                { text: 'CÔNG TY CỔ PHẦN RTC TECHNOLOGY VIỆT NAM', bold: true, alignment: 'center', fontSize: 10 },
+                                { text: 'Số A52, TT10, Khu đô thị mới Văn Quán, ', alignment: 'center', fontSize: 10 },
+                                { text: 'Phường Văn Quán, Quận Hà Đông, Hà Nội', alignment: 'center', fontSize: 10 }
+                            ],
+                            width: '*'
+                        },
+                        {
+                            qr: billExport.Code || 'PXK',
+                            fit: 60,
+                            alignment: 'right',
+                            width: 80
+                        }
+                    ],
+                    margin: [0, 0, 0, 0]
+                },
+                // Tiêu đề phiếu
+                {
+                    text: 'PHIẾU XUẤT KHO',
+                    alignment: 'center',
+                    bold: true,
+                    fontSize: 10,
+                    margin: [0, 0, 0, 2]
+                },
+                {
+                    text: 'Số: ' + (billExport.Code || ''),
+                    alignment: 'center',
+                    italics: true,
+                    fontSize: 8,
+                    margin: [0, 0, 0, 10]
+                },
+                // Thông tin chung
+                {
+                    style: 'tableExample',
+                    table: {
+                        widths: [70, '*'],
+                        body: [
+                            [
+                                { text: '- Nhân viên:', bold: false, fontSize: textFontSize },
+                                { text: billExport.FullName || '', bold: true, fontSize: textFontSize }
+                            ],
+                            [
+                                { text: '- khách hàng/nhà cung cấp:', bold: false, fontSize: textFontSize },
+                                { text: billExport.CustomerName || billExport.NameNCC || '', bold: true, fontSize: textFontSize }
+                            ],
+                            [
+                                { text: '- Địa chỉ:', bold: false, fontSize: textFontSize },
+                                { text: billExport.Address || '', bold: true, fontSize: textFontSize }
+                            ],
+                            [
+                                { text: '- Địa chỉ giao hàng:', bold: false, fontSize: textFontSize },
+                                { text: billExport.AddressStock || '', bold: true, fontSize: textFontSize }
+                            ]
+                        ]
+                    },
+                    layout: 'noBorders',
+                    margin: [80, 0, 0, 10]
+                },
+                // Bảng chi tiết sản phẩm
+                {
+                    table: {
+                        headerRows: 1,
+                        widths: [12, 32, 45, 45, 55, 12, 15, 30, 40, 25, 30, 30, 35, '*'],
+                        body: [
+                            // Header table
+                            [
+                                { text: 'STT', alignment: 'center', bold: true, fontSize: tableFontSize },
+                                { text: 'Mã nội bộ', alignment: 'center', bold: true, fontSize: tableFontSize },
+                                { text: 'Mã sản phẩm', alignment: 'center', bold: true, fontSize: tableFontSize },
+                                { text: 'Mã sản phẩm theo Dự án', alignment: 'center', bold: true, fontSize: tableFontSize },
+                                { text: 'Tên sản phẩm', alignment: 'center', bold: true, fontSize: tableFontSize },
+                                { text: 'Đvt', alignment: 'center', bold: true, fontSize: tableFontSize },
+                                { text: 'Số lượng', alignment: 'center', bold: true, fontSize: tableFontSize },
+                                { text: 'Mã dự án', alignment: 'center', bold: true, fontSize: tableFontSize },
+                                { text: 'Tên dự án', alignment: 'center', bold: true, fontSize: tableFontSize },
+                                { text: 'Loại hàng', alignment: 'center', bold: true, fontSize: tableFontSize },
+                                { text: 'Đơn giá bán', alignment: 'center', bold: true, fontSize: tableFontSize },
+                                { text: 'Đơn giá mua', alignment: 'center', bold: true, fontSize: tableFontSize },
+                                { text: 'Kho', alignment: 'center', bold: true, fontSize: tableFontSize },
+                                { text: 'Ghi chú', alignment: 'center', bold: true, fontSize: tableFontSize },
+                            ],
+                            // list item
+                            ...items
+                        ]
+                    },
+                    layout: {
+                        hLineWidth: function (i: any, node: any) {
+                            return 0.5;
+                        },
+                        vLineWidth: function (i: any, node: any) {
+                            return 0.5;
+                        },
+                        hLineColor: function (i: any, node: any) {
+                            return '#000000';
+                        },
+                        vLineColor: function (i: any, node: any) {
+                            return '#000000';
+                        },
+                        paddingLeft: function (i: any, node: any) {
+                            return 2;
+                        },
+                        paddingRight: function (i: any, node: any) {
+                            return 2;
+                        },
+                        paddingTop: function (i: any, node: any) {
+                            return 2;
+                        },
+                        paddingBottom: function (i: any, node: any) {
+                            return 2;
+                        }
+                    },
+                    margin: [0, 0, 0, 5]
+                },
+                // Chứng từ gốc kèm theo
+                {
+                    text: [
+                        { text: '- Chứng từ gốc kèm theo: ', bold: false, fontSize: textFontSize, italics: true },
+                        { text: billExport.OriginItem || 'Biên bản bàn giao hàng hóa.', bold: true, fontSize: textFontSize, italics: true }
+                    ],
+                    margin: [0, 5, 0, 5]
+                },
+                // Ngày tháng năm
+                {
+                    text: `Ngày ${DateTime.fromISO(billExport.CreatDate || new Date().toISOString()).toFormat('dd') || ''} Tháng ${DateTime.fromISO(billExport.CreatDate || new Date().toISOString()).toFormat('MM') || ''} Năm ${DateTime.fromISO(billExport.CreatDate || new Date().toISOString()).toFormat('yyyy') || ''}`,
+                    alignment: 'right',
+                    italics: true,
+                    fontSize: textFontSize,
+                    margin: [0, 0, 105, 5]
+                },
+                // Chữ ký
+                {
+                    columns: [
+                        {
+                            stack: [
+                                { text: 'Bên giao', alignment: 'center', bold: true, fontSize: textFontSize },
+                                ...(isShowKkys ? [{ text: '(Ký, họ tên)', alignment: 'center', italics: true, fontSize: textFontSize }] : []),
+                                { text: '', margin: [0, 20, 0, 20] },
+                                cellPicPrepared,
+                                { text: billExport.FullNameSender || '', alignment: 'center', bold: true, fontSize: textFontSize },
+                                { text: dateRequestExportStr, alignment: 'center', fontSize: textFontSize }
+                            ]
+                        },
+                        {
+                            stack: [
+                                { text: 'Bên nhận', alignment: 'center', bold: true, fontSize: textFontSize },
+                                ...(isShowKkys ? [{ text: '(Ký, họ tên)', alignment: 'center', italics: true, fontSize: textFontSize }] : []),
+                                { text: '', margin: [0, 20, 0, 20] },
+                                cellPicDirector,
+                                { text: billExport.FullName || '', alignment: 'center', bold: true, fontSize: textFontSize },
+                                { text: creatDateStr, alignment: 'center', fontSize: textFontSize }
+                            ]
+                        }
+                    ],
+                    margin: [0, 10, 0, 0]
+                }
+            ],
+            defaultStyle: {
+                fontSize: textFontSize,
+                font: 'Times',
+            },
+        };
+
+        return docDefinition;
+    }
+
+    multiLineCell(str: string) {
+        if (!str) return '';
+        const cleaned = str.replace(/\uFF1A/g, ':');
+        const hasNewline = /\r?\n/.test(cleaned);
+        const lines = cleaned.split(hasNewline ? /\r?\n/ : /  /).filter(line => line.trim() !== '');
+        const NBSP = '\u00A0';
+        const formatLine = (line: string) =>
+            line.replace(/\t/g, NBSP.repeat(4)).replace(/ {2,}/g, (m) => NBSP.repeat(m.length));
+
+        if (lines.length <= 1) return formatLine(cleaned);
+
+        return {
+            stack: lines.map(line => ({
+                text: formatLine(line),
+                margin: [0, 0, 0, 0]
+            }))
+        };
+    }
+
+    cmToPx(cm: number, dpi: number = 96): number {
+        return cm * dpi / 2.54;
+    }
+
+    resetNumber(tab: any) {
+        tab.preparedMarginTopTab = -1;
+        tab.directorMarginTopTab = -1;
+        tab.preparedWidthTab = 150;
+        tab.directorWidthTab = 150;
+        tab.preparedMarginLeftTab = 0;
+        tab.directorMarginLeftTab = 0.53;
+        tab.titleMarginTopTab = 0;
+        this.toggleSeal(tab);
+    }
+
+    setTab(tab: any) {
+        this.preparedMarginTop = this.cmToPx(tab.preparedMarginTopTab);
+        this.directorMarginTop = this.cmToPx(tab.directorMarginTopTab);
+        this.preparedWidth = tab.preparedWidthTab;
+        this.directorWidth = tab.directorWidthTab;
+        this.preparedMarginLeft = this.cmToPx(tab.preparedMarginLeftTab);
+        this.directorMarginLeft = this.cmToPx(tab.directorMarginLeftTab);
+        this.titleMarginTop = this.cmToPx(tab.titleMarginTopTab);
+    }
+
+    onClosePreview() {
+        this.showPreview = false;
+        this.preparedMarginTop = 0;
+        this.directorMarginTop = 0;
+        this.preparedWidth = 150;
+        this.directorWidth = 190;
+        this.preparedMarginLeft = 0;
+        this.directorMarginLeft = 20;
+        this.titleMarginTop = 0;
+    }
+
+    splitLongText(str: any): string {
+        if (str === null || str === undefined) return '';
+        const s = String(str).trim();
+        if (!s) return '';
+        return s.replace(/([-\._\/])/g, '$1\u200B').replace(/([^\s\u200B]{4})/g, '$1\u200B');
+    }
 }

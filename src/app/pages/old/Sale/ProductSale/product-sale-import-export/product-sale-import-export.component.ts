@@ -275,7 +275,7 @@ export class ProductSaleImportExportComponent implements OnInit {
     this.lblStatus = `Đang tải dữ liệu cho kho [${warehouseCode}]...`;
     this.isLoadingInventory = true;
 
-    this.inventoryService.getInventory(false, '', warehouseCode, false, productGroupId).subscribe({
+    this.inventoryService.getInventory(false, '', warehouseCode, false, productGroupId, false).subscribe({
       next: (res) => {
         this.isLoadingInventory = false;
         if (res?.data) {

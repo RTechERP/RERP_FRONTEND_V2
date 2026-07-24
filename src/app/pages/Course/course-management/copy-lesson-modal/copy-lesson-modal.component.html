@@ -1,0 +1,99 @@
+<div class="modal-header bg-primary p-2">
+  <h6 class="modal-title text-white text-uppercase">
+    {{ modalTitle }}
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+<div class="modal-body">
+  <form nz-form [formGroup]="formGroup" nzLayout="vertical" class="fs-7 mt-2">
+    <div class="mb-3">
+      <!-- Nguồn - Từ -->
+      <div class="alert alert-light border py-2 mb-2">
+        <div class="fw-semibold mb-1">
+          <i class="fa fa-arrow-right text-muted me-1"></i> Từ: [{{ sourceLesson?.Code || sourceLesson?.code }}] {{ sourceLesson?.LessonTitle || sourceLesson?.lessonTitle }}
+        </div>
+        <div *ngIf="loadingPreview" class="text-muted">Đang tải phạm vi dữ liệu...</div>
+        <ng-container *ngIf="!loadingPreview && (copyCounts || moveCounts)">
+          <div class="d-flex flex-wrap gap-3 text-muted">
+            <span *ngIf="moveCounts?.Files || copyCounts?.Files">{{ (moveCounts?.Files ?? copyCounts?.Files) }} file</span>
+            <span *ngIf="moveCounts?.Exams || copyCounts?.Exams">{{ (moveCounts?.Exams ?? copyCounts?.Exams) }} đề thi</span>
+            <span *ngIf="moveCounts?.Questions || copyCounts?.Questions">{{ (moveCounts?.Questions ?? copyCounts?.Questions) }} câu hỏi</span>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- Đích - Đến -->
+      <div class="alert alert-light border py-2">
+        <div class="fw-semibold mb-2 text-muted">
+          <i class="fa fa-arrow-left text-muted me-1"></i> Đến:
+        </div>
+
+        <nz-form-item>
+          <nz-form-label class="fs-12 p-0" [nzSpan]="24">Danh mục đích<span class="text-danger ps-1">(*)</span></nz-form-label>
+          <nz-form-control [nzSpan]="24" [nzErrorTip]="
+              formGroup.get('TargetCatalogId')?.hasError('required') &&
+              (formGroup.get('TargetCatalogId')?.dirty || formGroup.get('TargetCatalogId')?.touched)
+                ? 'Vui lòng chọn danh mục!'
+                : undefined
+            ">
+            <nz-select formControlName="TargetCatalogId" [nzPlaceHolder]="'Chọn danh mục'" style="width: 100%"
+              name="TargetCatalogId" nzAllowClear nzShowSearch (ngModelChange)="onCatalogChange($event)">
+              <nz-option *ngFor="let item of dataCatalog" [nzLabel]="item.Code + ' - ' + item.Name"
+                [nzValue]="item.ID"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label class="fs-12 p-0" [nzSpan]="24">Khóa học đích<span class="text-danger ps-1">(*)</span></nz-form-label>
+          <nz-form-control [nzSpan]="24" [nzErrorTip]="
+              formGroup.get('TargetCourseId')?.hasError('required') &&
+              (formGroup.get('TargetCourseId')?.dirty || formGroup.get('TargetCourseId')?.touched)
+                ? 'Vui lòng chọn khóa học!'
+                : undefined
+            ">
+            <nz-select formControlName="TargetCourseId" [nzPlaceHolder]="'Chọn khóa học'" style="width: 100%"
+              name="TargetCourseId" nzAllowClear nzShowSearch [nzLoading]="loadingCourses">
+              <nz-option *ngFor="let item of availableCourses" [nzLabel]="item.Code + ' - ' + item.NameCourse"
+                [nzValue]="item.ID"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item *ngIf="!isMoveMode">
+          <nz-form-label class="fs-12 p-0" [nzSpan]="24">Mã bài học<span class="text-danger ps-1">(*)</span></nz-form-label>
+          <nz-form-control [nzSpan]="24" [nzErrorTip]="
+              formGroup.get('Code')?.hasError('required') &&
+              (formGroup.get('Code')?.dirty || formGroup.get('Code')?.touched)
+                ? 'Vui lòng nhập mã bài học!'
+                : undefined
+            ">
+            <input nz-input name="Code" placeholder="Nhập mã bài học" formControlName="Code" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item *ngIf="!isMoveMode">
+          <nz-form-label class="fs-12 p-0" [nzSpan]="24">Tên bài học<span class="text-danger ps-1">(*)</span></nz-form-label>
+          <nz-form-control [nzSpan]="24" [nzErrorTip]="
+              formGroup.get('Name')?.hasError('required') &&
+              (formGroup.get('Name')?.dirty || formGroup.get('Name')?.touched)
+                ? 'Vui lòng nhập tên bài học!'
+                : undefined
+            ">
+            <input nz-input name="Name" placeholder="Nhập tên bài học" formControlName="Name" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button nz-button nzDanger nzType="default" (click)="close()" [disabled]="saving">
+        Đóng
+      </button>
+      <button nz-button nzType="primary" (click)="saveCopy()" [disabled]="saving">
+        <i *ngIf="saving" nz-icon nzType="loading" class="me-2"></i>
+        {{ saving ? (isMoveMode ? 'Đang di chuyển...' : 'Đang sao chép...') : saveButtonText }}
+      </button>
+    </div>
+  </form>
+</div>

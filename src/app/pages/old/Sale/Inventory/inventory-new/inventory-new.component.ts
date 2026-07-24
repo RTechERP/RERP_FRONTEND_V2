@@ -1264,72 +1264,72 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     //#endregion
 
-    openInventoryApprovedIsfix(isApproved: boolean) {
-        const selectedData = this.getSelectedInventoryRows();
-        if (!selectedData || selectedData.length === 0) {
-            this.notification.warning(
-                NOTIFICATION_TITLE.warning,
-                `Vui lòng chọn ít nhất 1 sản phẩm để ${isApproved ? 'duyệt' : 'hủy duyệt'}!`
-            );
-            return;
-        }
+    // openInventoryApprovedIsfix(isApproved: boolean) {
+    //     const selectedData = this.getSelectedInventoryRows();
+    //     if (!selectedData || selectedData.length === 0) {
+    //         this.notification.warning(
+    //             NOTIFICATION_TITLE.warning,
+    //             `Vui lòng chọn ít nhất 1 sản phẩm để ${isApproved ? 'duyệt' : 'hủy duyệt'}!`
+    //         );
+    //         return;
+    //     }
 
-        // Lọc các dòng có IsApproved khác với trạng thái mong muốn
-        const filteredData = selectedData.filter((row: any) => {
-            return row.IsApproved != isApproved && row.ID > 0;
-        });
+    //     // Lọc các dòng có IsApproved khác với trạng thái mong muốn
+    //     const filteredData = selectedData.filter((row: any) => {
+    //         return row.IsApproved != isApproved && row.ID > 0;
+    //     });
 
-        if (filteredData.length === 0) {
-            this.notification.warning(
-                NOTIFICATION_TITLE.warning,
-                `Tất cả sản phẩm đã chọn đã ở trạng thái ${isApproved ? 'Đã duyệt' : 'Chưa duyệt'}!`
-            );
-            return;
-        }
+    //     if (filteredData.length === 0) {
+    //         this.notification.warning(
+    //             NOTIFICATION_TITLE.warning,
+    //             `Tất cả sản phẩm đã chọn đã ở trạng thái ${isApproved ? 'Đã duyệt' : 'Chưa duyệt'}!`
+    //         );
+    //         return;
+    //     }
 
-        const actionText = isApproved ? 'Duyệt' : 'Hủy duyệt';
-        this.modal.confirm({
-            nzTitle: `Xác nhận ${actionText}`,
-            nzContent: `Bạn có chắc chắn muốn ${actionText.toLowerCase()} cho ${filteredData.length} sản phẩm đã chọn không?`,
-            nzOkText: actionText,
-            nzCancelText: 'Hủy',
-            nzOkDanger: !isApproved,
-            nzOnOk: () => {
-                const payload = filteredData.map((row: any) => ({
-                    ID: row.ID,
-                    IsApproved: isApproved
-                }));
+    //     const actionText = isApproved ? 'Duyệt' : 'Hủy duyệt';
+    //     this.modal.confirm({
+    //         nzTitle: `Xác nhận ${actionText}`,
+    //         nzContent: `Bạn có chắc chắn muốn ${actionText.toLowerCase()} cho ${filteredData.length} sản phẩm đã chọn không?`,
+    //         nzOkText: actionText,
+    //         nzCancelText: 'Hủy',
+    //         nzOkDanger: !isApproved,
+    //         nzOnOk: () => {
+    //             const payload = filteredData.map((row: any) => ({
+    //                 ID: row.ID,
+    //                 IsApproved: isApproved
+    //             }));
 
-                this.isLoadingInventory = true;
-                this.inventoryService.inventoryApprovedIsfix(payload).subscribe({
-                    next: (res: any) => {
-                        this.isLoadingInventory = false;
-                        if (res?.status === 1 || res?.success || res?.status === 'success') {
-                            this.notification.success(
-                                NOTIFICATION_TITLE.success,
-                                `${actionText} thành công!`
-                            );
-                            this.getAllProductSale();
-                        } else {
-                            this.notification.warning(
-                                NOTIFICATION_TITLE.warning,
-                                res?.message || `${actionText} thất bại!`
-                            );
-                        }
-                    },
-                    error: (err: any) => {
-                        this.isLoadingInventory = false;
-                        this.notification.create(
-                            NOTIFICATION_TYPE_MAP[err.status] || 'error',
-                            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-                            err?.error?.message || `${err.error}\n${err.message}`,
-                            { nzStyle: { whiteSpace: 'pre-line' } }
-                        );
-                    }
-                });
-            }
-        });
-    }
+    //             this.isLoadingInventory = true;
+    //             this.inventoryService.inventoryApprovedIsfix(payload).subscribe({
+    //                 next: (res: any) => {
+    //                     this.isLoadingInventory = false;
+    //                     if (res?.status === 1 || res?.success || res?.status === 'success') {
+    //                         this.notification.success(
+    //                             NOTIFICATION_TITLE.success,
+    //                             `${actionText} thành công!`
+    //                         );
+    //                         this.getAllProductSale();
+    //                     } else {
+    //                         this.notification.warning(
+    //                             NOTIFICATION_TITLE.warning,
+    //                             res?.message || `${actionText} thất bại!`
+    //                         );
+    //                     }
+    //                 },
+    //                 error: (err: any) => {
+    //                     this.isLoadingInventory = false;
+    //                     this.notification.create(
+    //                         NOTIFICATION_TYPE_MAP[err.status] || 'error',
+    //                         NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+    //                         err?.error?.message || `${err.error}\n${err.message}`,
+    //                         { nzStyle: { whiteSpace: 'pre-line' } }
+    //                     );
+    //                 }
+    //             });
+    //         }
+    //     });
+    // }
 
     //#region Borrow Request
 

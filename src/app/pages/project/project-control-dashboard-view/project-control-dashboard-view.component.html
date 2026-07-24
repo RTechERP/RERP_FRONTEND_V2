@@ -1,46 +1,32 @@
-<div class="dashboard-container d-flex flex-column h-100 p-3 bg-light overflow-auto">
+<p-contextMenu #cm [model]="contextMenuItems" appendTo="body"></p-contextMenu>
 
-  <!-- Header & Title -->
-  <!-- <div class="d-flex align-items-center justify-content-between mb-3 bg-white p-3 rounded border shadow-sm">
-    <div class="d-flex align-items-center">
-      <div
-        class="icon-box me-3 bg-primary-subtle text-primary rounded p-2 d-flex align-items-center justify-content-center"
-        style="width: 38px; height: 38px;">
-        <i class="fa-solid fa-chart-line fs-5"></i>
-      </div>
-      <div>
-        <h5 class="mb-0 fw-bold text-dark fs-6">Báo Cáo Dashboard Theo Dõi Dự Án (Project Control Dashboard)</h5>
-        <small class="text-muted" style="font-size: 11px;">Tổng hợp chỉ số tiến độ, danh sách nhân viên tham gia và
-          thống kê biểu đồ trực quan</small>
-      </div>
-    </div>
-  </div> -->
+<div class="p-3 bg-light font-size-12" style="height: calc(100vh - 90px); overflow-y: auto; overflow-x: hidden;">
 
-  <!-- ══ 1. Filter Bar (Bộ lọc ở trên cùng) ════════════════════════════════════ -->
+  <!-- ══ 1. Filter Header (Bộ Lọc Phân Loại) ═════════════════════════════════════ -->
   <div class="filter-card bg-white p-3 rounded border shadow-sm mb-3">
     <div class="row g-2 align-items-end">
       <!-- Từ ngày -->
-      <div class="col-12 col-sm-6 col-md-2">
+      <div class="col-9 col-sm-auto" style="width: 135px;">
         <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 11px;">
           <i class="fa-regular fa-calendar me-1"></i>Từ ngày
         </label>
-        <nz-date-picker [(ngModel)]="filter.fromDate" nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn từ ngày" class="w-100"
+        <nz-date-picker [(ngModel)]="filter.fromDate" nzFormat="dd/MM/yyyy" nzPlaceHolder="Từ ngày" class="w-100"
           nzSize="default"></nz-date-picker>
       </div>
 
       <!-- Đến ngày -->
-      <div class="col-12 col-sm-6 col-md-2">
+      <div class="col-9 col-sm-auto" style="width: 135px;">
         <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 11px;">
           <i class="fa-regular fa-calendar-check me-1"></i>Đến ngày
         </label>
-        <nz-date-picker [(ngModel)]="filter.toDate" nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn đến ngày" class="w-100"
+        <nz-date-picker [(ngModel)]="filter.toDate" nzFormat="dd/MM/yyyy" nzPlaceHolder="Đến ngày" class="w-100"
           nzSize="default"></nz-date-picker>
       </div>
 
       <!-- Combobox Phòng ban -->
-      <div class="col-12 col-sm-6 col-md-3">
+      <div class="col-12 col-sm-6 col-md">
         <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 11px;">
-          <i class="fa-solid fa-building me-1"></i>Phòng ban phụ trách
+          <i class="fa-solid fa-building me-1"></i>Phòng ban
         </label>
         <nz-select [(ngModel)]="filter.departmentId" (ngModelChange)="onDepartmentChange()" nzAllowClear nzShowSearch
           nzPlaceHolder="Tất cả phòng ban" class="w-100">
@@ -49,7 +35,7 @@
       </div>
 
       <!-- Combobox Nhân viên -->
-      <div class="col-12 col-sm-6 col-md-2">
+      <div class="col-12 col-sm-6 col-md">
         <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 11px;">
           <i class="fa-solid fa-user-gear me-1"></i>Nhân viên / PM
         </label>
@@ -60,8 +46,19 @@
         </nz-select>
       </div>
 
+      <!-- Combobox Phân loại Gate (Type 1: Giải pháp, Type 2: Triển khai) -->
+      <div class="col-6 col-sm-6 col-md-2">
+        <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 11px;">
+          <i class="fa-solid fa-layer-group me-1"></i>Giai đoạn Gate
+        </label>
+        <nz-select [(ngModel)]="filter.gateType" (ngModelChange)="onSearch()" class="w-100">
+          <nz-option *ngFor="let opt of gateTypeFilterOptions" [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+        </nz-select>
+      </div>
+
+
       <!-- Input Tìm kiếm -->
-      <div class="col-12 col-sm-8 col-md-2">
+      <div class="col-12 col-sm-6 col-md">
         <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 11px;">
           <i class="fa-solid fa-magnifying-glass me-1"></i>Tìm kiếm dự án
         </label>
@@ -75,8 +72,8 @@
       </div>
 
       <!-- Action Buttons -->
-      <div class="col-12 col-sm-4 col-md-1 d-flex gap-1">
-        <button nz-button nzType="primary" (click)="onSearch()" class="flex-grow-1">
+      <div class="col-12 col-sm-auto d-flex gap-1">
+        <button nz-button nzType="primary" (click)="onSearch()">
           <i class="fa-solid fa-filter me-1"></i> Lọc
         </button>
         <button nz-button nzType="default" (click)="onReset()" nzTooltipTitle="Làm mới bộ lọc" nz-tooltip>
@@ -151,8 +148,43 @@
       </div>
     </div>
 
-    <!-- ══ 3. THANH TAB DISPLAY (BỎ CỘT STT, CỘT TRẠNG THÁI LÊN ĐẦU VỚI COMBOBOX FILTER) ════ -->
+    <!-- ══ 3. Charts Section (4 Biểu đồ) ═════════════════════════════════════════ -->
     <div class="row g-3 mb-3">
+      <!-- Chart 1: Bar Chart Gate G0 -> G13 -->
+      <div class="col-12 col-lg-7">
+        <div class="chart-card bg-white p-3 rounded border shadow-sm h-100">
+          <div echarts [options]="gateChartOptions" (chartClick)="onGateChartClick($event)" class="w-100 cursor-pointer"
+            style="height: 340px;"></div>
+        </div>
+      </div>
+
+      <!-- Chart 2: Pie Chart ProjectType -->
+      <div class="col-12 col-lg-5">
+        <div class="chart-card bg-white p-3 rounded border shadow-sm h-100">
+          <div echarts [options]="projectTypeChartOptions" (chartClick)="onProjectTypeChartClick($event)"
+            class="w-100 cursor-pointer" style="height: 340px;"></div>
+        </div>
+      </div>
+
+      <!-- Chart 3: Stacked Bar Chart Department -->
+      <div class="col-12 col-lg-7">
+        <div class="chart-card bg-white p-3 rounded border shadow-sm h-100">
+          <div echarts [options]="departmentChartOptions" (chartClick)="onDepartmentChartClick($event)"
+            class="w-100 cursor-pointer" style="height: 320px;"></div>
+        </div>
+      </div>
+
+      <!-- Chart 4: Donut Chart Status -->
+      <div class="col-12 col-lg-5">
+        <div class="chart-card bg-white p-3 rounded border shadow-sm h-100">
+          <div echarts [options]="statusChartOptions" (chartClick)="onStatusChartClick($event)"
+            class="w-100 cursor-pointer" style="height: 320px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 4. THANH TAB BẢNG DỰ ÁN (ĐẶT XUỐNG DƯỚI BIỂU ĐỒ) ══════════════════════ -->
+    <div class="row g-3 mb-3" id="project-table-container">
       <div class="col-12">
         <div class="bg-white p-3 rounded border shadow-sm">
 
@@ -169,7 +201,24 @@
               </ng-template>
 
               <div class="pt-3">
-                <p-table #dtProject [value]="summaryData.projectList"
+                <!-- Thanh hiển thị trạng thái lọc từ biểu đồ -->
+                <div *ngIf="chartFilterLabel"
+                  class="alert alert-info py-2 px-3 mb-2 d-flex align-items-center justify-content-between rounded border-info-subtle shadow-sm"
+                  style="font-size: 12px;">
+                  <span>
+                    <i class="fa-solid fa-chart-pie me-2 text-primary"></i>
+                    Đang lọc danh sách theo biểu đồ: <strong class="text-dark ms-1">{{ chartFilterLabel }}</strong>
+                    <span class="badge bg-primary ms-2 px-2 py-1">{{ displayProjectList.length }} dự án</span>
+                  </span>
+                  <button nz-button nzType="link" nzDanger (click)="clearChartFilter()"
+                    style="font-size: 12px; padding: 0;">
+                    <i class="fa-solid fa-xmark me-1"></i> Xóa lọc biểu đồ (Hiển thị tất cả {{
+                    summaryData.projectList.length }} dự án)
+                  </button>
+                </div>
+
+                <p-table #dtProject [value]="displayProjectList" [contextMenu]="cm"
+                  [(contextMenuSelection)]="selectedProjectRow"
                   styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped" [paginator]="true" [rows]="10"
                   [rowsPerPageOptions]="[5, 10, 20, 50]" [scrollable]="true" scrollHeight="400px"
                   [resizableColumns]="true" columnResizeMode="expand"
@@ -267,7 +316,8 @@
                   </ng-template>
 
                   <ng-template pTemplate="body" let-item>
-                    <tr style="font-size: 12px;">
+                    <tr [pContextMenuRow]="item" (dblclick)="openProjectGateStepDetail(item)"
+                      style="font-size: 12px; cursor: pointer;">
                       <!-- CỘT TRẠNG THÁI (LẤY ProjectStatusName) ĐẦU BẢNG -->
                       <td style="text-align: center;">
                         <span class="badge px-2 py-1" [ngClass]="getStatusBadgeClass(item.ProjectStatus)">
@@ -276,13 +326,11 @@
                       </td>
 
                       <td>
-                        <span class="fw-bold text-primary">{{ item.ProjectCode }}</span>
+                        <span class="fw-bold text-primary cursor-pointer" (click)="openProjectGateStepDetail(item)"
+                          title="Click để xem chi tiết">{{ item.ProjectCode }}</span>
                       </td>
                       <td style="font-weight: 500;">
                         {{ item.ProjectName }}
-                        <!-- @if (item.IsOverdue) {
-                        <span class="badge bg-danger-subtle text-danger ms-1" style="font-size: 10px;">Trễ hạn</span>
-                        } -->
                       </td>
                       <td>{{ item.CustomerName }}</td>
                       <td>
@@ -293,7 +341,8 @@
                       </td>
                       <td>{{ item.DepartmentName }}</td>
                       <td style="text-align: center;">
-                        <span *ngIf="item.CurrentGate; else noGate" class="badge bg-dark text-white fw-bold px-2 py-1">{{ item.CurrentGate }}</span>
+                        <span *ngIf="item.CurrentGate; else noGate"
+                          class="badge bg-dark text-white fw-bold px-2 py-1">{{ item.CurrentGate }}</span>
                         <ng-template #noGate><span class="text-muted">---</span></ng-template>
                       </td>
                       <td style="text-align: center;" [ngClass]="{'text-danger fw-bold': item.IsOverdue}">
@@ -333,7 +382,8 @@
               </ng-template>
 
               <div class="pt-3">
-                <p-table [value]="summaryData.overdueList"
+                <p-table [value]="summaryData.overdueList" [contextMenu]="cm"
+                  [(contextMenuSelection)]="selectedProjectRow"
                   styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped" [paginator]="true" [rows]="10"
                   [rowsPerPageOptions]="[5, 10, 20, 50]" [scrollable]="true" scrollHeight="400px"
                   [resizableColumns]="true" columnResizeMode="expand"
@@ -368,18 +418,21 @@
                     </tr>
                   </ng-template>
                   <ng-template pTemplate="body" let-item>
-                    <tr style="font-size: 12px;">
+                    <tr [pContextMenuRow]="item" (dblclick)="openProjectGateStepDetail(item)"
+                      style="font-size: 12px; cursor: pointer;">
                       <td style="text-align: center;">
                         <span class="badge px-2 py-1" [ngClass]="getStatusBadgeClass(item.ProjectStatus)">
                           {{ item.ProjectStatusName }}
                         </span>
                       </td>
-                      <td class="fw-bold text-danger">{{ item.ProjectCode }}</td>
+                      <td class="fw-bold text-danger cursor-pointer" (click)="openProjectGateStepDetail(item)"
+                        title="Click để xem chi tiết">{{ item.ProjectCode }}</td>
                       <td class="fw-bold">{{ item.ProjectName }}</td>
                       <td>{{ item.FullNamePM }}</td>
                       <td>{{ item.DepartmentName }}</td>
                       <td style="text-align: center;">
-                        <span *ngIf="item.CurrentGate; else noGateOverdue" class="badge bg-danger px-2 py-1">{{ item.CurrentGate }}</span>
+                        <span *ngIf="item.CurrentGate; else noGateOverdue" class="badge bg-danger px-2 py-1">{{
+                          item.CurrentGate }}</span>
                         <ng-template #noGateOverdue><span class="text-muted">---</span></ng-template>
                       </td>
                       <td style="text-align: center;" class="text-danger fw-bold">{{ item.ExpectedPlanDate |
@@ -401,37 +454,6 @@
 
           </nz-tabset>
 
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ 4. Charts Section (4 Biểu đồ) ═════════════════════════════════════════ -->
-    <div class="row g-3 mb-3">
-      <!-- Chart 1: Bar Chart Gate G0 -> G13 -->
-      <div class="col-12 col-lg-7">
-        <div class="chart-card bg-white p-3 rounded border shadow-sm h-100">
-          <div echarts [options]="gateChartOptions" class="w-100" style="height: 340px;"></div>
-        </div>
-      </div>
-
-      <!-- Chart 2: Pie Chart ProjectType -->
-      <div class="col-12 col-lg-5">
-        <div class="chart-card bg-white p-3 rounded border shadow-sm h-100">
-          <div echarts [options]="projectTypeChartOptions" class="w-100" style="height: 340px;"></div>
-        </div>
-      </div>
-
-      <!-- Chart 3: Stacked Bar Chart Department -->
-      <div class="col-12 col-lg-7">
-        <div class="chart-card bg-white p-3 rounded border shadow-sm h-100">
-          <div echarts [options]="departmentChartOptions" class="w-100" style="height: 320px;"></div>
-        </div>
-      </div>
-
-      <!-- Chart 4: Donut Chart Status -->
-      <div class="col-12 col-lg-5">
-        <div class="chart-card bg-white p-3 rounded border shadow-sm h-100">
-          <div echarts [options]="statusChartOptions" class="w-100" style="height: 320px;"></div>
         </div>
       </div>
     </div>

@@ -638,8 +638,8 @@
       </ng-template>
       <ng-template pTemplate="header">
         <tr class="header-row">
-          <th style="width: 40px; text-align: center;" pResizableColumn title="Chọn để duyệt">
-            <i class="fa-solid fa-circle-check text-success" style="font-size: 13px;"></i>
+          <th style="width: 40px; text-align: center;" pResizableColumn title="Chọn / bỏ chọn tất cả để duyệt">
+            <input type="checkbox" [ngModel]="isAllStepsSelected()" (change)="toggleSelectAllSteps($event)" />
           </th>
           <th style="width: 60px; text-align: center;" pResizableColumn>
             <button nz-button nzType="text" (click)="addBlankStep(activeProjectTypeId + '_' + activeDepartmentId)"
@@ -730,6 +730,7 @@
           <td class="text-center" style="width: 60px;">
             <button nz-button nzType="text" nzDanger
               (click)="removeStep(activeProjectTypeId + '_' + activeDepartmentId, item.ID)"
+              [disabled]="isStepPassed(item) || isStepApprovedTBP(item)"
               class="btn-delete-step p-0 d-flex align-items-center justify-content-center mx-auto"
               style="height: 24px; width: 24px;">
               <i class="fa-solid fa-xmark"></i>

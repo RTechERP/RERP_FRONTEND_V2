@@ -337,12 +337,16 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     });
   }
 
-  updateTabsSteps() {
+  updateTabsSteps(forceRebuild: boolean = false) {
     if (!this.allGateSteps || this.allGateSteps.length === 0) {
       return;
     }
     if (!this.isGateStepsLoaded) {
       return;
+    }
+
+    if (forceRebuild) {
+      this.projectTypeStepsMap = {};
     }
 
     this.groupedMenuDepartments.forEach(group => {
@@ -391,6 +395,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
               if (originalItem) {
                 step.ProjectGateStepLinkID = originalItem.ID;
                 step.IsApproved = originalItem.IsApproved;
+                step.IsApprovedTBP = originalItem.IsApprovedTBP;
                 step.StartDate = originalItem.StartDate ? originalItem.StartDate.substring(0, 10) : null;
                 step.isRepeatChecked = !!repeatedItem;
 
@@ -422,6 +427,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
             if (repeatedStep && repeatedItem) {
               repeatedStep.ProjectGateStepLinkID = repeatedItem.ID;
               repeatedStep.IsApproved = repeatedItem.IsApproved;
+              repeatedStep.IsApprovedTBP = repeatedItem.IsApprovedTBP;
               repeatedStep.StartDate = repeatedItem.StartDate ? repeatedItem.StartDate.substring(0, 10) : null;
 
               repeatedStep.CheckLists = repeatedItem.CheckLists || [];
@@ -651,6 +657,9 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       const steps = this.projectTypeStepsMap[comboKey];
       const stepToDelete = steps.find((s: any) => s.ID === stepId);
       if (stepToDelete) {
+        if (this.isStepPassed(stepToDelete) || this.isStepApprovedTBP(stepToDelete)) {
+          return;
+        }
         if (stepToDelete.isRepeated) {
           const parent = steps.find((s: any) => s.ID === stepToDelete.parentStepId);
           if (parent) {
@@ -1744,6 +1753,11 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     return item?.IsApproved === true;
   }
 
+  isStepApprovedTBP(item: any): boolean {
+    if (!item) return false;
+    return item.IsApprovedTBP === 1 || item.IsApprovedTBP === true || item.IsApproved === true;
+  }
+
   getRelativeSubPath(pathFolder: string): string {
     if (!pathFolder) return '';
     const match = pathFolder.match(/[\\\/]projects[\\\/](.*)$/i);
@@ -1950,6 +1964,27 @@ export class ProjectGateStepByProjectComponent implements OnInit {
 
   isStepSelected(item: any): boolean {
     return !!item?.ProjectGateStepLinkID && this.selectedStepLinkIds.has(item.ProjectGateStepLinkID);
+  }
+
+  /** Kiểm tra xem tất cả các công đoạn đã lưu trong tab hiện tại đã được chọn chưa */
+  isAllStepsSelected(): boolean {
+    const key = this.activeProjectTypeId + '_' + this.activeDepartmentId;
+    const steps = (this.projectTypeStepsMap[key] || []).filter((s: any) => !s.isNew && s.ProjectGateStepLinkID);
+    if (!steps.length) return false;
+    return steps.every((s: any) => this.selectedStepLinkIds.has(s.ProjectGateStepLinkID));
+  }
+
+  /** Chọn / Bỏ chọn tất cả công đoạn trong tab hiện tại */
+  toggleSelectAllSteps(event: any): void {
+    const checked = event?.target?.checked ?? event;
+    const key = this.activeProjectTypeId + '_' + this.activeDepartmentId;
+    const steps = (this.projectTypeStepsMap[key] || []).filter((s: any) => !s.isNew && s.ProjectGateStepLinkID);
+
+    if (checked) {
+      steps.forEach((s: any) => this.selectedStepLinkIds.add(s.ProjectGateStepLinkID));
+    } else {
+      steps.forEach((s: any) => this.selectedStepLinkIds.delete(s.ProjectGateStepLinkID));
+    }
   }
 
   /** Lấy danh sách item đã được chọn thuộc tab đang hiển thị */

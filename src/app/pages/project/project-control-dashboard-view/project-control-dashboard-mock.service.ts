@@ -8,6 +8,7 @@ export interface ProjectDashboardFilter {
   departmentId?: number | null;
   employeeId?: number | null;
   keyword?: string | null;
+  gateType?: number | null;
 }
 
 export interface ProjectDashboardItem {
@@ -29,6 +30,8 @@ export interface ProjectDashboardItem {
   ProjectTypeID?: number;
   ProjectTypeName?: string;
   CurrentGate: string; // G0, G1, G2 ... G13
+  CurrentGateType?: number; // 1: Giải pháp, 2: Triển khai
+  IsGateCompleted?: boolean;
   ProjectStatus: number; // 0: Chưa thực hiện, 1: Đang thực hiện, 2: Đã hoàn thành, 3: Test, 4: Chờ PO, 5: PO, 6: Hủy/dừng
   ProjectStatusName?: string;
   ProjectStatusText: string;
@@ -455,12 +458,16 @@ export class ProjectControlDashboardMockService {
     const completedProjects = filtered.filter(p => p.ProjectStatus === 2).length;
     const overdueProjects = filtered.filter(p => p.IsOverdue).length;
 
-    // Gate distribution G0 -> G13
-    const gates = Array.from({ length: 14 }, (_, i) => `G${i}`);
+    // Gate distribution G0 -> G12 + Hoàn thành Gate
+    const gates = Array.from({ length: 13 }, (_, i) => `G${i}`);
     const gateDistributions: GateDistribution[] = gates.map(g => ({
       gate: g,
-      count: filtered.filter(p => p.CurrentGate === g).length
+      count: filtered.filter(p => p.CurrentGate === g && !p.IsGateCompleted).length
     }));
+    gateDistributions.push({
+      gate: 'Hoàn thành Gate',
+      count: filtered.filter(p => p.IsGateCompleted).length
+    });
 
     // ProjectType distribution
     const projectTypeDistributions: ProjectTypeDistribution[] = this.mockProjectTypes.map(pt => ({

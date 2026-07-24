@@ -191,7 +191,7 @@ export class ProductGroupRtcSettingComponent implements OnInit, AfterViewInit {
   }
 
   onLoadData() {
-    this.tbProductRtcService.getdataProductGroupNew(this.warehouseId, false, false).subscribe({
+    this.tbProductRtcService.getdataProductGroupNew(this.warehouseId, false, false, 1).subscribe({
       next: (response: any) => {
         this.productGroupsData = response.data.data.map((item: any) => {
           return {

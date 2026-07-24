@@ -29,6 +29,10 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 
 import { CourseManagementService } from '../../course-management/course-management-service/course-management.service';
+import {
+  CopyCourseCatalogCounts,
+  CopyCourseCatalogRequest,
+} from '../../course-management/course-management.types';
 
 interface CourseCatalog {
   ID?: number;
@@ -112,11 +116,13 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
   }
 
   @Input() catalogID: number = 0;
-  @Input() mode: 'add' | 'edit' = 'add';
+  @Input() mode: 'add' | 'edit' | 'copy' | 'move' = 'add';
   @Input() maxSTT: number = 1;
 
   formGroup: FormGroup;
   saving: boolean = false;
+  loadingPreview: boolean = false;
+  copyCounts: CopyCourseCatalogCounts | null = null;
   private patchTimeout: any;
 
   // Data for dropdowns
@@ -133,10 +139,10 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
     this.formGroup = this.fb.group({
       TypeID: [null, [Validators.required]],
       DepartmentID: [null, [Validators.required]],
-      Code: ['', [Validators.required, Validators.maxLength(100)]],
+      Code: ['', [Validators.required, Validators.maxLength(50)]],
       STT: [1],
       IsActive: [true],
-      Name: ['', [Validators.required, Validators.maxLength(200)]],
+      Name: ['', [Validators.required, Validators.maxLength(100)]],
       TeamIDs: [[], []], // Multi-select, không required
     });
   }
@@ -145,6 +151,9 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
     // Load dữ liệu dropdown cố định
     this.loadTypeData();
     this.initFormData();
+    if (this.mode === 'copy' || this.mode === 'move') {
+      this.loadCopyPreview();
+    }
 
     // Backup fetch if data is not provided by parent
     if (!this.dataDepartment || this.dataDepartment.length === 0) {
@@ -167,6 +176,7 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
     if (
       data &&
       (this.mode === 'edit' ||
+        this.mode === 'copy' ||
         (this.ensureNumber(data?.ID ?? data?.Id ?? data?.id) ?? 0) > 0)
     ) {
       const typeID = this.ensureNumber(
@@ -195,10 +205,18 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
           {
             TypeID: typeID,
             DepartmentID: deptID,
-            Code: data.Code ?? data.code ?? data.MaDanhMuoc ?? '',
-            STT: data.STT ?? data.stt ?? 1, // Nếu edit thì giữ nguyên STT từ data
-            IsActive: data.Status,
-            Name: data.Name ?? data.name ?? data.TenDanhMuc ?? '',
+            Code: this.mode === 'copy'
+              ? `${data.Code ?? data.code ?? data.MaDanhMuoc ?? ''}-COPY`
+              : (this.mode === 'move' 
+                  ? data.Code ?? data.code ?? data.MaDanhMuoc ?? ''
+                  : data.Code ?? data.code ?? data.MaDanhMuoc ?? ''),
+            STT: (this.mode === 'copy' || this.mode === 'move') ? 0 : data.STT ?? data.stt ?? 1,
+            IsActive: data.Status ?? true,
+            Name: this.mode === 'copy'
+              ? `${data.Name ?? data.name ?? data.TenDanhMuc ?? ''} - Bản sao`
+              : (this.mode === 'move'
+                  ? data.Name ?? data.name ?? data.TenDanhMuc ?? ''
+                  : data.Name ?? data.name ?? data.TenDanhMuc ?? ''),
             TeamIDs: teamIDs,
           },
           { emitEvent: false },
@@ -278,6 +296,46 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
     return [];
   }
 
+  private loadCopyPreview(): void {
+    const sourceCatalogId = this.ensureNumber(this.dataInput?.ID) ?? 0;
+    if (sourceCatalogId <= 0) return;
+
+    this.loadingPreview = true;
+    
+    const previewMethod = this.mode === 'move' 
+      ? this.courseService.getMoveCourseCatalogPreview(sourceCatalogId)
+      : this.courseService.getCopyCourseCatalogPreview(sourceCatalogId);
+    
+    previewMethod.subscribe({
+      next: (res: any) => {
+        this.loadingPreview = false;
+        if (res?.status === 1) {
+          this.copyCounts = res.data?.Counts ?? null;
+          const source = res.data?.SourceCatalog;
+          if (source) {
+            this.formGroup.patchValue({
+              TypeID: source.CatalogType,
+              DepartmentID: source.DepartmentID,
+              TeamIDs: source.ProjectTypeIDs || [],
+            });
+          }
+        } else {
+          this.notification.warning(
+            'Thông báo',
+            res?.message || 'Không thể tải thông tin!',
+          );
+        }
+      },
+      error: (err) => {
+        this.loadingPreview = false;
+        this.notification.error(
+          'Thông báo',
+          err?.error?.message || 'Không thể tải thông tin!',
+        );
+      },
+    });
+  }
+
   saveCourseCatalog() {
     if (this.saving) {
       return; // Ngăn không cho lưu nhiều lần
@@ -291,28 +349,65 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
     this.saving = true; // Bắt đầu lưu
 
     const formValue = this.formGroup.value;
-    const payload = {
-      ID: this.dataInput?.ID || 0,
-      Code: formValue.Code,
-      Name: formValue.Name,
-      DepartmentID: formValue.DepartmentID,
-      DeleteFlag: formValue.IsActive,
-      STT: formValue.STT,
-      CatalogType: formValue.TypeID,
-      ProjectTypeIDs: formValue.TeamIDs || [],
-      IsDeleted: false,
-    };
+    if (
+      this.mode === 'copy' &&
+      formValue.Code.toLowerCase() === (this.dataInput?.Code || '').trim().toLowerCase()
+    ) {
+      this.saving = false;
+      this.formGroup.get('Code')?.setErrors({ duplicateSource: true });
+      return;
+    }
 
-    this.courseService.saveCourseCatalog(payload).subscribe({
-      next: (res) => {
+    let request$: any;
+    if (this.mode === 'move') {
+      request$ = this.courseService.moveCourseCatalog({
+        SourceCatalogId: this.dataInput?.ID || 0,
+        TargetDepartmentId: formValue.DepartmentID,
+        TargetCatalogType: formValue.TypeID,
+        ProjectTypeIds: formValue.TeamIDs || [],
+      });
+    } else if (this.mode === 'copy') {
+      request$ = this.courseService.copyCourseCatalogFull({
+        SourceCatalogId: this.dataInput?.ID || 0,
+        NewCode: formValue.Code,
+        NewName: formValue.Name,
+        DepartmentId: formValue.DepartmentID,
+        CatalogType: formValue.TypeID,
+        ProjectTypeIds: formValue.TeamIDs || [],
+      } as CopyCourseCatalogRequest);
+    } else {
+      request$ = this.courseService.saveCourseCatalog({
+        ID: this.dataInput?.ID || 0,
+        Code: formValue.Code,
+        Name: formValue.Name,
+        DepartmentID: formValue.DepartmentID,
+        DeleteFlag: formValue.IsActive,
+        STT: formValue.STT,
+        CatalogType: formValue.TypeID,
+        ProjectTypeIDs: formValue.TeamIDs || [],
+        IsDeleted: false,
+      });
+    }
+
+    request$.subscribe({
+      next: (res: any) => {
         this.saving = false;
         if (res && res.status === 1) {
-          const message =
-            this.mode === 'edit'
-              ? 'Cập nhật danh mục thành công!'
-              : 'Thêm mới danh mục thành công!';
+          const message = this.mode === 'copy'
+            ? 'Sao chép toàn bộ danh mục thành công!'
+            : this.mode === 'move'
+              ? 'Di chuyển danh mục thành công!'
+              : this.mode === 'edit'
+                ? 'Cập nhật danh mục thành công!'
+                : 'Thêm mới danh mục thành công!';
           this.notification.success('Thông báo', message);
-          this.close();
+          if (this.mode === 'move') {
+            this.activeModal.close({ success: true, movedCatalogId: res.data?.MovedCatalogId });
+          } else if (this.mode === 'copy') {
+            this.activeModal.close({ success: true, newCatalogId: res.data?.NewCatalogId });
+          } else {
+            this.activeModal.close(true);
+          }
         } else {
           this.notification.warning(
             'Thông báo',
@@ -320,11 +415,11 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
           );
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         this.saving = false;
         this.notification.error(
           'Thông báo',
-          err?.message || 'Không thể lưu danh mục!',
+          err?.error?.message || err?.message || 'Không thể lưu danh mục!',
         );
         console.error('Error saving course catalog:', err);
       },

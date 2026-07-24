@@ -94,3 +94,16 @@
   overflow-y: hidden !important;
   scrollbar-width: thin;
 }
+
+/* Compact menu items for copy/move buttons */
+:host ::ng-deep .p-menubar .p-menuitem-link {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+:host ::ng-deep .p-menubar .p-menuitem-link .p-menuitem-text {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

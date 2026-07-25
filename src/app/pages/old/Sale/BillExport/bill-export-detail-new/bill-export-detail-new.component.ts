@@ -1858,6 +1858,7 @@ export class BillExportDetailNewComponent
                         WareHouseTranferID: data.WareHouseTranferID || null,
                         IsAfterHours: data.IsAfterHours || false,
                     });
+                    this.updateDeliveryTimeValidator();
 
                     this.isLoadingEditData = true;
                     this.changeProductGroup(this.newBillExport.KhoTypeID);
@@ -2196,6 +2197,31 @@ export class BillExportDetailNewComponent
         // }
     }
 
+    get isDeliveryTimeRequired(): boolean {
+        const currentId = Number(this.id || this.newBillExport?.Id || this.IDDetail || 0);
+        const isEditMode = this.isCheckmode || currentId > 0;
+        if (isEditMode) {
+            return currentId > 61076;
+        }
+        const status = this.validateForm?.get('Status')?.value ?? this.newBillExport?.Status;
+        return status === 7;
+    }
+
+    /**
+     * Cập nhật validator cho DeliveryTime theo điều kiện bắt buộc
+     */
+    private updateDeliveryTimeValidator(): void {
+        const deliveryTimeControl = this.validateForm?.get('DeliveryTime');
+        if (!deliveryTimeControl) return;
+
+        if (this.isDeliveryTimeRequired) {
+            deliveryTimeControl.setValidators([Validators.required]);
+        } else {
+            deliveryTimeControl.clearValidators();
+        }
+        deliveryTimeControl.updateValueAndValidity({ emitEvent: false });
+    }
+
     /**
      * Cập nhật validators cho CreatDate và RequestDate dựa trên Status
      * - Status = 6 (Yêu cầu xuất kho): RequestDate bắt buộc, CreatDate không bắt buộc
@@ -2217,6 +2243,8 @@ export class BillExportDetailNewComponent
 
         creatDateControl?.updateValueAndValidity();
         requestDateControl?.updateValueAndValidity();
+
+        this.updateDeliveryTimeValidator();
     }
 
     /**
@@ -2642,7 +2670,7 @@ export class BillExportDetailNewComponent
             return { isValid: false, message: 'Xin hãy chọn Ngày xuất!' };
         }
 
-        if (!formValues.DeliveryTime) {
+        if (this.isDeliveryTimeRequired && !formValues.DeliveryTime) {
             return { isValid: false, message: 'Xin hãy chọn Thời gian nhận hàng!' };
         }
 

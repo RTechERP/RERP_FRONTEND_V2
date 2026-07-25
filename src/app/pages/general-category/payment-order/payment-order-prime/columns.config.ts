@@ -2,19 +2,14 @@ export interface ColDef {
   field: string; header: string; width: string; type?: string;
   filterType?: 'multiselect' | 'text' | 'number' | 'date';
   filterOptions?: any[]; filterValue?: any;
-  align?: string; dateFormat?: string; hidden?: boolean; uppercase?: boolean;
+  align?: string; dateFormat?: string; hidden?: boolean; uppercase?: boolean; frozen?: boolean;
 }
 
 export const MAIN_COLUMNS: ColDef[] = [
-  { field: 'RowNum', header: 'STT', width: '80px', type: 'number', filterType: 'number', align: 'center' },
-  { field: 'IsUrgent', header: 'Thanh toán gấp', width: '80px', type: 'boolean', filterType: 'multiselect', align: 'center' },
-  { field: 'DateOrder', header: 'Ngày đề nghị', width: '100px', type: 'date', filterType: 'date', dateFormat: 'dd/MM/yyyy', align: 'center' },
-  { field: 'DeadlinePayment', header: 'Deadline', width: '150px', type: 'date', filterType: 'date', dateFormat: 'dd/MM/yyyy HH:mm', align: 'center' },
-  { field: 'StepName', header: 'Tình trạng phiếu', width: '200px', filterType: 'multiselect' },
-  { field: 'Code', header: 'Số đề nghị', width: '170px', filterType: 'multiselect' },
-  { field: 'FullName', header: 'Người đề nghị', width: '200px', filterType: 'multiselect' },
-  { field: 'DepartmentName', header: 'Bộ phận', width: '200px', filterType: 'multiselect' },
-  { field: 'TypeOrderText', header: 'Phân loại chính', width: '200px', filterType: 'multiselect' },
+  { field: 'RowNum', header: 'STT', width: '80px', type: 'number', filterType: 'number', align: 'center', frozen: true },
+  { field: 'DateOrder', header: 'Ngày đề nghị', width: '100px', type: 'date', filterType: 'date', dateFormat: 'dd/MM/yyyy', align: 'center', frozen: true },
+  { field: 'FullName', header: 'Người đề nghị', width: '200px', filterType: 'multiselect', frozen: true },
+  { field: 'ProjectFullName', header: 'Dự án', width: '200px', filterType: 'text', frozen: true },
   { field: 'TypeName', header: 'Nội dung chính của đề nghị', width: '250px', filterType: 'multiselect' },
   { field: 'ReasonOrder', header: 'Lý do thanh toán', width: '250px', filterType: 'text' },
   { field: 'TotalMoneyAdvance', header: 'Số tiền tạm ứng', width: '150px', type: 'number', filterType: 'number', align: 'right' },
@@ -22,6 +17,12 @@ export const MAIN_COLUMNS: ColDef[] = [
   { field: 'TotalPaymentActual', header: 'Chênh lệch', width: '150px', type: 'number', filterType: 'number', align: 'right' },
   { field: 'TotalPaymentWithInvoice', header: 'Tổng tiền có HĐ', width: '150px', type: 'number', filterType: 'number', align: 'right' },
   { field: 'Unit', header: 'ĐVT', width: '80px', filterType: 'multiselect', uppercase: true },
+  { field: 'StepName', header: 'Tình trạng phiếu', width: '200px', filterType: 'multiselect' },
+  { field: 'IsUrgent', header: 'Thanh toán gấp', width: '80px', type: 'boolean', filterType: 'multiselect', align: 'center' },
+  { field: 'DeadlinePayment', header: 'Deadline', width: '150px', type: 'date', filterType: 'date', dateFormat: 'dd/MM/yyyy HH:mm', align: 'center' },
+  { field: 'Code', header: 'Số đề nghị', width: '170px', filterType: 'multiselect' },
+  { field: 'DepartmentName', header: 'Bộ phận', width: '200px', filterType: 'multiselect' },
+  { field: 'TypeOrderText', header: 'Phân loại chính', width: '200px', filterType: 'multiselect' },
   { field: 'IsIgnoreHR', header: 'Bỏ qua HR', width: '100px', type: 'boolean', filterType: 'multiselect', align: 'center' },
   { field: 'TypeBankTransferText', header: 'Hình thức TT', width: '170px', filterType: 'multiselect' },
   { field: 'ContentBankTransfer', header: 'Nội dung CK', width: '200px', filterType: 'text' },
@@ -35,7 +36,6 @@ export const MAIN_COLUMNS: ColDef[] = [
   { field: 'StatusContractText', header: 'Trạng thái HĐ', width: '200px', filterType: 'multiselect' },
   { field: 'DocumentName', header: 'Số hợp đồng', width: '200px', filterType: 'multiselect' },
   { field: 'TaxCompanyName', header: 'Công ty', width: '150px', filterType: 'multiselect' },
-  { field: 'ProjectFullName', header: 'Dự án', width: '200px', filterType: 'text' },
   { field: 'IsBill', header: 'Có hóa đơn', width: '80px', type: 'boolean', filterType: 'multiselect', align: 'center' },
   { field: 'StartLocation', header: 'Điểm đi', width: '200px', filterType: 'text' },
   { field: 'EndLocation', header: 'Điểm đến', width: '200px', filterType: 'text' },

@@ -732,7 +732,6 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
 
   saveProductData() {
     const formValue = this.formDeviceInfo.value;
-    console.log('CHECKBOX VALUE:', formValue.BorrowCustomer);
 
     const payload = {
       productRTCs: [
@@ -785,6 +784,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
           CodeHCM: formValue.CodeHCM,
           CreateDate: formValue.CreateDate,
           ...(this.hadLegacyImage ? { LocationImg: '' } : {}),
+          MonoColor: formValue.MonoColor,
         },
       ],
     };

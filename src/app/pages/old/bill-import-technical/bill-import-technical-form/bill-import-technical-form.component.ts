@@ -144,7 +144,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   emPloyeeLists: any[] = [];
   productOptions: any[] = [];
   warehouses: any[] = [];
-
+  listDelete: any[] = [];
   // REFACTOR: Định nghĩa columns cho product popup (tái sử dụng được)
   productPopupColumns: ColumnDefinition[] = [
     {
@@ -690,6 +690,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         .getBillImportDetail(this.masterId)
         .subscribe((res) => {
           this.selectedDevices = res.billDetail || [];
+          this.listDelete = [];
           this.drawTableSelectedDevices();
           // Update column visibility after data is loaded
           setTimeout(() => {
@@ -1037,12 +1038,18 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
             const row = cell.getRow();
             const rowData = row.getData();
             const rowUID = rowData['UID'];
-
+            const detailID = rowData['ID'] || 0;
+            if (detailID > 0) {
+              this.listDelete.push({
+                ...rowData,
+                IsDeleted: true,
+              });
+            }
             // FIX: Xóa khỏi selectedDevices array trước khi xóa khỏi Tabulator
             this.selectedDevices = this.selectedDevices.filter(
               (device) => device['UID'] !== rowUID
             );
-
+            console.log(this.listDelete);
             // Sau đó xóa khỏi Tabulator
             row.delete();
           },
@@ -1699,7 +1706,10 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         IsNormalize: formValue.IsNormalize || false,
         ApproverID: formValue.ApproverID || 0,
       },
-      billImportDetailTechnicals: this.selectedDevices.map((device, index) => {
+      billImportDetailTechnicals: [
+        ...this.selectedDevices.map((device) => ({ ...device, IsDeleted: false })),
+        ...this.listDelete.map((device) => ({ ...device, IsDeleted: true })),
+      ].map((device, index) => {
         // Helper function to handle null/undefined for numeric fields
         const toNumberOrNull = (value: any): number | null => {
           if (value === null || value === undefined || value === '')
@@ -1762,6 +1772,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           ProductRTCQRCodeID: device.ProductRTCQRCodeID || 0,
           EmployeeIDBorrow: device.EmployeeIDBorrow || 0,
           WarehouseID: formValue.WarehouseID || this.warehouseID || 1,
+          IsDeleted: device.IsDeleted || false,
         };
       }),
       billImportTechDetailSerials: this.selectedDevices

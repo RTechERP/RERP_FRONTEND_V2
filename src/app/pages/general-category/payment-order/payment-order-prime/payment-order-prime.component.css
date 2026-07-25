@@ -1,4 +1,4 @@
-﻿:host {
+:host {
     display: block;
     height: 100%;
 }
@@ -155,12 +155,12 @@
 }
 
 /* Force row height to match virtualScrollItemSize="30" so PrimeNG scroll position calc is accurate */
-:host ::ng-deep .prime-table .p-datatable-tbody > tr {
+:host ::ng-deep .prime-table .p-datatable-tbody>tr {
     height: 30px;
     box-sizing: border-box;
 }
 
-:host ::ng-deep .prime-table .p-datatable-tbody > tr > td {
+:host ::ng-deep .prime-table .p-datatable-tbody>tr>td {
     height: 30px;
     box-sizing: border-box;
     overflow: hidden;

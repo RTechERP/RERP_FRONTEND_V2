@@ -307,17 +307,19 @@
 
                   <ng-template pTemplate="header">
                     <tr>
-                      <th style="width:40px"><p-tableHeaderCheckbox /></th>
+                      <th style="width:40px" pFrozenColumn><p-tableHeaderCheckbox /></th>
                       <th *ngFor="let col of columns" [pSortableColumn]="col.field" [style.width]="col.width"
                         [style.min-width]="col.width" [style.text-align]="col.align || 'left'" pResizableColumn
+                        pFrozenColumn [frozen]="col.frozen || false"
                         (contextmenu)="onHeaderRightClick($event, col, 'main')">
                         {{col.header}}
                         <p-sortIcon [field]="col.field" />
                       </th>
                     </tr>
                     <tr>
-                      <th style="width:40px"></th>
-                      <th *ngFor="let col of columns" class="filter-header">
+                      <th style="width:40px" pFrozenColumn></th>
+                      <th *ngFor="let col of columns" class="filter-header" pFrozenColumn
+                        [frozen]="col.frozen || false">
                         <p-multiselect *ngIf="col.filterType==='multiselect'" [options]="col.filterOptions||[]"
                           [(ngModel)]="col.filterValue" (onChange)="onFilterChange()" placeholder="Tất cả"
                           [showHeader]="true" [filter]="true" appendTo="body" [virtualScroll]="true"
@@ -337,11 +339,11 @@
                   <ng-template pTemplate="body" let-row>
                     <tr [ngClass]="getRowClass(row)" (contextmenu)="onRowRightClick($event, row)"
                       (dblclick)="onRowDblClick(row)">
-                      <td style="width:40px"><p-tableCheckbox [value]="row" /></td>
+                      <td style="width:40px" pFrozenColumn><p-tableCheckbox [value]="row" /></td>
                       <td *ngFor="let col of columns" [style.text-align]="col.align || 'left'" [style.width]="col.width"
                         [style.min-width]="col.width" [class.text-uppercase]="col.uppercase"
-                        [class.active-cell]="activeRowData === row && activeColumnField === col.field"
-                        (click)="onCellClick(row, col.field)">
+                        [class.active-cell]="activeRowData === row && activeColumnField === col.field" pFrozenColumn
+                        [frozen]="col.frozen || false" (click)="onCellClick(row, col.field)">
                         <ng-container [ngSwitch]="col.type">
                           <span *ngSwitchCase="'date'">{{row[col.field] |
                             date:col.dateFormat}}</span>

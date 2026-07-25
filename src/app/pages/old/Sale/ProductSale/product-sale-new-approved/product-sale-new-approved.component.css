@@ -1,0 +1,31 @@
+::ng-deep #productSaleNewApprovedGrid {
+  height: 83.5vh !important;
+}
+
+.fs-12 {
+  font-size: 0.75rem !important;
+}
+
+.grid-container {
+  width: 100%;
+  height: 100%;
+}
+
+::ng-deep
+  .slickgrid-container
+  .slick-footerrow
+  .slick-footerrow-columns
+  .slick-footerrow-column {
+  border-right: 1px solid #ddd !important;
+  justify-content: end !important;
+}
+
+::ng-deep #productSaleNewApprovedGrid .slick-group-toggle-all,
+::ng-deep #productSaleNewApprovedGrid .slick-group-cell {
+  font-size: 13px !important;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+}

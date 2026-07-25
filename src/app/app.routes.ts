@@ -414,6 +414,7 @@ import { TravelRegistrationComponent } from './pages/hrm/travel-registration/tra
 import { TravelRegistrationImportExcelComponent } from './pages/hrm/travel-registration/travel-registration-import-excel/travel-registration-import-excel.component';
 import { TravelRegistrationDetailComponent } from './pages/hrm/travel-registration/travel-registration-detail/travel-registration-detail.component';
 import { SalaryIncreaseComponent } from './pages/hrm/salary-increase/salary-increase.component';
+import { ProductSaleNewApprovedComponent } from './pages/old/Sale/ProductSale/product-sale-new-approved/product-sale-new-approved.component';
 export const routes: Routes = [
 
   {
@@ -1363,7 +1364,7 @@ export const routes: Routes = [
       { path: 'travel-registration-detail', component: TravelRegistrationDetailComponent, canActivate: [authGuard] },
       { path: 'summary-kpi-error-employee-new-hr', component: SummaryKpiErrorEmployeePrimengComponent, canActivate: [authGuard] },
       { path: 'salary-increase', component: SalaryIncreaseComponent, canActivate: [authGuard] },
-
+      { path: 'product-sale-new-approved', component: ProductSaleNewApprovedComponent, canActivate: [authGuard] },
     ],
   },
 ];

@@ -186,6 +186,7 @@ export class BillExportDetailNewComponent
     ];
 
     dateFormat = 'dd/MM/yyyy';
+    dateTimeFormat = 'dd/MM/yyyy HH:mm';
 
     newProductSale: ProductSale = {
         ProductCode: '',
@@ -380,6 +381,18 @@ export class BillExportDetailNewComponent
                 // Khi sửa: chỉ mặc định 2017 nếu bản ghi gốc chưa có khách hàng, còn lại giữ nguyên khách hàng gốc
                 if (!this.isCheckmode || !currentCustomerID || currentCustomerID <= 0) {
                     this.validateForm.patchValue({ CustomerID: 2017 }, { emitEvent: false });
+                }
+            });
+        this.validateForm
+            .get('DeliveryTime')
+            ?.valueChanges.pipe(takeUntil(this.destroy$))
+            .subscribe((value) => {
+                if (value) {
+                    const dateVal = value instanceof Date ? value : new Date(value);
+                    if (!isNaN(dateVal.getTime()) && dateVal.getSeconds() !== 0) {
+                        dateVal.setSeconds(0, 0);
+                        this.validateForm.get('DeliveryTime')?.setValue(dateVal, { emitEvent: false });
+                    }
                 }
             });
     }
@@ -2198,13 +2211,20 @@ export class BillExportDetailNewComponent
     }
 
     get isDeliveryTimeRequired(): boolean {
-        const currentId = Number(this.id || this.newBillExport?.Id || this.IDDetail || 0);
+        const currentId = Number(this.id || (this.newBillExport as any)?.ID || this.newBillExport?.Id || this.IDDetail || 0);
         const isEditMode = this.isCheckmode || currentId > 0;
         if (isEditMode) {
-            return currentId > 61076;
+            return currentId > 61095;
         }
-        const status = this.validateForm?.get('Status')?.value ?? this.newBillExport?.Status;
-        return status === 7;
+        return true;
+    }
+
+    get deliveryTimePeriod(): string {
+        const val = this.validateForm?.get('DeliveryTime')?.value;
+        if (!val) return '';
+        const d = val instanceof Date ? val : new Date(val);
+        if (isNaN(d.getTime())) return '';
+        return d.getHours() < 12 ? 'SA' : 'CH';
     }
 
     /**

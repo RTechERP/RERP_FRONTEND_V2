@@ -521,7 +521,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                 formatter: Formatters.date,
                 exportCustomFormatter: Formatters.date,
                 type: 'date',
-                params: { dateFormat: 'DD/MM/YYYY hh:mm:ss' },
+                params: { dateFormat: 'DD/MM/YYYY HH:mm:ss' },
                 filter: { model: Filters['compoundDate'] },
                 minWidth: 150,
             },
@@ -531,12 +531,28 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                 field: 'DeliveryTime',
                 sortable: true,
                 filterable: true,
-                formatter: Formatters.date,
-                exportCustomFormatter: Formatters.date,
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    const dateVal = value instanceof Date ? value : new Date(value);
+                    if (isNaN(dateVal.getTime())) return value;
+                    const hours = dateVal.getHours();
+                    const period = hours < 12 ? 'SA' : 'CH';
+                    const pad = (n: number) => (n < 10 ? '0' + n : String(n));
+                    const formatted = `${pad(dateVal.getDate())}/${pad(dateVal.getMonth() + 1)}/${dateVal.getFullYear()} ${pad(hours)}:${pad(dateVal.getMinutes())}:${pad(dateVal.getSeconds())}`;
+                    return `${formatted} (${period})`;
+                },
+                exportCustomFormatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    const dateVal = value instanceof Date ? value : new Date(value);
+                    if (isNaN(dateVal.getTime())) return value;
+                    const hours = dateVal.getHours();
+                    const period = hours < 12 ? 'SA' : 'CH';
+                    const pad = (n: number) => (n < 10 ? '0' + n : String(n));
+                    return `${pad(dateVal.getDate())}/${pad(dateVal.getMonth() + 1)}/${dateVal.getFullYear()} ${pad(hours)}:${pad(dateVal.getMinutes())}:${pad(dateVal.getSeconds())} (${period})`;
+                },
                 type: 'date',
-                params: { dateFormat: 'DD/MM/YYYY hh:mm:ss' },
                 filter: { model: Filters['compoundDate'] },
-                minWidth: 150,
+                minWidth: 170,
             },
             {
                 id: 'ReceiverFullName',

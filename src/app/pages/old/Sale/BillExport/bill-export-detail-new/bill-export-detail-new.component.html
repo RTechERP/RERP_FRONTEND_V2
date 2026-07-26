@@ -275,9 +275,13 @@
 
          <div nz-col nzSpan="3">
           <nz-form-item>
-            <nz-form-label class="fs-12">Thời gian nhận hàng<span class="text-danger" *ngIf="isDeliveryTimeRequired">*</span></nz-form-label>
+            <nz-form-label class="fs-12">
+              Thời gian nhận hàng
+              <span class="text-danger" *ngIf="isDeliveryTimeRequired">*</span>
+              <span *ngIf="deliveryTimePeriod" class="text-primary font-weight-bold ml-1">({{ deliveryTimePeriod }})</span>
+            </nz-form-label>
             <nz-form-control [nzErrorTip]="deliveryTimeError">
-              <nz-date-picker [nzFormat]="dateFormat" formControlName="DeliveryTime" nzPlaceHolder="Chọn ngày nhận hàng" nzSize="small" class="w-100"></nz-date-picker>
+              <nz-date-picker [nzFormat]="dateTimeFormat" [nzShowTime]="{ nzFormat: 'HH:mm' }" formControlName="DeliveryTime" nzPlaceHolder="Chọn ngày giờ nhận hàng" nzSize="small" class="w-100"></nz-date-picker>
               <ng-template #deliveryTimeError let-control>
                 <ng-container *ngIf="
                     control.hasError('required') &&

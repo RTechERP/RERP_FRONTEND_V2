@@ -137,10 +137,10 @@ export class ProductSaleImportExportComponent implements OnInit {
       customerId: [2017],
       supplierId: [1175],
       rulePayId: [{ value: 34, disabled: true }], // Mặc định: Không có điều khoản thanh toán
-      deliverImportId: [24],
-      reciverImportId: [24],
-      senderExportId: [24],
-      reciverExportId: [24],
+      deliverImportId: [55],
+      reciverImportId: [55],
+      senderExportId: [55],
+      reciverExportId: [55],
       user: [{ value: 'Admin', disabled: true }],
       note: [''],
       date: [new Date(), Validators.required],
@@ -185,7 +185,7 @@ export class ProductSaleImportExportComponent implements OnInit {
   }
 
   getEmployees(): void {
-    this.projectService.getUsers().subscribe({
+    this.projectService.getProjectEmployee(0).subscribe({
       next: (res: any) => {
         if (res?.data) {
           const list = Array.isArray(res.data) ? res.data : [];
@@ -194,6 +194,12 @@ export class ProductSaleImportExportComponent implements OnInit {
             fullName: item.FullName || item.fullName,
             id: item.EmployeeID || item.ID
           }));
+
+          const pgId = this.mainForm.get('productGroupId')?.value;
+          const whCode = this.mainForm.get('warehouseCode')?.value;
+          if (pgId && whCode) {
+            this.loadEmployeeByProductGroupAndWarehouse(pgId, whCode);
+          }
         }
       },
       error: (err: any) => {
@@ -359,29 +365,67 @@ export class ProductSaleImportExportComponent implements OnInit {
 
   onProductGroupChange(event: any): void {
     const pgId = event.value;
-    debugger;
     const whCode = this.mainForm.get('warehouseCode')?.value;
 
     if (pgId && whCode) {
       this.standardizationRows = [];
       this.selectedRowIndex = null;
 
-      const selectedPg = this.productGroups.find(g => g.id === pgId);
+      this.loadEmployeeByProductGroupAndWarehouse(pgId, whCode);
+      this.getInventoryData(whCode, pgId);
+    }
+  }
 
-      if (selectedPg && selectedPg.employeeId) {
-        const targetEmp = this.employees.find(emp => emp.id === selectedPg.employeeId || emp.userId === selectedPg.employeeId);
-        if (targetEmp && targetEmp.userId) {
-          this.mainForm.patchValue({
-            deliverImportId: targetEmp.userId,
-            reciverImportId: targetEmp.userId,
-            senderExportId: targetEmp.userId,
-            reciverExportId: targetEmp.userId
-          });
-          this.lblStatus = `Đã tự động gán nhân viên: ${targetEmp.fullName}`;
+  private loadEmployeeByProductGroupAndWarehouse(pgId: number, whCode: string): void {
+    if (!pgId || !whCode) return;
+
+    this.inventoryService.getPGWH(pgId, whCode).subscribe({
+      next: (res: any) => {
+        let empId: any = null;
+
+        if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+          const pgWhItem = res.data.find((x: any) =>
+            (x.WarehouseCode || '').toUpperCase().trim() === whCode.toUpperCase().trim()
+          ) || res.data[0];
+
+          empId = pgWhItem?.EmployeeID || pgWhItem?.employeeId || pgWhItem?.EmployeeId;
+        }
+
+        if (!empId) {
+          const selectedPg = this.productGroups.find(g => g.id === pgId);
+          empId = selectedPg?.employeeId;
+        }
+
+        if (empId) {
+          this.mapEmployeeToForm(empId);
+        }
+      },
+      error: (err: any) => {
+        console.error('Lỗi khi lấy thông tin người phụ trách loại kho:', err);
+        const selectedPg = this.productGroups.find(g => g.id === pgId);
+        if (selectedPg?.employeeId) {
+          this.mapEmployeeToForm(selectedPg.employeeId);
         }
       }
+    });
+  }
 
-      this.getInventoryData(whCode, pgId);
+  private mapEmployeeToForm(empId: any): void {
+    if (!empId) return;
+
+    const targetEmp = this.employees.find(
+      emp => Number(emp.id) === Number(empId) || Number(emp.userId) === Number(empId)
+    );
+
+    if (targetEmp) {
+      const selectedValue = targetEmp.id || targetEmp.userId;
+      this.mainForm.patchValue({
+        deliverImportId: selectedValue,
+        reciverImportId: selectedValue,
+        senderExportId: selectedValue,
+        reciverExportId: selectedValue
+      });
+      this.lblStatus = `Đã tự động gán nhân viên: ${targetEmp.fullName}`;
     }
   }
 

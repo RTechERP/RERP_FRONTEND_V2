@@ -109,6 +109,11 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
     id: number = 0;
     selectedRow: any = null;
     selectBillExport: any = null;
+
+    // Active cell tracking for Ctrl+C copy
+    private activeCellValueMaster: any = null;
+    private activeCellValueDetail: any = null;
+    private lastActiveGrid: 'master' | 'detail' | null = null;
     data: any[] = [];
     isLoadTable: boolean = false;
     isDetailLoad: boolean = false;
@@ -187,6 +192,29 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
     onResize(event: any) {
         if (typeof window !== 'undefined') {
             this.isMobile = event.target.innerWidth <= 768;
+        }
+    }
+
+    @HostListener('document:keydown', ['$event'])
+    onKeyDown(event: KeyboardEvent) {
+        // Ctrl+C: copy ô đang focus (chỉ khi không có text nào được bôi đen)
+        if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
+            const selection = window.getSelection();
+            if (selection && selection.toString().length > 0) {
+                // Có text được bôi đen → để trình duyệt tự xử lý
+                return;
+            }
+            let value: any = null;
+            if (this.lastActiveGrid === 'master') {
+                value = this.activeCellValueMaster;
+            } else if (this.lastActiveGrid === 'detail') {
+                value = this.activeCellValueDetail;
+            }
+            if (value != null && value !== undefined) {
+                this.clipboardService.copy(String(value));
+                this.message.success('Đã copy: ' + String(value));
+                event.preventDefault();
+            }
         }
     }
 
@@ -665,6 +693,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
             enableSorting: true,
             enableFiltering: true,
             enablePagination: false,
+            enableCellNavigation: true,
             enableRowSelection: true,
             enableCheckboxSelector: true,
             enableRowMoveManager: false,
@@ -921,6 +950,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
             enableSorting: true,
             enableFiltering: true,
             enablePagination: false,
+            enableCellNavigation: true,
             enableRowSelection: true,
             enableCheckboxSelector: false,
             rowSelectionOptions: {
@@ -978,6 +1008,19 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                     angularGrid.slickGrid.setSelectedRows([row]);
                 }
             });
+
+            // Track active cell để hỗ trợ copy bằng Ctrl+C
+            angularGrid.slickGrid.onActiveCellChanged.subscribe((_e: any, args: any) => {
+                this.lastActiveGrid = 'master';
+                if (args?.row != null && args?.cell != null) {
+                    const item = angularGrid.dataView?.getItem(args.row);
+                    const columns = angularGrid.slickGrid.getColumns();
+                    const col = columns[args.cell];
+                    this.activeCellValueMaster = item && col ? item[col.field as string] : null;
+                } else {
+                    this.activeCellValueMaster = null;
+                }
+            });
         }
 
         // Subscribe to dataView.onRowCountChanged để update footer khi data thay đổi
@@ -995,6 +1038,21 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
 
     angularGridDetailReady(angularGrid: AngularGridInstance) {
         this.angularGridDetail = angularGrid;
+
+        // Track active cell để hỗ trợ copy bằng Ctrl+C
+        if (angularGrid?.slickGrid) {
+            angularGrid.slickGrid.onActiveCellChanged.subscribe((_e: any, args: any) => {
+                this.lastActiveGrid = 'detail';
+                if (args?.row != null && args?.cell != null) {
+                    const item = angularGrid.dataView?.getItem(args.row);
+                    const columns = angularGrid.slickGrid.getColumns();
+                    const col = columns[args.cell];
+                    this.activeCellValueDetail = item && col ? item[col.field as string] : null;
+                } else {
+                    this.activeCellValueDetail = null;
+                }
+            });
+        }
 
         // Subscribe để update footer khi filter detail grid
         if (angularGrid.dataView) {
@@ -1212,7 +1270,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
     //   });
     // }
 
-    loadDataBillExport() {
+    loadDataBillExport(isLoadPage: boolean = false) {
         this.isLoadTable = true;
 
         const dateStart = this.searchParams.dateStart instanceof Date
@@ -1248,10 +1306,12 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                         this.updateMasterFooterRow();
                     }, 100);
                 }
-                this.id = 0;
-                this.selectedRow = null;
-                this.data = [];
-                this.datasetDetail = [];
+                if (!isLoadPage) {
+                    this.id = 0;
+                    this.selectedRow = null;
+                    this.data = [];
+                    this.datasetDetail = [];
+                }
             },
             error: (err) => {
                 this.isLoadTable = false;
@@ -1387,6 +1447,8 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
 
     openModalBillExportDetail(isCheckmode: boolean) {
         this.isCheckmode = isCheckmode;
+        console.log('Parameter :>> ', isCheckmode, this.id)
+
         if (this.isCheckmode === true && this.id === 0) {
             this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất để sửa');
             return;
@@ -1403,7 +1465,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
         modalRef.componentInstance.id = isCheckmode ? this.id : 0; // Chỉ truyền id khi sửa
         modalRef.componentInstance.wareHouseCode = this.warehouseCode;
         modalRef.result.finally(() => {
-            this.loadDataBillExport();
+            this.loadDataBillExport(true);
             setTimeout(() => {
                 if (this.angularGridMaster && this.savedSelectedRows.length > 0) {
                     this.angularGridMaster.slickGrid.setSelectedRows(this.savedSelectedRows);
@@ -2977,7 +3039,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                 { text: detail.ProductTypeText || '', alignment: 'left', fontSize: tableFontSize },
                 { text: detail.UnitPricePOKH ? this.formatNumber(detail.UnitPricePOKH) : '-', alignment: 'right', fontSize: tableFontSize },
                 { text: detail.UnitPricePurchase ? this.formatNumber(detail.UnitPricePurchase) : '-', alignment: 'right', fontSize: tableFontSize },
-                { text: billExport.WarehouseID = 1 ? detail.ProductGroupName : detail.WarehouseName , alignment: 'left', fontSize: tableFontSize },
+                { text: billExport.WarehouseID = 1 ? detail.ProductGroupName : detail.WarehouseName, alignment: 'left', fontSize: tableFontSize },
                 noteCell
             ];
             items.push(item);

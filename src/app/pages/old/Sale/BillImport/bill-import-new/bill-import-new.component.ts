@@ -3013,7 +3013,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                                 { text: '', margin: [0, 20, 0, 20] },
                                 cellPicPrepared,
                                 { text: billImport.Deliver || '', alignment: 'center', bold: true, fontSize: textFontSize },
-                                { text: dateRequestImportStr, alignment: 'center', fontSize: textFontSize }
+                                { text: creatDateStr, alignment: 'center', fontSize: textFontSize }
                             ]
                         },
                         {
@@ -3023,7 +3023,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                                 { text: '', margin: [0, 20, 0, 20] },
                                 cellPicDirector,
                                 { text: billImport.Reciver || '', alignment: 'center', bold: true, fontSize: textFontSize },
-                                { text: creatDateStr, alignment: 'center', fontSize: textFontSize }
+                                { text: dateRequestImportStr, alignment: 'center', fontSize: textFontSize }
                             ]
                         }
                     ],

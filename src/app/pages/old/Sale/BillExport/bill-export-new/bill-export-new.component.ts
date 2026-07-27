@@ -3233,7 +3233,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                                 { text: '', margin: [0, 20, 0, 20] },
                                 cellPicPrepared,
                                 { text: billExport.FullNameSender || '', alignment: 'center', bold: true, fontSize: textFontSize },
-                                { text: dateRequestExportStr, alignment: 'center', fontSize: textFontSize }
+                                { text: creatDateStr, alignment: 'center', fontSize: textFontSize }
                             ]
                         },
                         {
@@ -3243,7 +3243,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                                 { text: '', margin: [0, 20, 0, 20] },
                                 cellPicDirector,
                                 { text: billExport.FullName || '', alignment: 'center', bold: true, fontSize: textFontSize },
-                                { text: creatDateStr, alignment: 'center', fontSize: textFontSize }
+                                { text: dateRequestExportStr, alignment: 'center', fontSize: textFontSize }
                             ]
                         }
                     ],

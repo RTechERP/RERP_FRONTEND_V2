@@ -299,7 +299,24 @@ export class DateInputComponent implements ControlValueAccessor {
     // Calendar popover
     toggleCalendar(event: MouseEvent): void {
         if (this.isDisabled) return;
+        // Đồng bộ lại lịch theo đúng giá trị đang hiển thị trên 3 ô nhập trước khi mở,
+        // tránh giữ trạng thái điều hướng tháng/năm còn sót lại từ lần mở trước.
+        this.syncCalendarFromDisplay();
         this.pop.toggle(event);
+    }
+
+    private syncCalendarFromDisplay(): void {
+        const d = +this.dayDisplay;
+        const m = +this.monthDisplay;
+        const y = +this.yearDisplay;
+        if (d && m && y && this.yearDisplay.length === 4) {
+            const date = new Date(y, m - 1, d);
+            if (!isNaN(date.getTime()) && date.getDate() === d && date.getMonth() === m - 1) {
+                this.calendarDate = date;
+                return;
+            }
+        }
+        this.calendarDate = null;
     }
 
     onCalendarSelect(date: Date): void {
@@ -339,27 +356,32 @@ export class DateInputComponent implements ControlValueAccessor {
             this.onChange(null);
             return;
         }
-        const date = new Date(y, m - 1, d);
-        // Nếu JS roll-over (vd: 30/02 → 01/03) thì ngày không tồn tại thực tế
-        if (isNaN(date.getTime()) || date.getDate() !== d || date.getMonth() !== m - 1) {
-            this.clear();
+
+        // Ngày không tồn tại trong tháng/năm hiện tại (vd 31/04) -> lùi về ngày cuối cùng của
+        // tháng đó thay vì xóa hết dữ liệu người dùng vừa nhập (day/month đã gõ trước đó).
+        const lastDayOfMonth = new Date(y, m, 0).getDate();
+        let day = d;
+        if (day > lastDayOfMonth) {
+            day = lastDayOfMonth;
+            this.dayDisplay = String(day).padStart(2, '0');
+            if (this.dayRef) this.dayRef.nativeElement.value = this.dayDisplay;
             this.cdr.markForCheck();
-            this.onChange(null);
-            return;
         }
+
+        const date = new Date(y, m - 1, day);
         this.calendarDate = date;
         switch (this.format) {
             case 'date':
                 this.onChange(date);
                 break;
             case 'yyyy-MM-dd':
-                this.onChange(`${y}-${this.pad(m)}-${this.pad(d)}`);
+                this.onChange(`${y}-${this.pad(m)}-${this.pad(day)}`);
                 break;
             case 'MM/dd/yyyy':
-                this.onChange(`${this.pad(m)}/${this.pad(d)}/${y}`);
+                this.onChange(`${this.pad(m)}/${this.pad(day)}/${y}`);
                 break;
             default:
-                this.onChange(`${this.pad(d)}/${this.pad(m)}/${y}`);
+                this.onChange(`${this.pad(day)}/${this.pad(m)}/${y}`);
         }
     }
 

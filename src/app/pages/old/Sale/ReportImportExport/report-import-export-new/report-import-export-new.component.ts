@@ -28,6 +28,8 @@ import { ProductSaleDetailComponent } from '../../ProductSale/product-sale-detai
 import { ProductGroupDetailComponent } from '../../ProductSale/product-group-detail/product-group-detail.component';
 import { ImportExportModalComponent } from '../detail-modal/import-export-detail-modal..component';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { TabServiceService } from '../../../../../layouts/tab-service.service';
+import { ChiTietSanPhamSaleNewComponent } from '../../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale-new/chi-tiet-san-pham-sale-new.component';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { environment } from '../../../../../../environments/environment';
@@ -167,6 +169,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
         private zone: NgZone,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
+        private tabService: TabServiceService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
@@ -1087,23 +1090,24 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
     //#region Context Menu - Chi tiết sản phẩm
 
     openChiTietSanPhamSale(productData: any): void {
-        const params = new URLSearchParams({
-            code: productData.ProductCode || '',
-            suplier: productData.Supplier || '',
-            productName: productData.ProductName || '',
-            numberDauKy: productData.NumberInStoreDauky?.toString() || '0',
-            numberCuoiKy: productData.NumberInStoreCuoiKy?.toString() || '0',
-            import: productData.Import?.toString() || '0',
-            export: productData.Export?.toString() || '0',
-            productSaleID: (productData.ProductSaleID || productData.ID || 0).toString(),
-            wareHouseCode: this.warehouseCode || 'HN',
-        });
+        const productCode = productData.ProductCode || '';
 
-        window.open(
-            `${environment.baseHref}/chi-tiet-san-pham-sale?${params.toString()}`,
-            '_blank',
-            'width=1400,height=900,scrollbars=yes,resizable=yes'
-        );
+        this.tabService.openTabComp({
+            comp: ChiTietSanPhamSaleNewComponent,
+            title: `Chi tiết SP - ${productCode}`,
+            key: `chi-tiet-san-pham-sale-${productData.ProductSaleID || productData.ID || 0}`,
+            data: {
+                code: productCode,
+                suplier: productData.Supplier || '',
+                productName: productData.ProductName || '',
+                numberDauKy: productData.NumberInStoreDauky?.toString() || '0',
+                numberCuoiKy: productData.NumberInStoreCuoiKy?.toString() || '0',
+                import: productData.Import?.toString() || '0',
+                export: productData.Export?.toString() || '0',
+                productSaleID: productData.ProductSaleID || productData.ID || 0,
+                wareHouseCode: this.warehouseCode || 'HN',
+            }
+        });
     }
 
     //#endregion

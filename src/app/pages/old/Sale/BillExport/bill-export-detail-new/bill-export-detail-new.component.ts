@@ -819,7 +819,7 @@ export class BillExportDetailNewComponent
             createFooterRow: false,
             showFooterRow: false,
             forceFitColumns: false,
-            frozenColumn: 6,
+            frozenColumn: 7,
             enableColumnReorder: true,
             enableCheckboxSelector: true,
             enableRowSelection: true,
@@ -866,7 +866,7 @@ export class BillExportDetailNewComponent
                 id: 'STT',
                 name: 'STT',
                 field: 'STT',
-                width: 60,
+                width: 55,
                 sortable: true,
                 filterable: false,
                 formatter: (_row, _cell, _value, _column, dataContext) => {
@@ -888,7 +888,7 @@ export class BillExportDetailNewComponent
                 id: 'ProductID',
                 name: 'Mã sản phẩm',
                 field: 'ProductID',
-                width: 300,
+                width: 200,
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
@@ -1017,25 +1017,10 @@ export class BillExportDetailNewComponent
                 },
             },
             {
-                id: 'ProductFullName',
-                name: 'Mã sp theo dự án',
-                field: 'ProductFullName',
-                width: 400,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-                editor: { model: Editors['text'] },
-                formatter: (_row, _cell, value) => {
-                    if (!value) return '';
-                    const html = String(value).replace(/\n/g, '<br>');
-                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
-                },
-            },
-            {
                 id: 'ProductName',
                 name: 'Tên sản phẩm',
                 field: 'ProductName',
-                width: 400,
+                width: 300,
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
@@ -1044,15 +1029,6 @@ export class BillExportDetailNewComponent
                     const html = String(value).replace(/\n/g, '<br>');
                     return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
                 },
-            },
-            {
-                id: 'Unit',
-                name: 'ĐVT',
-                field: 'Unit',
-                width: 80,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'Qty',
@@ -1072,6 +1048,32 @@ export class BillExportDetailNewComponent
                 },
                 editor: { model: Editors['float'], decimal: 2 },
             },
+            {
+                id: 'ProductFullName',
+                name: 'Mã sp theo dự án',
+                field: 'ProductFullName',
+                width: 250,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+                editor: { model: Editors['text'] },
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
+                },
+            },
+
+            {
+                id: 'Unit',
+                name: 'ĐVT',
+                field: 'Unit',
+                width: 80,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+
             {
                 id: 'QuantityRemain',
                 name: 'SL còn lại',

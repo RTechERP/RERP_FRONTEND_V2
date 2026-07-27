@@ -863,7 +863,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 cssClass: 'text-center',
             },
             {
-                id: 'IsApprovedTBP', field: 'IsApprovedTBP', name: 'Duyệt', width: 50,
+                id: 'IsApproved', field: 'IsApproved', name: 'Duyệt', width: 50,
                 formatter: (row, cell, value) => `<input type="checkbox" ${value === true ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`,
                 cssClass: 'text-center',
             },

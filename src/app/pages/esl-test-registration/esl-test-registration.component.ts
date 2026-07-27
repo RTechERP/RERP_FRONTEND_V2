@@ -148,7 +148,7 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
       },
       {
         label: 'Duyệt', icon: 'fa-solid fa-check text-success',
-        command: () => this.onApprove(), disabled: true, visible: this.permissionService.hasPermission('N1,N32'),
+        command: () => this.onApprove(), disabled: true, visible: this.permissionService.hasPermission('N1,N32,N85'),
       },
       {
         label: 'Gia hạn/Bàn giao', icon: 'fa-solid fa-clock-rotate-left text-info',
@@ -212,8 +212,9 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
       isApproverInList
     );
 
-    // Rule 2: Duyệt (Chỉ người duyệt được chỉ định của yêu cầu đó mới được phép duyệt)
-    const hasApproveAccess = currentUserId && (currentUserId === itemApproverId);
+    // Rule 2: Duyệt (Người duyệt được chỉ định, hoặc người có quyền N32/N85 đều được phép duyệt)
+    const hasApproveGroupAccess = this.permissionService.hasPermission('N32,N85');
+    const hasApproveAccess = currentUserId && (currentUserId === itemApproverId || hasApproveGroupAccess);
 
     // Logic for Extend / Handover / Return based on max No
     let latestDetailOwnerId = null;
@@ -235,17 +236,25 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
       }
     }
 
-    const canExtendOrReturn = currentUserId && 
-                              (currentUserId === latestDetailOwnerId || currentUserId === latestDetailApproverId || isApproverInList) && 
-                              isLatestDetailApproved && 
+    const canExtendOrReturn = currentUserId &&
+                              (currentUserId === latestDetailOwnerId || currentUserId === latestDetailApproverId || isApproverInList) &&
+                              isLatestDetailApproved &&
                               !masterItem?.ActualReturnDate;
+
+    // N28 (Admin kho demo) can always trả bàn, regardless of ownership/approver
+    const hasN28 = this.permissionService.hasPermission('N28');
+    const canReturn = (isLatestDetailApproved && !masterItem?.ActualReturnDate) && (canExtendOrReturn || hasN28);
 
     this.menuBars = this.menuBars.map(m => {
       if (m.label === 'Sửa') return { ...m, disabled: !isValidSelection || !canEdit || !hasRule1Access };
       if (m.label === 'Xóa') return { ...m, disabled: !isValidSelection || item?.Status !== 0 || !hasRule1Access };
-      if (m.label === 'Duyệt') return { ...m, disabled: !isValidSelection || item?.Status !== 0 || !hasApproveAccess };
+      if (m.label === 'Duyệt') {
+        // N32/N85: nút Duyệt luôn enable, việc chưa chọn dòng / dòng đã duyệt sẽ báo lỗi khi bấm (xem onApprove)
+        if (hasApproveGroupAccess) return { ...m, disabled: false };
+        return { ...m, disabled: !isValidSelection || item?.Status !== 0 || !hasApproveAccess };
+      }
       if (m.label === 'Gia hạn/Bàn giao') return { ...m, disabled: lenMaster !== 1 || !canExtendOrReturn }; // limit to master for now
-      if (m.label === 'Trả bàn') return { ...m, disabled: lenMaster !== 1 || !canExtendOrReturn }; // limit to master for now
+      if (m.label === 'Trả bàn') return { ...m, disabled: lenMaster !== 1 || !canReturn }; // limit to master for now
       if (m.label === 'Binding lại') return { ...m, disabled: lenMaster !== 1 };
       return m;
     });
@@ -483,7 +492,10 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
     const lenChild = this.selectedChildItems.length;
     const totalLen = lenMaster + lenChild;
 
-    if (totalLen !== 1) return;
+    if (totalLen !== 1) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn 1 dòng cần duyệt');
+      return;
+    }
 
     let item: any = null;
     if (lenMaster === 1 && lenChild === 0) {
@@ -505,6 +517,11 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
     }
 
     if (!item) return;
+
+    if (item.Status !== 0) {
+      this.notification.warning('Cảnh báo', 'Chỉ có thể duyệt yêu cầu đang ở trạng thái Chờ duyệt');
+      return;
+    }
 
     const modalRef = this.ngbModal.open(EslTestRegistrationApproveComponent, {
       size: 'lg',

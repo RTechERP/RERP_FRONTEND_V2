@@ -627,10 +627,10 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
       const clickedElement = e.target as HTMLElement;
 
       if (clickedElement.classList.contains('fa-plus')) {
-        if (this.isApproved) {
-          this.notification.warning(NOTIFICATION_TITLE.warning, 'Phiếu đã được duyệt, không thể chỉnh sửa Serial!');
-          return;
-        }
+        // if (this.isApproved) {
+        //   this.notification.warning(NOTIFICATION_TITLE.warning, 'Phiếu đã được duyệt, không thể chỉnh sửa Serial!');
+        //   return;
+        // }
         let requiredQty = this.isTechBill
           ? this.dataBillDetail.Quantity
           : this.dataBillDetail.Qty;
@@ -662,10 +662,10 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
       const clickedElement = e.target as HTMLElement;
 
       if (clickedElement.classList.contains('fa-trash')) {
-        if (this.isApproved) {
-          this.notification.warning(NOTIFICATION_TITLE.warning, 'Phiếu đã được duyệt, không thể chỉnh sửa Serial!');
-          return;
-        }
+        // if (this.isApproved) {
+        //   this.notification.warning(NOTIFICATION_TITLE.warning, 'Phiếu đã được duyệt, không thể chỉnh sửa Serial!');
+        //   return;
+        // }
         const item = args.grid.getDataItem(args.row);
 
         this.modal.confirm({
@@ -724,8 +724,8 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
           },
         },
       },
-      editable: !this.isApproved,
-      autoEdit: !this.isApproved,
+      editable: true,
+      autoEdit: true,
     };
   }
 
@@ -862,10 +862,10 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
   }
 
   async saveData() {
-    if (this.isApproved) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Phiếu đã được duyệt, không thể chỉnh sửa Serial!');
-      return;
-    }
+    // if (this.isApproved) {
+    //   this.notification.warning(NOTIFICATION_TITLE.warning, 'Phiếu đã được duyệt, không thể chỉnh sửa Serial!');
+    //   return;
+    // }
     // Force commit cell đang edit để lưu giá trị
     if (this.angularGridMaster?.slickGrid) {
       const editController = this.angularGridMaster.slickGrid.getEditorLock();
@@ -1064,10 +1064,10 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
   }
 
   addSerial() {
-    if (this.isApproved) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Phiếu đã được duyệt, không thể chỉnh sửa Serial!');
-      return;
-    }
+    // if (this.isApproved) {
+    //   this.notification.warning(NOTIFICATION_TITLE.warning, 'Phiếu đã được duyệt, không thể chỉnh sửa Serial!');
+    //   return;
+    // }
     const modalRef = this.modalService.open(BillImportAddSerialComponent, {
       size: 'md',
       centered: true,

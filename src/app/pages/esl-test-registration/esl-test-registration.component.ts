@@ -132,7 +132,7 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
   }
 
   initMenu(): void {
-    const hasCrud = true; // Tạm thời hardcode true để test. Gốc: this.permissionService.hasPermission('ESL_Test_Registration_CRUD');
+    const hasCrud = this.permissionService.hasPermission('N28');
     this.menuBars = [
       {
         label: 'Đăng ký mới', icon: 'fa-solid fa-circle-plus text-primary',
@@ -162,7 +162,7 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
       { label: 'Xuất Excel', icon: 'fa-solid fa-file-excel text-success', command: () => this.onExport() },
       {
         label: 'Binding lại', icon: 'fa-solid fa-link text-primary',
-        command: () => this.onBiding(), disabled: true, visible: hasCrud
+        command: () => this.onBiding(), visible: hasCrud
       }
     ];
   }
@@ -348,7 +348,7 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
         });
         
         const currentUserId = this.appUserService.currentUser?.EmployeeID;
-        const canViewAll = this.permissionService.hasPermission('ESL_Test_Registration_ViewAll');
+        const canViewAll = this.permissionService.hasPermission('N28');
 
         if (currentUserId && !canViewAll) {
           results = results.filter((item: any) => {

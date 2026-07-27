@@ -1711,6 +1711,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         const projectId = selectedIDs[0];
         const projectCode = selectedRows[0]?.ProjectCode;
         const projectName = selectedRows[0]?.ProjectName;
+        const projectStatusName = selectedRows[0]?.ProjectStatusName || selectedRows[0]?.ProjectStatusText || selectedRows[0]?.ProjectStatus || '';
         const key = `project-gate-step-by-project/${projectId}`;
 
         this.tabService.openTabComp({
@@ -1721,6 +1722,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 projectId: projectId,
                 projectCode: projectCode,
                 projectName: projectName,
+                projectStatusName: projectStatusName,
                 _tabKey: key
             }
         });

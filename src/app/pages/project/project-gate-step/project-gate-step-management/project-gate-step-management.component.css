@@ -1,19 +1,57 @@
-/* ProjectGateStepManagement styles - inherits from project-gate-management pattern */
+:host {
+  display: block;
+  height: 100%;
+  max-height: 100vh;
+  overflow: hidden;
+}
 
 .project-gate-step-container {
   font-size: 12px;
+  height: 100%;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-/* ══ Fix NgZorro nz-spin flex stretching bug ═══════════════ */
-::ng-deep nz-spin, 
-::ng-deep .nz-spin-container, 
-::ng-deep .nz-spin-nested-loading {
+.active-row,
+.active-row td {
+  background-color: #e6f7ff !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* ══ Fix PrimeNG Splitter Panel Flex Height ════════════════ */
+:host ::ng-deep .p-splitter {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+:host ::ng-deep .p-splitter-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+/* ══ Fix NgZorro ant-spin flex stretching bug ═══════════════ */
+:host ::ng-deep nz-spin,
+:host ::ng-deep .ant-spin-nested-loading, 
+:host ::ng-deep .ant-spin-container {
   width: 100% !important;
   height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
-  flex-grow: 1 !important;
+  flex: 1 1 0% !important;
   min-height: 0 !important;
+  overflow: hidden !important;
 }
 
 /* ══ Fix PrimeNG Table flex scrollbar ══════════════════════ */
@@ -21,40 +59,54 @@
   display: flex !important;
   flex-direction: column !important;
   height: 100% !important;
+  flex: 1 1 0% !important;
   min-height: 0 !important;
   overflow: hidden !important;
   position: relative !important;
+}
+
+:host ::ng-deep p-table {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
 }
 
 :host ::ng-deep .p-datatable {
   display: flex !important;
   flex-direction: column !important;
   height: 100% !important;
+  flex: 1 1 0% !important;
   min-height: 0 !important;
+  overflow: hidden !important;
 }
 
 :host ::ng-deep .p-datatable-wrapper {
   display: flex !important;
   flex-direction: column !important;
-  flex: 1 1 auto !important;
+  flex: 1 1 0% !important;
   height: 100% !important;
   min-height: 0 !important;
   overflow: hidden !important;
 }
 
-:host ::ng-deep .p-datatable-scrollable-header {
+:host ::ng-deep .p-datatable-scrollable-body,
+:host ::ng-deep .p-datatable-table-container {
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: auto !important;
+}
+
+:host ::ng-deep .p-datatable-scrollable-header,
+:host ::ng-deep .p-datatable-thead {
   flex: 0 0 auto !important;
   position: sticky !important;
   top: 0 !important;
   z-index: 10 !important;
   background: #f8f9fa !important;
-}
-
-:host ::ng-deep .p-datatable-scrollable-body {
-  flex: 1 1 auto !important;
-  overflow-y: auto !important;
-  overflow-x: auto !important;
-  max-height: calc(100vh - 200px) !important;
 }
 
 /* Highlight newly added unsaved rows */
@@ -72,4 +124,3 @@ tr.table-success td {
 .p-datatable-sm .p-datatable-tbody > tr > td {
   padding: 4px 6px !important;
 }
-

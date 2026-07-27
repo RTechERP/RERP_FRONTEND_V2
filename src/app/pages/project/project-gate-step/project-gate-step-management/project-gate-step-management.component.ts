@@ -17,6 +17,7 @@ import { TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
 import { MenubarModule } from 'primeng/menubar';
 import { InputTextModule } from 'primeng/inputtext';
+import { SplitterModule } from 'primeng/splitter';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { finalize } from 'rxjs/operators';
 import * as ExcelJS from 'exceljs';
@@ -29,6 +30,8 @@ import { ProjectGateCheckListTypeService } from '../../project-gate/project-gate
 import { ProjectGateStepTemplateModalComponent } from '../project-gate-step-template-modal/project-gate-step-template-modal.component';
 import { ProjectGateStepChecklistComponent } from '../project-gate-step-checklist/project-gate-step-checklist.component';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
+import { ProjectTypeDepartmentService } from '../../project-gate/project-type-department/project-type-department.service';
+import { ProjectTypeDepartmentTemplateFormComponent } from '../../project-gate/project-type-department/project-type-department-template-form/project-type-department-template-form.component';
 
 export interface ColDef {
   field: string; header: string; width: string;
@@ -56,7 +59,8 @@ export interface ColDef {
     TableModule,
     TooltipModule,
     MenubarModule,
-    InputTextModule
+    InputTextModule,
+    SplitterModule
   ],
   providers: [NzNotificationService, NzModalService],
   templateUrl: './project-gate-step-management.component.html',
@@ -73,6 +77,19 @@ export class ProjectGateStepManagementComponent implements OnInit {
   templateId: number | null = null;
   templateName: string = '';
   templateCode: string = '';
+
+  // Data passed from project-type-department
+  departmentId: number | null = null;
+  departmentName: string = '';
+  projectTypeId: number | null = null;
+  projectTypeName: string = '';
+  projectTypeCode: string = '';
+  projectTypeDepartmentId: number | null = null;
+
+  // Master templates list
+  masterTemplates: any[] = [];
+  selectedMasterTemplate: any = null;
+  loadingMasterTemplates: boolean = false;
 
   // Filter models
   sortOrderFilter: any = null;
@@ -112,6 +129,7 @@ export class ProjectGateStepManagementComponent implements OnInit {
   constructor(
     private service: ProjectGateStepService,
     private checkListTypeService: ProjectGateCheckListTypeService,
+    private projectTypeDeptService: ProjectTypeDepartmentService,
     private notification: NzNotificationService,
     private modal: NzModalService,
     private ngbModal: NgbModal,
@@ -124,6 +142,12 @@ export class ProjectGateStepManagementComponent implements OnInit {
       this.templateId = this.tabData.templateId ?? null;
       this.templateName = this.tabData.templateName ?? '';
       this.templateCode = this.tabData.templateCode ?? '';
+      this.departmentId = this.tabData.departmentId ?? null;
+      this.departmentName = this.tabData.departmentName ?? '';
+      this.projectTypeId = this.tabData.projectTypeId ?? null;
+      this.projectTypeName = this.tabData.projectTypeName ?? '';
+      this.projectTypeCode = this.tabData.projectTypeCode ?? '';
+      this.projectTypeDepartmentId = this.tabData.projectTypeDepartmentId ?? null;
     }
     this.initMenu();
     this.loadCheckListTypes();
@@ -132,6 +156,11 @@ export class ProjectGateStepManagementComponent implements OnInit {
 
   initMenu(): void {
     this.menuBars = [
+      {
+        label: 'Thêm template',
+        icon: 'fa-solid fa-square-plus text-warning',
+        command: () => this.openAddTemplateModal()
+      },
       {
         label: 'Thêm dòng',
         icon: 'fa-solid fa-plus text-primary',
@@ -196,10 +225,145 @@ export class ProjectGateStepManagementComponent implements OnInit {
         this.positionList = data.positions || [];
         this.templateList = data.templates || [];
         this.groupTemplates();
+        this.loadMasterTemplates();
         this.loadData();
       },
       error: () => {
         this.loading = false;
+      }
+    });
+  }
+
+  loadMasterTemplates(): void {
+    if (this.projectTypeDepartmentId) {
+      this.loadingMasterTemplates = true;
+      this.projectTypeDeptService.getTemplates(this.projectTypeDepartmentId).subscribe({
+        next: (res: any) => {
+          const raw = res.data || [];
+          this.masterTemplates = raw.filter((x: any) => x.IsDeleted !== true && x.isDeleted !== true);
+          this.loadingMasterTemplates = false;
+          this.syncSelectedMasterTemplate();
+        },
+        error: () => {
+          this.loadingMasterTemplates = false;
+          this.masterTemplates = [];
+          this.syncSelectedMasterTemplate();
+        }
+      });
+    } else {
+      this.masterTemplates = [];
+      this.loadingMasterTemplates = false;
+      this.syncSelectedMasterTemplate();
+    }
+  }
+
+  syncSelectedMasterTemplate(): void {
+    if (this.templateId) {
+      const match = this.masterTemplates.find(t => t.ID === this.templateId);
+      if (match) {
+        this.selectedMasterTemplate = match;
+        this.templateName = match.Name || '';
+        this.templateCode = match.Code || '';
+        this.onFilterChange();
+        return;
+      }
+    }
+    if (this.masterTemplates.length > 0) {
+      this.onSelectMasterTemplate(this.masterTemplates[0]);
+    } else {
+      this.onSelectMasterTemplate(null);
+    }
+  }
+
+  onSelectMasterTemplate(row: any): void {
+    this.selectedMasterTemplate = row;
+    if (row) {
+      this.templateId = row.ID;
+      this.templateName = row.Name || '';
+      this.templateCode = row.Code || '';
+    } else {
+      this.templateId = null;
+      this.templateName = '';
+      this.templateCode = '';
+    }
+    this.onFilterChange();
+  }
+
+  openAddTemplateModal(): void {
+    if (this.projectTypeDepartmentId) {
+      const modalRef = this.ngbModal.open(ProjectTypeDepartmentTemplateFormComponent, {
+        size: 'md',
+        backdrop: 'static',
+        centered: true
+      });
+      modalRef.componentInstance.projectTypeDepartmentId = this.projectTypeDepartmentId;
+      modalRef.componentInstance.projectTypeName = this.projectTypeName;
+
+      modalRef.result.then((res) => {
+        if (res === 'save') {
+          this.loadMasterTemplates();
+          this.loadProduce();
+        }
+      }).catch(() => {});
+    } else {
+      const modalRef = this.ngbModal.open(ProjectGateStepTemplateModalComponent, {
+        size: 'lg',
+        backdrop: 'static',
+        keyboard: false,
+        centered: true
+      });
+      modalRef.result.then((res) => {
+        if (res === 'save') {
+          this.loadMasterTemplates();
+          this.loadProduce();
+        }
+      }).catch(() => {});
+    }
+  }
+
+  openEditTemplateModal(row: any): void {
+    if (this.projectTypeDepartmentId) {
+      const modalRef = this.ngbModal.open(ProjectTypeDepartmentTemplateFormComponent, {
+        size: 'md',
+        backdrop: 'static',
+        centered: true
+      });
+      modalRef.componentInstance.projectTypeDepartmentId = this.projectTypeDepartmentId;
+      modalRef.componentInstance.projectTypeName = row.ProjectTypeName || this.projectTypeName;
+      modalRef.componentInstance.templateData = row;
+
+      modalRef.result.then((res) => {
+        if (res === 'save') {
+          this.loadMasterTemplates();
+          this.loadProduce();
+        }
+      }).catch(() => {});
+    } else {
+      this.onManageTemplates();
+    }
+  }
+
+  deleteMasterTemplate(row: any): void {
+    this.modal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: `Bạn có chắc chắn muốn xóa template "${row.Name || row.Code}" không?`,
+      nzOkText: 'Xóa',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.loadingMasterTemplates = true;
+        this.service.deleteTemplates([row.ID]).subscribe({
+          next: () => {
+            this.loadingMasterTemplates = false;
+            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa template thành công');
+            this.loadMasterTemplates();
+            this.loadProduce();
+          },
+          error: (err: any) => {
+            this.loadingMasterTemplates = false;
+            this.showError(err);
+          }
+        });
       }
     });
   }
@@ -360,10 +524,18 @@ export class ProjectGateStepManagementComponent implements OnInit {
   }
 
   onAddRow(): void {
-    const maxSortOrder = this.dataset.reduce((max, item) => {
-      const val = Number(item.SortOrder);
-      return !isNaN(val) && val > max ? val : max;
-    }, 0);
+    if (!this.selectedMasterTemplate && !this.templateId) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 template ở bảng Master trước khi thêm bước!');
+      return;
+    }
+
+    const currentTemplateId = this.templateId ?? (this.selectedMasterTemplate ? this.selectedMasterTemplate.ID : null);
+    const maxSortOrder = this.dataset
+      .filter(item => item.ProjectGateStepTemplateID === currentTemplateId)
+      .reduce((max, item) => {
+        const val = Number(item.SortOrder);
+        return !isNaN(val) && val > max ? val : max;
+      }, 0);
 
     const newRow: any = {
       ID: 0,
@@ -374,7 +546,7 @@ export class ProjectGateStepManagementComponent implements OnInit {
       TT: '',
       SortOrder: maxSortOrder + 1,
       Content: '',
-      ProjectGateStepTemplateID: this.templateId ?? null,
+      ProjectGateStepTemplateID: currentTemplateId,
       CheckListNames: '',
       CheckLists: [],
       _isNew: true,

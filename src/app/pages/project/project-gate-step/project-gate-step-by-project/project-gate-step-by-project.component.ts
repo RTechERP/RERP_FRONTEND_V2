@@ -1,4 +1,5 @@
 import { Component, Input, OnInit, Optional, Inject, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -23,10 +24,11 @@ import { finalize } from 'rxjs/operators';
 import { ProjectGateStepService } from '../project-gate-step.service';
 import { ProjectService } from '../../project-service/project.service';
 import { ProjectTypeDepartmentService } from '../../project-gate/project-type-department/project-type-department.service';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
 import { ProjectWorkerService } from '../../project-department-summary/project-department-summary-form/project-woker/project-worker-service/project-worker.service';
 import { ProjectGateStepFilesModalComponent } from '../project-gate-step-files-modal/project-gate-step-files-modal.component';
+import { ProjectRequestComponent } from '../../project-request/project-request.component';
 
 @Component({
   selector: 'app-project-gate-step-by-project',
@@ -45,7 +47,8 @@ import { ProjectGateStepFilesModalComponent } from '../project-gate-step-files-m
     InputTextModule,
     MenubarModule,
     ContextMenuModule,
-    ProjectGateStepFilesModalComponent
+    ProjectGateStepFilesModalComponent,
+    ProjectRequestComponent
   ],
   templateUrl: './project-gate-step-by-project.component.html',
   styleUrls: ['./project-gate-step-by-project.component.css'],
@@ -59,6 +62,15 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   @Input() projectId!: number;
   @Input() projectCode!: string;
   @Input() projectName!: string;
+  @Input() projectStatusName: string = '';
+
+  get canAddStepOrTemplate(): boolean {
+    if (!this.projectStatusName) return true;
+    const s = this.projectStatusName.trim().toLowerCase();
+    return s.includes('giải pháp') || s.includes('giai phap')
+      || s.includes('tiếp cận') || s.includes('tiep can')
+      || s.includes('demo');
+  }
 
   activeProjectTypeId: number | null = null;
   activeDepartmentId: number | null = null;
@@ -76,22 +88,18 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   users: any[] = [];
   projectTypeNodes: TreeNode[] = [];
   selectedTypeNodes: TreeNode[] = [];
-
   expectedPlanDate: string | null = null;
   createDate: string | null = null;
   isSaving: boolean = false;
   isLoading: boolean = false;
-
   // Dành cho các mẫu (templates)
   templates: any[] = [];
   selectedTemplateId: number | null = null;
   projectTypeTemplateMap: { [key: string]: number | null } = {};
-
   // Dành cho danh sách các công đoạn đã xóa
   showDeletedModal: boolean = false;
   isLoadingDeleted: boolean = false;
   deletedSteps: any[] = [];
-
   // Dành cho view tổng hợp
   isSummaryActive: boolean = true;
   selectedSummaryGateId: number | null = null;
@@ -100,24 +108,20 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   summaryGateGroups: any[] = [];
   summaryGateDetails: any = null;
   gateList: any[] = [];
-
   // Chi tiết step khi click trong view tổng hợp
   selectedStepDetail: any = null;
   selectedStepDetailDept: any = null;
   selectedDetailTab: number = 1; // 1: Công việc, 2: Checklist
   detailTasks: any[] = [];
   isLoadingDetailTasks: boolean = false;
-
   // Dành cho Tab 2 Checklist detail files
   selectedRuleInTab: any = null;
   displayFilesInTab: any[] = [];
   isLoadingRuleFiles: boolean = false;
-
   // Dành cho popover tra cứu/chọn nhân viên
   activeManpowerItem: any = null;
   workersSearchText: string = '';
   workersFilteredData: any[] = [];
-
   // Dành cho duyệt/hủy duyệt nhiều công đoạn
   selectedStepLinkIds: Set<number> = new Set<number>();
   isApprovingMultiple: boolean = false;
@@ -131,6 +135,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   constructor(
     @Optional() public activeModal: NgbActiveModal,
     @Optional() @Inject('tabData') public tabData: any,
+    @Optional() private route: ActivatedRoute,
     private tabService: TabServiceService,
     private projectGateStepService: ProjectGateStepService,
     private projectService: ProjectService,
@@ -141,8 +146,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     private ngbModal: NgbModal,
     private cdr: ChangeDetectorRef
   ) { }
-
   ngOnInit(): void {
+    if (this.route && this.route.snapshot && this.route.snapshot.queryParams) {
+      const q = this.route.snapshot.queryParams;
+      if (q['projectId']) this.projectId = Number(q['projectId']);
+      if (q['projectCode']) this.projectCode = q['projectCode'];
+      if (q['projectName']) this.projectName = q['projectName'];
+      if (q['projectStatusName']) this.projectStatusName = q['projectStatusName'];
+    }
     if (this.tabData) {
       if (this.tabData.projectId !== undefined) {
         this.projectId = Number(this.tabData.projectId);
@@ -153,16 +164,39 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       if (this.tabData.projectName !== undefined) {
         this.projectName = this.tabData.projectName;
       }
+      if (this.tabData.projectStatusName !== undefined) {
+        this.projectStatusName = this.tabData.projectStatusName;
+      } else if (this.tabData.projectStatus !== undefined) {
+        this.projectStatusName = this.tabData.projectStatus;
+      } else if (this.tabData.statusName !== undefined) {
+        this.projectStatusName = this.tabData.statusName;
+      }
     }
-
     this.isLoading = true;
     this.getUsers();
     this.loadDepartments();
     this.loadProjectTypeDepartmentLinks();
     this.getFollowProjectBase();
+    this.loadProjectStatus();
     this.getProjectTypeLinks();
     this.loadAllGateSteps();
     this.loadTemplates();
+  }
+
+  loadProjectStatus(): void {
+    if (!this.projectId) return;
+    this.projectService.getProjectDetails(this.projectId).subscribe({
+      next: (res: any) => {
+        if (res?.data) {
+          const item = Array.isArray(res.data) ? res.data[0] : (res.data.project || res.data);
+          const status = item?.ProjectStatusName || item?.StatusName || item?.ProjectStatusText || item?.ProjectStatus || item?.CurrentState;
+          if (status) {
+            this.projectStatusName = status.toString();
+          }
+        }
+      },
+      error: () => { }
+    });
   }
 
   getUsers(): void {
@@ -174,32 +208,41 @@ export class ProjectGateStepByProjectComponent implements OnInit {
           'DepartmentName'
         );
       },
-      error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
-        this.notification.error(NOTIFICATION_TITLE.error, msg);
-        console.error('Lỗi getUsers:', error);
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }
-
   getFollowProjectBase(): void {
     this.projectService.getFollowProjectBases(this.projectId).subscribe({
       next: (res: any) => {
         if (res?.data) {
-          this.expectedPlanDate = res.data.ExpectedPlanDate
-            ? DateTime.fromISO(res.data.ExpectedPlanDate)
+          const item = Array.isArray(res.data) ? res.data[0] : res.data;
+          this.expectedPlanDate = item.ExpectedPlanDate
+            ? DateTime.fromISO(item.ExpectedPlanDate)
               .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
               .toFormat('yyyy-MM-dd')
             : null;
-          this.createDate = res.data.CreatedDate
-            ? DateTime.fromISO(res.data.CreatedDate)
+          this.createDate = item.CreatedDate
+            ? DateTime.fromISO(item.CreatedDate)
               .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
               .toFormat('yyyy-MM-dd')
             : null;
+          const status = item.ProjectStatusName || item.StatusName || item.ProjectStatusText || item.ProjectStatus || item.Status;
+          if (status) {
+            this.projectStatusName = status.toString();
+          }
         }
       },
       error: (error: any) => {
-        console.error('Lỗi getFollowProjectBases:', error);
+
       }
     });
   }
@@ -228,10 +271,15 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         this.getFlatNodes(this.projectTypeNodes, this.selectedTypeNodes);
         this.updateCheckedProjectTypes();
       },
-      error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
-        this.notification.error(NOTIFICATION_TITLE.error, msg);
-        console.error('Lỗi getProjectTypeLinks:', error);
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }
@@ -281,8 +329,8 @@ export class ProjectGateStepByProjectComponent implements OnInit {
 
     this.updateGroupedMenuDepartments();
 
-    // Đặt loại dự án và phòng ban hoạt động thành mục đầu tiên nếu chưa được chọn
-    if (this.groupedMenuDepartments.length > 0 && !this.activeProjectTypeId) {
+    // Đặt loại dự án và phòng ban hoạt động thành mục đầu tiên nếu chưa được chọn và không thuộc view tổng hợp
+    if (!this.isSummaryActive && this.groupedMenuDepartments.length > 0 && !this.activeProjectTypeId) {
       const firstGroup = this.groupedMenuDepartments[0];
       if (firstGroup.projectTypes && firstGroup.projectTypes.length > 0) {
         const pt = firstGroup.projectTypes[0];
@@ -298,6 +346,25 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     this.updateTabsSteps();
   }
 
+  refreshData(): void {
+    this.isLoading = true;
+    this.selectedStepLinkIds.clear();
+    this.projectTypeStepsMap = {};
+    this.isGateStepsLoaded = false;
+    this.selectedStepDetail = null;
+    this.selectedStepDetailDept = null;
+    this.detailTasks = [];
+
+    this.getUsers();
+    this.loadDepartments();
+    this.loadProjectTypeDepartmentLinks();
+    this.getFollowProjectBase();
+    this.getProjectTypeLinks();
+    this.loadAllGateSteps();
+    this.loadTemplates();
+
+  }
+
   loadAllGateSteps() {
     this.projectGateStepService.getAll().subscribe({
       next: (res: any) => {
@@ -310,14 +377,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
             next: (res2: any) => {
               this.savedGateSteps = res2.data || [];
               this.isGateStepsLoaded = true;
-              this.updateTabsSteps();
+              this.updateTabsSteps(true);
               this.buildSummaryData();
             },
             error: (err: any) => {
-              console.error('Error loading saved gate steps:', err);
+
               this.savedGateSteps = [];
               this.isGateStepsLoaded = true;
-              this.updateTabsSteps();
+              this.updateTabsSteps(true);
               this.buildSummaryData();
             }
           });
@@ -325,12 +392,12 @@ export class ProjectGateStepByProjectComponent implements OnInit {
           this.savedGateSteps = [];
           this.isGateStepsLoaded = true;
           this.isLoading = false;
-          this.updateTabsSteps();
+          this.updateTabsSteps(true);
           this.buildSummaryData();
         }
       },
       error: (err: any) => {
-        console.error('Error loading gate steps:', err);
+
         this.isGateStepsLoaded = true;
         this.isLoading = false;
       }
@@ -464,7 +531,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
 
   updateMenuItems() {
     this.menuItems = this.checkedProjectTypes.map(pt => {
-      const isActive = this.activeProjectTypeId === pt.ID;
+      const isActive = !this.isSummaryActive && this.activeProjectTypeId === pt.ID;
       return {
         label: `Nhân công - ${pt.ProjectTypeName}`,
         icon: 'fa-solid fa-users text-primary',
@@ -653,13 +720,34 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   }
 
   removeStep(comboKey: string, stepId: number) {
+    if (!this.projectTypeStepsMap[comboKey]) return;
+    const steps = this.projectTypeStepsMap[comboKey];
+    const stepToDelete = steps.find((s: any) => s.ID === stepId);
+    if (!stepToDelete) return;
+    if (this.isStepPassed(stepToDelete) || this.isStepApprovedTBP(stepToDelete)) {
+      return;
+    }
+
+    const stepName = stepToDelete.GateName
+      ? `${stepToDelete.GateCode} - ${stepToDelete.GateName}`
+      : (stepToDelete.Content || 'công đoạn này');
+
+    this.modalService.confirm({
+      nzTitle: '<b>Xác nhận xóa công đoạn</b>',
+      nzContent: `Bạn có chắc chắn muốn xóa <b>${stepName}</b> không?`,
+      nzOkText: 'Xóa',
+      nzOkType: 'primary',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: () => this.doRemoveStep(comboKey, stepId)
+    });
+  }
+
+  private doRemoveStep(comboKey: string, stepId: number) {
     if (this.projectTypeStepsMap[comboKey]) {
       const steps = this.projectTypeStepsMap[comboKey];
       const stepToDelete = steps.find((s: any) => s.ID === stepId);
       if (stepToDelete) {
-        if (this.isStepPassed(stepToDelete) || this.isStepApprovedTBP(stepToDelete)) {
-          return;
-        }
         if (stepToDelete.isRepeated) {
           const parent = steps.find((s: any) => s.ID === stepToDelete.parentStepId);
           if (parent) {
@@ -771,6 +859,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   }
 
   addBlankStep(comboKey: string) {
+    if (!this.canAddStepOrTemplate) return;
     if (!comboKey) return;
     const steps = this.projectTypeStepsMap[comboKey] || [];
 
@@ -1023,11 +1112,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         }
       },
       error: (err: any) => {
-        console.error('Error saving Manpower steps:', err);
-        const msg = err?.error?.message || err?.message || 'Có lỗi xảy ra khi lưu nhân công!';
-        this.notification.error(NOTIFICATION_TITLE.error, msg, {
-          nzStyle: { fontSize: '12px' }
-        });
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }
@@ -1047,7 +1139,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         this.buildSummaryData();
       },
       error: (err: any) => {
-        console.error('Lỗi khi tải lại dữ liệu công đoạn:', err);
+
       }
     });
   }
@@ -1093,7 +1185,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         }
       },
       error: (err: any) => {
-        console.error('Error loading templates:', err);
+
       }
     });
   }
@@ -1321,6 +1413,45 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     this.detailTasks = [];
     this.selectedRuleInTab = null;
     this.displayFilesInTab = [];
+    this.scrollToSelectedGate(gateId);
+  }
+
+  scrollToSelectedGate(gateId?: number): void {
+    const targetId = gateId ?? this.selectedSummaryGateId;
+    if (!targetId) return;
+
+    setTimeout(() => {
+      const el = document.getElementById(`gate-card-${targetId}`);
+      if (el) {
+        el.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'center'
+        });
+      }
+    }, 150);
+  }
+
+  isG2Gate(gate: any): boolean {
+    if (!gate) return false;
+    const code = (gate.gateCode || gate.GateCode || '').trim().toUpperCase();
+    return code === 'G2' || code.includes('G2');
+  }
+
+  openProjectRequest(): void {
+    if (!this.projectId) {
+      this.notification.warning('Thông báo', 'Không tìm thấy ID dự án!');
+      return;
+    }
+
+    const modalRef = this.ngbModal.open(ProjectRequestComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'full-screen-modal',
+    });
+
+    modalRef.componentInstance.projectID = this.projectId;
   }
 
   selectStepDetail(step: any, dept: any): void {
@@ -1348,12 +1479,12 @@ export class ProjectGateStepByProjectComponent implements OnInit {
           this.isLoadingDetailTasks = false;
         },
         error: (err: any) => {
-          console.error('Error fetching parent-child tasks:', err);
+
           this.isLoadingDetailTasks = false;
         }
       });
     } else {
-      console.warn('selectStepDetail - step.projectTaskID is null/undefined. No API call triggered.');
+
     }
   }
 
@@ -1392,7 +1523,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         this.isLoadingRuleFiles = false;
       },
       error: (err: any) => {
-        console.error('Lỗi tải file cho quy tắc:', err);
+
         cl.Files = [];
         this.refreshDisplayFilesInTab();
         this.isLoadingRuleFiles = false;
@@ -1444,8 +1575,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         window.URL.revokeObjectURL(downloadUrl);
       },
       error: (err: any) => {
-        console.error('Lỗi tải file:', err);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải file xuống.');
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }
@@ -1466,6 +1603,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   }
 
   onTemplateChange(ptId: number, deptId: number | null, templateId: any) {
+    if (!this.canAddStepOrTemplate) return;
     const numericId = templateId ? Number(templateId) : null;
     const key = `${ptId}_${deptId}`;
     this.projectTypeTemplateMap[key] = numericId;
@@ -1520,11 +1658,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         this.isLoadingDeleted = false;
       },
       error: (err: any) => {
-        console.error('Error loading deleted steps:', err);
-        const msg = err?.error?.message || err?.message || 'Không thể tải danh sách đã xóa!';
-        this.notification.error(NOTIFICATION_TITLE.error, msg, {
-          nzStyle: { fontSize: '12px' }
-        });
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
         this.isLoadingDeleted = false;
       }
     });
@@ -1659,7 +1800,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         this.updateGroupedMenuDepartments();
       },
       error: (err: any) => {
-        console.error('Error loading departments:', err);
+
       }
     });
   }
@@ -1672,7 +1813,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         this.updateTabsSteps();
       },
       error: (err: any) => {
-        console.error('Error loading project type department links:', err);
+
       }
     });
   }
@@ -1884,8 +2025,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
                   });
                 },
                 error: (saveErr: any) => {
-                  console.error('Lỗi lưu file vào DB:', saveErr);
-                  this.notification.error(NOTIFICATION_TITLE.error, 'Tải file lên thành công nhưng không thể ghi nhận dữ liệu vào cơ sở dữ liệu.');
+                  this.notification.create(
+                    NOTIFICATION_TYPE_MAP[saveErr.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[saveErr.status as RESPONSE_STATUS] || 'Lỗi',
+                    saveErr?.error?.message || `${saveErr.error}\n${saveErr.message}`,
+                    {
+                      nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                  );
                 }
               });
             } else {
@@ -1897,10 +2044,15 @@ export class ProjectGateStepByProjectComponent implements OnInit {
             this.notification.error(NOTIFICATION_TITLE.error, msg);
           }
         },
-        error: (error: any) => {
-          console.error('Lỗi upload file:', error);
-          const msg = error.message || 'Lỗi kết nối khi tải file lên.';
-          this.notification.error(NOTIFICATION_TITLE.error, msg);
+        error: (err: any) => {
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
+          );
         }
       });
     });
@@ -2049,8 +2201,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         this.reloadGateSteps();
       },
       error: (err: any) => {
-        const msg = err?.error?.message || err?.message || 'Lỗi không xác định';
-        this.notification.error('Lỗi', msg);
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       },
       complete: () => {
         this.isApprovingMultiple = false;

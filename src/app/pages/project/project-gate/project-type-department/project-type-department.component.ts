@@ -207,7 +207,13 @@ export class ProjectTypeDepartmentComponent implements OnInit {
       data: {
         templateId: row.ID,
         templateName: row.Name || '',
-        templateCode: row.Code || ''
+        templateCode: row.Code || '',
+        departmentId: this.selectedDepartment?.ID,
+        departmentName: this.selectedDepartment?.Name,
+        projectTypeId: this.selectedProjectType?.ProjectTypeID,
+        projectTypeName: this.selectedProjectType?.ProjectTypeName,
+        projectTypeCode: this.selectedProjectType?.ProjectTypeCode,
+        projectTypeDepartmentId: this.selectedProjectType?.ProjectTypeDepartmentID
       }
     });
   }

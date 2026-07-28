@@ -74,18 +74,18 @@
         @if (selectedStepLinkIds.size > 0) {
         <button nz-button nzType="default" nzDanger (click)="confirmApproveMultiple(false)"
           [nzLoading]="isApprovingMultiple" style="font-size: 12px;">
-          <i class="fa-solid fa-xmark me-1"></i> Hủy duyệt ({{ selectedStepLinkIds.size }})
+          <i class="fa-solid fa-xmark me-1" *hasPermission="'N110'"></i> Hủy duyệt ({{ selectedStepLinkIds.size }})
         </button>
         <button nz-button nzType="primary" style="background:#52c41a;border-color:#52c41a;font-size:12px"
-          (click)="confirmApproveMultiple(true)" [nzLoading]="isApprovingMultiple">
+          (click)="confirmApproveMultiple(true)" [nzLoading]="isApprovingMultiple" *hasPermission="'N110'">
           <i class="fa-solid fa-circle-check me-1"></i> Duyệt công đoạn ({{ selectedStepLinkIds.size }})
         </button>
         }
         <button nz-button nzType="primary" (click)="save(false)" [nzLoading]="isSaving" style="font-size: 12px;">
-          <i class="fa-solid fa-floppy-disk me-1"></i> Lưu
+          <i class="fa-solid fa-floppy-disk me-1" *hasPermission="'N109'"></i> Lưu
         </button>
         <button nz-button nzType="primary" (click)="save(true)" [nzLoading]="isSaving" style="font-size: 12px;">
-          <i class="fa-solid fa-floppy-disk me-1"></i> Lưu và đóng
+          <i class="fa-solid fa-floppy-disk me-1" *hasPermission="'N109'"></i> Lưu và đóng
         </button>
         } @else {
         <div class="d-flex align-items-center gap-1 me-auto">

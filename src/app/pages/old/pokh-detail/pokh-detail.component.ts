@@ -1561,10 +1561,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     const discountAmount = row.getData().DiscountAmount || 0;
     const billDate = row.getData().BillDate;
     const debt = row.getData().Debt || 0;
-    const discountBaseAmount = unitPrice;
-    const unitPriceAfterDiscount = discountBaseAmount - discountAmount;
-    const intoMoney = quantity * unitPriceAfterDiscount;
-    const totalWithVAT = intoMoney * (1 + vat / 100);
+
+    // Tính tổng tiền trước VAT = Đơn giá × Số lượng
+    const intoMoney = unitPrice * quantity;
+    // Tiền sau chiết khấu (chưa VAT) = Tổng tiền trước VAT - Chiết khấu
+    const intoMoneyAfterDiscount = intoMoney - discountAmount;
+    // Tổng tiền có VAT = Tiền sau chiết khấu × (1 + VAT%)
+    const totalWithVAT = intoMoneyAfterDiscount * (1 + vat / 100);
 
     try {
       // Tính thành tiền và tổng tiền bao gồm VAT
@@ -1577,7 +1580,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         ) {
           row.update({
             IntoMoney: intoMoney,
-            IntoMoneyAfterDiscount: unitPriceAfterDiscount,
+            IntoMoneyAfterDiscount: intoMoneyAfterDiscount,
             TotalPriceIncludeVAT: totalWithVAT,
           });
           this.calculateTotalIterative();
@@ -1615,7 +1618,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
       // Tính lại thành tiền khi thay đổi số lượng hoặc đơn giá
       if (columnField === 'Qty' || columnField === 'UnitPrice') {
-        row.update({ IntoMoney: quantity * unitPriceAfterDiscount });
+        row.update({ IntoMoney: unitPrice * quantity, IntoMoneyAfterDiscount: (unitPrice * quantity) - discountAmount });
         this.calculateTotalIterative();
       }
     } catch (error) {
@@ -2771,7 +2774,31 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
               symbolAfter: true,
             },
           },
-
+          {
+            title: 'Tổng tiền trước VAT',
+            field: 'IntoMoney',
+            sorter: 'number',
+            width: 150,
+            formatter: 'money',
+            formatterParams: {
+              precision: 0,
+              decimal: '.',
+              thousand: ',',
+              symbol: '',
+              symbolAfter: true,
+            },
+            bottomCalc: (values, data) => {
+              return this.accumulateTreeValues(data, 'IntoMoney');
+            },
+            bottomCalcFormatter: 'money',
+            bottomCalcFormatterParams: {
+              precision: 0,
+              decimal: '.',
+              thousand: ',',
+              symbol: '',
+              symbolAfter: true,
+            },
+          },
           {
             title: 'Tiền chiết khấu',
             field: 'DiscountAmount',
@@ -2802,7 +2829,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             },
           },
           {
-            title: 'Tiền sau chiết khấu',
+            title: 'Tiền sau chiết khấu (chưa VAT)',
             field: 'IntoMoneyAfterDiscount',
             sorter: 'number',
             width: 150,
@@ -2816,35 +2843,6 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             },
             bottomCalc: (values, data) => {
               return this.accumulateTreeValues(data, 'IntoMoneyAfterDiscount');
-            },
-            bottomCalcFormatter: 'money',
-            bottomCalcFormatterParams: {
-              precision: 0,
-              decimal: '.',
-              thousand: ',',
-              symbol: '',
-              symbolAfter: true,
-            },
-          },
-          {
-            title: 'Tổng tiền trước VAT',
-            field: 'IntoMoney',
-            sorter: 'number',
-            width: 150,
-            editor: 'number',
-            editorParams: {
-              verticalNavigation: 'table',
-            },
-            formatter: 'money',
-            formatterParams: {
-              precision: 0,
-              decimal: '.',
-              thousand: ',',
-              symbol: '',
-              symbolAfter: true,
-            },
-            bottomCalc: (values, data) => {
-              return this.accumulateTreeValues(data, 'IntoMoney');
             },
             bottomCalcFormatter: 'money',
             bottomCalcFormatterParams: {

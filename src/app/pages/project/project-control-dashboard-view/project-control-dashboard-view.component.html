@@ -86,7 +86,7 @@
   <nz-spin [nzSpinning]="isLoading">
 
     <!-- ══ 2. KPI Summary Cards ══════════════════════════════════════════════════ -->
-    <div class="row g-2 mb-3">
+    <div *ngIf="false" class="row g-2 mb-3">
       <!-- Total Projects -->
       <div class="col-12 col-sm-6 col-md-3">
         <div
@@ -252,25 +252,44 @@
                         Kỹ Thuật <p-sortIcon field="FullNameTech"></p-sortIcon>
                       </th>
 
-                      <th pResizableColumn pSortableColumn="DepartmentName" style="width: 160px;">
+                      <!-- <th pResizableColumn pSortableColumn="DepartmentName" style="width: 160px;">
                         Phòng Ban <p-sortIcon field="DepartmentName"></p-sortIcon>
-                      </th>
+                      </th> -->
 
                       <th pResizableColumn pSortableColumn="CurrentGate" style="width: 90px; text-align: center;">
-                        Gate <p-sortIcon field="CurrentGate"></p-sortIcon>
-                      </th>
-
-                      <th pResizableColumn pSortableColumn="ExpectedPlanDate" style="width: 130px; text-align: center;">
-                        Hạn Hoàn Thành <p-sortIcon field="ExpectedPlanDate"></p-sortIcon>
+                        Gate hiện tại <p-sortIcon field="CurrentGate"></p-sortIcon>
                       </th>
 
                       <th pResizableColumn pSortableColumn="Progress" style="width: 90px; text-align: center;">
-                        Tiến Độ <p-sortIcon field="Progress"></p-sortIcon>
+                        Tiến Độ Gate <p-sortIcon field="Progress"></p-sortIcon>
+                      </th>
+
+                      <!-- <th pResizableColumn pSortableColumn="ExpectedPlanDate" style="width: 130px; text-align: center;">
+                        Hạn Hoàn Thành <p-sortIcon field="ExpectedPlanDate"></p-sortIcon>
+                      </th> -->
+
+                      <th pResizableColumn pSortableColumn="ProjectExpectedPlanDate"
+                        style="width: 120px; text-align: center;">
+                        Ngày bắt đầu dự kiến <p-sortIcon field="ProjectExpectedPlanDate"></p-sortIcon>
+                      </th>
+
+                      <th pResizableColumn pSortableColumn="ExpectedQuotationDate"
+                        style="width: 120px; text-align: center;">
+                        Ngày kết thúc dự kiến <p-sortIcon field="ExpectedQuotationDate"></p-sortIcon>
+                      </th>
+
+                      <th pResizableColumn pSortableColumn="RealityPlanDate" style="width: 120px; text-align: center;">
+                        Ngày bắt đầu thực tế <p-sortIcon field="RealityPlanDate"></p-sortIcon>
+                      </th>
+
+                      <th pResizableColumn pSortableColumn="RealityProjectEndDate"
+                        style="width: 120px; text-align: center;">
+                        Ngày kết thúc thực tế <p-sortIcon field="RealityProjectEndDate"></p-sortIcon>
                       </th>
                     </tr>
 
                     <!-- HÀNG 2: DÒNG LỌC CỘT (CỘT TRẠNG THÁI DÙNG BỘ LỌC COMBOBOX / NZ-SELECT) -->
-                    <tr class="bg-light font-size-12">
+                    <tr class="bg-light font-size-12 filter-row">
                       <th>
                         <p-columnFilter field="ProjectStatusName" matchMode="equals" [showMenu]="false">
                           <ng-template pTemplate="filter" let-value let-filter="filterCallback">
@@ -302,14 +321,18 @@
                         <p-columnFilter type="text" field="FullNameTech" placeholder="Kỹ thuật..." matchMode="contains"
                           [showMenu]="false"></p-columnFilter>
                       </th>
-                      <th>
+                      <!-- <th>
                         <p-columnFilter type="text" field="DepartmentName" placeholder="Phòng ban..."
                           matchMode="contains" [showMenu]="false"></p-columnFilter>
-                      </th>
+                      </th> -->
                       <th>
                         <p-columnFilter type="text" field="CurrentGate" placeholder="Gate..." matchMode="contains"
                           [showMenu]="false"></p-columnFilter>
                       </th>
+                      <!-- <th></th> -->
+                      <th></th>
+                      <th></th>
+                      <th></th>
                       <th></th>
                       <th></th>
                     </tr>
@@ -339,15 +362,15 @@
                       <td>
                         <i class="fa-solid fa-user-gear text-muted me-1"></i>{{ item.FullNameTech || '---' }}
                       </td>
-                      <td>{{ item.DepartmentName }}</td>
+                      <!-- <td>{{ item.DepartmentName }}</td> -->
                       <td style="text-align: center;">
-                        <span *ngIf="item.CurrentGate; else noGate"
+                        <span *ngIf="item.IsGateCompleted" class="badge bg-success text-white fw-bold px-2 py-1">Hoàn
+                          thành</span>
+                        <span *ngIf="!item.IsGateCompleted && item.CurrentGate"
                           class="badge bg-dark text-white fw-bold px-2 py-1">{{ item.CurrentGate }}</span>
-                        <ng-template #noGate><span class="text-muted">---</span></ng-template>
+                        <span *ngIf="!item.IsGateCompleted && !item.CurrentGate" class="text-muted">---</span>
                       </td>
-                      <td style="text-align: center;" [ngClass]="{'text-danger fw-bold': item.IsOverdue}">
-                        {{ item.ExpectedPlanDate | date:'dd/MM/yyyy' }}
-                      </td>
+
                       <td style="text-align: center;">
                         <div class="progress" style="height: 14px;" nzTooltipTitle="{{ item.Progress }}%" nz-tooltip>
                           <div class="progress-bar fw-bold"
@@ -357,12 +380,33 @@
                           </div>
                         </div>
                       </td>
+
+                      <!-- <td style="text-align: center;" [ngClass]="{'text-danger fw-bold': item.IsOverdue}">
+                        {{ (item.GateExpectedPlanDate || item.ExpectedPlanDate) | date:'dd/MM/yyyy' }}
+                      </td> -->
+
+                      <td style="text-align: center;">
+                        {{ (item.ProjectExpectedPlanDate || item.ExpectedPlanDate) | date:'dd/MM/yyyy' }}
+                      </td>
+
+                      <td style="text-align: center;">
+                        {{ (item.ExpectedQuotationDate || item.ExpectedProjectEndDate) | date:'dd/MM/yyyy' }}
+                      </td>
+
+                      <td style="text-align: center;">
+                        {{ item.RealityPlanDate | date:'dd/MM/yyyy' }}
+                      </td>
+
+                      <td style="text-align: center;">
+                        {{ item.RealityProjectEndDate | date:'dd/MM/yyyy' }}
+                      </td>
+
                     </tr>
                   </ng-template>
 
                   <ng-template pTemplate="emptymessage">
                     <tr>
-                      <td colspan="10" class="text-center py-4 text-muted">
+                      <td colspan="12" class="text-center py-4 text-muted">
                         <i class="fa-solid fa-inbox fs-3 d-block mb-2 text-secondary"></i>
                         Không tìm thấy dự án nào khớp với điều kiện lọc!
                       </td>
@@ -373,7 +417,7 @@
             </nz-tab>
 
             <!-- Tab 2: Danh sách dự án trễ hạn -->
-            <nz-tab [nzTitle]="tab2Title">
+            <!-- <nz-tab [nzTitle]="tab2Title">
               <ng-template #tab2Title>
                 <span class="fw-bold text-uppercase text-danger">DANH SÁCH DỰ ÁN TRỄ HẠN</span>
                 <span class="badge bg-danger text-white ms-2 px-2 py-1" style="font-size: 10px;">
@@ -431,9 +475,11 @@
                       <td>{{ item.FullNamePM }}</td>
                       <td>{{ item.DepartmentName }}</td>
                       <td style="text-align: center;">
-                        <span *ngIf="item.CurrentGate; else noGateOverdue" class="badge bg-danger px-2 py-1">{{
+                        <span *ngIf="item.IsGateCompleted" class="badge bg-success text-white fw-bold px-2 py-1">Hoàn
+                          thành</span>
+                        <span *ngIf="!item.IsGateCompleted && item.CurrentGate" class="badge bg-danger px-2 py-1">{{
                           item.CurrentGate }}</span>
-                        <ng-template #noGateOverdue><span class="text-muted">---</span></ng-template>
+                        <span *ngIf="!item.IsGateCompleted && !item.CurrentGate" class="text-muted">---</span>
                       </td>
                       <td style="text-align: center;" class="text-danger fw-bold">{{ item.ExpectedPlanDate |
                         date:'dd/MM/yyyy' }}</td>
@@ -450,7 +496,7 @@
                   </ng-template>
                 </p-table>
               </div>
-            </nz-tab>
+            </nz-tab> -->
 
           </nz-tabset>
 
@@ -459,4 +505,4 @@
     </div>
 
   </nz-spin>
-</div>
+</div>```````

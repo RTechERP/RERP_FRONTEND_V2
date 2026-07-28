@@ -169,6 +169,21 @@
   color: #155724 !important;
 }
 
+/* Viền đỏ khoanh vùng các ô/dòng dữ liệu bị thiếu */
+.input-invalid,
+.input-invalid input,
+.table-lookup-cell.input-invalid,
+::ng-deep .input-invalid.ant-input-number,
+::ng-deep .input-invalid .ant-input-number-input {
+  border: 1.5px solid #ff4d4f !important;
+  background-color: #fff1f0 !important;
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2) !important;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody>tr.invalid-step-row>td {
+  background-color: #fff2f0 !important;
+}
+
 /* Style cho cell bị disable khi công đoạn đã duyệt */
 .table-lookup-cell.disabled-cell {
   cursor: not-allowed !important;

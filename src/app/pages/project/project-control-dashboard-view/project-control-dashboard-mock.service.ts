@@ -31,17 +31,22 @@ export interface ProjectDashboardItem {
   ProjectTypeName?: string;
   CurrentGate: string; // G0, G1, G2 ... G13
   CurrentGateType?: number; // 1: Giải pháp, 2: Triển khai
-  IsGateCompleted?: boolean;
   ProjectStatus: number; // 0: Chưa thực hiện, 1: Đang thực hiện, 2: Đã hoàn thành, 3: Test, 4: Chờ PO, 5: PO, 6: Hủy/dừng
   ProjectStatusName?: string;
   ProjectStatusText: string;
   StartDate?: string;
   ExpectedPlanDate?: string;
+  ProjectExpectedPlanDate?: string;
+  GateExpectedPlanDate?: string;
+  ExpectedQuotationDate?: string;
+  ExpectedProjectEndDate?: string;
+  RealityPlanDate?: string;
   RealityProjectEndDate?: string;
   CreatedDate: string;
   Progress: number; // 0 - 100
   Priority: number; // 1-5
   IsOverdue: boolean;
+  IsGateCompleted?: boolean; // true nếu dự án đã hoàn thành gate hiện tại
   RoleInProject?: string; // PM, Tech Leader, Member
 }
 
@@ -401,7 +406,7 @@ export class ProjectControlDashboardMockService {
     }
   ];
 
-  constructor() {}
+  constructor() { }
 
   getDepartments(): Observable<any[]> {
     return of(this.mockDepartments).pipe(delay(100));

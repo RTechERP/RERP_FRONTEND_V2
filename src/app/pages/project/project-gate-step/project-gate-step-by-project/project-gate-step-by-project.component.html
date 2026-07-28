@@ -52,7 +52,8 @@
       <!-- Thanh thao tác phía trên -->
       <div class="d-flex justify-content-end align-items-center gap-2 mb-2 pb-2 border-bottom flex-shrink-0">
         @if (!isSummaryActive) {
-        @if (canAddStepOrTemplate && activeProjectTypeId && activeDepartmentId !== undefined && hasNoSavedSteps(activeProjectTypeId,
+        @if (canAddStepOrTemplate && activeProjectTypeId && activeDepartmentId !== undefined &&
+        hasNoSavedSteps(activeProjectTypeId,
         activeDepartmentId)) {
         <div class="d-flex align-items-center gap-1 me-auto">
           <span class="text-muted fw-bold">Mẫu công đoạn:</span>
@@ -645,7 +646,7 @@
           <col style="width: 300px;">
           <col style="width: 100px;">
           <col style="width: 130px;">
-          <col style="width: 140px;">
+          <!-- <col style="width: 140px;"> -->
         </colgroup>
       </ng-template>
       <ng-template pTemplate="header">
@@ -711,7 +712,7 @@
         }
         <tr pRowGroupHeader class="row-group-header" [class.group-giai-phap]="isGiaiPhapGroup(item)"
           [class.group-trien-khai]="isTrienKhaiGroup(item)">
-          <td colspan="13" class="fw-bold px-3 py-1 text-start" style="font-size: 12px;"
+          <td colspan="12" class="fw-bold px-3 py-1 text-start" style="font-size: 12px;"
             [style.background-color]="isGiaiPhapGroup(item) ? '#fffbe6' : isTrienKhaiGroup(item) ? '#e6f7ff' : '#f8f9fa'"
             [style.color]="isGiaiPhapGroup(item) ? '#d48806' : isTrienKhaiGroup(item) ? '#0050b3' : '#0050b3'">
             {{ getSubgroupHeaderName(item) }}
@@ -735,7 +736,8 @@
       </ng-template>
 
       <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
-        <tr class="body-row" [class.passed-step]="isStepPassed(item)" (contextmenu)="onRowContextMenu($event, item)">
+        <tr class="body-row" [class.passed-step]="isStepPassed(item)" [class.invalid-step-row]="isStepInvalid(item)"
+          (contextmenu)="onRowContextMenu($event, item)">
           <td class="text-center" style="width: 40px;">
             @if (!item.isNew && item.ProjectGateStepLinkID) {
             <input type="checkbox" [ngModel]="isStepSelected(item)" (change)="toggleSelectStep(item)" />
@@ -786,7 +788,7 @@
           </td>
           <td style="width: 120px; text-align: center;">
             <input type="date" nz-input nzSize="small" class="text-center w-100 input-date" style="font-size: 12px;"
-              [(ngModel)]="item.StartDate"
+              [class.input-invalid]="isStartDateInvalid(item)" [(ngModel)]="item.StartDate"
               (ngModelChange)="onStartDateValueChange(item, activeProjectTypeId + '_' + activeDepartmentId)"
               [disabled]="isStepPassed(item)" />
           </td>
@@ -799,16 +801,16 @@
           </td>
           <td style="width: 80px; text-align: center;">
             <input type="number" nz-input nzSize="small" class="text-center w-100" style="font-size: 12px;"
-              [(ngModel)]="item.PeopleCount" (ngModelChange)="onGateStepValueChange(item)"
-              [disabled]="isStepPassed(item)" />
+              [class.input-invalid]="isPeopleCountInvalid(item)" [(ngModel)]="item.PeopleCount"
+              (ngModelChange)="onGateStepValueChange(item)" [disabled]="isStepPassed(item)" />
           </td>
           <td style="width: 80px; text-align: center;">
             <input type="number" nz-input nzSize="small" class="text-center w-100" style="font-size: 12px;"
-              [(ngModel)]="item.DayCount" (ngModelChange)="onGateStepValueChange(item)"
-              [disabled]="isStepPassed(item)" />
+              [class.input-invalid]="isDayCountInvalid(item)" [(ngModel)]="item.DayCount"
+              (ngModelChange)="onGateStepValueChange(item)" [disabled]="isStepPassed(item)" />
           </td>
           <td style="width: 300px; padding: 0 !important; position: relative;">
-            <div #workerLookupCell class="table-lookup-cell"
+            <div #workerLookupCell class="table-lookup-cell" [class.input-invalid]="isWorkersInvalid(item)"
               (click)="!isStepPassed(item) && openWorkersLookup($event, item, workerLookupPanel)"
               [class.disabled-cell]="isStepPassed(item)"
               style="width: 100%; height: 100%; min-height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; cursor: pointer;">
@@ -828,7 +830,7 @@
           <td style="width: 130px; text-align: center;">
             <nz-input-number [(ngModel)]="item.UnitPrice" [nzMin]="0" [nzStep]="10000" [nzFormatter]="formatAmount"
               [nzParser]="parseAmount" nzSize="small" class="text-end w-100" style="font-size: 12px; width: 100%;"
-              [nzDisabled]="isStepPassed(item)">
+              [class.input-invalid]="isUnitPriceInvalid(item)" [nzDisabled]="isStepPassed(item)">
             </nz-input-number>
           </td>
           <td style="width: 140px; text-align: right; font-weight: bold; font-size: 12px; padding-right: 8px;">
@@ -840,7 +842,7 @@
 
       <ng-template pTemplate="footer">
         <tr class="fw-bold bg-light footer-row">
-          <td colspan="13" class="text-end pe-3" style="font-size: 12px;">Tổng cộng:</td>
+          <td colspan="12" class="text-end pe-3" style="font-size: 12px;">Tổng cộng:</td>
           <td style="width: 100px; text-align: center; font-size: 12px;">
             {{ getTotalEffort(activeProjectTypeId + '_' + activeDepartmentId) | number:'1.0-2' }}
           </td>
@@ -853,7 +855,7 @@
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="16" class="text-center p-3 text-muted">Không có dữ liệu</td>
+          <td colspan="15" class="text-center p-3 text-muted">Không có dữ liệu</td>
         </tr>
       </ng-template>
     </p-table>

@@ -491,7 +491,7 @@ export class ProjectControlDashboardViewComponent implements OnInit {
 
     this.gateChartOptions = {
       title: {
-        text: 'Thống kê Dự án theo Gate (G0 - G12 & HT Gate)',
+        text: 'Thống kê Dự án theo Gate',
         left: 'left',
         textStyle: { fontSize: 14, fontWeight: 'bold', color: '#1f2937' }
       },
@@ -556,7 +556,7 @@ export class ProjectControlDashboardViewComponent implements OnInit {
 
     this.projectTypeChartOptions = {
       title: {
-        text: 'Phân loại Dự án theo Loại (ProjectType)',
+        text: 'Phân loại Dự án theo Loại',
         left: 'left',
         textStyle: { fontSize: 14, fontWeight: 'bold', color: '#1f2937' }
       },

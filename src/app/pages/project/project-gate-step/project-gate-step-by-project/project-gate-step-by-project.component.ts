@@ -92,6 +92,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   createDate: string | null = null;
   isSaving: boolean = false;
   isLoading: boolean = false;
+  showValidationErrors: boolean = false;
   // Dành cho các mẫu (templates)
   templates: any[] = [];
   selectedTemplateId: number | null = null;
@@ -1049,8 +1050,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     this.onGateStepValueChange(item);
   }
 
-  save(closeAfterSave: boolean = false) {
-    this.isSaving = true;
+  buildSavePayload(): any {
     let allSteps: any[] = [];
     Object.keys(this.projectTypeStepsMap).forEach(key => {
       const parts = key.split('_');
@@ -1093,10 +1093,15 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       allSteps = allSteps.concat(steps);
     });
 
-    const payload = {
+    return {
       ProjectID: this.projectId,
       Steps: allSteps
     };
+  }
+
+  save(closeAfterSave: boolean = false) {
+    this.isSaving = true;
+    const payload = this.buildSavePayload();
 
     this.projectGateStepService.saveGateStepLink(payload).pipe(
       finalize(() => this.isSaving = false)
@@ -2146,11 +2151,67 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     return steps.filter((s: any) => !s.isNew && s.ProjectGateStepLinkID && this.selectedStepLinkIds.has(s.ProjectGateStepLinkID));
   }
 
+  isStartDateInvalid(item: any): boolean {
+    return !!(this.showValidationErrors && this.isStepSelected(item) && !item.StartDate);
+  }
+
+  isPeopleCountInvalid(item: any): boolean {
+    return !!(this.showValidationErrors && this.isStepSelected(item) && (item.PeopleCount == null || item.PeopleCount <= 0));
+  }
+
+  isDayCountInvalid(item: any): boolean {
+    return !!(this.showValidationErrors && this.isStepSelected(item) && (item.DayCount == null || item.DayCount <= 0));
+  }
+
+  isWorkersInvalid(item: any): boolean {
+    return !!(this.showValidationErrors && this.isStepSelected(item) && (!item.Workers || item.Workers.length === 0));
+  }
+
+  isUnitPriceInvalid(item: any): boolean {
+    return !!(this.showValidationErrors && this.isStepSelected(item) && (item.UnitPrice == null || item.UnitPrice <= 0));
+  }
+
+  isStepInvalid(item: any): boolean {
+    return this.isStartDateInvalid(item) ||
+      this.isPeopleCountInvalid(item) ||
+      this.isDayCountInvalid(item) ||
+      this.isWorkersInvalid(item) ||
+      this.isUnitPriceInvalid(item);
+  }
+
+  /** Kiểm tra dữ liệu các công đoạn được chọn trước khi duyệt */
+  validateStepsBeforeApprove(selectedSteps: any[]): boolean {
+    const hasInvalid = selectedSteps.some((step: any) =>
+      !step.StartDate ||
+      step.PeopleCount == null || step.PeopleCount <= 0 ||
+      step.DayCount == null || step.DayCount <= 0 ||
+      !step.Workers || step.Workers.length === 0 ||
+      step.UnitPrice == null || step.UnitPrice <= 0
+    );
+
+    if (hasInvalid) {
+      this.showValidationErrors = true;
+      this.notification.warning(
+        'Cảnh báo dữ liệu',
+        'Vui lòng điền đầy đủ thông tin còn thiếu ở các ô có viền đỏ trước khi duyệt.'
+      );
+      return false;
+    }
+
+    this.showValidationErrors = false;
+    return true;
+  }
+
   /** Entry point: hỏi xác nhận rồi gọi API duyệt */
   confirmApproveMultiple(isApproved: boolean): void {
     const selected = this.getSelectedSavedSteps();
     if (!selected.length) {
       this.notification.warning('Chú ý', 'Vui lòng chọn ít nhất một công đoạn.');
+      return;
+    }
+
+    // Kiểm tra thông tin bắt buộc trước khi thực hiện duyệt
+    if (isApproved && !this.validateStepsBeforeApprove(selected)) {
       return;
     }
 
@@ -2164,7 +2225,37 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       nzOkType: isApproved ? 'primary' : 'default',
       nzOkDanger: !isApproved,
       nzCancelText: 'Không',
-      nzOnOk: () => this.doApproveMultiple(selected.map((s: any) => s.ProjectGateStepLinkID), isApproved)
+      nzOnOk: () => {
+        const linkIds = selected.map((s: any) => s.ProjectGateStepLinkID);
+
+        if (isApproved) {
+          this.isSaving = true;
+          const payload = this.buildSavePayload();
+
+          this.projectGateStepService.saveGateStepLink(payload).pipe(
+            finalize(() => this.isSaving = false)
+          ).subscribe({
+            next: () => {
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                'Đã tự động lưu thông tin công đoạn thành công trước khi duyệt!',
+                { nzStyle: { fontSize: '12px' } }
+              );
+              this.doApproveMultiple(linkIds, isApproved);
+            },
+            error: (err: any) => {
+              this.notification.create(
+                NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                'Không thể tự động lưu dữ liệu công đoạn trước khi duyệt: ' + (err?.error?.message || err?.message || err?.error),
+                { nzStyle: { whiteSpace: 'pre-line' } }
+              );
+            }
+          });
+        } else {
+          this.doApproveMultiple(linkIds, isApproved);
+        }
+      }
     });
   }
 

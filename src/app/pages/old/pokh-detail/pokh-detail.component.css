@@ -13,3 +13,11 @@
 .modal-footer {
   flex-shrink: 0;
 }
+
+/* Header filter input text color - black text */
+:host ::ng-deep .tabulator .tabulator-header .tabulator-header-filter input,
+:host ::ng-deep .tabulator .tabulator-header-filter input,
+:host ::ng-deep .tabulator-header-filter input {
+  color: #000 !important;
+  background-color: #fff !important;
+}

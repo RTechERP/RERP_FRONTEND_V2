@@ -22,7 +22,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { firstValueFrom, forkJoin, Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { TabServiceService } from '../../../../../layouts/tab-service.service';
-import { KpiSaleV2Service, KpiApiResponse } from '../kpi-sale-v2.service';
+import { KpiSaleV2Service, KpiApiResponse, TeamTargetResponse, TeamTargetItem } from '../kpi-sale-v2.service';
 import { KpiSaleTarget,
   KpiSalePeriod,
   KpiSaleTemplate,
@@ -49,6 +49,25 @@ export interface QuarterlyPivotRow {
     code: string;
     name: string;
   }[];
+}
+
+export interface TeamWeightTreeNode {
+  kpiIndexId: number;
+  indexCode: string;
+  indexName: string;
+  indexType: string;
+  unitType: string;
+  defaultWeightPercent: number | null;
+  teamWeightPercent: number | null;
+  teamGoalValue: number;
+  teamProposedValue: number;
+  memberCount: number;
+  children?: TeamWeightTreeNode[];
+  level: number;
+  expanded: boolean;
+  parentId: number | null;
+  /** STT phân cấp dạng "1", "1.1", "1.1.2" — dùng để hiển thị cột STT và tooltip. */
+  displayPath?: string;
 }
 
 export interface QuarterlyTargetRow {
@@ -160,6 +179,11 @@ export class KpiTargetTabComponent implements OnInit {
     return this.isLeader || this.isGlobalAdmin || this.isN1Admin || this.isN27Admin;
   }
 
+  /** User đang login là N1 (admin phòng) hoặc Leader của team nào đó */
+  get isN1OrLeader(): boolean {
+    return this.isN1Admin || this.isLeader;
+  }
+
   // EmployeeTemplate assignment data (chỉ các gán đang active trong kỳ đang chọn)
   employeeTemplates: KpiSaleEmployeeTemplate[] = [];
 
@@ -176,6 +200,10 @@ export class KpiTargetTabComponent implements OnInit {
 
   // === Team Weight Override (KPISaleTarget với EmployeeID=0) ===
   isTeamWeightMode = false;
+  /** Cờ đánh dấu người dùng đã chủ động bấm toggle "Thông số Team" hay chưa.
+   *  Dùng để quyết định có auto-enable khi vào màn hình (với N1/Leader) hay không — sau khi user bấm tay
+   *  thì KHÔNG auto-enable lại nữa khi đổi filter. */
+  private userToggledTeamWeight = false;
   teamWeightTemplateName = '';
   teamWeightItems: {
     kpiIndexId: number;
@@ -185,7 +213,17 @@ export class KpiTargetTabComponent implements OnInit {
     unitType: string;
     defaultWeightPercent: number | null;
     teamWeightPercent: number | null;
+    teamGoalValue?: number;
+    teamProposedValue?: number;
+    memberCount?: number;
+    // Tree structure
+    children?: TeamWeightTreeNode[];
+    level?: number;
+    expanded?: boolean;
+    parentId?: number | null;
   }[] = [];
+
+  teamWeightTreeData: TeamWeightTreeNode[] = [];
   teamWeightEdited = new Map<number, number | null>();
   isTeamWeightLoading = false;
 
@@ -219,6 +257,49 @@ export class KpiTargetTabComponent implements OnInit {
 
   get canViewTeamWeight(): boolean {
     return !!this.selectedTeamId;
+  }
+
+  // === Team Target Mode (xem mục tiêu tổng hợp của team) ===
+  isTeamTargetMode = false;
+  teamTargetData: TeamTargetResponse | null = null;
+  isTeamTargetLoading = false;
+
+  get canViewTeamTargets(): boolean {
+    // Ai cũng xem được (cần chọn team + period)
+    return !!this.selectedTeamId && !!this.selectedPeriodId;
+  }
+
+  get canBoardApproveTeamTargets(): boolean {
+    // Chỉ Admin tổng hoặc N1 mới duyệt được
+    return this.isGlobalAdmin || this.isN1Admin;
+  }
+
+  get canApproveTeamTargets(): boolean {
+    // Điều kiện để duyệt: tất cả thành viên đều đã SM duyệt
+    if (!this.teamTargetData) return false;
+    return this.teamTargetData.approvedMembers === this.teamTargetData.totalMembers;
+  }
+
+  /** Trả label tiếng Việt cho IndexType (cho Team Target). */
+  getTeamTargetIndexTypeLabel(type?: string | null): string {
+    switch ((type ?? '').toUpperCase()) {
+      case 'DETAIL': return 'Chi tiết';
+      case 'GROUP': return 'Nhóm';
+      case 'FORMULA': return 'Công thức';
+      case 'REPORT': return 'Báo cáo';
+      default: return '—';
+    }
+  }
+
+  /** Trả màu cho nz-tag theo IndexType (cho Team Target). */
+  getTeamTargetIndexTypeColor(type?: string | null): string {
+    switch ((type ?? '').toUpperCase()) {
+      case 'DETAIL': return 'blue';
+      case 'GROUP': return 'green';
+      case 'FORMULA': return 'orange';
+      case 'REPORT': return 'purple';
+      default: return 'default';
+    }
   }
 
   // Quick assign modal draft — chỉ dùng để gán nhanh từ bảng trái
@@ -515,21 +596,18 @@ export class KpiTargetTabComponent implements OnInit {
 
   /** Flat list cho pivot table — đọc từ cache */
   get quarterlyRows(): QuarterlyTargetRow[] {
-    console.log('[DEBUG quarterlyRows getter] _pivotCache is', this._pivotCache ? 'SET' : 'NULL', 'qRows length:', this._pivotCache?.qRows?.length);
     if (!this._pivotCache) return [];
     return this._pivotCache.qRows;
   }
 
   /** Metadata cho pivot table header (số quý, số tháng mỗi quý) — đọc từ cache */
   get quarterlyMeta(): { quarterCode: string; monthCount: number }[] {
-    console.log('[DEBUG quarterlyMeta getter] _pivotCache is', this._pivotCache ? 'SET' : 'NULL', 'qMeta length:', this._pivotCache?.qMeta?.length);
     if (!this._pivotCache) return [];
     return this._pivotCache.qMeta;
   }
 
   /** Flat list tháng cho header row 2 — đọc từ cache */
   get quarterlyMetaFlat(): { quarterCode: string; monthCode: string; monthName: string }[] {
-    console.log('[DEBUG quarterlyMetaFlat getter] _pivotCache is', this._pivotCache ? 'SET' : 'NULL', 'qMetaFlat length:', this._pivotCache?.qMetaFlat?.length);
     if (!this._pivotCache) return [];
     return this._pivotCache.qMetaFlat;
   }
@@ -983,6 +1061,11 @@ export class KpiTargetTabComponent implements OnInit {
       for (const id of ids) {
         const item = this.targets.find(t => t.id === id);
         if (!item) continue;
+        // BGD đã duyệt rồi → skip
+        if (item.isBoardApproved) {
+          skipped++;
+          continue;
+        }
         if (!item.proposedGoalValue && !this.getInlineProposed(id)) {
           skipped++;
           continue;
@@ -1012,9 +1095,9 @@ export class KpiTargetTabComponent implements OnInit {
       this.selectedTargetIds.clear();
       this.selectedTargetIds = new Set();
       if (skipped > 0) {
-        this.notification.warning('Thông báo', `Đã duyệt ${approved} mục tiêu, bỏ qua ${skipped} (chưa có giá trị đề xuất)`);
+        this.notification.warning('Thông báo', `Đã SM duyệt ${approved} mục tiêu, bỏ qua ${skipped} (chưa có giá trị đề xuất)`);
       } else {
-        this.notification.success('Thành công', `Đã duyệt ${approved} mục tiêu`);
+        this.notification.success('Thành công', `Đã SM duyệt ${approved} mục tiêu`);
       }
       this.tabService.notifyDataSaved('kpi-targets');
     } finally {
@@ -1033,6 +1116,11 @@ export class KpiTargetTabComponent implements OnInit {
       for (const id of ids) {
         const item = this.targets.find(t => t.id === id);
         if (!item) continue;
+        // BGD đã duyệt rồi → skip
+        if (item.isBoardApproved) {
+          skipped++;
+          continue;
+        }
         const inline = this.inlineEditedTargets.get(id);
         const proposedValue = inline?.proposedGoalValue ?? item.proposedGoalValue;
         if (!proposedValue && proposedValue !== 0) {
@@ -1069,15 +1157,125 @@ export class KpiTargetTabComponent implements OnInit {
       this.selectedPivotTargetIds.clear();
       this.selectedPivotTargetIds = new Set();
       if (skipped > 0) {
-        this.notification.warning('Thông báo', `Đã duyệt ${approved} mục tiêu, bỏ qua ${skipped} (chưa có giá trị đề xuất)`);
+        this.notification.warning('Thông báo', `Đã SM duyệt ${approved} mục tiêu, bỏ qua ${skipped} (chưa có giá trị đề xuất)`);
       } else {
-        this.notification.success('Thành công', `Đã duyệt ${approved} mục tiêu`);
+        this.notification.success('Thành công', `Đã SM duyệt ${approved} mục tiêu`);
       }
       this.tabService.notifyDataSaved('kpi-targets');
     } finally {
       this.isLoading = false;
     }
   }
+
+  // ============== Board Approve (Ban Giám Đốc) ==============
+
+  /** Có quyền duyệt bước Ban Giám Đốc hay không (chỉ N1 hoặc admin tổng) */
+  get canBoardApproveTargets(): boolean {
+    return this.isN1Admin || this.isGlobalAdmin;
+  }
+
+  /** Kiểm tra target có thể duyệt Ban GD không: đã Approved và chưa BoardApproved */
+  canBoardApprove(item: KpiSaleTarget): boolean {
+    if (!item) return false;
+    if (!this.canBoardApproveTargets) return false;
+    return item.approvalStatus === 'Approved' && !item.isBoardApproved;
+  }
+
+  /** Đếm số target có thể duyệt Ban GD */
+  getBoardApproveableCount(): number {
+    return this.targets.filter(t => this.canBoardApprove(t)).length;
+  }
+
+  /** Lấy danh sách ID target đã chọn và có thể duyệt Ban GD */
+  private getSelectedBoardApproveableIds(): number[] {
+    return Array.from(this.selectedTargetIds).filter(id => {
+      const item = this.targets.find(t => t.id === id);
+      return item && this.canBoardApprove(item);
+    });
+  }
+
+  /** Duyệt Ban GD cho 1 target */
+  async boardApproveTarget(item: KpiSaleTarget): Promise<void> {
+    await this.boardApproveTargetById(item.id);
+  }
+
+  async boardApproveTargetById(id: number): Promise<void> {
+    if (!id) return;
+    if (!this.canBoardApproveTargets) return;
+    this.isLoading = true;
+    try {
+      const res = await firstValueFrom(this.kpiSaleService.boardApproveTarget(id));
+      if (res?.status === 1) {
+        this.notification.success('Thành công', res.message || 'Ban Giám Đốc duyệt thành công');
+        await this.loadTargets();
+      } else {
+        this.notification.error('Lỗi', res?.message || 'Không thể duyệt');
+      }
+    } catch (e: any) {
+      console.error(e);
+      this.notification.error('Lỗi', e?.error?.message || e?.message || 'Không thể duyệt Ban Giám Đốc');
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  /** Duyệt Ban GD hàng loạt các target đã chọn */
+  async boardApproveSelected(): Promise<void> {
+    if (!this.canBoardApproveTargets) return;
+    const ids = this.getSelectedBoardApproveableIds();
+    if (ids.length === 0) {
+      this.notification.warning('Thông báo', 'Không có mục tiêu nào được chọn để duyệt Ban Giám Đốc');
+      return;
+    }
+    this.isLoading = true;
+    let approved = 0;
+    let skipped = 0;
+    try {
+      for (const id of ids) {
+        try {
+          const res = await firstValueFrom(this.kpiSaleService.boardApproveTarget(id));
+          if (res?.status === 1) approved++;
+          else skipped++;
+        } catch {
+          skipped++;
+        }
+      }
+      if (approved > 0) await this.loadTargets();
+      this.selectedTargetIds.clear();
+      this.selectedTargetIds = new Set();
+      if (skipped > 0) {
+        this.notification.warning('Thông báo', `Đã duyệt Ban GD ${approved} mục tiêu, bỏ qua ${skipped}`);
+      } else {
+        this.notification.success('Thành công', `Đã duyệt Ban GD ${approved} mục tiêu`);
+      }
+      this.tabService.notifyDataSaved('kpi-targets');
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  /** Hủy duyệt Ban GD cho 1 target */
+  async boardUnapproveTarget(item: KpiSaleTarget): Promise<void> {
+    if (!item?.id) return;
+    if (!this.canBoardApproveTargets) return;
+    this.isLoading = true;
+    try {
+      const res = await firstValueFrom(this.kpiSaleService.boardUnapproveTarget(item.id));
+      if (res?.status === 1) {
+        this.notification.success('Thành công', 'Hủy duyệt Ban Giám Đốc thành công');
+        await this.loadTargets();
+      } else {
+        this.notification.error('Lỗi', res?.message || 'Không thể hủy duyệt');
+      }
+    } catch (e: any) {
+      console.error(e);
+      this.notification.error('Lỗi', e?.error?.message || e?.message || 'Không thể hủy duyệt');
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  // ============== End Board Approve ==============
 
   getApprovalStatusLabel(status?: string | null): string {
     switch (status) {
@@ -1098,14 +1296,34 @@ export class KpiTargetTabComponent implements OnInit {
   }
 
   /**
-   * Có quyền bấm nút Duyệt / Hủy trên 1 target cụ thể hay không.
-   * Chỉ admin tổng / N1 hoặc leader team mới có quyền duyệt, KHÔNG phải N27.
+   * Có quyền bấm nút SM Duyệt / Hủy trên 1 target cụ thể hay không.
+   * - Chỉ admin tổng / N1 hoặc leader team mới có quyền duyệt, KHÔNG phải N27.
+   * - SM chỉ duyệt/hủy được khi BGD chưa duyệt (isBoardApproved = false).
    */
   canApprove(item: KpiSaleTarget): boolean {
     if (!item) return false;
+    // BGD đã duyệt rồi → SM không thao tác được
+    if (item.isBoardApproved) return false;
     if (item.approvalStatus === 'Approved' || item.approvalStatus === 'Rejected') return false;
     if (!item.proposedGoalValue && item.proposedGoalValue !== 0) return false;
     // Admin tổng / N1 hoặc Leader: được duyệt
+    if (this.isLeader || this.isGlobalAdmin || this.isN1Admin) return true;
+    return false;
+  }
+
+  /**
+   * Có quyền bấm nút Hủy SM duyệt trên 1 target cụ thể hay không.
+   * - Chỉ admin tổng / N1 hoặc leader team mới có quyền hủy, KHÔNG phải N27.
+   * - SM chỉ hủy được khi BGD chưa duyệt (isBoardApproved = false).
+   * - SM đã hủy rồi → không hủy lại nữa (status phải là Approved).
+   */
+  canReject(item: KpiSaleTarget): boolean {
+    if (!item) return false;
+    // BGD đã duyệt rồi → SM không hủy được
+    if (item.isBoardApproved) return false;
+    // Chỉ hủy được khi status là Approved
+    if (item.approvalStatus !== 'Approved') return false;
+    // Admin tổng / N1 hoặc Leader: được hủy
     if (this.isLeader || this.isGlobalAdmin || this.isN1Admin) return true;
     return false;
   }
@@ -1223,10 +1441,15 @@ export class KpiTargetTabComponent implements OnInit {
       this.selectedEmployeeId = 0;
     }
     void this.onFilterChange();
-    // Nếu đang ở chế độ Trọng số Team thì reload ngay khi đổi team
+    // Reload đúng mode khi đổi team
     if (this.isTeamWeightMode && teamId) {
       void this.loadTeamWeights();
     }
+    if (this.isTeamTargetMode && teamId) {
+      void this.loadTeamTargets();
+    }
+    // Nếu user là N1/Leader và chưa chủ động toggle tay → mặc định bật Thông số Team cho team mới
+    void this.autoEnableTeamWeightModeIfAllowed();
   }
 
   ngOnInit(): void {
@@ -1325,6 +1548,18 @@ export class KpiTargetTabComponent implements OnInit {
       if (this.periods.length > 0 && !this.selectedPeriodId) {
         this.selectedPeriodId = this.periods.find(p => !p.isClosed)?.id || this.periods[0].id;
       }
+      // N1/Leader: tự động chọn team để mặc định bật "Thông số Team" khi vào trang
+      // - Leader: ưu tiên team đầu tiên trong myLeaderTeams
+      // - N1: lấy team đầu tiên trong danh sách teams
+      if (!this.selectedTeamId && this.isN1OrLeader && this.teams.length > 0) {
+        if (this.isLeader && this.myLeaderTeams.length > 0) {
+          const firstLeaderTeam = this.myLeaderTeams[0];
+          const exists = this.teams.some(t => t.id === firstLeaderTeam.id);
+          this.selectedTeamId = exists ? firstLeaderTeam.id : this.teams[0].id;
+        } else {
+          this.selectedTeamId = this.teams[0].id;
+        }
+      }
       if (this.employees.length > 0 && !this.selectedEmployeeId) {
         // Nếu là restricted user → auto chọn đúng nhân viên hiện tại
         if (this.isRestrictedUser && this.currentUserId) {
@@ -1335,6 +1570,9 @@ export class KpiTargetTabComponent implements OnInit {
       }
 
       await this.onFilterChange();
+
+      // Sau khi đã có period + team, mặc định bật "Thông số Team" cho N1/Leader
+      await this.autoEnableTeamWeightModeIfAllowed();
     } catch (err) {
       console.error(err);
       this.notification.error('Lỗi', 'Không thể nạp dữ liệu danh mục');
@@ -1419,6 +1657,11 @@ export class KpiTargetTabComponent implements OnInit {
       if (this.isTeamWeightMode && this.selectedTeamId && this.selectedPeriodId) {
         await this.loadTeamWeights();
       }
+      if (this.isTeamTargetMode && this.selectedTeamId && this.selectedPeriodId) {
+        await this.loadTeamTargets();
+      }
+      // N1/Leader: nếu vừa có đủ Kỳ + Team và chưa toggle tay → mặc định bật Thông số Team
+      await this.autoEnableTeamWeightModeIfAllowed();
     } catch (err) {
       console.error(err);
     } finally {
@@ -1485,30 +1728,219 @@ export class KpiTargetTabComponent implements OnInit {
     }
     this.isTeamWeightLoading = true;
     try {
-      const res = await firstValueFrom(
-        this.safeApi<any>(this.kpiSaleService.getTeamWeights(this.selectedTeamId, this.selectedPeriodId))
-      );
-      if (res?.status === 1 && res.data) {
-        this.teamWeightTemplateName = res.data.templateName ?? '';
-        this.teamWeightItems = (res.data.items ?? []).map((it: any) => ({
-          kpiIndexId: it.kpiIndexID ?? it.KpiIndexID,
-          indexCode: it.indexCode ?? it.IndexCode ?? '',
-          indexName: it.indexName ?? it.IndexName ?? '',
-          indexType: (it.indexType ?? it.IndexType ?? 'DETAIL') as string,
-          unitType: (it.unitType ?? it.UnitType ?? '') as string,
-          defaultWeightPercent: it.defaultWeightPercent ?? it.DefaultWeightPercent ?? null,
-          teamWeightPercent: it.teamWeightPercent ?? it.TeamWeightPercent ?? null
-        }));
+      // Load cả weights và targets song song
+      const [weightRes, targetRes] = await Promise.all([
+        firstValueFrom(this.safeApi<any>(this.kpiSaleService.getTeamWeights(this.selectedTeamId, this.selectedPeriodId))),
+        this.loadTeamTargetsData()
+      ]);
+
+      const targetMap = new Map<number, { goalValue: number; proposedValue: number; memberCount: number }>();
+      if (targetRes) {
+        // Set teamTargetData để canApproveTeamTargets hoạt động
+        this.teamTargetData = targetRes;
+        for (const item of targetRes.items ?? []) {
+          const idxId = item['kpiIndexId'] ?? item['KPIIndexId'] ?? item['kpiIndexID'] ?? item['KpiIndexID'];
+          if (idxId) {
+            targetMap.set(idxId, {
+              goalValue: item.teamGoalValue ?? item['teamGoalValue'] ?? 0,
+              proposedValue: item.teamProposedValue ?? item['teamProposedValue'] ?? 0,
+              memberCount: item.memberCount ?? item['memberCount'] ?? 0
+            });
+          }
+        }
+      } else {
+        this.teamTargetData = null;
+      }
+
+      if (weightRes?.status === 1 && weightRes.data) {
+        this.teamWeightTemplateName = weightRes.data.templateName ?? '';
+        this.teamWeightItems = (weightRes.data.items ?? []).map((it: any) => {
+          const idxId = it.kpiIndexID ?? it.KpiIndexID ?? it.kpiIndexId ?? it.KpiIndexId ?? 0;
+          const targetInfo = targetMap.get(idxId) ?? { goalValue: 0, proposedValue: 0, memberCount: 0 };
+          return {
+            kpiIndexId: idxId,
+            indexCode: it.indexCode ?? it.IndexCode ?? '',
+            indexName: it.indexName ?? it.IndexName ?? '',
+            indexType: (it.indexType ?? it.IndexType ?? 'DETAIL') as string,
+            unitType: (it.unitType ?? it.UnitType ?? '') as string,
+            defaultWeightPercent: it.defaultWeightPercent ?? it.DefaultWeightPercent ?? null,
+            teamWeightPercent: it.teamWeightPercent ?? it.TeamWeightPercent ?? null,
+            teamGoalValue: targetInfo.goalValue,
+            teamProposedValue: targetInfo.proposedValue,
+            memberCount: targetInfo.memberCount,
+            parentId: it.parentIndexId ?? it.parentIndexID ?? it.ParentIndexID ?? it.parentId ?? it.ParentId ?? it.parentID ?? null
+          };
+        });
         this.teamWeightEdited.clear();
+        // Build tree structure
+        this.buildTeamWeightTree();
       } else {
         this.teamWeightItems = [];
         this.teamWeightTemplateName = '';
         this.teamWeightEdited.clear();
+        this.teamWeightTreeData = [];
       }
     } catch (err) {
       console.error('[loadTeamWeights] error:', err);
     } finally {
       this.isTeamWeightLoading = false;
+    }
+  }
+
+  private buildTeamWeightTree(): void {
+    const items = this.teamWeightItems;
+    
+    // Build lookup map
+    const itemMap = new Map<number, any>();
+    for (const item of items) {
+      itemMap.set(item.kpiIndexId, { ...item });
+    }
+
+    // Build children map
+    const childrenMap = new Map<number, any[]>();
+    for (const item of items) {
+      const parentId = item.parentId;
+      if (!parentId) continue;
+      if (!childrenMap.has(parentId)) {
+        childrenMap.set(parentId, []);
+      }
+      childrenMap.get(parentId)!.push(item);
+    }
+
+    // Calculate values from children (recursive for nested groups)
+    const calculateFromChildren = (parentId: number): { goal: number; proposed: number; memberCount: number } => {
+      const children = childrenMap.get(parentId) ?? [];
+      let totalGoal = 0;
+      let totalProposed = 0;
+      let totalMember = 0;
+      for (const child of children) {
+        if (child.indexType === 'GROUP') {
+          // Nested group: calculate from its children
+          const nested = calculateFromChildren(child.kpiIndexId);
+          totalGoal += nested.goal;
+          totalProposed += nested.proposed;
+          totalMember += nested.memberCount;
+        } else {
+          // Leaf node (DETAIL, FORMULA, REPORT): use its own values
+          totalGoal += child.teamGoalValue ?? 0;
+          totalProposed += child.teamProposedValue ?? 0;
+          totalMember += child.memberCount ?? 0;
+        }
+      }
+      return { goal: totalGoal, proposed: totalProposed, memberCount: totalMember };
+    };
+
+    // Find root items (no parent or parentId = null)
+    const roots = items.filter(it => !it.parentId);
+    const tree: TeamWeightTreeNode[] = [];
+
+    for (let rootIdx = 0; rootIdx < roots.length; rootIdx++) {
+      const root = roots[rootIdx];
+      const rootPath = `${rootIdx + 1}`;
+
+      // For GROUP type: calculate from all descendants
+      // For other types: use own values
+      const isGroup = root.indexType === 'GROUP';
+      let groupGoal = 0;
+      let groupProposed = 0;
+      let groupMember = 0;
+
+      if (isGroup) {
+        const calculated = calculateFromChildren(root.kpiIndexId);
+        groupGoal = calculated.goal;
+        groupProposed = calculated.proposed;
+        groupMember = calculated.memberCount;
+      }
+
+      const treeNode: TeamWeightTreeNode = {
+        ...root,
+        teamGoalValue: isGroup ? groupGoal : (root.teamGoalValue ?? 0),
+        teamProposedValue: isGroup ? groupProposed : (root.teamProposedValue ?? 0),
+        memberCount: isGroup ? groupMember : (root.memberCount ?? 0),
+        level: 0,
+        expanded: true,
+        parentId: null,
+        children: [],
+        displayPath: rootPath
+      };
+
+      // Build children recursively
+      const buildChildren = (parentNode: TeamWeightTreeNode, parentId: number, level: number): void => {
+        const children = childrenMap.get(parentId) ?? [];
+        for (let childIdx = 0; childIdx < children.length; childIdx++) {
+          const child = children[childIdx];
+          const childIsGroup = child.indexType === 'GROUP';
+          const childPath = `${parentNode.displayPath}.${childIdx + 1}`;
+          let childGoal = 0;
+          let childProposed = 0;
+          let childMember = 0;
+          
+          if (childIsGroup) {
+            const calculated = calculateFromChildren(child.kpiIndexId);
+            childGoal = calculated.goal;
+            childProposed = calculated.proposed;
+            childMember = calculated.memberCount;
+          }
+
+          const childNode: TeamWeightTreeNode = {
+            ...child,
+            teamGoalValue: childIsGroup ? childGoal : (child.teamGoalValue ?? 0),
+            teamProposedValue: childIsGroup ? childProposed : (child.teamProposedValue ?? 0),
+            memberCount: childIsGroup ? childMember : (child.memberCount ?? 0),
+            level: level,
+            expanded: level < 2, // Auto-expand first 2 levels
+            parentId: parentId,
+            children: [],
+            displayPath: childPath
+          };
+          
+          parentNode.children!.push(childNode);
+          
+          // Recursively build grandchildren if GROUP
+          if (childIsGroup) {
+            buildChildren(childNode, child.kpiIndexId, level + 1);
+          }
+        }
+      };
+
+      buildChildren(treeNode, root.kpiIndexId, 1);
+      tree.push(treeNode);
+    }
+
+    this.teamWeightTreeData = tree;
+  }
+
+  toggleTeamWeightNode(node: TeamWeightTreeNode): void {
+    node.expanded = !node.expanded;
+    this.teamWeightTreeData = [...this.teamWeightTreeData];
+  }
+
+  getFlatTeamWeightTree(): TeamWeightTreeNode[] {
+    const result: TeamWeightTreeNode[] = [];
+    for (const node of this.teamWeightTreeData) {
+      result.push(node);
+      if (node.expanded && node.children) {
+        result.push(...node.children);
+      }
+    }
+    return result;
+  }
+
+  /** Trả STT phân cấp dạng "1", "1.1", "1.2.3" cho node để hiển thị cột STT. */
+  getNodeDisplayPath(node: TeamWeightTreeNode): string {
+    return node.displayPath ?? '';
+  }
+
+  private async loadTeamTargetsData(): Promise<any> {
+    const templateId = this.resolveTeamTemplateId();
+    if (!templateId) return null;
+    try {
+      const response = await firstValueFrom(
+        this.kpiSaleService.getTeamTargets(this.selectedTeamId!, this.selectedPeriodId!, templateId)
+      );
+      return response?.status === 1 ? response.data : null;
+    } catch {
+      return null;
     }
   }
 
@@ -1529,6 +1961,14 @@ export class KpiTargetTabComponent implements OnInit {
       const v = this.getTeamWeightValue(it.kpiIndexId);
       return sum + (v ?? it.defaultWeightPercent ?? 0);
     }, 0);
+  }
+
+  calculateTotalTeamGoal(): number {
+    return this.teamWeightItems.reduce((sum, it) => sum + (it.teamGoalValue ?? 0), 0);
+  }
+
+  calculateTotalTeamProposed(): number {
+    return this.teamWeightItems.reduce((sum, it) => sum + (it.teamProposedValue ?? 0), 0);
   }
 
   hasTeamWeightChanges(): boolean {
@@ -1592,15 +2032,173 @@ export class KpiTargetTabComponent implements OnInit {
   }
 
   async toggleTeamWeightMode(): Promise<void> {
+    // Đánh dấu user đã chủ động toggle để không auto-enable lại khi đổi filter
+    this.userToggledTeamWeight = true;
+
+    // Validate: phải có cả Kỳ KPI và Team mới cho mở
+    if (!this.selectedPeriodId) {
+      this.notification.warning('Chú ý', 'Vui lòng chọn Kỳ KPI trước');
+      return;
+    }
+    if (!this.selectedTeamId) {
+      this.notification.warning('Chú ý', 'Vui lòng chọn Team trước');
+      return;
+    }
+
     this.isTeamWeightMode = !this.isTeamWeightMode;
     if (this.isTeamWeightMode) {
+      await this.loadTeamWeights();
+      await this.loadTeamTargets(); // Load luôn team target data
+    }
+  }
+
+  /**
+   * Mặc định bật chế độ Thông số Team cho user có quyền N1 hoặc là Leader,
+   * khi đã chọn được Team + Kỳ KPI và user chưa chủ động toggle tay.
+   * Sau khi user đã toggle tay thì KHÔNG auto-enable lại.
+   */
+  private async autoEnableTeamWeightModeIfAllowed(): Promise<void> {
+    if (this.userToggledTeamWeight) return;
+    if (!this.isN1OrLeader) return;
+    if (!this.selectedPeriodId || !this.selectedTeamId) return;
+    if (this.isTeamWeightMode) return;
+
+    this.isTeamWeightMode = true;
+    try {
+      await this.loadTeamWeights();
+      await this.loadTeamTargets();
+    } catch (err) {
+      console.error('[autoEnableTeamWeightModeIfAllowed] failed:', err);
+      this.isTeamWeightMode = false;
+    }
+  }
+
+  // ============== Team Target Mode ==============
+  async toggleTeamTargetMode(): Promise<void> {
+    this.isTeamTargetMode = !this.isTeamTargetMode;
+    if (this.isTeamTargetMode) {
       if (!this.selectedTeamId) {
         this.notification.warning('Chú ý', 'Vui lòng chọn Team trước');
-        this.isTeamWeightMode = false;
+        this.isTeamTargetMode = false;
         return;
       }
-      await this.loadTeamWeights();
+      await this.loadTeamTargets();
     }
+  }
+
+  async loadTeamTargets(): Promise<void> {
+    if (!this.selectedTeamId || !this.selectedPeriodId) return;
+
+    const templateId = this.resolveTeamTemplateId();
+    if (!templateId) {
+      this.notification.warning('Chú ý', 'Team chưa được gán mẫu KPI cho kỳ này');
+      this.teamTargetData = null;
+      return;
+    }
+
+    this.isTeamTargetLoading = true;
+    try {
+      const response = await firstValueFrom(
+        this.kpiSaleService.getTeamTargets(this.selectedTeamId, this.selectedPeriodId, templateId)
+      );
+
+      if (response?.status === 1 && response.data) {
+        this.teamTargetData = response.data;
+        console.log('[loadTeamTargets] data:', this.teamTargetData);
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể tải mục tiêu team');
+        this.teamTargetData = null;
+      }
+    } catch (err) {
+      this.notification.error('Lỗi', 'Không thể tải mục tiêu team');
+      this.teamTargetData = null;
+    } finally {
+      this.isTeamTargetLoading = false;
+    }
+  }
+
+  private resolveTeamTemplateId(): number | null {
+    if (!this.selectedTeamId) return null;
+
+    const teamTemplate = this.teamTemplates.find(tt => {
+      const tid = tt['teamId'] ?? tt['teamID'] ?? tt['TeamID'];
+      return tid === this.selectedTeamId;
+    });
+
+    if (!teamTemplate) return null;
+
+    return teamTemplate['templateId'] ?? teamTemplate['templateID'] ?? teamTemplate['TemplateID'] ?? null;
+  }
+
+  async boardApproveTeamTargets(): Promise<void> {
+    if (!this.selectedTeamId || !this.selectedPeriodId || !this.canBoardApproveTeamTargets) return;
+
+    const templateId = this.resolveTeamTemplateId();
+    if (!templateId) {
+      this.notification.error('Lỗi', 'Không tìm thấy mẫu KPI của team');
+      return;
+    }
+
+    this.isLoading = true;
+    try {
+      const response = await firstValueFrom(
+        this.kpiSaleService.approveTeamTargets(this.selectedTeamId, this.selectedPeriodId, templateId)
+      );
+
+      if (response?.status === 1) {
+        this.notification.success('Thành công',
+          `Đã duyệt ${response.data.approvedCount} mục tiêu của team ${this.teamTargetData?.teamName}`);
+        await this.loadTeamTargets();
+        await this.loadTargets();
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể duyệt mục tiêu team');
+      }
+    } catch (err) {
+      this.notification.error('Lỗi', 'Không thể duyệt mục tiêu team');
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  async boardUnapproveTeamTargets(): Promise<void> {
+    if (!this.selectedTeamId || !this.selectedPeriodId || !this.canBoardApproveTeamTargets) return;
+
+    const templateId = this.resolveTeamTemplateId();
+    if (!templateId) {
+      this.notification.error('Lỗi', 'Không tìm thấy mẫu KPI của team');
+      return;
+    }
+
+    this.modalService.confirm({
+      nzTitle: 'Xác nhận hủy duyệt Ban Giám Đốc',
+      nzContent: `Bạn có chắc muốn HỦY duyệt BGD cho toàn bộ mục tiêu của team ${this.teamTargetData?.teamName ?? ''}? Hành động này sẽ bỏ duyệt tất cả các mục tiêu đã được BGD duyệt trong kỳ này.`,
+      nzOkText: 'Hủy duyệt',
+      nzOkType: 'primary',
+      nzCancelText: 'Đóng',
+      nzOnOk: async () => {
+        this.isLoading = true;
+        try {
+          const response = await firstValueFrom(
+            this.kpiSaleService.unapproveTeamTargets(this.selectedTeamId!, this.selectedPeriodId!, templateId)
+          );
+
+          if (response?.status === 1) {
+            this.notification.success('Thành công',
+              `Đã hủy duyệt ${response.data?.unapprovedCount ?? 0} mục tiêu của team ${this.teamTargetData?.teamName}`);
+            await this.loadTeamTargets();
+            await this.loadTargets();
+          } else {
+            this.notification.error('Lỗi', response?.message || 'Không thể hủy duyệt mục tiêu team');
+          }
+        } catch (err: any) {
+          console.error('[boardUnapproveTeamTargets] error:', err);
+          const errorMsg = err?.error?.message || err?.message || 'Không thể hủy duyệt mục tiêu team';
+          this.notification.error('Lỗi', errorMsg);
+        } finally {
+          this.isLoading = false;
+        }
+      }
+    });
   }
 
   // --- CRUD Actions ---
@@ -2806,7 +3404,7 @@ export class KpiTargetTabComponent implements OnInit {
       if (this.isApiMode) {
         const res = await firstValueFrom(this.kpiSaleService.approveTarget(id));
         if (res?.status === 1) {
-          this.notification.success('Thông báo', res.message || 'Duyệt thành công');
+          this.notification.success('Thông báo', res.message || 'SM duyệt thành công');
           await this.loadTargets();
         } else {
           this.notification.error('Lỗi', res?.message || 'Không thể duyệt');
@@ -2821,11 +3419,12 @@ export class KpiTargetTabComponent implements OnInit {
           };
           this.targets = [...this.targets];
         }
-        this.notification.success('Thông báo', 'Duyệt mục tiêu (mock) thành công');
+        this.notification.success('Thông báo', 'SM duyệt mục tiêu (mock) thành công');
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      this.notification.error('Lỗi', 'Không thể duyệt mục tiêu');
+      const errorMsg = e?.error?.message || e?.message || 'Không thể SM duyệt mục tiêu';
+      this.notification.error('Lỗi', errorMsg);
     } finally {
       this.isLoading = false;
     }
@@ -2860,9 +3459,10 @@ export class KpiTargetTabComponent implements OnInit {
         }
         this.notification.success('Thông báo', 'Đã hủy đề xuất (mock)');
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      this.notification.error('Lỗi', 'Không thể hủy đề xuất');
+      const errorMsg = e?.error?.message || e?.message || 'Không thể hủy đề xuất';
+      this.notification.error('Lỗi', errorMsg);
     } finally {
       this.isLoading = false;
     }

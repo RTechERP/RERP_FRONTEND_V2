@@ -432,7 +432,7 @@ export class BillExportService {
         return this.http.get(environment.host + `api/BillExport/get-view-export-detail/${billId}`);
     }
     getSaleLogs(billId: number): Observable<any> {
-        return this.http.get(environment.host + `api/BillExport/get-view-export-detail/${billId}`);
+        return this.http.get(environment.host + `api/BillExport/get-sale-logs/${billId}`);
     }
     confirmTem(lstBillexportdetailID: number[], status: boolean): Observable<any> {
         return this.http.post<any>(

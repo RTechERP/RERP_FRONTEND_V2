@@ -569,7 +569,7 @@ nz-input-number.inline-edit .ant-input-number {
 .team-weight-footer {
   flex: 0 0 auto;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
@@ -577,6 +577,19 @@ nz-input-number.inline-edit .ant-input-number {
   background: #ffffff;
   border-top: 1px solid #e8e8e8;
   border-radius: 4px;
+}
+
+.team-weight-footer .footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.team-weight-footer .footer-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
   box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.04);
   position: sticky;
   bottom: 0;
@@ -615,3 +628,36 @@ nz-input-number.inline-edit .ant-input-number {
   font-weight: 600;
 }
 
+/* Empty state trong Team Weight */
+.team-weight-section .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background: white;
+  border-radius: 6px;
+  border: 1px dashed #d9d9d9;
+}
+
+.team-weight-section .empty-state p {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+/* Row cho chỉ tiêu NHÓM trong Team Weight Section */
+::ng-deep .team-weight-section .ant-table-tbody > tr.row-group > td {
+  background: #e6f4ff !important;
+  color: #0b3a66;
+  font-weight: 600;
+}
+
+::ng-deep .team-weight-section .ant-table-tbody > tr.row-child > td {
+  background: #fafafa !important;
+  color: #595959;
+}
+
+::ng-deep .team-weight-section .ant-table-tbody > tr.row-formula > td {
+  background: #fff7e6 !important;
+}

@@ -205,6 +205,9 @@ export interface KpiSaleTarget {
   parentPeriodCode?: string;
   indexCode?: string;
   indexName?: string;
+  isBoardApproved?: boolean;
+  boardApprovedBy?: string;
+  boardApprovedDate?: string;
 }
 
 export interface KpiSaleEmployeeTemplate {

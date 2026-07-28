@@ -68,6 +68,45 @@ export function isAutoCreatedTeamCode(code: string | null | undefined): boolean 
   return /^T_[0-9A-Fa-f]+$/.test(code);
 }
 
+// ============== Team Target Response Interfaces ==============
+export interface MemberTargetInfo {
+  employeeId: number;
+  employeeCode: string;
+  employeeName: string;
+  goalValue: number;
+  proposedGoalValue: number;
+  approvalStatus: string;
+  isApproved: boolean;
+}
+
+export interface TeamTargetItem {
+  kpiIndexId: number;
+  indexCode: string;
+  indexName: string;
+  indexType: string;
+  unitType: string;
+  teamGoalValue: number;
+  teamProposedValue: number;
+  memberCount: number;
+  memberTargets: MemberTargetInfo[];
+}
+
+export interface TeamTargetResponse {
+  teamId: number;
+  teamCode: string;
+  teamName: string;
+  periodId: number;
+  periodCode: string;
+  templateId: number;
+  templateCode: string;
+  totalMembers: number;
+  approvedMembers: number;
+  boardApprovedMembers?: number;
+  items: TeamTargetItem[];
+  totalTeamGoal: number;
+  totalTeamProposed: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -302,6 +341,14 @@ export class KpiSaleV2Service {
     return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/targets/${id}/approve`, {});
   }
 
+  boardApproveTarget(id: number): Observable<KpiApiResponse<any>> {
+    return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/targets/${id}/board-approve`, {});
+  }
+
+  boardUnapproveTarget(id: number): Observable<KpiApiResponse<any>> {
+    return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/targets/${id}/board-unapprove`, {});
+  }
+
   rejectTarget(id: number, reason?: string): Observable<KpiApiResponse<any>> {
     return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/targets/${id}/reject`, { reason: reason || '' });
   }
@@ -421,6 +468,34 @@ export class KpiSaleV2Service {
           .set('periodId', periodId.toString())
           .set('kpiIndexId', kpiIndexId.toString())
       }
+    );
+  }
+
+  // ============== Team Target APIs ==============
+  // Lấy mục tiêu tổng hợp của team = SUM(GoalValue) từ các member đã SM duyệt.
+  getTeamTargets(teamId: number, periodId: number, templateId: number): Observable<KpiApiResponse<TeamTargetResponse>> {
+    return this.http.get<KpiApiResponse<TeamTargetResponse>>(
+      `${this.apiUrl}/teams/${teamId}/team-targets`,
+      { params: new HttpParams()
+          .set('periodId', periodId.toString())
+          .set('templateId', templateId.toString())
+      }
+    );
+  }
+
+  // Ban GD duyệt hàng loạt tất cả targets đã SM duyệt của team.
+  approveTeamTargets(teamId: number, periodId: number, templateId: number): Observable<KpiApiResponse<{ approvedCount: number; teamName: string; periodCode: string }>> {
+    return this.http.post<KpiApiResponse<{ approvedCount: number; teamName: string; periodCode: string }>>(
+      `${this.apiUrl}/teams/${teamId}/approve-targets`,
+      { periodId, templateId }
+    );
+  }
+
+  // Ban GD hủy duyệt hàng loạt tất cả targets đã BGD duyệt của team.
+  unapproveTeamTargets(teamId: number, periodId: number, templateId: number): Observable<KpiApiResponse<{ unapprovedCount: number; teamName: string; periodCode: string }>> {
+    return this.http.post<KpiApiResponse<{ unapprovedCount: number; teamName: string; periodCode: string }>>(
+      `${this.apiUrl}/teams/${teamId}/unapprove-targets`,
+      { periodId, templateId }
     );
   }
 

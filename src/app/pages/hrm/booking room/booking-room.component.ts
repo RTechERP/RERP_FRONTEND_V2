@@ -132,6 +132,7 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private dateRangeSubscription?: Subscription;
   private isUpdatingFromStore = false;
+  private isSyncingNavigation = false;
   private apiTimeout: any;
 
   private readonly TIME_SLOTS: TimeSlot[] = [
@@ -309,18 +310,8 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       selectable: true,
       datesSet: (dateInfo: any) => {
-        // Tất cả calendars đều trigger khi navigate, nhưng chỉ cho calendar đầu tiên trigger API call
-        if (refName === 'calendar1' && dateInfo.start && dateInfo.end) {
-          const startDate = new Date(dateInfo.start);
-          const endDate = new Date(dateInfo.end);
-          const dayOfWeek = startDate.getDay();
-          const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-          startDate.setDate(startDate.getDate() + diff);
-          startDate.setHours(0, 0, 0, 0);
-          endDate.setDate(startDate.getDate() + 6);
-          endDate.setHours(23, 59, 59, 999);
-          this.isUpdatingFromStore = true;
-          this.bookingRoomStateService.setDateRange(startDate, endDate);
+        if (!this.isSyncingNavigation && dateInfo.start && dateInfo.end) {
+          this.syncCalendarNavigation(refName);
         }
       },
       eventDidMount: (info: any) => {
@@ -361,34 +352,12 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
 
     calendar.render();
     this.roomCalendars.set(refName, calendar);
-
-    // Gắn event listener cho tất cả calendars để sync navigation
-    setTimeout(() => {
-      const calendarEl = ref.nativeElement;
-      const prevBtn = calendarEl.querySelector('.fc-prev-button');
-      const nextBtn = calendarEl.querySelector('.fc-next-button');
-      const todayBtn = calendarEl.querySelector('.fc-today-button');
-
-      if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
-          setTimeout(() => this.syncCalendarNavigation(refName), 100);
-        });
-      }
-      if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-          setTimeout(() => this.syncCalendarNavigation(refName), 100);
-        });
-      }
-      if (todayBtn) {
-        todayBtn.addEventListener('click', () => {
-          setTimeout(() => this.syncCalendarNavigation(refName), 100);
-        });
-      }
-    }, 200);
   }
 
   // Sync navigation giữa các calendars và gọi API
   private syncCalendarNavigation(sourceCalendar: string): void {
+    if (this.isSyncingNavigation) return;
+
     const sourceCalendarInstance = this.roomCalendars.get(sourceCalendar);
     if (!sourceCalendarInstance) return;
 
@@ -399,10 +368,15 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
     const end = view.activeEnd;
 
     if (start && end) {
+      this.isSyncingNavigation = true;
+
       // Sync các calendar khác đến cùng date range
       this.roomCalendars.forEach((calendar, key) => {
         if (key !== sourceCalendar && calendar) {
-          calendar.gotoDate(start);
+          const currentDate = calendar.getDate();
+          if (!currentDate || currentDate.getTime() !== start.getTime()) {
+            calendar.gotoDate(start);
+          }
         }
       });
 
@@ -419,6 +393,10 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
       // Cập nhật state và gọi API
       this.isUpdatingFromStore = true;
       this.bookingRoomStateService.setDateRange(startDate, endDate);
+
+      setTimeout(() => {
+        this.isSyncingNavigation = false;
+      }, 50);
     }
   }
 
@@ -492,11 +470,9 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
     const events2 = this.buildEvents(this.roomData.room2, 2);
     const events3 = this.buildEvents(this.roomData.room3, 3);
 
-    const initDate = this.pickInitDate(this.roomData.room1);
-
-    this.renderCalendar('calendar1', events1, initDate);
-    this.renderCalendar('calendar2', events2, initDate);
-    this.renderCalendar('calendar3', events3, initDate);
+    this.renderCalendar('calendar1', events1);
+    this.renderCalendar('calendar2', events2);
+    this.renderCalendar('calendar3', events3);
   }
 
   private buildEvents(dataSource: any[], meetingRoomId: number): any[] {
@@ -627,19 +603,9 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
     return obj;
   }
 
-  private pickInitDate(ds: any[]): string {
-    if (Array.isArray(ds) && ds.length && ds[0]?.AllDate) {
-      return DateTime.fromJSDate(new Date(ds[0].AllDate)).toFormat('yyyy-MM-dd');
-    }
-    return this.dateStart
-      ? DateTime.fromJSDate(this.dateStart).toFormat('yyyy-MM-dd')
-      : DateTime.now().toFormat('yyyy-MM-dd');
-  }
-
   private renderCalendar(
     refName: string,
-    events: any[],
-    initDate: string
+    events: any[]
   ): void {
     const calendar = this.roomCalendars.get(refName);
     if (!calendar) {
@@ -655,10 +621,6 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
         } catch (error) {
         }
       });
-    }
-
-    if (initDate) {
-      calendar.gotoDate(initDate);
     }
 
     calendar.render();

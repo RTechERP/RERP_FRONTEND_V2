@@ -209,8 +209,12 @@ export class ProductExportAndBorrowComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        const ExcelJS = await import('exceljs');
-        const workbook = new ExcelJS.Workbook();
+        const ExcelJSModule = await import('exceljs');
+        const WorkbookClass: any =
+            (ExcelJSModule as any).Workbook ??
+            (ExcelJSModule as any).default?.Workbook ??
+            (ExcelJSModule as any).default;
+        const workbook = new WorkbookClass();
         const worksheet = workbook.addWorksheet('Danh sách thiết bị');
 
         const columns = this.productTable.getColumnDefinitions().filter((col: any) =>
@@ -239,12 +243,12 @@ export class ProductExportAndBorrowComponent implements OnInit, AfterViewInit {
             });
             worksheet.addRow(rowData);
         });
-        worksheet.columns.forEach((col) => {
+        worksheet.columns.forEach((col: any) => {
             col.width = 20;
         });
 
-        worksheet.eachRow((row, rowNumber) => {
-            row.eachCell((cell) => {
+        worksheet.eachRow((row: any, rowNumber: number) => {
+            row.eachCell((cell: any) => {
                 cell.border = {
                     top: { style: 'thin' },
                     left: { style: 'thin' },

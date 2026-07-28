@@ -132,19 +132,21 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
   }
 
   initMenu(): void {
+    // N28 (Admin kho demo) = full quyền. Đăng ký mới/Sửa/Xóa/Gia hạn/Trả bàn ai cũng thấy được,
+    // việc chỉ được thao tác trên bản ghi của chính mình (hoặc N28 bypass) nằm ở updateMenuState().
     const hasCrud = this.permissionService.hasPermission('N28');
     this.menuBars = [
       {
         label: 'Đăng ký mới', icon: 'fa-solid fa-circle-plus text-primary',
-        command: () => this.onAdd(), visible: hasCrud
+        command: () => this.onAdd(), visible: true
       },
       {
         label: 'Sửa', icon: 'fa-solid fa-file-pen text-warning',
-        command: () => this.onEdit(), disabled: true, visible: hasCrud
+        command: () => this.onEdit(), disabled: true, visible: true
       },
       {
         label: 'Xóa', icon: 'fa-solid fa-trash text-danger',
-        command: () => this.onDelete(), disabled: true, visible: hasCrud
+        command: () => this.onDelete(), disabled: true, visible: true
       },
       {
         label: 'Duyệt', icon: 'fa-solid fa-check text-success',
@@ -152,11 +154,11 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
       },
       {
         label: 'Gia hạn/Bàn giao', icon: 'fa-solid fa-clock-rotate-left text-info',
-        command: () => this.onExtend(), disabled: true, visible: hasCrud
+        command: () => this.onExtend(), disabled: true, visible: true
       },
       {
         label: 'Trả bàn', icon: 'fa-solid fa-rotate-left text-secondary',
-        command: () => this.onReturn(), disabled: true, visible: hasCrud
+        command: () => this.onReturn(), disabled: true, visible: true
       },
       { label: 'Tải lại', icon: 'fa-solid fa-arrows-rotate', command: () => this.loadData() },
       { label: 'Xuất Excel', icon: 'fa-solid fa-file-excel text-success', command: () => this.onExport() },
@@ -200,17 +202,26 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
     // Check if current user is in the get-all-user-approve list
     const isApproverInList = this.approvers.some(a => a.ID === currentUserId);
 
+    // N28 (Admin kho demo) = full quyền, bypass mọi ràng buộc sở hữu bên dưới
+    const hasN28 = this.permissionService.hasPermission('N28');
+
     const masterOwnerId = masterItem?.OwnerID;
     const itemOwnerId = item?.OwnerID;
     const itemApproverId = item?.ApproverID;
 
-    // Rule 1: Sửa, Xóa, Gia hạn, Trả bàn
-    const hasRule1Access = currentUserId && (
+    // Rule 1: Sửa (chủ sở hữu / người duyệt của chính bản ghi đó, hoặc N28 full quyền)
+    const hasRule1Access = hasN28 || (currentUserId && (
       currentUserId === masterOwnerId ||
       currentUserId === itemOwnerId ||
       currentUserId === itemApproverId ||
       isApproverInList
-    );
+    ));
+
+    // Rule Xóa: chỉ chủ sở hữu bản ghi (không tính approver/isApproverInList), hoặc N28 full quyền
+    const hasDeleteAccess = hasN28 || (currentUserId && (
+      currentUserId === masterOwnerId ||
+      currentUserId === itemOwnerId
+    ));
 
     // Rule 2: Duyệt (Người duyệt được chỉ định, hoặc người có quyền N32/N85 đều được phép duyệt)
     const hasApproveGroupAccess = this.permissionService.hasPermission('N32,N85');
@@ -236,25 +247,22 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
       }
     }
 
-    const canExtendOrReturn = currentUserId &&
-                              (currentUserId === latestDetailOwnerId || currentUserId === latestDetailApproverId || isApproverInList) &&
-                              isLatestDetailApproved &&
-                              !masterItem?.ActualReturnDate;
+    const ownsLatestDetail = currentUserId &&
+                              (currentUserId === latestDetailOwnerId || currentUserId === latestDetailApproverId || isApproverInList);
 
-    // N28 (Admin kho demo) can always trả bàn, regardless of ownership/approver
-    const hasN28 = this.permissionService.hasPermission('N28');
-    const canReturn = (isLatestDetailApproved && !masterItem?.ActualReturnDate) && (canExtendOrReturn || hasN28);
+    // N28 (Admin kho demo) = full quyền, bypass sở hữu cho Gia hạn/Bàn giao và Trả bàn
+    const canExtendOrReturn = (isLatestDetailApproved && !masterItem?.ActualReturnDate) && (ownsLatestDetail || hasN28);
 
     this.menuBars = this.menuBars.map(m => {
       if (m.label === 'Sửa') return { ...m, disabled: !isValidSelection || !canEdit || !hasRule1Access };
-      if (m.label === 'Xóa') return { ...m, disabled: !isValidSelection || item?.Status !== 0 || !hasRule1Access };
+      if (m.label === 'Xóa') return { ...m, disabled: !isValidSelection || item?.Status !== 0 || !hasDeleteAccess };
       if (m.label === 'Duyệt') {
         // N32/N85: nút Duyệt luôn enable, việc chưa chọn dòng / dòng đã duyệt sẽ báo lỗi khi bấm (xem onApprove)
         if (hasApproveGroupAccess) return { ...m, disabled: false };
         return { ...m, disabled: !isValidSelection || item?.Status !== 0 || !hasApproveAccess };
       }
       if (m.label === 'Gia hạn/Bàn giao') return { ...m, disabled: lenMaster !== 1 || !canExtendOrReturn }; // limit to master for now
-      if (m.label === 'Trả bàn') return { ...m, disabled: lenMaster !== 1 || !canReturn }; // limit to master for now
+      if (m.label === 'Trả bàn') return { ...m, disabled: lenMaster !== 1 || !canExtendOrReturn }; // limit to master for now
       if (m.label === 'Binding lại') return { ...m, disabled: lenMaster !== 1 };
       return m;
     });

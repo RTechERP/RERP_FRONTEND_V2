@@ -67,7 +67,8 @@
       <tr>
         <td class="info-lbl">• &nbsp;&nbsp;Ông/Bà</td>
         <td class="info-sep">:</td>
-        <td><input readonly maxlength="50" class="iput iput-grow" [(ngModel)]="hoTen" placeholder=".." /></td>
+        <td><input readonly maxlength="50" class="iput iput-grow" style="font-weight: bold;" [(ngModel)]="hoTen"
+            placeholder=".." /></td>
       </tr>
       <tr>
         <td class="info-lbl">• &nbsp;&nbsp;Ngày sinh</td>
@@ -102,8 +103,8 @@
       <tr>
         <td class="info-lbl">• &nbsp;&nbsp;Phòng/Ban</td>
         <td class="info-sep">:</td>
-        <td><input class="iput iput-grow" [value]="infomation.length > 0 ? infomation[0].DepartmentName : ''" readonly
-            placeholder="...." /></td>
+        <td><input class="iput iput-grow" style="font-weight: bold;"
+            [value]="infomation.length > 0 ? infomation[0].DepartmentName : ''" readonly placeholder="...." /></td>
       </tr>
     </table>
 
@@ -131,13 +132,13 @@
     <!-- ===== MỤC 3 ===== -->
     <p class="ttr-num-para">
       <strong>3.&nbsp;&nbsp;Thời gian nhận việc:</strong> Kể từ ngày
-      <!-- <input class="iput date-mask" [value]="thuViecTu" (input)="onDateMask($event, 'thuViecTu')"
-        placeholder="..../..../....." maxlength="10" style="width: 85px;" [disabled]="isReadOnly" /> -->
       <input type="date" class="iput date-mask" maxlength="10" style="width: 95px;" [(ngModel)]="thuViecTu"
         [disabled]="isReadOnly" min="1900-01-01" max="2100-12-31" />
-      &nbsp;<span>Thời gian thử việc:</span>
-      <input class="iput" [(ngModel)]="thoiGianThuViec" placeholder="........" style="width: 80px;"
-        [disabled]="isReadOnly" />
+      <ng-container *ngIf="!isTTS">
+        &nbsp;<span>Thời gian thử việc:</span>
+        <input class="iput" [(ngModel)]="thoiGianThuViec" placeholder="........" style="width: 80px;"
+          [disabled]="isReadOnly" />
+      </ng-container>
     </p>
 
     <!-- ===== MỤC 4 ===== -->
@@ -149,12 +150,24 @@
     <!-- ===== MỤC 5 ===== -->
     <p class="ttr-num-para"><strong>5.&nbsp;&nbsp;Chế độ được hưởng:</strong></p>
     <ul class="ttr-benefit-list">
-      <li>
-        Mức lương chính thức:
-        <input class="iput" style="font-weight: bold; width: 85px;" [value]="luongCB"
-          (input)="onSalaryInput($event, 'luongCB')" placeholder="...................." [disabled]="isReadOnly" />
-      </li>
-      <li>Mức lương thử việc: <strong>90%*LCB.</strong></li>
+      <ng-container *ngIf="isTTS; else regularBenefit">
+        <li>
+          Mức lương thực tập:
+          <input class="iput" style="font-weight: bold; width: auto;" [attr.size]="luongCB ? (luongCB.length || 1) : 8"
+            [value]="luongCB" (input)="onSalaryInput($event, 'luongCB')" placeholder="...................."
+            [disabled]="isReadOnly" /> đ/tháng.
+        </li>
+      </ng-container>
+
+      <ng-template #regularBenefit>
+        <li>
+          Mức lương chính thức:
+          <input class="iput" style="font-weight: bold; width: auto;" [attr.size]="luongCB ? (luongCB.length || 1) : 8"
+            [value]="luongCB" (input)="onSalaryInput($event, 'luongCB')" placeholder="...................."
+            [disabled]="isReadOnly" /> đ/tháng.
+        </li>
+        <li>Mức lương thử việc: <strong>90%*LCB.</strong></li>
+      </ng-template>
       <li>Chế độ phúc lợi khác: Theo quy định của Công ty.</li>
     </ul>
     <!-- ===== KẾT ===== -->

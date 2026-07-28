@@ -44,7 +44,7 @@ import { ContractTransferReviewPersonalDetailComponent } from '../contract-trans
   templateUrl: './contract-transfer-review-personal.component.html',
   styleUrl: './contract-transfer-review-personal.component.css'
 })
-export class ContractTransferReviewPersonalComponent  implements OnInit {
+export class ContractTransferReviewPersonalComponent implements OnInit {
   menuItems: MenuItem[] = [];
 
   isLoading = false;
@@ -89,7 +89,7 @@ export class ContractTransferReviewPersonalComponent  implements OnInit {
     { label: 'NV đánh giá', value: 1 },
     { label: 'TBP đánh giá', value: 2 },
     { label: 'HR xác nhận', value: 3 },
-    { label: 'BGĐ xác nhận', value: 4 },
+    { label: 'BGĐ Phê duyệt', value: 4 },
   ];
 
   columns: ColumnDef[] = [
@@ -117,7 +117,7 @@ export class ContractTransferReviewPersonalComponent  implements OnInit {
       width: '250px',
       sortable: true,
       cellStyle: (row) => {
-        if (row.StepName?.includes('BGĐ: Xác nhận')) return { color: '#28a745', 'font-weight': 'bold' };
+        if (row.StepName?.includes('BGĐ: Phê duyệt')) return { color: '#28a745', 'font-weight': 'bold' };
         if (row.StepName?.includes('Không xác nhận')) return { color: '#dc3545', 'font-weight': 'bold' };
         return { color: '#007bff' }; // Màu xanh dương cho "Chờ duyệt"
       }
@@ -642,7 +642,7 @@ export class ContractTransferReviewPersonalComponent  implements OnInit {
     // Nếu TBP đã đánh giá (StepName = "TBP: Chờ xác nhận") thì không được hủy
     const validRows = listToProcess.filter(
       r => (Number(r.Step) === 1 && Number(r.StatusApprove ?? 0) === 1) ||
-           (Number(r.Step) === 2 && r.StepName === 'TBP: Chờ đánh giá')
+        (Number(r.Step) === 2 && r.StepName === 'TBP: Chờ đánh giá')
     );
     if (validRows.length === 0) {
       this.notification.info('Thông báo', 'Không có bản ghi nào hợp lệ để hủy xác nhận.');
@@ -855,7 +855,7 @@ export class ContractTransferReviewPersonalComponent  implements OnInit {
   }
 
   checkRole(): string {
-      return 'employee';
+    return 'employee';
   }
 
   private getActorRoleForRow(row: any): string {

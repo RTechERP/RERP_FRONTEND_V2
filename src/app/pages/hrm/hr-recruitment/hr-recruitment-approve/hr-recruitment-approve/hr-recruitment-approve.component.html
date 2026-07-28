@@ -1,84 +1,120 @@
-<p-menubar [model]="hrRecruitmentApproveMenu">
-    <ng-template pTemplate="start">
+<div class="d-flex flex-column h-100 w-100 overflow-hidden">
+  <!-- Dòng 1: Menubar / Nút chức năng -->
+  <div class="bg-white p-1 flex-shrink-0">
+    <p-menubar [model]="hrRecruitmentApproveMenu" class="p-0 border-0" style="width: 100%">
+      <ng-template pTemplate="start">
         <div class="page-title ms-2 me-3">
-            <span nz-icon nzType="solution" nzTheme="outline" class="me-2"></span>
-            Phê Duyệt Tuyển Dụng
+          <span nz-icon nzType="solution" nzTheme="outline" class="me-2"></span>
+          Phê Duyệt Tuyển Dụng
         </div>
-    </ng-template>
+      </ng-template>
+    </p-menubar>
+  </div>
 
-    <!-- Toolbar tìm kiếm inline — đẩy sang phải -->
-    <div class="ms-auto d-flex align-items-center gap-2 pe-3 flex-wrap">
-
+  <!-- Dòng 2: Filter tìm kiếm -->
+  <div class="filter-bar bg-light border-bottom p-2 flex-shrink-0">
+    <form nz-form>
+      <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
         <!-- Từ ngày -->
-        <div class="d-flex align-items-center gap-1">
-            <span style="font-size:12px; color:#666; white-space:nowrap;">Từ ngày</span>
-            <input type="date" class="form-control" style="width:140px; height:32px; font-size:12px; padding: 4px 8px;"
+        <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="3" [nzXl]="3">
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+            <nz-form-control>
+              <input type="date" class="form-control form-control-sm date-input-sm w-100"
                 [ngModel]="dateStart | date: 'yyyy-MM-dd'" (ngModelChange)="onDateChange('dateStart', $event)"
-                name="dateStart2" />
-        </div>
+                name="dateStart2" title="Từ ngày" />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
 
         <!-- Đến ngày -->
-        <div class="d-flex align-items-center gap-1">
-            <span style="font-size:12px; color:#666; white-space:nowrap;">Đến ngày</span>
-            <input type="date" class="form-control" style="width:140px; height:32px; font-size:12px; padding: 4px 8px;"
-                [ngModel]="dateEnd | date: 'yyyy-MM-dd'" (ngModelChange)="onDateChange('dateEnd', $event)"
-                name="dateEnd2" />
-        </div>
-
-        <!-- Phòng ban -->
-        <nz-select name="departmentId" [(ngModel)]="departmentId" nzPlaceHolder="Phòng ban" nzSize="default"
-            style="width:170px;" nzAllowClear nzShowSearch>
-            <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID" [nzLabel]="dept.Name">
-            </nz-option>
-        </nz-select>
-        <!-- Phòng ban -->
-        <nz-form-item class="m-0">
-            <nz-form-label style="font-size: 12px" class="me-1">Nhân viên</nz-form-label>
+        <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="3" [nzXl]="3">
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12">Đến ngày</nz-form-label>
             <nz-form-control>
-                <nz-select name="employeeId" [(ngModel)]="employeeId" nzShowSearch nzAllowClear
-                    nzPlaceHolder="--Chọn nhân viên--" nzSize="small" style="width: 280px !important">
-                    @for (parent of employees; track $index) {
-                    <nz-option-group [nzLabel]="parent.label">
-                        @for (child of parent.options; track $index) {
-                        <nz-option nzCustomContent="true" [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
-                            [nzValue]="child.item.EmployeeID">
-                            {{ child.item.Code + " - " + child.item.FullName }}
-                        </nz-option>
-                        }
-                    </nz-option-group>
-                    }
-                </nz-select>
+              <input type="date" class="form-control form-control-sm date-input-sm w-100"
+                [ngModel]="dateEnd | date: 'yyyy-MM-dd'" (ngModelChange)="onDateChange('dateEnd', $event)"
+                name="dateEnd2" title="Đến ngày" />
             </nz-form-control>
-        </nz-form-item>
-        <!-- Từ khóa + nút Tìm -->
-        <nz-input-group nzSearch [nzAddOnAfter]="suffixSearch" nzSize="large" style="width:220px;">
-            <input type="text" nz-input placeholder="Nhập từ khóa..." [(ngModel)]="keyword" name="keyword"
-                (keyup.enter)="onSearch()" style="font-size:12px; height:32px;" />
-        </nz-input-group>
-        <ng-template #suffixSearch>
-            <button nz-button nzType="primary" nzSearch nzSize="large"
-                style="height:32px; line-height:30px; padding: 0 12px;" (click)="onSearch()">
-                <span nz-icon nzType="search"></span>
-            </button>
-        </ng-template>
+          </nz-form-item>
+        </nz-col>
 
-    </div>
-</p-menubar>
+        <!-- Phòng ban -->
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="4">
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12">Phòng ban</nz-form-label>
+            <nz-form-control>
+              <nz-select name="departmentId" [(ngModel)]="departmentId" nzPlaceHolder="Tất cả phòng ban" nzSize="small"
+                class="w-100" nzAllowClear nzShowSearch>
+                <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
+                <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID" [nzLabel]="dept.Name">
+                </nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
 
-<!-- Thông tin dòng đang chọn -->
-<!-- <div *ngIf="selectedRow" class="selected-hint px-3 py-1 border-bottom bg-light" style="font-size: 12px;">
-    <span nz-icon nzType="check-circle" style="color:#52c41a" class="me-1"></span>
-    Đang xem: <b>{{ selectedRow.FullName }}</b>
-    <span class="text-muted ms-2">— {{ selectedRow.PositionName }}</span>
-    <a class="ms-3" style="font-size:11px; cursor:pointer;" (click)="selectedRow = null">✕ Bỏ chọn</a>
-</div> -->
+        <!-- Nhân viên -->
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="5">
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12">Nhân viên</nz-form-label>
+            <nz-form-control>
+              <nz-select name="employeeId" [(ngModel)]="employeeId" nzShowSearch nzAllowClear
+                nzPlaceHolder="--Chọn nhân viên--" nzSize="small" class="w-100">
+                @for (parent of employees; track $index) {
+                <nz-option-group [nzLabel]="parent.label">
+                  @for (child of parent.options; track $index) {
+                  <nz-option nzCustomContent="true" [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
+                    [nzValue]="child.item.EmployeeID">
+                    {{ child.item.Code + " - " + child.item.FullName }}
+                  </nz-option>
+                  }
+                </nz-option-group>
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
 
-<div class="position-relative" style="height: 90vh; width: 100%;">
+        <!-- Từ khóa -->
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="4">
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+            <nz-form-control>
+              <input nz-input placeholder="Nhập từ khóa..." nzSize="small" [(ngModel)]="keyword" name="keyword"
+                class="w-100" style="font-size: 12px" (keyup.enter)="onSearch()" />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <!-- Nút tìm kiếm & Làm mới -->
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="5">
+          <nz-form-item class="mb-0">
+            <nz-form-control>
+              <div class="d-flex gap-1">
+                <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+                  <span nz-icon nzType="search"></span> Tìm kiếm
+                </button>
+                <button nz-button nzType="default" nzSize="small" (click)="onReset()">
+                  <span nz-icon nzType="reload"></span> Làm mới
+                </button>
+              </div>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </form>
+  </div>
+
+  <!-- Dòng 3: Vùng Bảng dữ liệu với height full & paginator -->
+  <div class="table-area">
     <nz-spin [nzSpinning]="isLoading" style="height:100%; display:block;">
-        <app-custom-table [data]="tableData" [columns]="columns" [loading]="isLoading" dataKey="ID" [scrollable]="true"
-            scrollHeight="flex" height="100%" [showGlobalFilter]="false" [paginator]="false" fontSize="12px"
-            [clickSelectRow]="true" (rowClick)="handleRowClick($event)" selectionMode="multiple"
-            [(selection)]="selectedRows" [textWrap]="true" (cellAction)="onCellAction($event)">
-        </app-custom-table>
+      <app-custom-table [data]="tableData" [columns]="columns" [loading]="isLoading" dataKey="ID" [scrollable]="true"
+        scrollHeight="flex" height="100%" [showGlobalFilter]="false" [paginator]="true" [rows]="25"
+        [rowsPerPageOptions]="[10, 25, 50, 100]" fontSize="12px" [clickSelectRow]="true"
+        (rowClick)="handleRowClick($event)" selectionMode="multiple" [(selection)]="selectedRows" [textWrap]="true"
+        (cellAction)="onCellAction($event)">
+      </app-custom-table>
     </nz-spin>
+  </div>
 </div>

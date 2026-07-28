@@ -112,7 +112,7 @@ export class ContractTransferReviewComponent implements OnInit, OnDestroy {
     { label: 'NV đánh giá', value: 1 },
     { label: 'TBP đánh giá', value: 2 },
     { label: 'HR xác nhận', value: 3 },
-    { label: 'BGĐ xác nhận', value: 4 },
+    { label: 'BGĐ Phê duyệt', value: 4 },
   ];
 
   columns: ColumnDef[] = [
@@ -140,7 +140,7 @@ export class ContractTransferReviewComponent implements OnInit, OnDestroy {
       width: '250px',
       sortable: true,
       cellStyle: (row) => {
-        if (row.StepName?.includes('BGĐ: Xác nhận')) return { color: '#28a745', 'font-weight': 'bold' };
+        if (row.StepName?.includes('BGĐ: Phê duyệt')) return { color: '#28a745', 'font-weight': 'bold' };
         if (row.StepName?.includes('Không xác nhận')) return { color: '#dc3545', 'font-weight': 'bold' };
         return { color: '#007bff' }; // Màu xanh dương cho "Chờ duyệt"
       }
@@ -343,14 +343,14 @@ export class ContractTransferReviewComponent implements OnInit, OnDestroy {
         ],
       },
 
-      // ─── BGĐ xác nhận ───────────────────────────────────────────────────────
+      // ─── BGĐ Phê duyệt ───────────────────────────────────────────────────────
       {
-        label: 'BGĐ xác nhận',
+        label: 'BGĐ Phê duyệt',
         icon: 'fa-solid fa-crown fa-lg text-warning',
         visible: this.permissionService.hasPermission('N1'),
         items: [
           {
-            label: 'BGĐ xác nhận',
+            label: 'BGĐ Phê duyệt',
             icon: 'fa-solid fa-check text-success',
             command: () => this.approvedTBPNew(1, 'bgd'),
           },

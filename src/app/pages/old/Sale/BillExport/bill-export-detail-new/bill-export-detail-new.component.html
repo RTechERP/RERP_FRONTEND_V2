@@ -273,15 +273,19 @@
           </nz-form-item>
         </div>
 
-         <div nz-col nzSpan="3">
+        <div nz-col nzSpan="3">
           <nz-form-item>
             <nz-form-label class="fs-12">
               Thời gian nhận hàng
               <span class="text-danger" *ngIf="isDeliveryTimeRequired">*</span>
-              <span *ngIf="deliveryTimePeriod" class="text-primary font-weight-bold ml-1">({{ deliveryTimePeriod }})</span>
+              <span *ngIf="deliveryTimePeriod" class="text-primary font-weight-bold ml-1">({{ deliveryTimePeriod
+                }})</span>
             </nz-form-label>
             <nz-form-control [nzErrorTip]="deliveryTimeError">
-              <nz-date-picker [nzFormat]="dateTimeFormat" [nzShowTime]="{ nzFormat: 'HH:mm' }" formControlName="DeliveryTime" nzPlaceHolder="Chọn ngày giờ nhận hàng" nzSize="small" class="w-100"></nz-date-picker>
+              <nz-date-picker [nzInputReadOnly]="false" [nzFormat]="dateTimeFormat" [nzShowTime]="{ nzFormat: 'HH:mm' }"
+                formControlName="DeliveryTime" (blur)="onDeliveryTimeInputBlur($event)"
+                (change)="onDeliveryTimeInputBlur($event)" nzPlaceHolder="Chọn ngày giờ nhận hàng" nzSize="small"
+                class="w-100"></nz-date-picker>
               <ng-template #deliveryTimeError let-control>
                 <ng-container *ngIf="
                     control.hasError('required') &&
@@ -338,7 +342,7 @@
           </nz-form-item>
         </div>
 
-         <div nz-col nzSpan="6">
+        <div nz-col nzSpan="6">
           <nz-form-item>
             <nz-form-label class="fs-12">&nbsp;</nz-form-label>
             <nz-form-control>
@@ -346,7 +350,7 @@
             </nz-form-control>
           </nz-form-item>
         </div>
-       
+
       </div>
 
       <!-- Hang 4: Tham chiếu | Phát sinh ngoài 8h-16h -->
@@ -368,7 +372,7 @@
           </nz-form-item>
         </div>
 
-        
+
       </div>
 
       <!-- Hang 5: Chuyen kho (checkbox) | Tham chieu (textbox) | Kho dich (select) -->

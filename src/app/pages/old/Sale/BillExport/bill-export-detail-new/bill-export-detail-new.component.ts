@@ -388,13 +388,87 @@ export class BillExportDetailNewComponent
             ?.valueChanges.pipe(takeUntil(this.destroy$))
             .subscribe((value) => {
                 if (value) {
-                    const dateVal = value instanceof Date ? value : new Date(value);
-                    if (!isNaN(dateVal.getTime()) && dateVal.getSeconds() !== 0) {
+                    let dateVal: Date | null = null;
+                    if (value instanceof Date) {
+                        dateVal = value;
+                    } else if (typeof value === 'string') {
+                        dateVal = this.parseDateTimeString(value) || new Date(value);
+                    }
+                    if (dateVal && !isNaN(dateVal.getTime()) && dateVal.getSeconds() !== 0) {
                         dateVal.setSeconds(0, 0);
                         this.validateForm.get('DeliveryTime')?.setValue(dateVal, { emitEvent: false });
                     }
                 }
             });
+    }
+
+    /** Chuyển đổi chuỗi dd/MM/yyyy HH:mm hoặc dd-MM-yyyy nhập tay thành Date */
+    parseDateTimeString(str: string): Date | null {
+        if (!str || typeof str !== 'string') return null;
+        const trimmed = str.trim();
+        if (!trimmed) return null;
+
+        const parts = trimmed.split(/[\sT]+/);
+        const dateStr = parts[0];
+        const timeStr = parts[1] || '';
+
+        let day = 0, month = 0, year = 0;
+
+        if (dateStr.includes('/')) {
+            const dParts = dateStr.split('/');
+            if (dParts.length === 3) {
+                day = parseInt(dParts[0], 10);
+                month = parseInt(dParts[1], 10) - 1;
+                year = parseInt(dParts[2], 10);
+            }
+        } else if (dateStr.includes('-')) {
+            const dParts = dateStr.split('-');
+            if (dParts.length === 3) {
+                if (dParts[0].length === 4) {
+                    year = parseInt(dParts[0], 10);
+                    month = parseInt(dParts[1], 10) - 1;
+                    day = parseInt(dParts[2], 10);
+                } else {
+                    day = parseInt(dParts[0], 10);
+                    month = parseInt(dParts[1], 10) - 1;
+                    year = parseInt(dParts[2], 10);
+                }
+            }
+        }
+
+        if (!year || isNaN(day) || isNaN(month) || isNaN(year)) return null;
+
+        if (year < 100) year += 2000;
+
+        let hours = 0;
+        let mins = 0;
+        if (timeStr) {
+            const tParts = timeStr.split(':');
+            if (tParts.length >= 1) hours = parseInt(tParts[0], 10) || 0;
+            if (tParts.length >= 2) mins = parseInt(tParts[1], 10) || 0;
+        }
+
+        const d = new Date(year, month, day, hours, mins, 0);
+        return isNaN(d.getTime()) ? null : d;
+    }
+
+    /** Xử lý khi gõ trực tiếp ngày giờ vào ô DeliveryTime */
+    onDeliveryTimeInputBlur(event: Event): void {
+        let inputEl: HTMLInputElement | null = null;
+        if (event.target instanceof HTMLInputElement) {
+            inputEl = event.target;
+        } else if (event.target instanceof HTMLElement) {
+            inputEl = event.target.querySelector('input');
+        }
+
+        const val = inputEl ? inputEl.value : '';
+        if (val) {
+            const parsed = this.parseDateTimeString(val);
+            if (parsed) {
+                this.validateForm.get('DeliveryTime')?.setValue(parsed);
+                this.validateForm.get('DeliveryTime')?.markAsDirty();
+            }
+        }
     }
 
     /** Khởi tạo dữ liệu form ban đầu (thêm mới hoặc chỉnh sửa) */

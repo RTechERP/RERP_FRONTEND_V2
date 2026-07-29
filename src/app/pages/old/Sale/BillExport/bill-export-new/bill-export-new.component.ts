@@ -44,6 +44,7 @@ import { HasPermissionDirective } from '../../../../../directives/has-permission
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { BillExportDetailNewComponent } from '../bill-export-detail-new/bill-export-detail-new.component';
+import { BillExportDetailFileComponent } from '../bill-export-detail-file/bill-export-detail-file.component';
 import { ClipboardService } from '../../../../../services/clipboard.service';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
@@ -961,11 +962,57 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
             enableGridMenu: true,
             autoHeight: false,
             gridHeight: 300,
+            enableContextMenu: true,
+            contextMenu: {
+                hideCloseButton: false,
+                hideCopyCellValueCommand: true,
+                commandTitle: '',
+                commandItems: [
+                    {
+                        command: 'view-detail-images',
+                        title: 'Xem ảnh',
+                        iconCssClass: 'fa-solid fa-image text-primary',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            this.viewDetailImages(args.dataContext);
+                        },
+                    },
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 2,
+                        action: (_e, args) => {
+                            this.clipboardService.copy(args.value);
+                        },
+                    },
+                ],
+            },
             // Footer row configuration
             createFooterRow: true,
             showFooterRow: true,
             footerRowHeight: 28,
         };
+    }
+
+    viewDetailImages(rowData: any) {
+        if (!rowData) return;
+
+        const detailID = rowData.ID;
+        if (!detailID || detailID === 0) {
+            this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy ID chi tiết!');
+            return;
+        }
+
+        const modalRef = this.modalService.open(BillExportDetailFileComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            size: 'lg',
+        });
+
+        modalRef.componentInstance.billExportDetailId = detailID;
+        modalRef.componentInstance.fileName = rowData.ProductName || rowData.ProductCode || '';
+        modalRef.componentInstance.isHistoryBorrow = true;
     }
 
     // ========================================

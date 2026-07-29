@@ -140,7 +140,7 @@ export class ContractTransferReviewTbpComponent implements OnInit, OnDestroy {
       width: '250px',
       sortable: true,
       cellStyle: (row) => {
-        if (row.StepName?.includes('BGĐ: Xác nhận')) return { color: '#28a745', 'font-weight': 'bold' };
+        if (row.StepName?.includes('BGĐ: Phê duyệt')) return { color: '#28a745', 'font-weight': 'bold' };
         if (row.StepName?.includes('Không xác nhận')) return { color: '#dc3545', 'font-weight': 'bold' };
         return { color: '#007bff' }; // Màu xanh dương cho "Chờ duyệt"
       }
@@ -1012,6 +1012,7 @@ export class ContractTransferReviewTbpComponent implements OnInit, OnDestroy {
       { id: 1, name: 'Đánh giá thử việc' },
       { id: 4, name: 'Đánh giá HĐLĐ XĐTH (12T) Lần 1' },
       { id: 7, name: 'Đánh giá HĐLĐ XĐTH (12T) Lần 2' },
+      { id: 5, name: 'Ký HĐLĐ KXĐ thời hạn' },
       { id: 8, name: 'Đánh giá nghỉ việc' }
     ];
     const conclusions = [
@@ -1021,9 +1022,16 @@ export class ContractTransferReviewTbpComponent implements OnInit, OnDestroy {
       { id: 5, name: 'Ký HĐLĐ KXĐ thời hạn' },
       { id: 8, name: 'Chấm dứt HĐ' }
     ];
+    const employeeConclusions = [
+      { id: 1, name: 'Ký HĐ Thử Việc' },
+      { id: 4, name: 'Ký HĐLĐ' },
+      { id: 8, name: 'Chấm dứt HĐ' }
+    ];
 
-    const evalTypeName = evalTypes.find(t => t.id === d.EvaluationEmployeeLoaiHDID)?.name || '';
-    const conclusionName = conclusions.find(c => c.id === d.ConclusionEmployeeLoaiHDID)?.name || '';
+    const evalLoaiID = d.EvaluationEmployeeLoaiHDID ?? d.EmployeeLoaiHDID ?? d.LoaiHDLDID ?? d.EvaluationLoaiHDID;
+    const evalTypeName = evalTypes.find(t => t.id === evalLoaiID)?.name || '';
+    const conclusionName = employeeConclusions.find(c => c.id === d.ConclusionEmployeeLoaiHDID)?.name
+      || conclusions.find(c => c.id === d.ConclusionEmployeeLoaiHDID)?.name || '';
     const tbpConclusionName = conclusions.find(c => c.id === d.TBPConclusionEmployeeLoaiHDID)?.name || '';
 
     const fmtDate = (dateStr: any) => {
@@ -1172,8 +1180,8 @@ export class ContractTransferReviewTbpComponent implements OnInit, OnDestroy {
       return 'Không đạt';
     };
 
-    const nldRank = getRank(nldTotal);
-    const tbpRank = getRank(tbpTotal);
+    const nldRank = (nldTotal > 0 ? getRank(nldTotal) : null) || d.EvaluationGrade || getRank(nldTotal);
+    const tbpRank = (tbpTotal > 0 ? getRank(tbpTotal) : null) || d.TBPEvaluationGrade || getRank(tbpTotal);
 
     const tableBody = [];
     tableBody.push([

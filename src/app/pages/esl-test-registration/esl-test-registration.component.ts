@@ -585,7 +585,71 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
 
 
   onExport(): void {
-    this.notification.info('Info', 'Chức năng xuất excel đang được phát triển');
+    if (!this.filteredDataset || this.filteredDataset.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel');
+      return;
+    }
+
+    const exportColumns = this.columns.filter(c => !c.hidden);
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Đăng ký test ESL');
+
+    worksheet.columns = exportColumns.map(col => ({ header: col.header, key: col.field, width: 18 }));
+
+    this.filteredDataset.forEach(item => {
+      const row: any = {};
+      exportColumns.forEach(col => {
+        switch (col.field) {
+          case 'Status':
+            row[col.field] = this.getStatusLabel(item.Status);
+            break;
+          case 'online':
+            row[col.field] = item.online ? 'Online' : 'Offline';
+            break;
+          case 'esl_battery':
+            row[col.field] = item.esl_battery ? `${item.esl_battery} mV` : '';
+            break;
+          default:
+            row[col.field] = col.type === 'date'
+              ? (item[col.field] ? this.datePipe.transform(item[col.field], 'dd/MM/yyyy') : '')
+              : (item[col.field] ?? '');
+        }
+      });
+      worksheet.addRow(row);
+    });
+
+    const headerRow = worksheet.getRow(1);
+    headerRow.height = 25;
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      cell.border = {
+        top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' }
+      };
+    });
+
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return;
+      row.eachCell((cell, colNumber) => {
+        const col = exportColumns[colNumber - 1];
+        cell.alignment = { vertical: 'middle', horizontal: col?.align === 'center' ? 'center' : 'left' };
+        cell.font = { size: 10 };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+          left: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+          bottom: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+          right: { style: 'thin', color: { argb: 'FFD3D3D3' } }
+        };
+      });
+    });
+
+    workbook.xlsx.writeBuffer().then((buffer) => {
+      const blob = new Blob([buffer], { type: 'application/octet-stream' });
+      const formattedDate = this.datePipe.transform(new Date(), 'yyyyMMdd_HHmmss');
+      saveAs(blob, `DangKyTestESL_${formattedDate}.xlsx`);
+    });
   }
 
   onBiding(): void {

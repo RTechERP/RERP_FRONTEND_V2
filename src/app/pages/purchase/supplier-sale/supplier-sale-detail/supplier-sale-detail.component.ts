@@ -464,6 +464,16 @@ export class SupplierSaleDetailComponent {
                 'Đã cập nhật dữ liệu thành công.'
             );
 
+            if (
+                saveMainRes.message &&
+                saveMainRes.message !== 'Lưu thành công'
+            ) {
+                this.notification.warning(
+                    NOTIFICATION_TITLE.warning,
+                    saveMainRes.message
+                );
+            }
+
             this.modalService.dismissAll();
         } catch (error: any) {
             this.notification.error(

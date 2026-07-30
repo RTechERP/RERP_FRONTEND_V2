@@ -246,6 +246,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
     ngOnInit(): void {
         this.initMenuBar();
 
+        console.log(this.datasetDetail);
+
         if (this.tabData) {
             // Chạy trong component-tab: dùng tabData, không subscribe queryParams
             // để tránh bị re-init mỗi lần bất kỳ tab nào thay đổi route

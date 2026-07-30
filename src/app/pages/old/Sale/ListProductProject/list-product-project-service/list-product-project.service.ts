@@ -52,6 +52,23 @@ export class ListProductProjectService {
       params
     );
   }
+  getDataReturnInventory(
+    projectCode: string,
+    projectID: number,
+    warehousecode: string,
+    productGroupID: string = ''
+  ): Observable<any> {
+    const params: any = {
+      projectId: projectID,
+      projectCode: projectCode,
+      WarehouseCode: warehousecode,
+      ProductGroupID: productGroupID,
+    };
+    return this.http.post(
+      environment.host + `api/BillExport/get-returned-inventory-product`,
+      params
+    );
+  }
   exportProductProjectCustomer(
     projectCode: string,
     projectID: number,

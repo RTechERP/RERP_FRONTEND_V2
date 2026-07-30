@@ -415,6 +415,7 @@ import { TravelRegistrationImportExcelComponent } from './pages/hrm/travel-regis
 import { TravelRegistrationDetailComponent } from './pages/hrm/travel-registration/travel-registration-detail/travel-registration-detail.component';
 import { SalaryIncreaseComponent } from './pages/hrm/salary-increase/salary-increase.component';
 import { ProductSaleNewApprovedComponent } from './pages/old/Sale/ProductSale/product-sale-new-approved/product-sale-new-approved.component';
+import { ReturnedInventoryProductComponent } from './pages/old/Sale/Inventory/returned-inventory-product/returned-inventory-product.component';
 export const routes: Routes = [
 
   {
@@ -1045,6 +1046,7 @@ export const routes: Routes = [
       { path: 'report-import-export-hn', component: ReportImportExportNewComponent, canActivate: [authGuard] },
       { path: 'product-project-hn', component: ListProductProjectComponent, canActivate: [authGuard] },
       { path: 'search-serialnumber-hn', component: SearchProductSerialNumberComponent, canActivate: [authGuard] },
+      { path: 'returned-inventory-product-hn', component: ReturnedInventoryProductComponent, canActivate: [authGuard] },
 
       //kho demo hn
       { path: 'inventory-demo-hn', component: InventoryDemoNewComponent, canActivate: [authGuard] },

@@ -1296,6 +1296,28 @@ export class KpiTargetTabComponent implements OnInit {
   }
 
   /**
+   * Tóm tắt trạng thái BGD duyệt cho màn cá nhân (Quarter/Month).
+   * - Trả về { approved, total } dựa trên this.targets hiện tại.
+   * - 'total' chỉ đếm các target không phải GROUP (vì GROUP là tự tính).
+   */
+  get boardApproveSummary(): { approved: number; total: number } {
+    // Bỏ qua:
+    //  - chỉ tiêu GROUP (tự tính)
+    //  - target thuộc period QUARTER/YEAR (vì bảng pivot chỉ hiển thị chỉ tiêu Tháng,
+    //    các row QUARTER được hệ thống tự tổng — không phải bản ghi do người dùng/BGD duyệt)
+    const detail = this.targets.filter(t => {
+      if (this.isGroupIndex(t.kpiIndexId)) return false;
+      const p = this.periods.find(pp => pp.id === t.periodId);
+      if (p && (p.periodType === 'QUARTER' || p.periodType === 'YEAR')) return false;
+      return true;
+    });
+    return {
+      approved: detail.filter(t => !!t.isBoardApproved).length,
+      total: detail.length,
+    };
+  }
+
+  /**
    * Có quyền bấm nút SM Duyệt / Hủy trên 1 target cụ thể hay không.
    * - Chỉ admin tổng / N1 hoặc leader team mới có quyền duyệt, KHÔNG phải N27.
    * - SM chỉ duyệt/hủy được khi BGD chưa duyệt (isBoardApproved = false).
@@ -3355,6 +3377,9 @@ export class KpiTargetTabComponent implements OnInit {
       parentPeriodCode: this.read<string>(item, 'ParentPeriodCode', 'parentPeriodCode'),
       indexCode: this.read<string>(item, 'IndexCode', 'indexCode'),
       indexName: this.read<string>(item, 'IndexName', 'indexName'),
+      isBoardApproved: this.read<boolean>(item, 'IsBoardApproved', 'isBoardApproved') || false,
+      boardApprovedBy: this.read<string>(item, 'BoardApprovedBy', 'boardApprovedBy'),
+      boardApprovedDate: this.read<string>(item, 'BoardApprovedDate', 'boardApprovedDate'),
     };
   }
 

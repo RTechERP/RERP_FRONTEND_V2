@@ -232,7 +232,7 @@
                     <th nzWidth="100px" nzAlign="center">Loại</th>
                     <th>Chỉ tiêu KPI</th>
                     <th nzWidth="110px" nzAlign="center">Trọng số (%)</th>
-                    <th nzWidth="130px" nzAlign="right">Mục tiêu</th>
+                    <th nzWidth="150px" nzAlign="right">Mục tiêu</th>
                     <th nzWidth="130px" nzAlign="right">Đề xuất</th>
                     <th nzWidth="100px" nzAlign="center">Thao tác</th>
                   </tr>
@@ -526,9 +526,9 @@
                   <th nzWidth="80px" nzAlign="center">Kỳ KPI</th>
                   <th>Chỉ tiêu KPI</th>
                   <th nzWidth="90px" nzAlign="right">Trọng số (%)</th>
-                  <th nzWidth="140px" nzAlign="right">Giá trị đề xuất</th>
-                  <th nzWidth="130px" nzAlign="right">Mục tiêu (đã duyệt)</th>
-                  <th nzWidth="110px" nzAlign="center">Trạng thái</th>
+                  <th nzWidth="150px" nzAlign="right">Giá trị đề xuất</th>
+                  <th nzWidth="150px" nzAlign="right">Mục tiêu (đã duyệt)</th>
+                  <th nzWidth="110px" nzAlign="center">Trạng thái duyệt</th>
                   <th nzWidth="100px" nzAlign="center">Hành động</th>
                 </tr>
               </thead>
@@ -614,9 +614,16 @@
                     </td>
                     <!-- Trạng thái -->
                     <td nzAlign="center">
-                      <nz-tag *ngIf="!isGroupIndex(row.kpiIndexId)" [nzColor]="getApprovalStatusColor(row.approvalStatus)">
-                        {{ getApprovalStatusLabel(row.approvalStatus) }}
-                      </nz-tag>
+                      <ng-container *ngIf="!isGroupIndex(row.kpiIndexId)">
+                        <!-- SM Duyệt -->
+                        <nz-tag [nzColor]="getApprovalStatusColor(row.approvalStatus)">
+                          <i nz-icon nzType="user"></i> SM
+                        </nz-tag>
+                        <!-- BGD Duyệt -->
+                        <nz-tag *ngIf="row.isBoardApproved" nzColor="purple" nz-tooltip nzTooltipTitle="Ban Giám Đốc đã duyệt">
+                          <i nz-icon nzType="bank"></i> BGD
+                        </nz-tag>
+                      </ng-container>
                       <nz-tag *ngIf="isGroupIndex(row.kpiIndexId)" nzColor="default">
                         <i nz-icon nzType="info-circle"></i> Tự tính
                       </nz-tag>
@@ -658,6 +665,19 @@
                 </tr>
               </tbody>
             </nz-table>
+          </div>
+
+          <!-- Footer BGD duyệt cho Quarter Mode -->
+          <div *ngIf="isQuarterMode() && boardApproveSummary.total > 0" class="board-approve-footer">
+            <nz-tag nzColor="purple" nz-tooltip [nzTooltipTitle]="
+              boardApproveSummary.approved === boardApproveSummary.total
+                ? 'Toàn bộ mục tiêu của nhân viên này đã được Ban Giám Đốc duyệt'
+                : 'Một số mục tiêu chưa được Ban Giám Đốc duyệt'">
+              <i nz-icon nzType="bank"></i>
+              {{ boardApproveSummary.approved === boardApproveSummary.total
+                  ? 'Đã được Ban Giám Đốc duyệt'
+                  : 'Ban Giám Đốc duyệt: ' + boardApproveSummary.approved + '/' + boardApproveSummary.total + ' mục tiêu' }}
+            </nz-tag>
           </div>
         </div>
       </div>

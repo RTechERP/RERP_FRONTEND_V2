@@ -89,6 +89,7 @@ interface CourseLesson {
   MaxWatchedSecond?: number;
   WatchedPercent?: number;
   Chapters?: Chapter[];
+  FullName?: string;
 
 }
 export interface Chapter {

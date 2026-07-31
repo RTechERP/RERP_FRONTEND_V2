@@ -107,7 +107,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
     { value: 6, label: 'Đăng ký lấy hàng thương mại' },
     { value: 7, label: 'Đăng ký lấy hàng Demo/triển Lãm' },
     { value: 8, label: 'Đăng ký giao hàng Demo/triển lãm' },
-    { value: 4, label: 'Chủ động phương tiện' }, // NXL Update 30/07/2026: để tra label đúng khi Category=4
+    { value: 4, label: 'Chủ động phương tiện' }, // NDNhat Update 30/07/2026: để tra label đúng khi Category=4
   ];
   categoryGroups: any[] = [
     {
@@ -115,7 +115,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
       options: [
         { value: 1, label: 'Đăng ký người đi' },
         { value: 5, label: 'Đăng ký người về' },
-        // NXL Update 30/07/2026: { value: 4, label: 'Chủ động phương tiện' } chỉ thêm vào
+        // NDNhat Update 30/07/2026: { value: 4, label: 'Chủ động phương tiện' } chỉ thêm vào
         // đây cho Sale, xem ngOnInit() — không hardcode ở đây vì option này chỉ dành cho Sale.
       ]
     },
@@ -158,7 +158,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
   showDepartureReturn: boolean = false;
   isProblem: boolean = false;
   isSaving: boolean = false;
-  // NXL Update 30/07/2026: chỉ Sale mới thấy option "Chủ động phương tiện" (Category = 4)
+  // NDNhat Update 30/07/2026: chỉ Sale mới thấy option "Chủ động phương tiện" (Category = 4)
   // trong dropdown "Hình thức đặt" — xem ngOnInit().
   isSaleDepartment: boolean = false;
   currentUserPhoneNumber: string = ''; // SDT của người đang đăng nhập
@@ -189,10 +189,11 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
   };
 
   ngOnInit(): void {
-    // NXL Update 30/07/2026: kiểm tra phòng Sale để hiện lựa chọn "Chủ động phương tiện"
+    // NDNhat Update 30/07/2026: kiểm tra phòng Sale để hiện lựa chọn "Chủ động phương tiện"
     // trong dropdown "Hình thức đặt" (trước đây làm bằng checkbox riêng, nay gộp thẳng
     // vào Category — chỉ Sale mới thấy option này)
-    this.isSaleDepartment = [3, 28, 29, 30, 12, 13].includes(this.appUserService.departmentID || 0);
+    // NDNhat Update 30/07/2026: IsAdmin cũng được đăng ký "Chủ động phương tiện" như Sale
+    this.isSaleDepartment = [3, 28, 29, 30, 12, 13].includes(this.appUserService.departmentID || 0) || this.appUserService.isAdmin;
     if (this.isSaleDepartment) {
       const personalGroup = this.categoryGroups.find(g => g.label === 'Cá nhân');
       if (personalGroup && !personalGroup.options.some((o: any) => o.value === 4)) {
@@ -563,7 +564,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
     this.fullName = data.FullName || '';
     this.bookerVehicles = data.BookerVehicles || data.FullName || '';
     this.category = data.Category || 1;
-    // NXL Update 30/07/2026: đảm bảo option "Chủ động phương tiện" hiện đúng khi sửa 1
+    // NDNhat Update 30/07/2026: đảm bảo option "Chủ động phương tiện" hiện đúng khi sửa 1
     // phiếu đã có Category=4, kể cả nếu người đang sửa không phải Sale (option này chỉ
     // được thêm cho Sale ở ngOnInit, nếu không thêm ở đây dropdown sẽ hiện trống)
     if (this.category === 4) {
@@ -660,7 +661,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
     } else {
       this.showTimeReturn = false;
       this.showDepartureReturn = false;
-      // NXL Update 30/07/2026: field ẩn nhưng giá trị cũ (vd. đang sửa 1 phiếu Category=1
+      // NDNhat Update 30/07/2026: field ẩn nhưng giá trị cũ (vd. đang sửa 1 phiếu Category=1
       // đã có Thời gian cần về, rồi đổi sang Category khác/Chủ động PT) vẫn còn trong biến
       // và save() vẫn gửi lên — khiến BE validate "Thời gian cần về phải lớn hơn thời gian
       // cần đến" dù field đã ẩn trên UI. Phải clear luôn khi field không còn hiển thị.
@@ -923,7 +924,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
       this.errors.province = 'Vui lòng chọn tỉnh';
       isValid = false;
     }
-    // NXL Update 30/07/2026: bỏ rule "không được chủ động PT ở 2 tỉnh khác nhau" (copy từ
+    // NDNhat Update 30/07/2026: bỏ rule "không được chủ động PT ở 2 tỉnh khác nhau" (copy từ
     // RTCWeb cũ) — theo yêu cầu, Category=4 giờ chỉ dành riêng cho Sale nên không cần áp
     // rule ràng buộc tỉnh này nữa.
 

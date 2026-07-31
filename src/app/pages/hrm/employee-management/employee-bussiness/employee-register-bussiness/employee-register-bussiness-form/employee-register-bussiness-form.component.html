@@ -107,7 +107,7 @@
           </nz-form-item>
         </nz-col>
       </nz-row>
-      <!-- NXL Update 27/07/2026: Chỉ hiện với phòng Sale (DepartmentID: 3, 28, 29, 30, 12, 13) -->
+      <!-- NDNhat Update 27/07/2026: Chỉ hiện với phòng Sale (DepartmentID: 3, 28, 29, 30, 12, 13) -->
       <nz-row [nzGutter]="16" *ngIf="isSaleDepartment">
         <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="8" [nzXl]="8">
           <nz-form-item>
@@ -140,7 +140,7 @@
             </nz-form-control>
           </nz-form-item>
         </nz-col>
-        <!-- NXL Update 30/07/2026: bỏ hiển thị ô "BGĐ duyệt" trong form này theo yêu cầu — việc
+        <!-- NDNhat Update 30/07/2026: bỏ hiển thị ô "BGĐ duyệt" trong form này theo yêu cầu — việc
              duyệt BGĐ diễn ra ở màn "Duyệt công" (approve-tp), không cần hiện lại (chỉ readonly)
              ở đây nữa. Vẫn giữ nguyên formControlName="IsApprovedBGD" và logic set giá trị ở
              onSubmit()/onVehicleBookingChange() — chỉ bỏ phần hiển thị UI. -->
@@ -194,7 +194,7 @@
             </nz-form-control>
           </nz-form-item>
         </nz-col>
-        <!-- NXL Update 30/07/2026: trước đây "!isEditMode" ẩn hẳn cả cột này khi sửa — với
+        <!-- NDNhat Update 30/07/2026: trước đây "!isEditMode" ẩn hẳn cả cột này khi sửa — với
              Sale giờ cũng cần hiện lại khi sửa (giống ô "Chủ động phương tiện" bên dưới) để
              thấy đúng trạng thái đã lưu. Non-Sale vẫn giữ hành vi cũ (chỉ hiện khi thêm mới,
              vì sửa phương tiện đi qua modal "Xem phương tiện" riêng ở trang master). -->
@@ -202,7 +202,7 @@
           <nz-form-item>
             <nz-form-label>Phương tiện</nz-form-label>
             <nz-form-control>
-              <!-- NXL Update 30/07/2026: Sale không được tự chọn phương tiện khác — chỉ có
+              <!-- NDNhat Update 30/07/2026: Sale không được tự chọn phương tiện khác — chỉ có
                    2 trạng thái: mặc định Ô tô công ty, hoặc Chủ động phương tiện (tích ở
                    checkbox bên dưới) nên bỏ hẳn nút "Thêm phương tiện" với Sale -->
               <div class="input-group" *ngIf="!isSaleDepartment">
@@ -230,7 +230,7 @@
             </nz-form-control>
           </nz-form-item>
         </nz-col>
-        <!-- NXL Update 30/07/2026: Sale tự đánh dấu Chủ động phương tiện (độc lập với phiếu đặt xe).
+        <!-- NDNhat Update 30/07/2026: Sale tự đánh dấu Chủ động phương tiện (độc lập với phiếu đặt xe).
              Bỏ điều kiện !isEditMode — khác với ô "Phương tiện" ở trên (chỉ ẩn vì việc sửa
              phương tiện đi qua modal "Xem phương tiện" riêng), checkbox này còn dùng để HIỂN
              THỊ lại trạng thái đã lưu khi sửa, nên phải hiện cả ở edit mode. -->
@@ -238,7 +238,7 @@
           <nz-form-item>
             <nz-form-label [style.visibility]="'hidden'">.</nz-form-label>
             <nz-form-control>
-              <!-- NXL Update 30/07/2026: khóa lại khi đã chọn phiếu đặt xe chủ động PT
+              <!-- NDNhat Update 30/07/2026: khóa lại khi đã chọn phiếu đặt xe chủ động PT
                    (isActiveTransport) — lúc đó trạng thái này do phiếu đặt xe quyết định,
                    không cho tự sửa tay nữa -->
               <label nz-checkbox formControlName="IsSelfTransport" [nzDisabled]="isActiveTransport">Chủ động phương

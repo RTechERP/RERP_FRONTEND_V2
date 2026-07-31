@@ -88,7 +88,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
     this.showSearchBar = !this.showSearchBar;
   }
 
-  // NXL Update 30/07/2026: Sale bị giới hạn đúng 1 phương tiện — ẩn nút "Thêm phương tiện"
+  // NDNhat Update 30/07/2026: Sale bị giới hạn đúng 1 phương tiện — ẩn nút "Thêm phương tiện"
   // trong modal Xem/Chọn phương tiện, dựa trên phòng ban của người ĐANG ĐĂNG NHẬP
   isSaleDepartment: boolean = false;
 
@@ -101,7 +101,8 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
     private appUserService: AppUserService
   ) {
     this.initializeForm();
-    this.isSaleDepartment = [3, 28, 29, 30, 12, 13].includes(this.appUserService.departmentID || 0);
+    // NDNhat Update 30/07/2026: IsAdmin cũng được đăng ký "Chủ động phương tiện" như Sale
+    this.isSaleDepartment = [3, 28, 29, 30, 12, 13].includes(this.appUserService.departmentID || 0) || this.appUserService.isAdmin;
   }
 
   ngOnInit() {
@@ -321,13 +322,13 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
             return this.formatApprovalBadge(statusHR);
           }
         },
-        // NXL Update 30/07/2026: chuyển cột "BGĐ duyệt" lên ngay sau "HR duyệt" — gom nhóm
+        // NDNhat Update 30/07/2026: chuyển cột "BGĐ duyệt" lên ngay sau "HR duyệt" — gom nhóm
         // với TBP duyệt/HR duyệt cho dễ nhìn, thay vì để tận dưới cạnh "Dự án"
         {
           title: 'BGĐ duyệt', field: 'IsApprovedBGD', width: 120, hozAlign: 'center', headerHozAlign: 'center', headerSort: false,
           formatter: (cell: any) => {
             const row = cell.getRow().getData();
-            // NXL Update 28/07/2026: chỉ hiện badge khi thực sự là "Chủ động phương tiện"
+            // NDNhat Update 28/07/2026: chỉ hiện badge khi thực sự là "Chủ động phương tiện"
             // (IsActiveTransport = true). Không dùng riêng giá trị IsApprovedBGD vì cột này
             // mặc định = false cho MỌI bản ghi công tác cũ, không chỉ chủ động PT.
             const isActiveTransport = row.IsActiveTransport === true || row.IsActiveTransport === 1;
@@ -382,7 +383,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
           title: 'Dự án', field: 'ProjectText', width: 300, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
           formatter: 'textarea'
         },
-        // NXL Update 28/07/2026: Cột Phòng Sale (Tên khách hàng / Tên công ty / BGĐ duyệt)
+        // NDNhat Update 28/07/2026: Cột Phòng Sale (Tên khách hàng / Tên công ty / BGĐ duyệt)
         {
           title: 'Tên khách hàng', field: 'CustomerName', width: 200, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
           formatter: 'textarea'
@@ -627,7 +628,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
             componentInstance.selectedVehicles = vehicleItems;
             componentInstance.isViewMode = isApproved; // Chỉ cho phép edit nếu Chờ duyệt
             componentInstance.bussinessID = bussinessID; // Lưu ID để cập nhật
-            componentInstance.isSaleDepartment = this.isSaleDepartment; // NXL Update 30/07/2026
+            componentInstance.isSaleDepartment = this.isSaleDepartment; // NDNhat Update 30/07/2026
           }
 
           modalRef.result.then(
@@ -656,7 +657,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
             componentInstance.selectedVehicles = [];
             componentInstance.isViewMode = false;
             componentInstance.bussinessID = bussinessID;
-            componentInstance.isSaleDepartment = this.isSaleDepartment; // NXL Update 30/07/2026
+            componentInstance.isSaleDepartment = this.isSaleDepartment; // NDNhat Update 30/07/2026
           }
         }
       },

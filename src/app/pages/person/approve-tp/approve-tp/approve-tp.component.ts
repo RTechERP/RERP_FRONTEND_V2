@@ -1883,7 +1883,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         const actionText = isApproved ? 'duyệt' : 'hủy duyệt';
 
         // BGD duyệt phiếu WFH (TType = 5), hoặc Công tác - Chủ động phương tiện (TType = 4).
-        // NXL Update 28/07/2026: trước đây chỉ cho WFH qua, chặn cứng mọi TType khác — làm
+        // NDNhat Update 28/07/2026: trước đây chỉ cho WFH qua, chặn cứng mọi TType khác — làm
         // luồng "BGĐ duyệt Chủ động phương tiện" (spGetApprovedByApprovedTP_New đã gate
         // IsApprovedBGD theo IsActiveTransport, xem SQL_ThemTruong_EmployeeBussiness.sql)
         // không bao giờ tới được nút duyệt. SP đã đảm bảo IsApprovedBGD chỉ khác -1 khi bản
@@ -2002,7 +2002,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     }
 
     private processBGDApprove(rows: any[], isApproved: boolean, actionText: string) {
-        // NXL Update 28/07/2026: trước đây hardcode "đăng ký WFH" — sai vì hàm này giờ cũng
+        // NDNhat Update 28/07/2026: trước đây hardcode "đăng ký WFH" — sai vì hàm này giờ cũng
         // xử lý cả Công tác - Chủ động phương tiện (TType=4). Đếm theo TypeText thật của từng
         // dòng (SP đã trả sẵn: "Làm việc ở nhà" cho WFH, "Đăng ký công tác" cho công tác...)
         // thay vì hardcode 1 loại duy nhất.

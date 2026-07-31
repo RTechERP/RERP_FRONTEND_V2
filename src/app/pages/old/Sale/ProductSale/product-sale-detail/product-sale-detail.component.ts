@@ -320,11 +320,11 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
           if (data.IsFix !== undefined) patchData.IsFix = data.IsFix;
           else if (data.isFix !== undefined) patchData.IsFix = data.isFix;
 
-          if (data.NumberInStoreDauky !== undefined) patchData.NumberInStoreDauky = data.NumberInStoreDauky;
-          else if (data.numberInStoreDauky !== undefined) patchData.NumberInStoreDauky = data.numberInStoreDauky;
+          // if (data.NumberInStoreDauky !== undefined) patchData.NumberInStoreDauky = data.NumberInStoreDauky;
+          // else if (data.numberInStoreDauky !== undefined) patchData.NumberInStoreDauky = data.numberInStoreDauky;
 
-          if (data.NumberInStoreCuoiKy !== undefined) patchData.NumberInStoreCuoiKy = data.NumberInStoreCuoiKy;
-          else if (data.numberInStoreCuoiKy !== undefined) patchData.NumberInStoreCuoiKy = data.numberInStoreCuoiKy;
+          // if (data.NumberInStoreCuoiKy !== undefined) patchData.NumberInStoreCuoiKy = data.NumberInStoreCuoiKy;
+          // else if (data.numberInStoreCuoiKy !== undefined) patchData.NumberInStoreCuoiKy = data.numberInStoreCuoiKy;
 
           this.formGroup.patchValue(patchData);
 

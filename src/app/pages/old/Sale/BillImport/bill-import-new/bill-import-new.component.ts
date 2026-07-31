@@ -503,6 +503,13 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                     this.onPrintBillImport();
                 },
             },
+            {
+                label: 'Tạo mã QR/Vạch',
+                icon: 'fa-solid fa-qrcode fa-lg text-dark',
+                command: () => {
+                    this.openModalGenerateCode();
+                },
+            },
         ];
     }
 
@@ -2084,6 +2091,27 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 }
             },
         );
+    }
+
+    openModalGenerateCode() {
+        if (!this.selectedRow || !this.selectedRow.BillImportCode) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                'Vui lòng chọn 1 phiếu nhập để tạo mã QR/Vạch'
+            );
+            return;
+        }
+
+        import('../../../../../shared/components/code-generator-modal/code-generator-modal.component').then(m => {
+            const modalRef = this.modalService.open(m.CodeGeneratorModalComponent, {
+                centered: true,
+                backdrop: 'static',
+                keyboard: false,
+            });
+            modalRef.componentInstance.title = 'Tạo mã QR / Mã vạch - Phiếu nhập';
+            modalRef.componentInstance.codeLabel = 'Số phiếu nhập';
+            modalRef.componentInstance.code = this.selectedRow.BillImportCode;
+        });
     }
 
     openModalScanBill() {

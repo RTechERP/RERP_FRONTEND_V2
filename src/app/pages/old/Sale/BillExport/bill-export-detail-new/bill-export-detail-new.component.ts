@@ -1007,6 +1007,18 @@ export class BillExportDetailNewComponent
                                 container.style.bottom = 'auto';
                                 container.style.maxHeight = `${Math.min(spaceBelow - 8, dropdownHeight)}px`;
                             }
+
+                            // Cột "Mã sản phẩm" khá hẹp nên input rất nhỏ, mở rộng dropdown ra
+                            // để tên sản phẩm/mã nội bộ không bị bóp dòng như chiều rộng cột
+                            const desiredWidth = 420;
+                            const viewportWidth = window.innerWidth;
+                            const width = Math.min(desiredWidth, viewportWidth - 16);
+                            container.style.width = `${width}px`;
+                            let left = inputRect.left;
+                            if (left + width > viewportWidth - 8) {
+                                left = Math.max(8, viewportWidth - width - 8);
+                            }
+                            container.style.left = `${left}px`;
                         },
                         fetch: (searchTerm: string, callback: (items: false | any[]) => void) => {
                             const products = this.productGridCollection || [];

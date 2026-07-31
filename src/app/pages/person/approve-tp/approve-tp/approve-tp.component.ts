@@ -1882,39 +1882,46 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         const selectedRows = this.getSelectedRows();
         const actionText = isApproved ? 'duyệt' : 'hủy duyệt';
 
-        // BGD chỉ duyệt phiếu TType = 5 (Làm việc ở nhà / WFH)
+        // BGD duyệt phiếu WFH (TType = 5), hoặc Công tác - Chủ động phương tiện (TType = 4).
+        // NXL Update 28/07/2026: trước đây chỉ cho WFH qua, chặn cứng mọi TType khác — làm
+        // luồng "BGĐ duyệt Chủ động phương tiện" (spGetApprovedByApprovedTP_New đã gate
+        // IsApprovedBGD theo IsActiveTransport, xem SQL_ThemTruong_EmployeeBussiness.sql)
+        // không bao giờ tới được nút duyệt. SP đã đảm bảo IsApprovedBGD chỉ khác -1 khi bản
+        // ghi công tác thực sự là chủ động PT, nên dùng đúng tín hiệu đó để lọc ở đây.
         if (type === 'BGD') {
-            // Filter chỉ lấy các phiếu WFH (TType = 5)
-            const wfhRows = selectedRows.filter(row => {
+            const needsBgdApproval = (row: any): boolean => {
                 const ttype = row.TType !== undefined ? Number(row.TType) : 0;
-                return ttype === 5;
-            });
+                if (ttype === 5) return true; // WFH luôn cần BGD duyệt
+                if (ttype === 4) {
+                    // Công tác: chỉ cần BGD duyệt khi là Chủ động phương tiện
+                    // (SP trả IsApprovedBGD = -1 cho công tác thường, không phải chủ động PT)
+                    const bgd = row.IsApprovedBGD;
+                    if (bgd === null || bgd === undefined) return false;
+                    return Number(bgd) !== -1;
+                }
+                return false;
+            };
 
-            const nonWfhRows = selectedRows.filter(row => {
-                const ttype = row.TType !== undefined ? Number(row.TType) : 0;
-                return ttype !== 5;
-            });
+            const applicableRows = selectedRows.filter(needsBgdApproval);
+            const notApplicableRows = selectedRows.filter(row => !needsBgdApproval(row));
 
-            // Nếu không có phiếu WFH nào
-            if (wfhRows.length === 0) {
+            if (applicableRows.length === 0) {
                 this.notification.warning(
                     NOTIFICATION_TITLE.warning,
-                    'Phiếu đăng ký không phải WFH không cần BGD duyệt!'
+                    'Không có phiếu nào cần BGĐ duyệt (chỉ áp dụng cho WFH hoặc Công tác - Chủ động phương tiện)!'
                 );
                 return;
             }
 
-            // Nếu có phiếu không phải WFH, thông báo và chỉ duyệt WFH
-            if (nonWfhRows.length > 0) {
-                const nonWfhNames = nonWfhRows.map(row => row.FullName || 'N/A').join(', ');
+            if (notApplicableRows.length > 0) {
+                const skippedNames = notApplicableRows.map(row => row.FullName || 'N/A').join(', ');
                 this.notification.warning(
                     NOTIFICATION_TITLE.warning,
-                    `Có ${nonWfhRows.length} phiếu không phải WFH sẽ được bỏ qua: ${nonWfhNames}. Chỉ duyệt ${wfhRows.length} phiếu WFH.`
+                    `Có ${notApplicableRows.length} phiếu không cần BGD duyệt sẽ được bỏ qua: ${skippedNames}. Chỉ duyệt ${applicableRows.length} phiếu.`
                 );
             }
 
-            // Tiếp tục duyệt chỉ các phiếu WFH
-            this.processBGDApprove(wfhRows, isApproved, actionText);
+            this.processBGDApprove(applicableRows, isApproved, actionText);
             return;
         }
 
@@ -1994,8 +2001,21 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         });
     }
 
-    private processBGDApprove(wfhRows: any[], isApproved: boolean, actionText: string) {
-        const confirmMessage = `Bạn có chắc muốn ${actionText} ${wfhRows.length} đăng ký WFH đã chọn không?`;
+    private processBGDApprove(rows: any[], isApproved: boolean, actionText: string) {
+        // NXL Update 28/07/2026: trước đây hardcode "đăng ký WFH" — sai vì hàm này giờ cũng
+        // xử lý cả Công tác - Chủ động phương tiện (TType=4). Đếm theo TypeText thật của từng
+        // dòng (SP đã trả sẵn: "Làm việc ở nhà" cho WFH, "Đăng ký công tác" cho công tác...)
+        // thay vì hardcode 1 loại duy nhất.
+        const typeCounts = new Map<string, number>();
+        rows.forEach(row => {
+            const typeName = row.TypeText ? String(row.TypeText) : 'đăng ký';
+            typeCounts.set(typeName, (typeCounts.get(typeName) || 0) + 1);
+        });
+        const typeSummary = Array.from(typeCounts.entries())
+            .map(([typeName, count]) => `${count} ${typeName}`)
+            .join(', ');
+
+        const confirmMessage = `Bạn có chắc muốn ${actionText} ${typeSummary} đã chọn không?`;
 
         this.modal.confirm({
             nzTitle: 'Xác nhận',
@@ -2003,7 +2023,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             nzOkText: 'Đồng ý',
             nzCancelText: 'Hủy',
             nzOnOk: () => {
-                const items: ApproveItemParam[] = wfhRows.map(row => {
+                const items: ApproveItemParam[] = rows.map(row => {
                     return {
                         Id: row.ID ? Number(row.ID) : null,
                         TableName: row.TableName ? String(row.TableName) : '',

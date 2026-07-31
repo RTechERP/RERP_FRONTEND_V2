@@ -113,6 +113,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     IsFix: false
   };
   isSaving: boolean = false;
+  isLoadingProductInfo: boolean = false;
   //list lấy dữ liệu đơn vị productsale
   listUnitCount: any[] = [];
 
@@ -272,6 +273,75 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
         }
       }, error: (err) => {
         console.error('Lỗi khi lấy dữ liệu', err);
+      }
+    });
+  }
+
+  loadProductInfo() {
+    const productCode = (this.formGroup.get('ProductCode')?.value || '').trim() || (this.formGroup.get('ProductName')?.value || '').trim();
+    if (!productCode) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập mã hoặc tên thiết bị!');
+      return;
+    }
+
+    this.isLoadingProductInfo = true;
+    this.productsaleService.getInforProduct(productCode.trim()).subscribe({
+      next: (res) => {
+        this.isLoadingProductInfo = false;
+        const data = res?.data || (res?.status === 1 ? res?.data : res);
+
+        if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+          const patchData: any = {};
+
+          if (data.ProductName !== undefined) patchData.ProductName = data.ProductName;
+          else if (data.productName !== undefined) patchData.ProductName = data.productName;
+
+          if (data.Unit !== undefined) patchData.Unit = data.Unit;
+          else if (data.unit !== undefined) patchData.Unit = data.unit;
+
+          const makerName = data.Maker ?? data.maker;
+          if (makerName) {
+            const matchedFirm = this.listFirm.find((f: any) => f.FirmName?.trim().toLowerCase() === String(makerName).trim().toLowerCase());
+            patchData.Maker = matchedFirm ? matchedFirm.FirmName : makerName;
+          }
+
+          // Loại kho (ProductGroupID): chỉ load khi chưa được chọn
+          const currentGroupId = this.formGroup.get('ProductGroupID')?.value;
+          if (!currentGroupId) {
+            const apiGroupId = data.ProductGroupID ?? data.productGroupID;
+            if (apiGroupId !== undefined && apiGroupId !== null) {
+              patchData.ProductGroupID = apiGroupId;
+            }
+          }
+
+          if (data.Note !== undefined) patchData.Note = data.Note;
+          else if (data.note !== undefined) patchData.Note = data.note;
+
+          if (data.IsFix !== undefined) patchData.IsFix = data.IsFix;
+          else if (data.isFix !== undefined) patchData.IsFix = data.isFix;
+
+          if (data.NumberInStoreDauky !== undefined) patchData.NumberInStoreDauky = data.NumberInStoreDauky;
+          else if (data.numberInStoreDauky !== undefined) patchData.NumberInStoreDauky = data.numberInStoreDauky;
+
+          if (data.NumberInStoreCuoiKy !== undefined) patchData.NumberInStoreCuoiKy = data.NumberInStoreCuoiKy;
+          else if (data.numberInStoreCuoiKy !== undefined) patchData.NumberInStoreCuoiKy = data.numberInStoreCuoiKy;
+
+          this.formGroup.patchValue(patchData);
+
+          const targetGroupId = this.formGroup.get('ProductGroupID')?.value;
+          if (targetGroupId) {
+            this.getDataLocation(targetGroupId);
+          }
+
+          this.notification.success(NOTIFICATION_TITLE.success, 'Tải thông tin sản phẩm thành công!');
+        } else {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy thông tin sản phẩm!');
+        }
+      },
+      error: (err) => {
+        this.isLoadingProductInfo = false;
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Có lỗi xảy ra khi tải thông tin sản phẩm!');
+        console.error(err);
       }
     });
   }

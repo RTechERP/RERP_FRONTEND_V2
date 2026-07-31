@@ -48,7 +48,7 @@ export class VehicleSelectModalComponent implements OnInit {
   selectedVehicles: VehicleItem[] = [];
   isViewMode: boolean = false; // Chế độ xem (không cho edit nếu đã duyệt)
   bussinessID: number = 0; // ID của chuyến công tác
-  // NXL Update 30/07/2026: Sale bị giới hạn đúng 1 phương tiện (Ô tô công ty hoặc Chủ động
+  // NDNhat Update 30/07/2026: Sale bị giới hạn đúng 1 phương tiện (Ô tô công ty hoặc Chủ động
   // PT) — ẩn nút "Thêm phương tiện" để không cho thêm nhiều dòng qua modal này (kể cả khi
   // mở từ "Xem phương tiện" ở trang master, không chỉ từ form thêm/sửa)
   @Input() isSaleDepartment: boolean = false;

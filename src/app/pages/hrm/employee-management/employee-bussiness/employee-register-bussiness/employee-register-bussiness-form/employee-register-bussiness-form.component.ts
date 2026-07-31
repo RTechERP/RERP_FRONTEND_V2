@@ -83,7 +83,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
   selectedVehicles: any[] = []; // Danh sách phương tiện đã chọn
   vehicleDisplayText: string = ''; // Text hiển thị trong input phương tiện
   isSupplementaryRegistrationOpen: boolean = false; // Trạng thái mở đăng ký bổ sung
-  // NXL Update 27/07/2026: Phòng Sale
+  // NDNhat Update 27/07/2026: Phòng Sale
   isSaleDepartment: boolean = false; // true khi DepartmentID ∈ {3,28,29,30}
   vehicleBookingList: any[] = []; // Danh sách phiếu đặt xe trong ngày công tác
   isActiveTransport: boolean = false; // true khi phiếu chọn có Status = 4 (Chủ động PT)
@@ -138,7 +138,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
 
           if (employeeBussinessID > 0) {
             this.loadFilesByBussinessID(employeeBussinessID);
-            // NXL Update 30/07/2026: loadDataById() trước đây KHÔNG BAO GIỜ fetch phương tiện
+            // NDNhat Update 30/07/2026: loadDataById() trước đây KHÔNG BAO GIỜ fetch phương tiện
             // đã lưu (EmployeeBussinessVehicle) — nên ô "Phương tiện" luôn trống khi sửa, dù
             // đã hiện lại field. Phải tải giống hệt cách "Xem phương tiện" ở trang master làm.
             this.loadVehicleData(employeeBussinessID);
@@ -166,7 +166,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
               IsProblem: result.IsProblem || false,
               AttachFileName: result.AttachFileName || '',
               ProjectID: result.ProjectID || result.ProjectId || null,
-              // NXL Update 28/07/2026: các trường trước đây bị thiếu khi load để sửa,
+              // NDNhat Update 28/07/2026: các trường trước đây bị thiếu khi load để sửa,
               // khiến mở lại bản ghi Phòng Sale sẽ mất Tên KH/Tên công ty/Phiếu đặt xe
               CustomerName: result.CustomerName || '',
               CompanyName: result.CompanyName || '',
@@ -177,7 +177,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
 
             this.onVehicleChange(result.VehicleID || result.VehicleId);
 
-            // NXL Update 28/07/2026: load lại danh sách phiếu đặt xe theo đúng ngày công tác
+            // NDNhat Update 28/07/2026: load lại danh sách phiếu đặt xe theo đúng ngày công tác
             // của bản ghi đang sửa, đồng thời xác định isActiveTransport qua Status của
             // đúng phiếu đã lưu (patchFormData set DayBussiness với emitEvent: false nên
             // subscription trên DayBussiness không tự chạy) — không dùng onVehicleBookingChange()
@@ -233,7 +233,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     });
   }
 
-  // NXL Update 30/07/2026: Load danh sách phương tiện đã lưu (EmployeeBussinessVehicle) khi
+  // NDNhat Update 30/07/2026: Load danh sách phương tiện đã lưu (EmployeeBussinessVehicle) khi
   // mở form để sửa — trước đây loadDataById() không gọi cái này nên ô "Phương tiện" luôn
   // trống khi sửa. Mapping giống hệt openViewVehicleModal() ở employee-register-bussiness.component.ts.
   loadVehicleData(bussinessID: number) {
@@ -350,16 +350,16 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       Note: data.Note || '',
       Reason: data.Reason || '',
       IsProblem: data.IsProblem || false,
-      // NXL Update 27/07/2026
+      // NDNhat Update 27/07/2026
       CustomerName: data.CustomerName || '',
       CompanyName: data.CompanyName || '',
       VehicleBookingID: data.VehicleBookingID || null,
       IsApprovedBGD: data.IsApprovedBGD ?? null,
-      // NXL Update 30/07/2026: lưu trạng thái tích "Chủ động phương tiện" (phần Phương tiện
+      // NDNhat Update 30/07/2026: lưu trạng thái tích "Chủ động phương tiện" (phần Phương tiện
       // công ty) — đọc lại khi sửa để hiện đúng input "Chủ động phương tiện"/Ô tô công ty
       IsSelfTransport: data.IsSelfTransport === true || data.IsSelfTransport === 1,
     }, { emitEvent: false });
-    // NXL Update 28/07/2026: isActiveTransport KHÔNG suy ra từ IsApprovedBGD (mặc định =
+    // NDNhat Update 28/07/2026: isActiveTransport KHÔNG suy ra từ IsApprovedBGD (mặc định =
     // false cho mọi bản ghi công tác cũ, không phân biệt được "có phải chủ động PT" hay
     // không) và cũng không phải cột lưu trên EmployeeBussiness — nó được suy ra bằng JOIN
     // sang VehicleBookingManagement.Status khi sửa (xem loadDataById/loadVehicleBookingsForEdit).
@@ -397,7 +397,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       Note: '',
       Reason: '',
       IsProblem: false,
-      // NXL Update 27/07/2026
+      // NDNhat Update 27/07/2026
       CustomerName: '',
       CompanyName: '',
       VehicleBookingID: null,
@@ -442,12 +442,12 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       Note: [''],
       Reason: ['', Validators.required],
       IsProblem: [false],
-      // NXL Update 27/07/2026: Phòng Sale
+      // NDNhat Update 27/07/2026: Phòng Sale
       CustomerName: [''],
       CompanyName: [''],
       VehicleBookingID: [null],
       IsApprovedBGD: [null],
-      // NXL Update 30/07/2026: checkbox riêng để Sale tự đánh dấu chủ động phương tiện
+      // NDNhat Update 30/07/2026: checkbox riêng để Sale tự đánh dấu chủ động phương tiện
       // (độc lập với phiếu đặt xe/VehicleBookingID) — chỉ ảnh hưởng phần chọn Phương tiện
       // của công ty (selectedVehicles), không liên quan tới BGĐ duyệt của phiếu đặt xe.
       IsSelfTransport: [false],
@@ -461,7 +461,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     this.bussinessForm.get('Type')?.valueChanges.subscribe((value) => this.onTypeChange(value));
     this.bussinessForm.get('WorkEarly')?.valueChanges.subscribe((value) => this.onWorkEarlyChange(value));
     this.bussinessForm.get('Overnight')?.valueChanges.subscribe((value) => this.onOvernightTypeChange(value));
-    // NXL Update 27/07/2026: reload phiếu đặt xe khi ngày công tác thay đổi
+    // NDNhat Update 27/07/2026: reload phiếu đặt xe khi ngày công tác thay đổi
     this.bussinessForm.get('DayBussiness')?.valueChanges.subscribe((date) => {
       if (date && this.isSaleDepartment) {
         this.loadVehicleBookings(date);
@@ -470,7 +470,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     this.bussinessForm.get('VehicleBookingID')?.valueChanges.subscribe((id) => {
       this.onVehicleBookingChange(id);
     });
-    // NXL Update 30/07/2026: Sale tích "Chủ động phương tiện" → clear Phương tiện công ty;
+    // NDNhat Update 30/07/2026: Sale tích "Chủ động phương tiện" → clear Phương tiện công ty;
     // bỏ tích → quay lại mặc định "Ô tô công ty"
     this.bussinessForm.get('IsSelfTransport')?.valueChanges.subscribe((checked: boolean) => {
       if (checked) {
@@ -478,7 +478,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
         this.updateVehicleDisplay();
         this.updateVehicleCost();
       } else {
-        // NXL Update 30/07/2026: trước đây chỉ setDefaultVehicle() khi !isEditMode — khiến
+        // NDNhat Update 30/07/2026: trước đây chỉ setDefaultVehicle() khi !isEditMode — khiến
         // bỏ tích ở edit mode không hiện lại gì cả (selectedVehicles trống trơn, "Phương tiện"
         // để trống mãi). Sale chỉ có đúng 2 trạng thái (mặc định Ô tô công ty / chủ động PT)
         // nên bỏ tích luôn phải quay về mặc định, bất kể thêm mới hay sửa.
@@ -644,7 +644,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
           const data = res.data;
           this.currentUser = Array.isArray(data) ? data[0] : data;
           this.setDefaultEmployeeID();
-          // NXL Update 27/07/2026: Kiểm tra phòng Sale
+          // NDNhat Update 27/07/2026: Kiểm tra phòng Sale
           this.checkSaleDepartment();
 
           // Automatically bind closest approver for new requests
@@ -670,12 +670,14 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     });
   }
 
-  // NXL Update 27/07/2026: Kiểm tra phòng Sale
+  // NDNhat Update 27/07/2026: Kiểm tra phòng Sale
   checkSaleDepartment() {
     const deptId = this.currentUser?.DepartmentID;
-    this.isSaleDepartment = [3, 28, 29, 30, 12, 13].includes(deptId);
+    // NDNhat Update 30/07/2026: IsAdmin cũng được đăng ký "Chủ động phương tiện" như Sale
+    const isAdmin = this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true;
+    this.isSaleDepartment = [3, 28, 29, 30, 12, 13].includes(deptId) || isAdmin;
 
-    // NXL Update 30/07/2026: Tên khách hàng/Tên công ty bắt buộc với MỌI đăng ký của Sale
+    // NDNhat Update 30/07/2026: Tên khách hàng/Tên công ty bắt buộc với MỌI đăng ký của Sale
     const requiredIfSale = this.isSaleDepartment ? [Validators.required] : [];
     this.bussinessForm.get('CustomerName')?.setValidators(requiredIfSale);
     this.bussinessForm.get('CompanyName')?.setValidators(requiredIfSale);
@@ -685,7 +687,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  // NXL Update 27/07/2026: Load danh sách phiếu đặt xe theo ngày công tác
+  // NDNhat Update 27/07/2026: Load danh sách phiếu đặt xe theo ngày công tác
   loadVehicleBookings(date: Date) {
     if (!date || !this.isSaleDepartment) return;
     const dateStr = formatDate(date, 'yyyy-MM-dd', 'en-US');
@@ -703,7 +705,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     });
   }
 
-  // NXL Update 28/07/2026: Load danh sách phiếu đặt xe khi mở form sửa, đồng thời xác định
+  // NDNhat Update 28/07/2026: Load danh sách phiếu đặt xe khi mở form sửa, đồng thời xác định
   // isActiveTransport qua Status của đúng phiếu đã lưu (VehicleBookingManagement.Status = 4).
   // Không dùng onVehicleBookingChange() vì hàm đó ghi đè CustomerName/CompanyName/Location
   // đã lưu bằng giá trị HIỆN TẠI của phiếu đặt xe — không phù hợp khi chỉ đang tải để hiển thị.
@@ -729,9 +731,9 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     });
   }
 
-  // NXL Update 27/07/2026: Xử lý khi chọn phiếu đặt xe
+  // NDNhat Update 27/07/2026: Xử lý khi chọn phiếu đặt xe
   onVehicleBookingChange(vbId: number | null) {
-    // NXL Update 30/07/2026: khi bỏ chọn/đổi sang phiếu KHÔNG phải chủ động PT, trước đây
+    // NDNhat Update 30/07/2026: khi bỏ chọn/đổi sang phiếu KHÔNG phải chủ động PT, trước đây
     // checkbox "Chủ động phương tiện" chỉ được MỞ KHOÁ lại (nzDisabled=false) chứ không tự
     // BỎ TÍCH — vì patch chỉ set IsSelfTransport=true khi isActiveTransport, không set lại
     // false khi tắt. Giờ luôn đồng bộ 2 chiều: bật khi chọn phiếu chủ động PT, tắt (và khôi
@@ -749,7 +751,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     const selected = this.vehicleBookingList.find((v: any) => v.ID === vbId);
     if (!selected) return;
 
-    // NXL Update 28/07/2026: Chủ động phương tiện = Status = 4 (trạng thái xếp xe cuối
+    // NDNhat Update 28/07/2026: Chủ động phương tiện = Status = 4 (trạng thái xếp xe cuối
     // cùng do đội xe xử lý), KHÔNG phải Category = 4 (chỉ là loại đăng ký ban đầu — một
     // phiếu đăng ký Category khác vẫn có thể kết thúc ở Status = 4 nếu đội xe không xếp
     // được và chuyển sang chủ động phương tiện)
@@ -759,7 +761,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       CustomerName: selected.CompanyNameArrives || '',
       CompanyName:  selected.CompanyNameArrives || '',
       IsApprovedBGD: this.isActiveTransport ? false : null,
-      // NXL Update 30/07/2026: phiếu đặt xe là chủ động PT → tự động tích luôn checkbox
+      // NDNhat Update 30/07/2026: phiếu đặt xe là chủ động PT → tự động tích luôn checkbox
       // "Chủ động phương tiện" của phần Phương tiện công ty (chắc chắn không dùng xe công ty
       // nữa); ngược lại (đổi sang phiếu thường) → tự động bỏ tích lại.
       IsSelfTransport: this.isActiveTransport,
@@ -768,7 +770,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     if (selected.SpecificDestinationAddress) {
       patch['Location'] = selected.SpecificDestinationAddress;
     }
-    // NXL Update 28/07/2026: Auto-fill dự án từ phiếu đặt xe nếu có
+    // NDNhat Update 28/07/2026: Auto-fill dự án từ phiếu đặt xe nếu có
     if (selected.ProjectID) {
       patch['ProjectID'] = selected.ProjectID;
     }
@@ -824,7 +826,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     if (componentInstance) {
       componentInstance.vehicleList = this.vehicleList;
       componentInstance.selectedVehicles = this.selectedVehicles;
-      componentInstance.isSaleDepartment = this.isSaleDepartment; // NXL Update 30/07/2026
+      componentInstance.isSaleDepartment = this.isSaleDepartment; // NDNhat Update 30/07/2026
     }
 
     modal.result.then((result: any) => {
@@ -1047,14 +1049,14 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       Note: formValue.Note || '',
       Reason: formValue.Reason || '',
       IsProblem: formValue.IsProblem || false,
-      // NXL Update 27/07/2026: Phòng Sale
+      // NDNhat Update 27/07/2026: Phòng Sale
       CustomerName: formValue.CustomerName || '',
       CompanyName: formValue.CompanyName || '',
       VehicleBookingID: formValue.VehicleBookingID || null,
-      // NXL Update 28/07/2026: không gửi IsActiveTransport — không phải cột lưu trên
+      // NDNhat Update 28/07/2026: không gửi IsActiveTransport — không phải cột lưu trên
       // EmployeeBussiness, BE suy ra bằng JOIN VehicleBookingID -> VehicleBookingManagement.Status
       IsApprovedBGD: this.isActiveTransport ? (formValue.IsApprovedBGD ?? false) : null,
-      // NXL Update 30/07/2026: lưu trạng thái tích "Chủ động phương tiện" (phần Phương tiện
+      // NDNhat Update 30/07/2026: lưu trạng thái tích "Chủ động phương tiện" (phần Phương tiện
       // công ty của Sale) — cột riêng trên EmployeeBussiness, khác với IsApprovedBGD/phiếu đặt xe
       IsSelfTransport: formValue.IsSelfTransport || false,
     }];

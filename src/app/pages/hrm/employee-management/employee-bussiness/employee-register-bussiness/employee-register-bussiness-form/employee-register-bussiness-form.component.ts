@@ -585,8 +585,13 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     this.bussinessService.getEmployeeVehicleBussiness().subscribe({
       next: (data: any) => {
         this.vehicleList = data.data || [];
-        // Nếu không phải edit mode và chưa có phương tiện nào, set mặc định
-        if (!this.isEditMode && this.selectedVehicles.length === 0) {
+        // NDNhat Update 30/07/2026 (fix bug): API này chạy song song với lúc user thao tác
+        // form — nếu user đã tự tích "Chủ động phương tiện" (clear selectedVehicles) TRƯỚC
+        // KHI response này về, đoạn dưới sẽ hiểu nhầm selectedVehicles rỗng = "chưa set mặc
+        // định" và tự ý điền lại "Ô tô công ty", ghi đè lựa chọn của user. Phải check thêm
+        // IsSelfTransport trước khi tự set mặc định.
+        const isSelfTransportChecked = this.bussinessForm.get('IsSelfTransport')?.value === true;
+        if (!this.isEditMode && this.selectedVehicles.length === 0 && !isSelfTransportChecked) {
           this.setDefaultVehicle();
         }
       },
@@ -627,6 +632,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
   loadEmployees() {
     this.employeeService.getEmployees().subscribe({
       next: (data: any) => {
+        
         this.employeeList = data.data || [];
         // Sau khi load xong danh sách nhân viên, set EmployeeID mặc định
         this.setDefaultEmployeeID();
@@ -733,18 +739,21 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
 
   // NDNhat Update 27/07/2026: Xử lý khi chọn phiếu đặt xe
   onVehicleBookingChange(vbId: number | null) {
-    // NDNhat Update 30/07/2026: khi bỏ chọn/đổi sang phiếu KHÔNG phải chủ động PT, trước đây
-    // checkbox "Chủ động phương tiện" chỉ được MỞ KHOÁ lại (nzDisabled=false) chứ không tự
-    // BỎ TÍCH — vì patch chỉ set IsSelfTransport=true khi isActiveTransport, không set lại
-    // false khi tắt. Giờ luôn đồng bộ 2 chiều: bật khi chọn phiếu chủ động PT, tắt (và khôi
-    // phục Ô tô công ty) khi không còn phiếu chủ động PT nào được chọn.
-    const wasSelfTransport = this.bussinessForm.get('IsSelfTransport')?.value === true;
+    // NDNhat Update 30/07/2026 (fix bug): trước đây hàm này LUÔN ép IsSelfTransport về
+    // false mỗi khi vbId rỗng/không phải phiếu chủ động PT — kể cả khi user tự tay tích
+    // "Chủ động phương tiện" mà KHÔNG hề chọn phiếu đặt xe nào (control VehicleBookingID
+    // vẫn có thể emit giá trị null do vòng đời form, khiến hàm này chạy và xoá tick tay của
+    // user). Giờ chỉ tự bỏ tích khi CHÍNH tick đó là do phiếu chủ động PT TRƯỚC ĐÓ set
+    // (isActiveTransport trước khi đổi = true) — không đụng vào tick tay độc lập của user.
+    const wasActiveTransport = this.isActiveTransport;
 
     if (!vbId) {
       this.isActiveTransport = false;
-      this.bussinessForm.patchValue({ IsApprovedBGD: null, IsSelfTransport: false }, { emitEvent: false });
-      if (wasSelfTransport) {
+      if (wasActiveTransport) {
+        this.bussinessForm.patchValue({ IsApprovedBGD: null, IsSelfTransport: false }, { emitEvent: false });
         this.setDefaultVehicle();
+      } else {
+        this.bussinessForm.patchValue({ IsApprovedBGD: null }, { emitEvent: false });
       }
       return;
     }
@@ -761,11 +770,15 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       CustomerName: selected.CompanyNameArrives || '',
       CompanyName:  selected.CompanyNameArrives || '',
       IsApprovedBGD: this.isActiveTransport ? false : null,
-      // NDNhat Update 30/07/2026: phiếu đặt xe là chủ động PT → tự động tích luôn checkbox
-      // "Chủ động phương tiện" của phần Phương tiện công ty (chắc chắn không dùng xe công ty
-      // nữa); ngược lại (đổi sang phiếu thường) → tự động bỏ tích lại.
-      IsSelfTransport: this.isActiveTransport,
     };
+    // NDNhat Update 30/07/2026: phiếu đặt xe là chủ động PT → tự động tích luôn checkbox
+    // "Chủ động phương tiện"; ngược lại chỉ tự bỏ tích nếu tick trước đó do CHÍNH phiếu cũ
+    // set (không đụng tick tay độc lập của user).
+    if (this.isActiveTransport) {
+      patch['IsSelfTransport'] = true;
+    } else if (wasActiveTransport) {
+      patch['IsSelfTransport'] = false;
+    }
     // Auto-fill địa điểm nếu có
     if (selected.SpecificDestinationAddress) {
       patch['Location'] = selected.SpecificDestinationAddress;
@@ -779,7 +792,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       this.selectedVehicles = [];
       this.updateVehicleDisplay();
       this.updateVehicleCost();
-    } else if (wasSelfTransport) {
+    } else if (wasActiveTransport) {
       this.setDefaultVehicle();
     }
     this.cdr.detectChanges();

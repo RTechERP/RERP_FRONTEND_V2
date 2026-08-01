@@ -1,0 +1,236 @@
+<div class="personal-signature-container p-3">
+  <!-- Header Card -->
+  <div class="card mb-3 border-0 shadow-sm rounded-3">
+    <div class="card-body p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-3">
+        <div class="icon-circle bg-primary bg-opacity-10 text-primary p-3 rounded-circle d-flex align-items-center justify-content-center">
+          <i nz-icon nzType="signature" nzTheme="outline" style="font-size: 24px;"></i>
+        </div>
+        <div>
+          <h5 class="m-0 fw-bold text-dark">Quản lý Chữ ký Cá nhân</h5>
+          <span class="text-muted fs-12">Tải lên và thiết lập chữ ký điện tử cho tài khoản: <strong>{{ userName }}</strong></span>
+        </div>
+      </div>
+      <div>
+        <nz-tag *ngIf="signatureUrl" nzColor="success" class="px-3 py-1 fs-12 rounded-pill">
+          <i nz-icon nzType="check-circle" nzTheme="outline" class="me-1"></i> Đã thiết lập chữ ký
+        </nz-tag>
+        <nz-tag *ngIf="!signatureUrl" nzColor="warning" class="px-3 py-1 fs-12 rounded-pill">
+          <i nz-icon nzType="exclamation-circle" nzTheme="outline" class="me-1"></i> Chưa có chữ ký
+        </nz-tag>
+      </div>
+    </div>
+  </div>
+
+  <!-- Instruction Guide Section -->
+  <div class="card mb-3 border-0 shadow-sm rounded-3">
+    <div class="card-header bg-white py-2 border-bottom-0">
+      <h6 class="m-0 fw-bold text-primary d-flex align-items-center gap-2">
+        <i nz-icon nzType="info-circle" nzTheme="outline"></i> Hướng dẫn các bước tạo & tải chữ ký cá nhân
+      </h6>
+    </div>
+    <div class="card-body pt-1 pb-3">
+      <div class="row g-3">
+        <!-- Step 1 -->
+        <div class="col-md-4">
+          <div class="step-card h-100 p-3 rounded-3 border bg-light position-relative">
+            <div class="step-number badge bg-primary position-absolute top-0 start-0 translate-middle-y ms-3">Bước 1</div>
+            <div class="d-flex align-items-start gap-3 mt-2">
+              <div class="step-icon text-primary">
+                <i nz-icon nzType="edit" nzTheme="outline" style="font-size: 28px;"></i>
+              </div>
+              <div>
+                <h6 class="fw-bold mb-1 fs-13">Tạo ảnh chữ ký</h6>
+                <p class="text-muted fs-12 mb-0">
+                  Ký tên thật rõ ràng lên tờ <strong>giấy trắng</strong>, sau đó dùng điện thoại chụp lại góc thẳng, đủ ánh sáng.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="col-md-4">
+          <div class="step-card h-100 p-3 rounded-3 border bg-light position-relative">
+            <div class="step-number badge bg-primary position-absolute top-0 start-0 translate-middle-y ms-3">Bước 2</div>
+            <div class="d-flex align-items-start gap-3 mt-2">
+              <div class="step-icon text-primary">
+                <i nz-icon nzType="scissors" nzTheme="outline" style="font-size: 28px;"></i>
+              </div>
+              <div>
+                <h6 class="fw-bold mb-1 fs-13">Tách nền ảnh chữ ký</h6>
+                <p class="text-muted fs-12 mb-2">
+                  Truy cập các website tách nền tự động để lấy ảnh chữ ký nền trong suốt (PNG):
+                </p>
+                <div class="d-flex flex-wrap gap-1">
+                  <button nz-button nzType="default" nzSize="small" class="fs-11 rounded-2"
+                    (click)="openExternalTool('https://www.remove.bg/vi')">
+                    <i nz-icon nzType="link" class="me-1"></i> Remove.bg
+                  </button>
+                  <button nz-button nzType="default" nzSize="small" class="fs-11 rounded-2"
+                    (click)="openExternalTool('https://www.photoroom.com/vi/tools/background-remover')">
+                    <i nz-icon nzType="link" class="me-1"></i> PhotoRoom
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="col-md-4">
+          <div class="step-card h-100 p-3 rounded-3 border bg-light position-relative">
+            <div class="step-number badge bg-primary position-absolute top-0 start-0 translate-middle-y ms-3">Bước 3</div>
+            <div class="d-flex align-items-start gap-3 mt-2">
+              <div class="step-icon text-primary">
+                <i nz-icon nzType="cloud-upload" nzTheme="outline" style="font-size: 28px;"></i>
+              </div>
+              <div>
+                <h6 class="fw-bold mb-1 fs-13">Tải và upload ảnh</h6>
+                <p class="text-muted fs-12 mb-0">
+                  Tải file chữ ký đã tách nền dạng <strong>PNG</strong> về máy tính, sau đó upload lên khu vực bên dưới và nhấn <strong>Lưu chữ ký</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload & Preview Main Area -->
+  <div class="row g-3">
+    <!-- Upload Dropzone -->
+    <div class="col-lg-6">
+      <div class="card h-100 border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-2 border-bottom">
+          <h6 class="m-0 fw-bold text-dark d-flex align-items-center gap-2">
+            <i nz-icon nzType="upload" nzTheme="outline"></i> Khu vực upload chữ ký
+          </h6>
+        </div>
+        <div class="card-body p-3 d-flex flex-column justify-content-center">
+          <nz-upload
+            nzType="drag"
+            [nzBeforeUpload]="beforeUpload"
+            [nzMultiple]="false"
+            [nzShowUploadList]="false"
+            nzAccept="image/png"
+            class="d-block w-100">
+            <p class="ant-upload-drag-icon text-primary mb-2">
+              <i nz-icon nzType="inbox" style="font-size: 48px;"></i>
+            </p>
+            <p class="ant-upload-text fw-bold fs-14 mb-1">Nhấp hoặc kéo thả file ảnh chữ ký vào đây</p>
+            <p class="ant-upload-hint text-muted fs-12 px-3">
+              Chỉ chấp nhận định dạng <strong>PNG (bắt buộc)</strong>.<br>
+              Dung lượng tối đa: <strong>5MB</strong>.
+            </p>
+          </nz-upload>
+
+          <div class="mt-3">
+            <nz-alert nzType="warning" nzShowIcon
+              nzMessage="Bắt buộc sử dụng ảnh PNG tách nền"
+              nzDescription="Vui lòng chỉ chọn ảnh định dạng PNG đã tách nền trong suốt để chữ ký hiển thị chuẩn xác và chuyên nghiệp trên các chứng từ, báo cáo ERP.">
+            </nz-alert>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview & Action Card -->
+    <div class="col-lg-6">
+      <div class="card h-100 border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-2 border-bottom d-flex justify-content-between align-items-center">
+          <h6 class="m-0 fw-bold text-dark d-flex align-items-center gap-2">
+            <i nz-icon nzType="eye" nzTheme="outline"></i> Xem trước chữ ký
+          </h6>
+          <span *ngIf="fileName" class="text-muted fs-12">{{ fileName }} ({{ fileSize }})</span>
+        </div>
+        <div class="card-body p-3 d-flex flex-column justify-content-between">
+          <!-- Preview Box with checkered pattern background to visualize PNG transparency -->
+          <div class="preview-box border rounded-3 p-4 text-center d-flex flex-column align-items-center justify-content-center flex-grow-1 position-relative" style="min-height: 220px;">
+            <div *ngIf="signatureUrl" class="signature-image-wrapper">
+              <img [src]="signatureUrl" alt="Chữ ký cá nhân" class="img-fluid signature-img" />
+            </div>
+
+            <div *ngIf="!signatureUrl" class="empty-preview text-muted d-flex flex-column align-items-center">
+              <i nz-icon nzType="file-image" nzTheme="outline" style="font-size: 48px;" class="mb-2 opacity-50"></i>
+              <span class="fs-13">Chưa chọn ảnh chữ ký</span>
+              <span class="fs-11 text-muted">Vui lòng tải ảnh lên ở ô bên trái</span>
+            </div>
+          </div>
+
+          <!-- Metadata & Action buttons -->
+          <div class="mt-3">
+            <div *ngIf="uploadDate" class="mb-2 fs-12 text-muted text-end">
+              <i nz-icon nzType="clock-circle" nzTheme="outline" class="me-1"></i> Thời gian chọn: {{ uploadDate }}
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+              <button *ngIf="signatureUrl" nz-button nzType="default" nzDanger (click)="onRemoveSignature()">
+                <i nz-icon nzType="delete" nzTheme="outline"></i> Xóa chữ ký
+              </button>
+              <button nz-button nzType="primary" [nzLoading]="isLoading" [disabled]="!selectedFile" (click)="onSaveSignature()">
+                <i nz-icon nzType="save" nzTheme="outline"></i> Lưu chữ ký
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Căn chỉnh & Cắt chữ ký -->
+<nz-modal
+  [(nzVisible)]="isCropModalVisible"
+  nzTitle="Căn chỉnh khung chữ ký (300x150px)"
+  nzOkText="Xác nhận & Dùng ảnh này"
+  nzCancelText="Hủy bỏ"
+  [nzWidth]="520"
+  (nzOnCancel)="cancelCrop()"
+  (nzOnOk)="applyCrop()">
+  <ng-container *nzModalContent>
+    <div class="crop-modal-body text-center">
+      <p class="text-muted fs-12 mb-2">
+        <i nz-icon nzType="drag" class="me-1"></i>
+        <strong>Kéo rê chuột</strong> để di chuyển chữ ký • <strong>Cuộn chuột / Thanh zoom</strong> để phóng to/thu nhỏ
+      </p>
+
+      <!-- Khung Cắt 300x150px -->
+      <div class="crop-frame-wrapper mx-auto position-relative overflow-hidden user-select-none"
+           style="width: 300px; height: 150px; border: 2px dashed #1890ff; border-radius: 4px; cursor: grab;"
+           [style.cursor]="isDragging ? 'grabbing' : 'grab'"
+           (mousedown)="startDrag($event)"
+           (mousemove)="onDrag($event)"
+           (mouseup)="endDrag()"
+           (mouseleave)="endDrag()"
+           (wheel)="onWheelZoom($event)">
+
+        <!-- Background caro hiển thị độ trong suốt PNG -->
+        <div class="crop-bg-pattern position-absolute top-0 start-0 w-100 h-100" style="z-index: 1;"></div>
+
+        <!-- Ảnh chữ ký -->
+        <img *ngIf="rawImageUrl"
+             [src]="rawImageUrl"
+             alt="Chữ ký"
+             class="crop-raw-image position-absolute top-0 start-0"
+             [style.transform]="'translate(' + translateX + 'px, ' + translateY + 'px) scale(' + scale + ')'"
+             style="transform-origin: 0 0; max-width: none; z-index: 2; pointer-events: none;" />
+      </div>
+
+      <!-- Thanh điều chỉnh Zoom -->
+      <div class="d-flex align-items-center justify-content-center gap-3 mt-3">
+        <i nz-icon nzType="zoom-out" class="fs-16 text-muted"></i>
+        <input type="range" min="0.05" max="3" step="0.02" [(ngModel)]="scale" style="width: 200px; cursor: pointer;" />
+        <i nz-icon nzType="zoom-in" class="fs-16 text-muted"></i>
+        <span class="badge bg-secondary ms-1" style="min-width: 45px;">{{ (scale * 100).toFixed(0) }}%</span>
+      </div>
+
+      <div class="mt-2 text-muted fs-11">
+        (*) Ảnh sau khi cắt sẽ tự động cố định kích thước chuẩn <strong>300 x 150 pixel</strong>.
+      </div>
+    </div>
+  </ng-container>
+</nz-modal>
+
+
+

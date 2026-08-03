@@ -18,7 +18,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { InputTextModule } from 'primeng/inputtext';
 import { DateTime } from 'luxon';
 
-import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../../app.config';
 import { HRRecruitmentCandidateService } from '../hr-recruitment-candidate.service';
 import { DepartmentServiceService } from '../../department/department-service/department-service.service';
 import { HRRecruitmentApplicationFormService } from '../../hr-recruitment/hr-recruitment-application-form/home-layout-candidate/hr-recruitment-application-form.service';
@@ -59,7 +59,7 @@ export interface ColDef {
 })
 export class HRRecruitmentCandidateSummaryListComponent implements OnInit, AfterViewInit, OnDestroy {
   // Filters state
-  dateStart: Date = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);
+  dateStart: Date = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   dateEnd: Date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
   selectedDepartmentFilter: number = 0;
   selectedStatusFilter: number = -1;
@@ -186,8 +186,15 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
         this.departmentList = res?.data || [];
         this.departmentNodes = this.buildTreeNodes([...this.departmentList]);
       },
-      error: (err) => {
-        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Không thể tải bộ phận');
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }
@@ -248,9 +255,16 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
         this.isLoadingTable = false;
         this.cdr.detectChanges();
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isLoadingTable = false;
-        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Không thể tải danh sách ứng viên');
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
         this.cdr.detectChanges();
       }
     });
@@ -479,9 +493,16 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
           }
         }, 50);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isLoadingTable = false;
-        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Không thể tải chi tiết ứng viên');
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
         this.cdr.detectChanges();
       }
     });

@@ -28,7 +28,7 @@ import { PaymentOrderDetailOldComponent } from '../../payment-order-detail-old/p
 import { PaymentOrderSpecialComponent } from '../payment-order-special/payment-order-special.component';
 import { PaymentOrderLogComponent } from '../payment-order-log/payment-order-log.component';
 import { environment } from '../../../../../environments/environment';
-import { ColDef, MAIN_COLUMNS, SPECIAL_COLUMNS, DETAIL_COLUMNS, SPECIAL_DETAIL_COLUMNS, LOG_COLUMNS, applyFilters, refreshMultiselectOptions } from './columns.config';
+import { ColDef, MAIN_COLUMNS, HR_COLUMNS, SPECIAL_COLUMNS, DETAIL_COLUMNS, SPECIAL_DETAIL_COLUMNS, LOG_COLUMNS, applyFilters, refreshMultiselectOptions } from './columns.config';
 import { DateTime } from 'luxon';
 import Swal from 'sweetalert2';
 import pdfMake from 'pdfmake/build/pdfmake';
@@ -146,7 +146,8 @@ export class PaymentOrderPrimeComponent implements OnInit {
       if (this.tabData.departmentID != null) this.param.departmentID = this.tabData.departmentID ?? this.appUserService.currentUser?.DepartmentID;
       if (this.tabData.isPriceRequest != null) this.isPriceRequest = this.tabData.isPriceRequest;
     }
-    this.columns = MAIN_COLUMNS.map(c => ({ ...c }));
+    const isHRDept = this.appUserService.currentUser?.DepartmentID === 6;
+    this.columns = (isHRDept ? HR_COLUMNS : MAIN_COLUMNS).map(c => ({ ...c }));
     this.columnsSpecial = SPECIAL_COLUMNS.map(c => ({ ...c }));
     this.columnsDetail = (this.activeTab === '1' ? SPECIAL_DETAIL_COLUMNS : DETAIL_COLUMNS).map(c => ({ ...c }));
     this.columnsLog = LOG_COLUMNS.map(c => ({ ...c }));

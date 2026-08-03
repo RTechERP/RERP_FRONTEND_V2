@@ -491,5 +491,19 @@ export class BillExportService {
             responseType: 'blob',
         });
     }
+
+    updateStatusPreparing(data: any): Observable<any> {
+        return this.http.post(
+            environment.host + `api/BillExport/status-preparing`,
+            data
+        );
+    }
+
+    updateStatusReceive(data: any): Observable<any> {
+        return this.http.post(
+            environment.host + `api/BillExport/status-receive`,
+            data
+        );
+    }
 }
 

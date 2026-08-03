@@ -162,4 +162,8 @@ export class ProductsaleServiceService {
   getlogHistoryImportExport() {
     return this.httpclient.get<any>(`${this.baseUrl}/activity-log`);
   }
+
+  getInforProduct(productCode: string) {
+    return this.httpclient.get<any>(`${this.baseUrl}/infor-by-product-code?productCode=` + productCode);
+  }
 }

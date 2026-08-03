@@ -416,6 +416,8 @@ import { TravelRegistrationDetailComponent } from './pages/hrm/travel-registrati
 import { SalaryIncreaseComponent } from './pages/hrm/salary-increase/salary-increase.component';
 import { ProductSaleNewApprovedComponent } from './pages/old/Sale/ProductSale/product-sale-new-approved/product-sale-new-approved.component';
 import { ExpectedPayableComponent } from './pages/old/Sale/BillImport/expected-payable/expected-payable.component';
+import { HotelBookingManagementComponent } from './pages/hrm/hotel-booking-managament/hotel-booking-management.component';
+import { PersonalSignatureComponent } from './pages/personal-signature/personal-signature.component';
 export const routes: Routes = [
 
   {
@@ -1367,6 +1369,9 @@ export const routes: Routes = [
       { path: 'salary-increase', component: SalaryIncreaseComponent, canActivate: [authGuard] },
       { path: 'product-sale-new-approved', component: ProductSaleNewApprovedComponent, canActivate: [authGuard] },
       { path: 'expected-payable', component: ExpectedPayableComponent, canActivate: [authGuard] },
+      { path: 'hotel-booking', component: HotelBookingManagementComponent, canActivate: [authGuard] },
+      { path: 'signature-personal', component: PersonalSignatureComponent, canActivate: [authGuard] },
+
     ],
   },
 ];

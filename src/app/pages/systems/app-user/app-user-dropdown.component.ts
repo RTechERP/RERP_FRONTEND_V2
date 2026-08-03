@@ -17,6 +17,7 @@ import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { ChangePasswordComponent } from '../../../auth/change-password/change-password.component';
 import { PersonalInfomationComponent } from '../../general-category/infomation-personal/personal-infomation.component';
 import { ConfigNotificationKeyPersonalComponent } from './config-notification-key/config-notification-key-personal/config-notification-key-personal.component';
+import { PersonalSignatureComponent } from '../../personal-signature/personal-signature.component';
 @Component({
   selector: 'app-app-user-dropdown',
   standalone: true,
@@ -94,6 +95,15 @@ export class AppUserDropdownComponent {
       key: 'setting-personal',
     });
     this.router.navigateByUrl('/config-notification-key-personal');
+  }
+
+  signaturePersonal() {
+    this.tabService.openTabComp({
+      comp: PersonalSignatureComponent,
+      title: 'Chữ ký cá nhân',
+      key: 'signature-personal',
+    });
+    this.router.navigateByUrl('/signature-personal');
   }
 
   onAutoLoginChange(value: boolean): void {

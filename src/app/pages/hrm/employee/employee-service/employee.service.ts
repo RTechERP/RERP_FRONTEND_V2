@@ -159,4 +159,22 @@ export class EmployeeService {
       this._url + `Employee/update-employee-department?employeeID=${employeeID}&departmentID=${departmentID}`
     );
   }
+
+  //#region Update API xử lý file chữ ký
+  getSignature(): Observable<any> {
+    return this.http.get(environment.host + 'api/Employee/signature', {
+      responseType: 'blob',
+    });
+  }
+
+  deleteSignature() {
+    return this.http.post<any>(this._url + 'Employee/delete-signature', {});
+  }
+
+  uploadFiles(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<any>(this._url + 'Employee/upload-signature', formData);
+  }
+  //#endregion
 }

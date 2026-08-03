@@ -151,6 +151,9 @@ export class ProductSaleNewApprovedComponent
       this.route.snapshot.queryParams['productIds'];
     const targetIds = this.decodeTokenIds(idsParam || '');
 
+    const idExistParam = this.route.snapshot.queryParams['idExist'];
+    const existIds = this.decodeTokenIds(idExistParam || '');
+
     this.isLoading = true;
     this.productsaleService
       .getdataProductSalebyID(0, this.keyWords || '', true)
@@ -167,10 +170,14 @@ export class ProductSaleNewApprovedComponent
                   : true;
               return isNotApproved && matchId;
             })
-            .map((x: any, i: number) => ({
-              ...x,
-              id: x.ID || x.Id || `product_${i}`,
-            }));
+            .map((x: any, i: number) => {
+              const rowId = Number(x.ID || x.Id);
+              return {
+                ...x,
+                id: x.ID || x.Id || `product_${i}`,
+                isExistInWarehouse: existIds.includes(rowId),
+              };
+            });
           this.isLoading = false;
           setTimeout(() => {
             this.applyDistinctFilters();
@@ -437,7 +444,13 @@ export class ProductSaleNewApprovedComponent
         filter: {
           model: Filters['compoundInputText'],
         },
-        formatter: (_r, _c, v) => v,
+        formatter: (_r, _c, v, _cd, dataContext) => {
+          if (!v) return '';
+          if (dataContext?.isExistInWarehouse) {
+            return `<div style="background-color: #d4edda; color: #155724; padding: 2px 6px; border-radius: 4px; display: inline-block; font-weight: 600;">${v}</div>`;
+          }
+          return v;
+        },
         exportCustomFormatter: (_r, _c, v) => this.cleanXml(v),
       },
       {

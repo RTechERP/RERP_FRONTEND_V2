@@ -656,11 +656,11 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
 
   openChiTietSanPhamSale(productData: any) {
     const productCode = productData.ProductCode || '';
-    console.log("productDatachichi: ", productData);
+    const productSaleID = productData.ProductSaleID || productData.ProductID || productData.ID || 0;
     this.tabService.openTabComp({
       comp: ChiTietSanPhamSaleNewComponent,
       title: `Chi tiết SP - ${productCode}`,
-      key: `chi-tiet-san-pham-sale-${productData.ProductSaleID || 0}`,
+      key: `chi-tiet-san-pham-sale-${productSaleID}`,
       data: {
         code: productCode,
         suplier: productData.Supplier || '',
@@ -669,7 +669,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         numberCuoiKy: productData.NumberInStoreCuoiKy?.toString() || '0',
         import: productData.Import?.toString() || '0',
         export: productData.Export?.toString() || '0',
-        productSaleID: productData.ProductSaleID || 0,
+        productSaleID: productSaleID,
         wareHouseCode: this.warehouseCode || 'HN',
       }
     });

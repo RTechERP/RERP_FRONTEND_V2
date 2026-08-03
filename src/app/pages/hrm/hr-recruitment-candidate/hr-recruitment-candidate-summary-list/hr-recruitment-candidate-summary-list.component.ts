@@ -235,10 +235,28 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
     return tree;
   }
 
+  onDateChange(field: 'dateStart' | 'dateEnd', value: string): void {
+    if (value) {
+      (this as any)[field] = new Date(value);
+    }
+  }
+
   loadCandidatesList(): void {
     this.isLoadingTable = true;
-    const startStr = this.dateStart ? DateTime.fromJSDate(this.dateStart).toISODate() : '';
-    const endStr = this.dateEnd ? DateTime.fromJSDate(this.dateEnd).toISODate() : '';
+    let startStr = '';
+    let endStr = '';
+    if (this.dateStart) {
+      const y = this.dateStart.getFullYear();
+      const m = String(this.dateStart.getMonth() + 1).padStart(2, '0');
+      const d = String(this.dateStart.getDate()).padStart(2, '0');
+      startStr = `${y}-${m}-${d}`;
+    }
+    if (this.dateEnd) {
+      const y = this.dateEnd.getFullYear();
+      const m = String(this.dateEnd.getMonth() + 1).padStart(2, '0');
+      const d = String(this.dateEnd.getDate()).padStart(2, '0');
+      endStr = `${y}-${m}-${d}`;
+    }
 
     this.hrCandidateService.getCandidateSummaryMaster(
       0,
@@ -342,12 +360,12 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
 
   onBooleanCellClick(row: any, field: string, event: Event): void {
     event.stopPropagation();
-    
+
     // Đảm bảo dòng được chọn (highlight)
     if (!this.selectedCandidates.find(c => c.ID === row.ID)) {
       this.selectedCandidates = [row];
     }
-    
+
     let tabIndex = 0;
     if (field === 'HasApplicationForm') {
       tabIndex = 1;
@@ -484,7 +502,7 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
         this.showDetail = true;
         this.isLoadingTable = false;
         this.cdr.detectChanges();
-        
+
         setTimeout(() => {
           if (this.pendingTabIndex !== null) {
             this.selectedTabIndex = this.pendingTabIndex;

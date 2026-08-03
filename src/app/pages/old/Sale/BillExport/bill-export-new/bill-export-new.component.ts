@@ -357,8 +357,8 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                     }
                 },
                 formatter: Formatters.checkmarkMaterial,
-                minWidth: 120,
-                maxWidth: 120,
+                minWidth: 80,
+                cssClass: 'text-center',
             },
             {
                 id: 'IsAfterHours',
@@ -375,8 +375,44 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                     }
                 },
                 formatter: Formatters.checkmarkMaterial,
-                minWidth: 120,
-                maxWidth: 120,
+                minWidth: 80,
+                cssClass: 'text-center',
+            },
+            {
+                id: 'IsOrderPrepared',
+                name: 'Đã chuẩn bị hàng',
+                field: 'IsOrderPrepared',
+                sortable: true,
+                filterable: true,
+                type: FieldType.boolean,
+                filter: {
+                    model: Filters['singleSelect'],
+                    collection: [{ value: 'true', label: 'Có' }, { value: 'false', label: 'Không' }],
+                    collectionOptions: {
+                        addBlankEntry: true
+                    }
+                },
+                formatter: Formatters.checkmarkMaterial,
+                minWidth: 80,
+                cssClass: 'text-center',
+            },
+            {
+                id: 'IsOrderReceived',
+                name: 'Đã nhận hàng',
+                field: 'IsOrderReceived',
+                sortable: true,
+                filterable: true,
+                type: FieldType.boolean,
+                filter: {
+                    model: Filters['singleSelect'],
+                    collection: [{ value: 'true', label: 'Có' }, { value: 'false', label: 'Không' }],
+                    collectionOptions: {
+                        addBlankEntry: true
+                    }
+                },
+                formatter: Formatters.checkmarkMaterial,
+                minWidth: 80,
+                cssClass: 'text-center',
             },
             {
                 id: 'IsApproved',
@@ -393,8 +429,8 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                     }
                 },
                 formatter: Formatters.checkmarkMaterial,
-                minWidth: 120,
-                maxWidth: 120,
+                minWidth: 80,
+                cssClass: 'text-center',
             },
             {
                 id: 'DateStatus',
@@ -2587,6 +2623,33 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
             command: () => this.openModalGenerateCode()
         });
 
+        allItems.push({
+            label: 'Trạng thái nhận hàng',
+            icon: 'fa-solid fa-user-check fa-lg text-primary',
+            items: [
+                {
+                    label: 'Đã chẩn bị hàng',
+                    icon: 'fa-solid fa-check fa-lg text-success',
+                    command: () => this.updateStatusPreparing(true),
+                },
+                {
+                    label: 'Hủy chẩn bị hàng',
+                    icon: 'fa-solid fa-xmark fa-lg text-danger',
+                    command: () => this.updateStatusPreparing(false),
+                },
+                {
+                    label: 'Đã nhận hàng',
+                    icon: 'fa-solid fa-check fa-lg text-success',
+                    command: () => this.updateStatusReceive(true),
+                },
+                {
+                    label: 'Hủy nhận hàng',
+                    icon: 'fa-solid fa-xmark fa-lg text-danger',
+                    command: () => this.updateStatusReceive(false),
+                }
+            ]
+        });
+
         //Filter visible items
         const visibleItems = allItems.filter(item => item.visible !== false);
 
@@ -3414,4 +3477,108 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
         if (!s) return '';
         return s.replace(/([-\._\/])/g, '$1\u200B').replace(/([^\s\u200B]{4})/g, '$1\u200B');
     }
+
+    //#region trạng thái nhận hàng
+    updateStatusPreparing(isPreparing: boolean) { // trạng thái chuẩn bị hàng
+        const selectedRows = this.getSelectedRows();
+        if (!selectedRows || selectedRows.length === 0) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn dòng cần thực hiện!');
+            return;
+        }
+
+        let msgStatus = "";
+        if (!isPreparing) {
+            msgStatus = "đã chuẩn bị hàng";
+        } else {
+            msgStatus = "chưa chuẩn bị hàng";
+        }
+
+        const userId = this.appUserService.id;
+        const isAdmin = this.appUserService.isAdmin;
+
+        const targetRows = selectedRows.filter((row: any) =>
+            row.IsOrderPrepared !== isPreparing &&
+            (row.SenderID == userId || isAdmin));
+        if (targetRows.length === 0) {
+            this.notification.info(
+                'Thông báo',
+                `Không có phiếu hợp lệ nào để cập nhật! Yêu cầu: Chỉ người giao mới có quyền và các phiếu phải chưa ở trạng thái "${msgStatus}"`
+            );
+            return;
+        }
+
+        const payload = targetRows.map((row: any) => ({
+            ID: row.ID,
+            IsOrderPrepared: isPreparing
+        }));
+
+        this.billExportService.updateStatusPreparing(payload).subscribe({
+            next: (res: any) => {
+                if (res.status === 1) {
+                    this.notification.success(
+                        NOTIFICATION_TITLE.success,
+                        res.message || (isPreparing ? 'Cập nhật trạng thái chuẩn bị hàng thành công!' : 'Cập nhật trạng thái hủy chuẩn bị hàng thành công!')
+                    );
+                    this.onSearch();
+                } else {
+                    this.notification.error('Thông báo', res.message || 'Thực hiện thất bại!');
+                }
+            },
+            error: (err: any) => {
+                const errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra!';
+                this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+            }
+        });
+    }
+
+    updateStatusReceive(isReceive: boolean) { // trạng thái nhận hàng
+        const selectedRows = this.getSelectedRows();
+        if (!selectedRows || selectedRows.length === 0) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn dòng cần thực hiện!');
+            return;
+        }
+
+        const msgStatus = !isReceive ? 'đã nhận hàng' : 'chưa nhận hàng';
+        const userId = this.appUserService.id;
+        const isAdmin = this.appUserService.isAdmin;
+
+        const targetRows = selectedRows.filter((row: any) =>
+            row.IsOrderReceived !== isReceive &&
+            (row.SenderID == userId || row.ReceiverID == userId || isAdmin) &&
+            row.IsOrderPrepared == true
+        );
+
+        if (targetRows.length === 0) {
+            this.notification.info(
+                'Thông báo',
+                `Không có phiếu hợp lệ nào để cập nhật! Yêu cầu: Đơn đã chuẩn bị hàng, người thao tác phải là Người giao/Người nhận, và các phiếu phải chưa ở trạng thái "${msgStatus}"`
+            );
+            return;
+        }
+
+        const payload = targetRows.map((row: any) => ({
+            ID: row.ID,
+            IsOrderReceived: isReceive
+        }));
+
+        this.billExportService.updateStatusReceive(payload).subscribe({
+            next: (res: any) => {
+                if (res.status === 1) {
+                    this.notification.success(
+                        NOTIFICATION_TITLE.success,
+                        res.message || (isReceive ? 'Cập nhật trạng thái nhận hàng thành công!' : 'Cập nhật trạng thái hủy nhận hàng thành công!')
+                    );
+                    this.onSearch();
+                } else {
+                    this.notification.error('Thông báo', res.message || 'Thực hiện thất bại!');
+                }
+            },
+            error: (err: any) => {
+                const errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra!';
+                this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+            }
+        });
+    }
+    //#endregion
+
 }

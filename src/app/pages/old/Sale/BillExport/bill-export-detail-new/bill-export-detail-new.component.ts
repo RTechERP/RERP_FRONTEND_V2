@@ -290,7 +290,7 @@ export class BillExportDetailNewComponent
             IsTransfer: [false],
             Reference: [''],
             WareHouseTranferID: [null],
-            DeliveryTime: [new Date(), [Validators.required]],
+            DeliveryTime: [this.getDefaultDeliveryTime(), [Validators.required]],
             IsAfterHours: [new Date().getHours() < 8 || new Date().getHours() > 16 || (new Date().getHours() === 16 && new Date().getMinutes() > 0)],
             ReceiverID: [null]
         });
@@ -387,8 +387,8 @@ export class BillExportDetailNewComponent
             .get('DeliveryTime')
             ?.valueChanges.pipe(takeUntil(this.destroy$))
             .subscribe((value) => {
+                let dateVal: Date | null = null;
                 if (value) {
-                    let dateVal: Date | null = null;
                     if (value instanceof Date) {
                         dateVal = value;
                     } else if (typeof value === 'string') {
@@ -399,7 +399,54 @@ export class BillExportDetailNewComponent
                         this.validateForm.get('DeliveryTime')?.setValue(dateVal, { emitEvent: false });
                     }
                 }
+                this.checkIsAfterHours(dateVal);
             });
+    }
+
+    /** Lấy thời gian nhận hàng mặc định (giờ hiện tại + 4 giờ 15 phút) */
+    getDefaultDeliveryTime(): Date {
+        const d = new Date();
+        d.setMinutes(d.getMinutes() + 4 * 60);
+        d.setSeconds(0, 0);
+        return d;
+    }
+
+    /** Kiểm tra tính phát sinh:
+     * 1. Giờ hiện tại (tạo/thực hiện) nằm ngoài 8h-16h.
+     * 2. Thời gian nhận hàng (DeliveryTime) nhỏ hơn 4h so với giờ hiện tại.
+     */
+    checkIsAfterHours(deliveryTime?: Date | null): void {
+        const dTime = deliveryTime !== undefined ? deliveryTime : this.validateForm.get('DeliveryTime')?.value;
+        let isAfterHours = false;
+        const now = new Date();
+
+        // 1. Kiểm tra giờ hiện tại có ngoài khung 8h - 16h hay không
+        const currentHour = now.getHours();
+        const currentMin = now.getMinutes();
+        const isCurrentOutsideBusinessHours = currentHour < 8 || currentHour > 16 || (currentHour === 16 && currentMin > 0);
+
+        if (isCurrentOutsideBusinessHours) {
+            isAfterHours = true;
+        } else if (dTime) {
+            // 2. Kiểm tra thời gian nhận hàng có nhỏ hơn 4h so với giờ hiện tại hay không
+            let dateVal: Date | null = null;
+            if (dTime instanceof Date) {
+                dateVal = dTime;
+            } else if (typeof dTime === 'string') {
+                dateVal = this.parseDateTimeString(dTime) || new Date(dTime);
+            }
+
+            if (dateVal && !isNaN(dateVal.getTime())) {
+                const diffMs = dateVal.getTime() - now.getTime();
+                const isLessThan4Hours = diffMs < 4 * 60 * 60 * 1000;
+                if (isLessThan4Hours) {
+                    isAfterHours = true;
+                }
+            }
+        }
+
+        this.validateForm.patchValue({ IsAfterHours: isAfterHours }, { emitEvent: false });
+        this.newBillExport.IsAfterHours = isAfterHours;
     }
 
     /** Chuyển đổi chuỗi dd/MM/yyyy HH:mm hoặc dd-MM-yyyy nhập tay thành Date */
@@ -467,6 +514,7 @@ export class BillExportDetailNewComponent
             if (parsed) {
                 this.validateForm.get('DeliveryTime')?.setValue(parsed);
                 this.validateForm.get('DeliveryTime')?.markAsDirty();
+                this.checkIsAfterHours(parsed);
             }
         }
     }
@@ -483,6 +531,7 @@ export class BillExportDetailNewComponent
         ) {
             // Lấy employeeID từ người đăng nhập hiện tại cho Người Nhận
             const currentEmployeeId = this.appUserService.id || 0;
+            const defaultDeliveryTime = this.getDefaultDeliveryTime();
 
             this.newBillExport = {
                 TypeBill: false,
@@ -502,14 +551,12 @@ export class BillExportDetailNewComponent
                 CreatDate: new Date(),
                 RequestDate: new Date(),
                 IsTransfer: false,
-                DeliveryTime: new Date(),
-                IsAfterHours: (new Date().getHours() < 8 || new Date().getHours() > 16 || (new Date().getHours() === 16 && new Date().getMinutes() > 0)),
+                DeliveryTime: defaultDeliveryTime,
+                IsAfterHours: false,
                 ReceiverID: currentEmployeeId
             };
             this.validateForm.patchValue(this.newBillExport);
-            this.validateForm.patchValue({
-                IsAfterHours: this.newBillExport.IsAfterHours
-            });
+            this.checkIsAfterHours(defaultDeliveryTime);
         }
 
         if (this.lstBillImportID && this.lstBillImportID.length > 0) {
@@ -3311,6 +3358,9 @@ export class BillExportDetailNewComponent
 
     /** Lưu phiếu xuất: kiểm tra serial, quyền, form, tồn kho, trùng mã phiếu rồi gửi API */
     async saveDataBillExport(): Promise<void> {
+        // Cập nhật lại IsAfterHours theo thời điểm thực tế bấm lưu
+        this.checkIsAfterHours();
+
         // --- 1. KIỂM TRA SERIAL ---
         const isSerialValid = await this.checkSerial();
         if (!isSerialValid) {

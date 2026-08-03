@@ -27,6 +27,7 @@ import { EmployeeRegisterBussinessFormComponent } from './employee-register-buss
 import { VehicleSelectModalComponent } from './employee-register-bussiness-form/vehicle-select-modal/vehicle-select-modal.component';
 import { Menubar } from 'primeng/menubar';
 import { AppUserService } from '../../../../../services/app-user.service';
+import { BusinessConfigService } from '../../../../../services/business-config.service';
 
 @Component({
   selector: 'app-employee-register-bussiness',
@@ -98,17 +99,31 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
     private bussinessService: EmployeeBussinessService,
     private modal: NzModalService,
     private modalService: NgbModal,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    private businessConfigService: BusinessConfigService
   ) {
     this.initializeForm();
-    // NDNhat Update 30/07/2026: IsAdmin cũng được đăng ký "Chủ động phương tiện" như Sale
-    this.isSaleDepartment = [3, 28, 29, 30, 12, 13].includes(this.appUserService.departmentID || 0) || this.appUserService.isAdmin;
+  }
+
+  // NDNhat Update 03/08/2026: lấy danh sách DepartmentID Phòng Sale từ dbo.BusinessConfig
+  // (ConfigType = 1) thay vì hardcode mảng [3,28,29,30,12,13] — IsAdmin vẫn luôn được tính là Sale
+  checkSaleDepartment() {
+    this.businessConfigService.getDepartmentIds(1).subscribe({
+      next: (res: any) => {
+        const saleDepartmentIds: number[] = res?.data || [];
+        this.isSaleDepartment = saleDepartmentIds.includes(this.appUserService.departmentID || 0) || this.appUserService.isAdmin;
+      },
+      error: () => {
+        this.isSaleDepartment = this.appUserService.isAdmin;
+      }
+    });
   }
 
   ngOnInit() {
     this.initMenuBar();
     this.loadTypes();
     this.loadVehicles();
+    this.checkSaleDepartment();
   }
 
   initMenuBar() {
@@ -391,6 +406,12 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
         {
           title: 'Tên công ty', field: 'CompanyName', width: 200, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
           formatter: 'textarea'
+        },
+        // NDNhat Update 03/08/2026: cột "Đặt xe" — có link phiếu đặt xe (VehicleBookingID) hay
+        // không, lấy trực tiếp từ giá trị store trả ra, không cần gọi thêm API nào khác
+        {
+          title: 'Đặt xe', field: 'VehicleBookingID', width: 90, hozAlign: 'center', headerHozAlign: 'center', headerSort: false,
+          formatter: 'tickCross', formatterParams: { allowTruthy: true }
         },
         {
           title: 'Lý do', field: 'Reason', width: 300, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,

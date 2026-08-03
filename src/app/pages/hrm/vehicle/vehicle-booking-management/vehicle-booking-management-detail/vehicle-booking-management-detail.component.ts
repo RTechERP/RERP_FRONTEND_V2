@@ -11,6 +11,7 @@ import { NzUploadModule, NzUploadFile } from 'ng-zorro-antd/upload';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { VehicleBookingManagementService } from '../vehicle-booking-management.service';
 import { AppUserService } from '../../../../../services/app-user.service';
+import { BusinessConfigService } from '../../../../../services/business-config.service';
 import { DateTime } from 'luxon';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzGridModule } from 'ng-zorro-antd/grid';
@@ -70,6 +71,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
   private vehicleBookingService = inject(VehicleBookingManagementService);
   private notification = inject(NzNotificationService);
   private appUserService = inject(AppUserService);
+  private businessConfigService = inject(BusinessConfigService);
 
   // Form data
   id: number = 0;
@@ -193,18 +195,34 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
     // trong dropdown "Hình thức đặt" (trước đây làm bằng checkbox riêng, nay gộp thẳng
     // vào Category — chỉ Sale mới thấy option này)
     // NDNhat Update 30/07/2026: IsAdmin cũng được đăng ký "Chủ động phương tiện" như Sale
-    this.isSaleDepartment = [3, 28, 29, 30, 12, 13].includes(this.appUserService.departmentID || 0) || this.appUserService.isAdmin;
-    if (this.isSaleDepartment) {
-      const personalGroup = this.categoryGroups.find(g => g.label === 'Cá nhân');
-      if (personalGroup && !personalGroup.options.some((o: any) => o.value === 4)) {
-        personalGroup.options.push({ value: 4, label: 'Chủ động phương tiện' });
+    // NDNhat Update 03/08/2026: lấy danh sách DepartmentID Phòng Sale từ dbo.BusinessConfig
+    // (ConfigType = 1) thay vì hardcode mảng [3,28,29,30,12,13]
+    const isAdmin = this.appUserService.isAdmin;
+    const deptId = this.appUserService.departmentID || 0;
+    this.businessConfigService.getDepartmentIds(1).subscribe({
+      next: (res: any) => {
+        const saleDepartmentIds: number[] = res?.data || [];
+        this.isSaleDepartment = saleDepartmentIds.includes(deptId) || isAdmin;
+        this.applySaleCategoryOption();
+      },
+      error: () => {
+        this.isSaleDepartment = isAdmin;
+        this.applySaleCategoryOption();
       }
-    }
+    });
     this.loadInitialData();
     if (this.dataInput) {
       this.loadEditData();
     } else {
       this.initializeNewForm();
+    }
+  }
+
+  private applySaleCategoryOption(): void {
+    if (!this.isSaleDepartment) return;
+    const personalGroup = this.categoryGroups.find(g => g.label === 'Cá nhân');
+    if (personalGroup && !personalGroup.options.some((o: any) => o.value === 4)) {
+      personalGroup.options.push({ value: 4, label: 'Chủ động phương tiện' });
     }
   }
 

@@ -27,6 +27,7 @@ import { EmployeeService } from '../../../../employee/employee-service/employee.
 import { VehicleSelectModalComponent } from './vehicle-select-modal/vehicle-select-modal.component';
 import { HomeLayoutService } from '../../../../../../layouts/home-layout/home-layout-service/home-layout.service';
 import { PermissionService } from '../../../../../../services/permission.service';
+import { BusinessConfigService } from '../../../../../../services/business-config.service';
 import { ProjectService } from '../../../../../project/project-service/project.service';
 import { OverTimeService } from '../../../../over-time/over-time-service/over-time.service';
 
@@ -81,6 +82,10 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
   deletedFileIds: number[] = []; // Danh sách ID file đã xóa
   deletedFiles: any[] = []; // Danh sách thông tin đầy đủ của file đã xóa (để gửi về API với IsDeleted = true)
   selectedVehicles: any[] = []; // Danh sách phương tiện đã chọn
+  // NDNhat Update 03/08/2026: bản ghi EmployeeBussinessVehicle gốc lấy từ DB khi mở sửa (ID
+  // thật) — giữ riêng, KHÔNG bị mất khi selectedVehicles bị clear (vd. tích Chủ động PT), để
+  // biết cần xoá (IsDeleted=true) những bản ghi nào khi selectedVehicles hiện tại không còn giữ
+  existingVehicleRecords: any[] = [];
   vehicleDisplayText: string = ''; // Text hiển thị trong input phương tiện
   isSupplementaryRegistrationOpen: boolean = false; // Trạng thái mở đăng ký bổ sung
   // NDNhat Update 27/07/2026: Phòng Sale
@@ -102,7 +107,8 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     private homeLayoutService: HomeLayoutService,
     private permissionService: PermissionService,
     private projectService: ProjectService,
-    private overTimeService: OverTimeService
+    private overTimeService: OverTimeService,
+    private businessConfigService: BusinessConfigService
   ) {
     this.initializeForm();
   }
@@ -243,6 +249,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
           const vehicles = Array.isArray(response.data) ? response.data : [response.data];
+          this.existingVehicleRecords = vehicles;
           this.selectedVehicles = vehicles.map((v: any, index: number) => ({
             id: `vehicle_detail_${index + 2}`,
             vehicleId: v.EmployeeVehicleBussinessID || 0,
@@ -253,12 +260,14 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
             vehicleItemID: v.ID || 0
           }));
         } else {
+          this.existingVehicleRecords = [];
           this.selectedVehicles = [];
         }
         this.updateVehicleDisplay();
         this.cdr.detectChanges();
       },
       error: () => {
+        this.existingVehicleRecords = [];
         this.selectedVehicles = [];
         this.updateVehicleDisplay();
       }
@@ -416,6 +425,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     this.deletedFileIds = [];
     this.deletedFiles = [];
     this.selectedVehicles = [];
+    this.existingVehicleRecords = [];
     this.vehicleDisplayText = '';
     this.vehicleBookingList = [];
     this.isActiveTransport = false;
@@ -651,7 +661,14 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
           this.currentUser = Array.isArray(data) ? data[0] : data;
           this.setDefaultEmployeeID();
           // NDNhat Update 27/07/2026: Kiểm tra phòng Sale
-          this.checkSaleDepartment();
+          // NDNhat Update 03/08/2026: check giờ là async (lấy từ dbo.BusinessConfig) nên phần
+          // logic phụ thuộc isSaleDepartment (load phiếu đặt xe) phải chạy trong callback
+          this.checkSaleDepartment(() => {
+            // Load phiếu đặt xe cho ngày hiện tại nếu là phòng Sale
+            if (!this.isEditMode && !this.data && this.isSaleDepartment) {
+              this.loadVehicleBookings(new Date());
+            }
+          });
 
           // Automatically bind closest approver for new requests
           if (!this.isEditMode && !this.data && this.currentUser && this.currentUser.EmployeeID > 0) {
@@ -664,10 +681,6 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
                 }
               }
             });
-            // Load phiếu đặt xe cho ngày hiện tại nếu là phòng Sale
-            if (this.isSaleDepartment) {
-              this.loadVehicleBookings(new Date());
-            }
           }
         }
       },
@@ -677,12 +690,29 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
   }
 
   // NDNhat Update 27/07/2026: Kiểm tra phòng Sale
-  checkSaleDepartment() {
+  // NDNhat Update 03/08/2026: lấy danh sách DepartmentID Phòng Sale từ dbo.BusinessConfig
+  // (ConfigType = 1) thay vì hardcode mảng [3,28,29,30,12,13] — IsAdmin vẫn luôn được tính là
+  // Sale. `onResolved` chạy SAU khi isSaleDepartment đã có giá trị đúng (call async).
+  checkSaleDepartment(onResolved?: () => void) {
     const deptId = this.currentUser?.DepartmentID;
-    // NDNhat Update 30/07/2026: IsAdmin cũng được đăng ký "Chủ động phương tiện" như Sale
     const isAdmin = this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true;
-    this.isSaleDepartment = [3, 28, 29, 30, 12, 13].includes(deptId) || isAdmin;
 
+    this.businessConfigService.getDepartmentIds(1).subscribe({
+      next: (res: any) => {
+        const saleDepartmentIds: number[] = res?.data || [];
+        this.isSaleDepartment = saleDepartmentIds.includes(deptId) || isAdmin;
+        this.applySaleValidators();
+        onResolved?.();
+      },
+      error: () => {
+        this.isSaleDepartment = isAdmin;
+        this.applySaleValidators();
+        onResolved?.();
+      }
+    });
+  }
+
+  private applySaleValidators() {
     // NDNhat Update 30/07/2026: Tên khách hàng/Tên công ty bắt buộc với MỌI đăng ký của Sale
     const requiredIfSale = this.isSaleDepartment ? [Validators.required] : [];
     this.bussinessForm.get('CustomerName')?.setValidators(requiredIfSale);
@@ -1270,14 +1300,14 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
               if (this.selectedVehicles && this.selectedVehicles.length > 1) {
                 this.saveRemainingVehicles(savedBussinessID);
               } else {
-                this.processDeletedFiles(savedBussinessID);
+                this.processDeletedVehicles(savedBussinessID);
               }
             },
             error: (error) => {
               if (this.selectedVehicles && this.selectedVehicles.length > 1) {
                 this.saveRemainingVehicles(savedBussinessID);
               } else {
-                this.processDeletedFiles(savedBussinessID);
+                this.processDeletedVehicles(savedBussinessID);
               }
             }
           });
@@ -1285,7 +1315,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
           if (this.selectedVehicles && this.selectedVehicles.length > 1) {
             this.saveRemainingVehicles(savedBussinessID);
           } else {
-            this.processDeletedFiles(savedBussinessID);
+            this.processDeletedVehicles(savedBussinessID);
           }
         }
       },
@@ -1314,7 +1344,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     const totalVehicles = remainingVehicles.length;
 
     if (totalVehicles === 0) {
-      this.processDeletedFiles(bussinessID);
+      this.processDeletedVehicles(bussinessID);
       return;
     }
 
@@ -1337,14 +1367,50 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
         next: () => {
           completedCount++;
           if (completedCount === totalVehicles) {
-            this.processDeletedFiles(bussinessID);
+            this.processDeletedVehicles(bussinessID);
           }
         },
         error: (error) => {
           completedCount++;
           if (completedCount === totalVehicles) {
-            this.processDeletedFiles(bussinessID);
+            this.processDeletedVehicles(bussinessID);
           }
+        }
+      });
+    });
+  }
+
+  // NDNhat Update 03/08/2026: xoá (soft-delete IsDeleted=true) các bản ghi EmployeeBussinessVehicle
+  // đã lưu trước đó (edit mode) nhưng KHÔNG còn nằm trong selectedVehicles hiện tại — vd. user
+  // đổi từ "Ô tô công ty" sang tích "Chủ động phương tiện" (selectedVehicles rỗng). Trước đây
+  // saveDataEmployeeWithFile() chỉ INSERT/UPDATE phương tiện đang chọn, không bao giờ xoá phương
+  // tiện cũ không còn được chọn => store duyệt công vẫn đọc ra phương tiện cũ đã lưu.
+  private processDeletedVehicles(bussinessID: number): void {
+    const keepIds = this.selectedVehicles
+      .map((v: any) => v.vehicleItemID)
+      .filter((id: number) => id && id > 0);
+    const vehiclesToDelete = this.existingVehicleRecords.filter((v: any) => v.ID && !keepIds.includes(v.ID));
+
+    if (vehiclesToDelete.length === 0) {
+      this.processDeletedFiles(bussinessID);
+      return;
+    }
+
+    let completedCount = 0;
+    const total = vehiclesToDelete.length;
+    vehiclesToDelete.forEach((vehicle: any) => {
+      this.bussinessService.saveDataEmployee({
+        employeeBussiness: null,
+        employeeBussinessFiles: null,
+        employeeBussinessVehicle: { ID: vehicle.ID, IsDeleted: true }
+      }).subscribe({
+        next: () => {
+          completedCount++;
+          if (completedCount === total) this.processDeletedFiles(bussinessID);
+        },
+        error: () => {
+          completedCount++;
+          if (completedCount === total) this.processDeletedFiles(bussinessID);
         }
       });
     });

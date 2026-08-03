@@ -107,7 +107,8 @@
           </nz-form-item>
         </nz-col>
       </nz-row>
-      <!-- NDNhat Update 27/07/2026: Chỉ hiện với phòng Sale (DepartmentID: 3, 28, 29, 30, 12, 13) -->
+      <!-- NDNhat Update 27/07/2026: Chỉ hiện với phòng Sale (danh sách DepartmentID lấy từ
+           dbo.BusinessConfig, ConfigType = 1 — xem checkSaleDepartment(), update 03/08/2026) -->
       <nz-row [nzGutter]="16" *ngIf="isSaleDepartment">
         <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="8" [nzXl]="8">
           <nz-form-item>

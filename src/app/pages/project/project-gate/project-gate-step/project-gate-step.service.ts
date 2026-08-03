@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../../environments/environment';
+import { environment } from '../../../../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
@@ -52,6 +52,21 @@ export class ProjectGateStepService {
 
     saveFile(checkListLinkId: number, fileDto: any): Observable<any> {
         return this.http.post<any>(`${environment.host}api/ProjectGateStepCheckListDetailLink/SaveFile/${checkListLinkId}`, fileDto);
+    }
+
+    uploadMultipleFiles(files: File[], subPath?: string, projectCode?: string): Observable<any> {
+        const formData = new FormData();
+        files.forEach((file) => {
+            formData.append('files', file);
+        });
+        formData.append('key', 'Projects');
+        if (subPath && subPath.trim()) {
+            formData.append('subPath', subPath.trim());
+        }
+        if (projectCode && projectCode.trim()) {
+            formData.append('projectCode', projectCode.trim());
+        }
+        return this.http.post<any>(`${environment.host}api/ProjectGateStepCheckListDetailLink/upload-multiple`, formData);
     }
 
     getFiles(checkListLinkId: number): Observable<any> {
@@ -125,6 +140,26 @@ export class ProjectGateStepService {
         return this.http.post<any>(`${this.checkListApiUrl}/save-details/${checkListId}`, data);
     }
 
+    // ProjectGateStepForm API
+    private stepFormApiUrl = environment.host + 'api/ProjectGateStepForm';
+
+    getFormsByStep(stepId: number): Observable<any> {
+        return this.http.get<any>(`${this.stepFormApiUrl}/get-by-step/${stepId}`);
+    }
+
+    saveStepForms(stepId: number, data: any): Observable<any> {
+        return this.http.post<any>(`${this.stepFormApiUrl}/save-by-step/${stepId}`, data);
+    }
+
+    uploadFormFile(file: File, departmentName?: string): Observable<any> {
+        const formData = new FormData();
+        formData.append('files', file);
+        if (departmentName && departmentName.trim()) {
+            formData.append('departmentName', departmentName.trim());
+        }
+        return this.http.post<any>(`${this.stepFormApiUrl}/upload-file`, formData);
+    }
+
     // ProjectGateStepTemplate API
     private templateApiUrl = environment.host + 'api/ProjectGateStepTemplate';
 
@@ -162,5 +197,9 @@ export class ProjectGateStepService {
 
     getProjectItemParentChild(projectTaskId: number): Observable<any> {
         return this.http.get<any>(`${environment.host}api/ProjectGateStepLink/GetProjectItemParentChild/${projectTaskId}`);
+    }
+
+    getWorkersByStepLink(stepLinkId: number): Observable<any> {
+        return this.http.get<any>(`${environment.host}api/ProjectGateStepLink/get-workers-by-step-link/${stepLinkId}`);
     }
 }

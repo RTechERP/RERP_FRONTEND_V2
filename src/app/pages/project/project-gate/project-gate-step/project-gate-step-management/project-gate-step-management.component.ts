@@ -24,14 +24,15 @@ import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { DateTime } from 'luxon';
 
-import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { ProjectGateStepService } from '../project-gate-step.service';
-import { ProjectGateCheckListTypeService } from '../../project-gate/project-gate-checklist-type/project-gate-checklist-type.service';
+import { ProjectGateCheckListTypeService } from '../../project-gate-checklist-type/project-gate-checklist-type.service';
 import { ProjectGateStepTemplateModalComponent } from '../project-gate-step-template-modal/project-gate-step-template-modal.component';
 import { ProjectGateStepChecklistComponent } from '../project-gate-step-checklist/project-gate-step-checklist.component';
-import { TabServiceService } from '../../../../layouts/tab-service.service';
-import { ProjectTypeDepartmentService } from '../../project-gate/project-type-department/project-type-department.service';
-import { ProjectTypeDepartmentTemplateFormComponent } from '../../project-gate/project-type-department/project-type-department-template-form/project-type-department-template-form.component';
+import { ProjectGateStepFormAttachComponent } from '../project-gate-step-form-attach/project-gate-step-form-attach.component';
+import { TabServiceService } from '../../../../../layouts/tab-service.service';
+import { ProjectTypeDepartmentService } from '../../project-type-department/project-type-department.service';
+import { ProjectTypeDepartmentTemplateFormComponent } from '../../project-type-department/project-type-department-template-form/project-type-department-template-form.component';
 
 export interface ColDef {
   field: string; header: string; width: string;
@@ -184,6 +185,12 @@ export class ProjectGateStepManagementComponent implements OnInit {
         disabled: this.selectedItems.length !== 1
       },
       {
+        label: 'Biểu mẫu',
+        icon: 'fa-solid fa-file-signature text-warning',
+        command: () => this.onOpenFormAttach(),
+        disabled: this.selectedItems.length !== 1
+      },
+      {
         label: 'Xuất excel',
         icon: 'fa-solid fa-file-excel text-success',
         command: () => this.onExportExcel()
@@ -304,7 +311,7 @@ export class ProjectGateStepManagementComponent implements OnInit {
           this.loadMasterTemplates();
           this.loadProduce();
         }
-      }).catch(() => {});
+      }).catch(() => { });
     } else {
       const modalRef = this.ngbModal.open(ProjectGateStepTemplateModalComponent, {
         size: 'lg',
@@ -317,7 +324,7 @@ export class ProjectGateStepManagementComponent implements OnInit {
           this.loadMasterTemplates();
           this.loadProduce();
         }
-      }).catch(() => {});
+      }).catch(() => { });
     }
   }
 
@@ -337,7 +344,7 @@ export class ProjectGateStepManagementComponent implements OnInit {
           this.loadMasterTemplates();
           this.loadProduce();
         }
-      }).catch(() => {});
+      }).catch(() => { });
     } else {
       this.onManageTemplates();
     }
@@ -652,6 +659,10 @@ export class ProjectGateStepManagementComponent implements OnInit {
     }
   }
 
+  openFormAttachForRow(step: any): void {
+    this.openFormAttachForStep(step);
+  }
+
   addModalCheckListItem(): void {
     this.editingStepCheckLists.push({
       ID: 0,
@@ -721,6 +732,35 @@ export class ProjectGateStepManagementComponent implements OnInit {
         stepId: step.ID,
         stepCode: step.GateCode || '',
         stepName: step.Content || step.GateName || '',
+        stepData: step
+      }
+    });
+  }
+
+  onOpenFormAttach(): void {
+    if (this.selectedItems.length !== 1) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đúng 1 công đoạn để đính kèm biểu mẫu!');
+      return;
+    }
+    const step = this.selectedItems[0];
+    this.openFormAttachForStep(step);
+  }
+
+  openFormAttachForStep(step: any): void {
+    if (!step || !step.ID) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng lưu công đoạn trước khi đính kèm biểu mẫu!');
+      return;
+    }
+    const tabKey = `form-attach-step-${step.ID}`;
+    this.tabService.openTabComp({
+      comp: ProjectGateStepFormAttachComponent,
+      title: `Biểu mẫu: [${step.GateCode || step.ID}] ${step.Content || step.GateName || ''}`,
+      key: tabKey,
+      data: {
+        stepId: step.ID,
+        stepCode: step.GateCode || '',
+        stepName: step.Content || step.GateName || '',
+        departmentName: this.departmentName || '',
         stepData: step
       }
     });

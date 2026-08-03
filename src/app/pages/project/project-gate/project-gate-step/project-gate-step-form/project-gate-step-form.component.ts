@@ -10,9 +10,9 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzGridModule } from 'ng-zorro-antd/grid';
-import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { ProjectGateStepService } from '../project-gate-step.service';
-import { ProjectGateCheckListTypeService } from '../../project-gate/project-gate-checklist-type/project-gate-checklist-type.service';
+import { ProjectGateCheckListTypeService } from '../../project-gate-checklist-type/project-gate-checklist-type.service';
 
 @Component({
   selector: 'app-project-gate-step-form',

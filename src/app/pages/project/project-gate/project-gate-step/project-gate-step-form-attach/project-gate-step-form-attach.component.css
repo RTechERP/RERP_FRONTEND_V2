@@ -1,0 +1,43 @@
+.form-attach-container {
+  height: 100% !important;
+  min-height: 450px;
+  max-height: 80vh;
+  width: 100% !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-size: 12px;
+}
+
+/* ══ Fix NgZorro nz-spin flex stretching bug ═══════════════ */
+::ng-deep nz-spin,
+::ng-deep .nz-spin-container,
+::ng-deep .nz-spin-nested-loading {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex-grow: 1 !important;
+}
+
+/* ══ Header bar ══════════════════════════════════════════════ */
+.step-info-bar {
+  background: linear-gradient(135deg, #f0f5ff 0%, #e8f4fd 100%);
+  border-bottom: 2px solid #d6e4ff;
+  min-height: 50px;
+  flex-shrink: 0;
+}
+
+/* ══ Highlight detail new rows ═════════════════════════════ */
+tr.detail-new td {
+  background-color: #f6ffed !important;
+}
+
+/* ══ Table formatting and sizes ════════════════════════════ */
+.p-datatable {
+  height: 100%;
+}
+
+.is-invalid {
+  border-color: #ff4d4f !important;
+}

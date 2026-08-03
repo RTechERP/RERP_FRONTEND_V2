@@ -32,9 +32,9 @@ import {
   ProjectDashboardFilter,
   ProjectDashboardSummary
 } from './project-control-dashboard-mock.service';
-import { ProjectService } from '../project-service/project.service';
-import { AuthService } from '../../../auth/auth.service';
-import { TabServiceService } from '../../../layouts/tab-service.service';
+import { ProjectService } from '../../project-service/project.service';
+import { AuthService } from '../../../../auth/auth.service';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
 import { ProjectGateStepByProjectComponent } from '../project-gate-step/project-gate-step-by-project/project-gate-step-by-project.component';
 
 echarts.use([

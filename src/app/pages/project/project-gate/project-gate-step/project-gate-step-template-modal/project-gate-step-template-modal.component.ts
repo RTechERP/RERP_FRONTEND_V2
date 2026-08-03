@@ -9,7 +9,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { TableModule } from 'primeng/table';
 import { ProjectGateStepService } from '../project-gate-step.service';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 @Component({
   selector: 'app-project-gate-step-template-modal',

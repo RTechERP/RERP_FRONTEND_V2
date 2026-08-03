@@ -68,24 +68,26 @@
         </div>
         }
         <button nz-button nzType="default" nzDanger (click)="openDeletedStepsModal()" [disabled]="isSaving || isLoading"
-          style="font-size: 12px;">
+          style="font-size: 12px;" *hasPermission="'N109'">
           <i class="fa-solid fa-trash-can me-1"></i> Danh sách đã xóa
         </button>
         @if (selectedStepLinkIds.size > 0) {
         <button nz-button nzType="default" nzDanger (click)="confirmApproveMultiple(false)"
-          [nzLoading]="isApprovingMultiple" style="font-size: 12px;">
-          <i class="fa-solid fa-xmark me-1" *hasPermission="'N110'"></i> Hủy duyệt ({{ selectedStepLinkIds.size }})
+          [nzLoading]="isApprovingMultiple" style="font-size: 12px;" *hasPermission="'N110'">
+          <i class="fa-solid fa-xmark me-1"></i> Hủy duyệt ({{ selectedStepLinkIds.size }})
         </button>
         <button nz-button nzType="primary" style="background:#52c41a;border-color:#52c41a;font-size:12px"
           (click)="confirmApproveMultiple(true)" [nzLoading]="isApprovingMultiple" *hasPermission="'N110'">
           <i class="fa-solid fa-circle-check me-1"></i> Duyệt công đoạn ({{ selectedStepLinkIds.size }})
         </button>
         }
-        <button nz-button nzType="primary" (click)="save(false)" [nzLoading]="isSaving" style="font-size: 12px;">
-          <i class="fa-solid fa-floppy-disk me-1" *hasPermission="'N109'"></i> Lưu
+        <button nz-button nzType="primary" (click)="save(false)" [nzLoading]="isSaving" style="font-size: 12px;"
+          *hasPermission="'N109'">
+          <i class="fa-solid fa-floppy-disk me-1"></i> Lưu
         </button>
-        <button nz-button nzType="primary" (click)="save(true)" [nzLoading]="isSaving" style="font-size: 12px;">
-          <i class="fa-solid fa-floppy-disk me-1" *hasPermission="'N109'"></i> Lưu và đóng
+        <button nz-button nzType="primary" (click)="save(true)" [nzLoading]="isSaving" style="font-size: 12px;"
+          *hasPermission="'N109'">
+          <i class="fa-solid fa-floppy-disk me-1"></i> Lưu và đóng
         </button>
         } @else {
         <div class="d-flex align-items-center gap-1 me-auto">
@@ -638,7 +640,7 @@
           <col style="width: 150px;">
           <col style="width: 320px;">
           <col style="width: 320px;">
-          <col style="width: 140px;">
+          <col style="width: 160px;">
           <col style="width: 120px;">
           <col style="width: 80px;">
           <col style="width: 80px;">
@@ -677,7 +679,7 @@
           <th style="width: 320px;" class="text-center" pResizableColumn pSortableColumn="Content">Nội dung thực tế
             <p-sortIcon field="Content"></p-sortIcon>
           </th>
-          <th style="width: 140px;" class="text-center" pResizableColumn>Checklist</th>
+          <th style="width: 160px;" class="text-center" pResizableColumn>CheckList & Biểu mẫu</th>
 
           <th style="width: 120px;" class="text-center" pResizableColumn pSortableColumn="StartDate">Ngày bắt đầu
             <p-sortIcon field="StartDate"></p-sortIcon>
@@ -774,15 +776,24 @@
             }}</td>
           <td style="width: 320px; white-space: pre-wrap; word-break: break-word;">{{ item.isNew ? '' : item.Content
             }}</td>
-          <!-- Cột Checklist -->
-          <td style="width: 140px; font-size: 11px; text-align: center;">
-            @if (!item.isNew && item.CheckLists && item.CheckLists.length > 0) {
-            <div style="height: 20px; display: flex; align-items: center; justify-content: center;">
+          <!-- Cột Checklist & Biểu mẫu -->
+          <td style="width: 160px; font-size: 11px; text-align: center;">
+            @if (!item.isNew) {
+            <div class="d-flex flex-column align-items-center justify-content-center gap-1 py-1">
+              @if (item.CheckLists && item.CheckLists.length > 0) {
               <button nz-button nzType="link" nzSize="small" (click)="openFileListModal(item)"
-                class="p-0 d-inline-flex align-items-center">
+                class="p-0 d-inline-flex align-items-center" style="font-size: 11px; height: 18px;">
                 <i class="fa-solid fa-list-check me-1"></i>
-                Chi tiết ({{ countCompletedRules(item) }}/{{ item.CheckLists.length }})
+                Checklist ({{ countCompletedRules(item) }}/{{ item.CheckLists.length }})
               </button>
+              }
+              @if (item.Forms && item.Forms.length > 0) {
+              <button nz-button nzType="link" nzSize="small" (click)="openFormsModal(item)"
+                class="p-0 d-inline-flex align-items-center text-success" style="font-size: 11px; height: 18px;">
+                <i class="fa-solid fa-file-signature me-1"></i>
+                Biểu mẫu ({{ item.Forms.length }})
+              </button>
+              }
             </div>
             }
           </td>

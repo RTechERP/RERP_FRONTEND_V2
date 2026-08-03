@@ -22,13 +22,15 @@ import { DateTime } from 'luxon';
 import { finalize } from 'rxjs/operators';
 
 import { ProjectGateStepService } from '../project-gate-step.service';
-import { ProjectService } from '../../project-service/project.service';
-import { ProjectTypeDepartmentService } from '../../project-gate/project-type-department/project-type-department.service';
-import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
-import { TabServiceService } from '../../../../layouts/tab-service.service';
-import { ProjectWorkerService } from '../../project-department-summary/project-department-summary-form/project-woker/project-worker-service/project-worker.service';
+import { ProjectService } from '../../../project-service/project.service';
+import { ProjectTypeDepartmentService } from '../../project-type-department/project-type-department.service';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
+import { TabServiceService } from '../../../../../layouts/tab-service.service';
+import { ProjectWorkerService } from '../../../project-department-summary/project-department-summary-form/project-woker/project-worker-service/project-worker.service';
 import { ProjectGateStepFilesModalComponent } from '../project-gate-step-files-modal/project-gate-step-files-modal.component';
-import { ProjectRequestComponent } from '../../project-request/project-request.component';
+import { ProjectGateStepFormsModalComponent } from '../project-gate-step-forms-modal/project-gate-step-forms-modal.component';
+import { ProjectRequestComponent } from '../../../project-request/project-request.component';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-project-gate-step-by-project',
@@ -48,7 +50,9 @@ import { ProjectRequestComponent } from '../../project-request/project-request.c
     MenubarModule,
     ContextMenuModule,
     ProjectGateStepFilesModalComponent,
-    ProjectRequestComponent
+    ProjectGateStepFormsModalComponent,
+    ProjectRequestComponent,
+    HasPermissionDirective
   ],
   templateUrl: './project-gate-step-by-project.component.html',
   styleUrls: ['./project-gate-step-by-project.component.css'],
@@ -468,6 +472,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
                 step.isRepeatChecked = !!repeatedItem;
 
                 step.CheckLists = originalItem.CheckLists || [];
+                step.Forms = originalItem.Forms || [];
 
                 if (originalItem.Workers && originalItem.Workers.length > 0) {
                   step.Workers = originalItem.Workers.map((w: any) => w.EmployeeID);
@@ -499,6 +504,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
               repeatedStep.StartDate = repeatedItem.StartDate ? repeatedItem.StartDate.substring(0, 10) : null;
 
               repeatedStep.CheckLists = repeatedItem.CheckLists || [];
+              repeatedStep.Forms = repeatedItem.Forms || [];
 
               if (repeatedItem.Workers && repeatedItem.Workers.length > 0) {
                 repeatedStep.Workers = repeatedItem.Workers.map((w: any) => w.EmployeeID);
@@ -1756,6 +1762,8 @@ export class ProjectGateStepByProjectComponent implements OnInit {
             repeatedStep.UnitPrice = link.Workers[0].UnitPrice;
             repeatedStep.TotalEffort = repeatedStep.PeopleCount * repeatedStep.DayCount;
           }
+          repeatedStep.CheckLists = link.CheckLists || [];
+          repeatedStep.Forms = link.Forms || [];
           steps.push(repeatedStep);
         }
       } else {
@@ -1786,6 +1794,8 @@ export class ProjectGateStepByProjectComponent implements OnInit {
           existingStep.DayCount = link.Workers[0].DayCount;
           existingStep.UnitPrice = link.Workers[0].UnitPrice;
           existingStep.TotalEffort = existingStep.PeopleCount * existingStep.DayCount;
+          existingStep.CheckLists = link.CheckLists || [];
+          existingStep.Forms = link.Forms || [];
         }
       }
 
@@ -1948,13 +1958,13 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     }
 
     this.selectedStepForMenu = item;
-    this.contextMenuItems = [
-      {
-        label: 'Tải file lên (Upload file)',
-        icon: 'pi pi-upload text-primary',
-        command: () => this.triggerFileUpload(item)
-      }
-    ];
+    // this.contextMenuItems = [
+    //   {
+    //     label: 'Tải file lên (Upload file)',
+    //     icon: 'pi pi-upload text-primary',
+    //     command: () => this.triggerFileUpload(item)
+    //   }
+    // ];
 
     if (this.cm) {
       this.cm.show(event);
@@ -1963,109 +1973,6 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     event.stopPropagation();
   }
 
-  triggerFileUpload(item: any, cl?: any) {
-    if (!item) return;
-    let targetCl = cl;
-    if (!targetCl && item.CheckLists) {
-      targetCl = item.CheckLists.find((c: any) => c.PathFolder && c.PathFolder.trim() !== '');
-    }
-    if (!targetCl) return;
-
-    const pathFolder = targetCl.PathFolder;
-    const subPath = this.getRelativeSubPath(pathFolder);
-
-    if (!subPath) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xác định đường dẫn lưu file!');
-      return;
-    }
-
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.multiple = true;
-    fileInput.style.display = 'none';
-
-    fileInput.addEventListener('change', (event: Event) => {
-      const target = event.target as HTMLInputElement;
-      const files = target.files;
-      if (!files || files.length === 0) return;
-
-      const filesToUpload = Array.from(files);
-      this.notification.info('Đang upload', 'Đang tải file lên...');
-
-      this.projectWorkerService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
-        next: (res: any) => {
-          if (res?.status === 1) {
-            const uploadedFiles = res.data || [];
-            if (uploadedFiles.length > 0) {
-              const saveRequests: Observable<any>[] = uploadedFiles.map((fData: any) => {
-                const fileDto = {
-                  FileName: fData.savedFileName || fData.SavedFileName || fData.originalFileName || fData.OriginalFileName,
-                  FilePath: fData.filePath || fData.FilePath,
-                  FileSize: fData.fileSize || fData.FileSize,
-                  ContentType: fData.contentType || fData.ContentType
-                };
-                return this.projectGateStepService.saveFile(targetCl.ID, fileDto);
-              });
-
-              forkJoin(saveRequests).subscribe({
-                next: (saveResults: any[]) => {
-                  this.notification.success(NOTIFICATION_TITLE.success, `Đã tải lên và lưu ${uploadedFiles.length} file thành công!`);
-                  targetCl.IsPass = true;
-
-                  // Thêm file vào mảng cục bộ để update UI
-                  targetCl.Files = targetCl.Files || [];
-                  saveResults.forEach((saveRes: any, index: number) => {
-                    const fData = uploadedFiles[index];
-                    if (saveRes?.status === 1) {
-                      targetCl.Files.push({
-                        ID: saveRes.data,
-                        FileName: fData.originalFileName || fData.OriginalFileName || fData.savedFileName || fData.SavedFileName,
-                        FilePath: fData.filePath || fData.FilePath,
-                        FileSize: fData.fileSize || fData.FileSize,
-                        ContentType: fData.contentType || fData.ContentType,
-                        CreatedBy: 'You',
-                        CreatedDate: new Date()
-                      });
-                    }
-                  });
-                },
-                error: (saveErr: any) => {
-                  this.notification.create(
-                    NOTIFICATION_TYPE_MAP[saveErr.status] || 'error',
-                    NOTIFICATION_TITLE_MAP[saveErr.status as RESPONSE_STATUS] || 'Lỗi',
-                    saveErr?.error?.message || `${saveErr.error}\n${saveErr.message}`,
-                    {
-                      nzStyle: { whiteSpace: 'pre-line' }
-                    }
-                  );
-                }
-              });
-            } else {
-              this.notification.success(NOTIFICATION_TITLE.success, `Tải file lên thành công!`);
-              targetCl.IsPass = true;
-            }
-          } else {
-            const msg = res?.message || 'Upload file không thành công.';
-            this.notification.error(NOTIFICATION_TITLE.error, msg);
-          }
-        },
-        error: (err: any) => {
-          this.notification.create(
-            NOTIFICATION_TYPE_MAP[err.status] || 'error',
-            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-            err?.error?.message || `${err.error}\n${err.message}`,
-            {
-              nzStyle: { whiteSpace: 'pre-line' }
-            }
-          );
-        }
-      });
-    });
-
-    document.body.appendChild(fileInput);
-    fileInput.click();
-    setTimeout(() => document.body.removeChild(fileInput), 100);
-  }
 
   getStepFilesCount(item: any): number {
     if (!item.CheckLists || item.CheckLists.length === 0) return 0;
@@ -2078,6 +1985,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     return count;
   }
 
+  /*region hàm mở modal checklist */
   openFileListModal(item: any, cl?: any) {
     const modalRef = this.ngbModal.open(ProjectGateStepFilesModalComponent, {
       centered: true,
@@ -2089,6 +1997,8 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     modalRef.componentInstance.selectedRuleId = cl?.ID || null;
     modalRef.componentInstance.gateCode = item.GateCode || '';
     modalRef.componentInstance.gateName = item.GateName || '';
+    modalRef.componentInstance.projectCode = this.projectCode || item.ProjectCode || '';
+    modalRef.componentInstance.isApproved = item.IsApproved || item.isApproved || false;
 
     modalRef.result
       .then((result: any) => {
@@ -2097,6 +2007,26 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       .catch((error: any) => {
         this.loadAllGateSteps();
       });
+  }
+
+  openFormsModal(item: any) {
+    const stepId = (item.isRepeated ? item.parentStepId : item.ID) || item.ProjectGateStepID || item.stepId || item.ProjectGateStepTemplateID;
+    console.log('openFormsModal clicked item:', item, 'resolved stepId:', stepId);
+
+    const modalRef = this.ngbModal.open(ProjectGateStepFormsModalComponent, {
+      centered: true,
+      size: 'xl',
+      keyboard: true,
+      backdrop: 'static'
+    });
+
+    modalRef.componentInstance.stepId = stepId;
+    modalRef.componentInstance.gateCode = item.GateCode || '';
+    modalRef.componentInstance.gateName = item.Content || item.GateName || '';
+
+    if (stepId) {
+      modalRef.componentInstance.loadData();
+    }
   }
 
   closeModal() {

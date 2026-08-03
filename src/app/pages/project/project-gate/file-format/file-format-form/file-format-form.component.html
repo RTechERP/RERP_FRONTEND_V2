@@ -1,0 +1,67 @@
+<div class="modal-header bg-primary py-2">
+  <h6 class="modal-title text-uppercase text-white font-weight-bold" style="font-size: 14px;">
+    {{ isEdit ? 'CẬP NHẬT ĐỊNH DẠNG FILE' : 'THÊM MỚI ĐỊNH DẠNG FILE' }}
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+
+<div class="modal-body p-3" style="font-size: 13px;">
+  <form nz-form [formGroup]="form" nzLayout="vertical">
+    <!-- STT & FormatName -->
+    <div class="row g-2">
+      <!-- STT -->
+      <div class="col-md-4">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 13px;">
+            Số thứ tự (STT) <span class="text-danger ps-1">*</span>
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập STT hợp lệ!">
+            <nz-input-number formControlName="STT" [nzMin]="1" [nzMax]="999" class="w-100"
+              style="font-size: 13px;"></nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- FormatName -->
+      <div class="col-md-8">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 13px;">
+            Tên định dạng <span class="text-danger ps-1">*</span>
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên định dạng!">
+            <input nz-input formControlName="FormatName" placeholder="VD: Excel, Word, CAD, PDF"
+              style="font-size: 13px;" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+
+    <!-- Extension -->
+    <div class="row g-2 mt-1">
+      <div class="col-12">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 13px;">
+            Đuôi file mở rộng (Extension) <span class="text-danger ps-1">*</span>
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập đuôi mở rộng!">
+            <input nz-input formControlName="Extension" placeholder="VD: .xlsx, .pdf, .dwg" style="font-size: 13px;" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Modal Footer -->
+<div class="modal-footer py-2" style="font-size: 13px;">
+  <button nz-button nzType="default" nzDanger (click)="onCancel()" style="font-size: 13px;">
+    <i class="fa-solid fa-xmark me-1"></i> Đóng
+  </button>
+  <button nz-button nzType="primary" [nzLoading]="loading" (click)="onSubmit(false)" *ngIf="!isEdit"
+    style="font-size: 13px;">
+    <i class="fa-solid fa-floppy-disk me-1"></i> Lưu
+  </button>
+  <button nz-button nzType="primary" [nzLoading]="loading" (click)="onSubmit(true)" style="font-size: 13px;">
+    <i class="fa-solid fa-floppy-disk me-1"></i> Lưu và đóng
+  </button>
+</div>

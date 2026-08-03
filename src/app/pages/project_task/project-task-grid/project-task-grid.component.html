@@ -1,0 +1,222 @@
+<div class="task-grid-page">
+
+  <!-- ===== PHẦN BỘ LỌC VÀ HÀNH ĐỘNG ===== -->
+  <div class="card border-0 mb-2 p-2 bg-light filter-card">
+    <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+      
+      <!-- Dự án -->
+      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5">
+        <div class="form-field-vertical">
+          <label class="fw-bold">Dự án <span class="text-danger">*</span></label>
+          <nz-select nzPlaceHolder="Chọn dự án..." [(ngModel)]="projectId" nzSize="small" nzShowSearch
+            nzAllowClear (ngModelChange)="onProjectChange()" style="width: 100%;">
+            <nz-option *ngFor="let item of projectList"
+              [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID">
+            </nz-option>
+          </nz-select>
+        </div>
+      </nz-col>
+
+      <!-- Từ ngày -->
+      <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="3" [nzLg]="3">
+        <div class="form-field-vertical">
+          <label>Từ ngày</label>
+          <input type="date" class="input-cell" [(ngModel)]="dateStart" (ngModelChange)="applyFilters()" />
+        </div>
+      </nz-col>
+
+      <!-- Đến ngày -->
+      <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="3" [nzLg]="3">
+        <div class="form-field-vertical">
+          <label>Đến ngày</label>
+          <input type="date" class="input-cell" [(ngModel)]="dateEnd" (ngModelChange)="applyFilters()" />
+        </div>
+      </nz-col>
+
+      <!-- Từ khóa -->
+      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="4" [nzLg]="4">
+        <div class="form-field-vertical">
+          <label>Từ khóa</label>
+          <input nz-input nzSize="small" placeholder="Mã hoặc tên công việc..." [(ngModel)]="filterKeyword"
+            (ngModelChange)="applyFilters()" />
+        </div>
+      </nz-col>
+
+      <!-- Trạng thái -->
+      <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="3" [nzLg]="3">
+        <div class="form-field-vertical">
+          <label>Trạng thái</label>
+          <nz-select nzPlaceHolder="Tất cả" [(ngModel)]="filterStatus" nzSize="small" nzAllowClear
+            (ngModelChange)="applyFilters()" style="width: 100%;">
+            <nz-option *ngFor="let s of statusList" [nzValue]="s.value" [nzLabel]="s.label"></nz-option>
+          </nz-select>
+        </div>
+      </nz-col>
+
+      <!-- Người thực hiện -->
+      <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="3" [nzLg]="3">
+        <div class="form-field-vertical">
+          <label>Người thực hiện</label>
+          <nz-select nzPlaceHolder="Tất cả" [(ngModel)]="filterUser" nzSize="small" nzShowSearch nzAllowClear
+            (ngModelChange)="applyFilters()" style="width: 100%;">
+            <nz-option *ngFor="let u of users" [nzValue]="u.ID" [nzLabel]="u.FullName || u.LoginName"></nz-option>
+          </nz-select>
+        </div>
+      </nz-col>
+
+      <!-- Buttons -->
+      <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="3" class="d-flex gap-2 justify-content-end align-items-center ms-auto">
+        <button nz-button nzType="default" nzSize="small" (click)="resetSearch()" title="Đặt lại bộ lọc">
+          <i class="fa-solid fa-rotate-left"></i>
+        </button>
+        <button nz-button nzType="primary" nzSize="small" (click)="addRootTask()" [disabled]="!projectId">
+          <i class="fa-solid fa-plus me-1"></i> Thêm cha
+        </button>
+        <button nz-button nzType="primary" nzDanger nzSize="small" (click)="saveAll()" [nzLoading]="saving()" [disabled]="getDirtyCount() === 0">
+          <i class="fa-solid fa-floppy-disk me-1"></i> Lưu
+          <span *ngIf="getDirtyCount() > 0" class="badge bg-white text-danger ms-1">{{ getDirtyCount() }}</span>
+        </button>
+      </nz-col>
+    </nz-row>
+  </div>
+
+  <!-- ===== BẢNG CÂY CÔNG VIỆC VỚI PRIME-NG RESIZABLE COLUMNS ===== -->
+  <nz-spin [nzSpinning]="loading()">
+    <div class="table-scroll-wrapper">
+      <p-table [value]="flatVisibleData" [resizableColumns]="true" columnResizeMode="expand" styleClass="p-datatable-sm p-datatable-gridlines tree-grid-p-table">
+        <ng-template pTemplate="header">
+          <tr>
+            <th pResizableColumn style="width: 60px;" class="text-center">Thao tác</th>
+            <th pResizableColumn style="width: 160px;">Mã CV</th>
+            <th pResizableColumn style="width: 240px;">Tên công việc <span class="text-danger">*</span></th>
+            <th pResizableColumn style="width: 160px;">Loại hạng mục <span class="text-danger">*</span></th>
+            <th pResizableColumn style="width: 160px;">Người giao việc <span class="text-danger">*</span></th>
+            <th pResizableColumn style="width: 200px;">Người thực hiện <span class="text-danger">*</span></th>
+            <th pResizableColumn style="width: 120px;" class="group-planned-sub text-center">BĐ dự kiến</th>
+            <th pResizableColumn style="width: 120px;" class="group-planned-sub text-center">KT dự kiến</th>
+            <th pResizableColumn style="width: 120px;" class="group-actual-sub text-center">BĐ thực tế</th>
+            <th pResizableColumn style="width: 120px;" class="group-actual-sub text-center">KT thực tế</th>
+            <th pResizableColumn style="width: 120px;" class="text-center">Deadline</th>
+            <th pResizableColumn style="width: 100px;" class="text-center">Trạng thái</th>
+            <th pResizableColumn style="width: 50px;" class="text-center">Chi tiết</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-row>
+          <tr [ngClass]="{ 'row-dirty': row._isDirty && !row._isNew, 'row-new': row._isNew, 'row-parent': row.hasChildren }">
+            
+            <!-- Thao tác: + Thêm con, x Xóa dòng mới -->
+            <td class="text-center">
+              <div class="d-flex justify-content-center gap-1">
+                <button class="action-btn text-primary" (click)="addChildTask(row)" nz-tooltip nzTooltipTitle="Thêm công việc con">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+                <button *ngIf="row._isNew" class="action-btn text-danger" (click)="removeNewTask(row)" nz-tooltip nzTooltipTitle="Hủy dòng mới thêm">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            </td>
+
+            <!-- Mã CV (Cây Tree) -->
+            <td>
+              <span class="tree-indent" [style.width.px]="row.level * 24"></span>
+              <button *ngIf="row.hasChildren" class="toggle-btn" (click)="toggleExpand(row)">
+                <i [class]="row.expand ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right'"></i>
+              </button>
+              <span *ngIf="!row.hasChildren" style="display: inline-block; width: 18px;"></span>
+              <span class="fw-bold text-dark">{{ row.Code }}</span>
+            </td>
+
+            <!-- Tên công việc -->
+            <td>
+              <input type="text" class="input-cell" [class.input-invalid]="row._invalidMission"
+                [(ngModel)]="row.Mission" (ngModelChange)="onCellChange(row)" placeholder="Nhập tên công việc..." />
+            </td>
+
+            <!-- Loại hạng mục -->
+            <td>
+              <nz-select nzSize="small" class="w-100" [class.input-invalid]="row._invalidType"
+                [nzDropdownMatchSelectWidth]="false" [nzDropdownStyle]="{ 'min-width': '220px' }"
+                [(ngModel)]="row.TypeProjectItem" (ngModelChange)="onCellChange(row)"
+                nzPlaceHolder="Chọn loại..." nzShowSearch>
+                <nz-option *ngFor="let t of typeProjectItems" [nzValue]="t.ID" [nzLabel]="t.ProjectTypeName"></nz-option>
+              </nz-select>
+            </td>
+
+            <!-- Người giao việc -->
+            <td>
+              <nz-select nzSize="small" class="w-100" [class.input-invalid]="row._invalidAssigner"
+                [nzDropdownMatchSelectWidth]="false" [nzDropdownStyle]="{ 'min-width': '220px' }"
+                [(ngModel)]="row.EmployeeIDRequest" (ngModelChange)="onCellChange(row)"
+                nzPlaceHolder="Người giao..." nzShowSearch>
+                <nz-option *ngFor="let e of employeeRequests" [nzValue]="e.ID" [nzLabel]="e.FullName || e.Name || e.Code"></nz-option>
+              </nz-select>
+            </td>
+
+            <!-- Người thực hiện (Multi-Select) -->
+            <td>
+              <nz-select nzSize="small" class="w-100" [class.input-invalid]="row._invalidAssignee"
+                [nzDropdownMatchSelectWidth]="false" [nzDropdownStyle]="{ 'min-width': '250px' }"
+                [(ngModel)]="row.UserIDs" (ngModelChange)="onCellChange(row)"
+                nzPlaceHolder="Người thực hiện..." nzShowSearch nzMode="multiple" [nzMaxTagCount]="2">
+                <nz-option *ngFor="let u of users" [nzValue]="u.ID" [nzLabel]="u.FullName || u.LoginName"></nz-option>
+              </nz-select>
+            </td>
+
+            <!-- BĐ dự kiến -->
+            <td>
+              <input type="date" class="input-cell text-center" [(ngModel)]="row.PlanStartDate" (ngModelChange)="onCellChange(row)" />
+            </td>
+
+            <!-- KT dự kiến -->
+            <td>
+              <input type="date" class="input-cell text-center" [(ngModel)]="row.PlanEndDate" (ngModelChange)="onCellChange(row)" />
+            </td>
+
+            <!-- BĐ thực tế -->
+            <td>
+              <input type="date" class="input-cell text-center" [(ngModel)]="row.ActualStartDate" (ngModelChange)="onCellChange(row)" />
+            </td>
+
+            <!-- KT thực tế -->
+            <td>
+              <input type="date" class="input-cell text-center" [(ngModel)]="row.ActualEndDate" (ngModelChange)="onCellChange(row)" />
+            </td>
+
+            <!-- Deadline -->
+            <td>
+              <input type="date" class="input-cell text-center" [(ngModel)]="row.Deadline" (ngModelChange)="onCellChange(row)" />
+            </td>
+
+            <!-- Trạng thái -->
+            <td class="text-center">
+              <span *ngIf="row.Status === 0" class="status-badge status-0">Chưa làm</span>
+              <span *ngIf="row.Status === 1" class="status-badge status-1">Đang làm</span>
+              <span *ngIf="row.Status === 2" class="status-badge status-2">Hoàn thành</span>
+              <span *ngIf="row.Status === 3" class="status-badge status-3">Pending</span>
+              <span *ngIf="row.Status === 4" class="status-badge status-4">Hủy</span>
+            </td>
+
+            <!-- Chi tiết -->
+            <td class="text-center">
+              <button class="action-btn text-info" (click)="openDetail(row)" nz-tooltip nzTooltipTitle="Xem chi tiết công việc">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </td>
+
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="13" class="text-center py-4 text-muted">
+              <i class="fa-solid fa-folder-open fa-2x mb-2 d-block"></i>
+              {{ projectId ? 'Không có công việc nào' : 'Vui lòng chọn Dự án để hiển thị danh sách công việc' }}
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </nz-spin>
+
+</div>

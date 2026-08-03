@@ -19,33 +19,35 @@
         <span class="fw-bold text-secondary" style="font-size: 12px;">
           <i class="fa-solid fa-list-check me-1"></i> BẢNG CHECKLIST ({{ checklists?.length || 0 }})
         </span>
- 
+
         <!-- Bulk Checklist Actions -->
         <div class="d-flex gap-2">
-          <button nz-button nzType="default" nzSize="small" (click)="bulkComplete(true)"
-            style="color:#52c41a; border-color:#52c41a;">
-            <i class="fa-solid fa-check me-1"></i> NV Xác nhận
-          </button>
-          <button nz-button nzType="default" nzSize="small" (click)="bulkComplete(false)" nzDanger>
-            <i class="fa-solid fa-xmark me-1"></i> NV Hủy xác nhận
-          </button>
-          <button nz-button nzType="primary" nzSize="small" *ngIf="isUserLeader" (click)="bulkApprove(1)"
-            style="background:#52c41a; border-color:#52c41a;">
-            <i class="fa-solid fa-check-double me-1"></i> TBP Duyệt
-          </button>
-          <button nz-button nzType="primary" nzSize="small" *ngIf="isUserLeader" (click)="bulkApprove(0)" nzDanger>
-            <i class="fa-solid fa-ban me-1"></i> TBP Hủy duyệt
-          </button>
+          <ng-container *ngIf="canWorkerAction">
+            <button nz-button nzType="default" nzSize="small" (click)="bulkComplete(true)" [disabled]="isStepApproved"
+              style="color:#52c41a; border-color:#52c41a;">
+              <i class="fa-solid fa-check me-1"></i> NV Xác nhận
+            </button>
+            <button nz-button nzType="default" nzSize="small" (click)="bulkComplete(false)" [disabled]="isStepApproved" nzDanger>
+              <i class="fa-solid fa-xmark me-1"></i> NV Hủy xác nhận
+            </button>
+          </ng-container>
+          <ng-container *hasPermission="'N110'">
+            <button nz-button nzType="primary" nzSize="small" *ngIf="isUserLeader" [disabled]="isStepApproved" (click)="bulkApprove(1)"
+              style="background:#52c41a; border-color:#52c41a;">
+              <i class="fa-solid fa-check-double me-1"></i> TBP Duyệt
+            </button>
+            <button nz-button nzType="primary" nzSize="small" *ngIf="isUserLeader" [disabled]="isStepApproved" (click)="bulkApprove(0)" nzDanger>
+              <i class="fa-solid fa-ban me-1"></i> TBP Hủy duyệt
+            </button>
+          </ng-container>
         </div>
       </div>
- 
+
       <!-- Checklist Rules Grid -->
       <div class="flex-grow-1 overflow-auto p-2" style="min-height: 0;">
-        <p-table [value]="checklists || []" styleClass="p-datatable-sm p-datatable-gridlines"
-          [scrollable]="true" scrollHeight="flex" [style]="{'table-layout': 'fixed'}"
-          [resizableColumns]="true" columnResizeMode="expand"
-          selectionMode="single" [(selection)]="selectedRule" dataKey="ID"
-          [metaKeySelection]="false"
+        <p-table [value]="checklists || []" styleClass="p-datatable-sm p-datatable-gridlines" [scrollable]="true"
+          scrollHeight="flex" [style]="{'table-layout': 'fixed'}" [resizableColumns]="true" columnResizeMode="expand"
+          selectionMode="single" [(selection)]="selectedRule" dataKey="ID" [metaKeySelection]="false"
           (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)">
           <ng-template pTemplate="colgroup">
             <colgroup>
@@ -65,18 +67,25 @@
                 <label nz-checkbox [ngModel]="isAllChecklistsSelected()"
                   (ngModelChange)="toggleSelectAllChecklists($event)"></label>
               </th>
-              <th style="width: 45px; text-align: center;" pResizableColumn pSortableColumn="STT"># <p-sortIcon field="STT"></p-sortIcon></th>
-              <th pResizableColumn pSortableColumn="Description">Quy tắc / Yêu cầu <p-sortIcon field="Description"></p-sortIcon></th>
-              <th style="width: 130px; text-align: center;" pResizableColumn pSortableColumn="FileName">Tên file quy chuẩn <p-sortIcon field="FileName"></p-sortIcon></th>
-              <th style="width: 90px; text-align: center;" pResizableColumn pSortableColumn="Type">Định dạng <p-sortIcon field="Type"></p-sortIcon></th>
-              <th style="width: 80px; text-align: center;" pResizableColumn pSortableColumn="FileQuantity">SL File YC <p-sortIcon field="FileQuantity"></p-sortIcon></th>
-              <th style="width: 100px; text-align: center;" pResizableColumn pSortableColumn="IsPass">Trạng thái NV <p-sortIcon field="IsPass"></p-sortIcon></th>
-              <th style="width: 100px; text-align: center;" pResizableColumn pSortableColumn="IsApprovedTBP">Trạng thái TBP <p-sortIcon field="IsApprovedTBP"></p-sortIcon></th>
+              <th style="width: 45px; text-align: center;" pResizableColumn pSortableColumn="STT"># <p-sortIcon
+                  field="STT"></p-sortIcon></th>
+              <th pResizableColumn pSortableColumn="Description">Quy tắc / Yêu cầu <p-sortIcon
+                  field="Description"></p-sortIcon></th>
+              <th style="width: 130px; text-align: center;" pResizableColumn pSortableColumn="FileName">Tên file quy
+                chuẩn <p-sortIcon field="FileName"></p-sortIcon></th>
+              <th style="width: 90px; text-align: center;" pResizableColumn pSortableColumn="Type">Định dạng <p-sortIcon
+                  field="Type"></p-sortIcon></th>
+              <th style="width: 80px; text-align: center;" pResizableColumn pSortableColumn="FileQuantity">SL File YC
+                <p-sortIcon field="FileQuantity"></p-sortIcon></th>
+              <th style="width: 100px; text-align: center;" pResizableColumn pSortableColumn="IsPass">Trạng thái NV
+                <p-sortIcon field="IsPass"></p-sortIcon></th>
+              <th style="width: 100px; text-align: center;" pResizableColumn pSortableColumn="IsApprovedTBP">Trạng thái
+                TBP <p-sortIcon field="IsApprovedTBP"></p-sortIcon></th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-cl let-rowIndex="rowIndex">
-            <tr class="body-row" [pSelectableRow]="cl" [pSelectableRowDisabled]="!cl.IsFile" [class.cursor-pointer]="cl.IsFile"
-              [class.invalid-file-qty-row]="invalidRuleIds.has(cl.ID)"
+            <tr class="body-row" [pSelectableRow]="cl" [pSelectableRowDisabled]="!cl.IsFile"
+              [class.cursor-pointer]="cl.IsFile" [class.invalid-file-qty-row]="invalidRuleIds.has(cl.ID)"
               style="transition: background 0.15s; font-size: 11px;">
               <td class="text-center" style="width: 40px;" (click)="$event.stopPropagation()">
                 <label nz-checkbox [(ngModel)]="cl._selected"></label>
@@ -158,11 +167,12 @@
             <i class="fa-solid fa-eye me-1"></i> Xem tất cả
           </button>
 
-          <button nz-button nzType="primary" nzSize="small" (click)="triggerUpload()" [disabled]="selectedRule?.IsApprovedTBP === 1">
+          <button nz-button nzType="primary" nzSize="small" *ngIf="canWorkerAction" (click)="triggerUpload()"
+            [disabled]="isStepApproved || selectedRule?.IsApprovedTBP === 1">
             <i class="fa-solid fa-plus me-1"></i> Tải file lên
           </button>
 
-          <button nz-button nzDanger nzType="default" nzSize="small" [disabled]="selectedFileIds.size === 0"
+          <button nz-button nzDanger nzType="default" nzSize="small" [disabled]="isStepApproved || selectedFileIds.size === 0"
             (click)="deleteSelectedFiles()">
             <i class="fa-solid fa-trash me-1"></i> Xóa đã chọn ({{ selectedFileIds.size }})
           </button>
@@ -171,12 +181,11 @@
 
       <!-- File Attachment Table Grid -->
       <div class="flex-grow-1 overflow-auto p-2" style="min-height: 0;">
-        <nz-table #fileTable [nzData]="displayFiles" [nzSize]="'small'" [nzShowPagination]="false"
-          [nzBordered]="true">
+        <nz-table #fileTable [nzData]="displayFiles" [nzSize]="'small'" [nzShowPagination]="false" [nzBordered]="true">
           <thead>
             <tr class="table-light text-center fw-bold text-secondary">
               <th nzWidth="40px" class="text-center">
-                <label nz-checkbox [ngModel]="allChecked" [nzIndeterminate]="indeterminate"
+                <label nz-checkbox [ngModel]="allChecked" [nzIndeterminate]="indeterminate" [nzDisabled]="isStepApproved"
                   (ngModelChange)="onAllChecked($event)"></label>
               </th>
               <th>Tên file</th>
@@ -190,7 +199,7 @@
             <tr *ngFor="let file of fileTable.data">
               <!-- Select Checkbox -->
               <td class="text-center">
-                <label nz-checkbox [ngModel]="selectedFileIds.has(file.ID)" [nzDisabled]="file.isRuleApproved"
+                <label nz-checkbox [ngModel]="selectedFileIds.has(file.ID)" [nzDisabled]="isStepApproved || file.isRuleApproved"
                   (ngModelChange)="onItemChecked(file.ID, $event)"></label>
               </td>
 
@@ -219,8 +228,7 @@
               <!-- Actions -->
               <td class="text-center">
                 <button nz-button nzType="text" nzDanger nzSize="small" (click)="deleteOneFile(file)"
-                  [disabled]="file.isRuleApproved"
-                  style="padding:0; height:24px; width:24px;">
+                  [disabled]="isStepApproved || file.isRuleApproved" style="padding:0; height:24px; width:24px;">
                   <i class="fa-solid fa-trash-can"></i>
                 </button>
               </td>

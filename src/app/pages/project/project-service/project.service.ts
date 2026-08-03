@@ -207,6 +207,28 @@ export class ProjectService {
     return this.http.get<any>(this.urlProject + 'get-projects', { params: httpParams });
   }
 
+  // Danh sách dự án kiểm soát (Báo cáo tiến độ dự án)
+  getProjectsControlGridPagination(params: any, page: number, size: number): Observable<any> {
+    let httpParams = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('dateTimeS', params.dateTimeS || '')
+      .set('dateTimeE', params.dateTimeE || '')
+      .set('keyword', params.keyword || '')
+      .set('customerID', params.customerID?.toString() || '0')
+      .set('saleID', params.saleID?.toString() || '0')
+      .set('projectType', params.projectType || '')
+      .set('leaderID', params.leaderID?.toString() || '0')
+      .set('userTechID', params.userTechID?.toString() || '0')
+      .set('pmID', params.pmID?.toString() || '0')
+      .set('globalUserID', params.globalUserID?.toString() || '0')
+      .set('bussinessFieldID', params.bussinessFieldID?.toString() || '0')
+      .set('projectStatus', params.projectStatus || '')
+      .set('gateType', params.gateType?.toString() || '0');
+
+    return this.http.get<any>(this.urlProject + 'get-projects-control-grid', { params: httpParams });
+  }
+
   // Danh sách dự án phục vụ cho Lĩnh vực & Công nghệ
   getProjectsAppTechPagination(params: any, page: number, size: number): Observable<any> {
     let httpParams = new HttpParams()
@@ -364,6 +386,12 @@ export class ProjectService {
   saveProject(prj: any): Observable<any> {
     return this.http.post<any>(this.urlProject + `save-project`, prj);
   }
+
+  // Tạo dự án demo từ dự án gốc
+  createDemoProject(sourceProjectId: number): Observable<any> {
+    return this.http.post<any>(`${this.urlProject}create-demo-project?sourceProjectId=${sourceProjectId}`, {});
+  }
+
 
   // Lưu riêng thông tin lĩnh vực và công nghệ kiểu dự án
   saveProjectApplicationTechnology(payload: any): Observable<any> {

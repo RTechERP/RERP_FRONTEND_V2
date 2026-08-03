@@ -11,9 +11,11 @@ import { TableModule } from 'primeng/table';
 import { forkJoin, Observable } from 'rxjs';
 
 import { ProjectGateStepService } from '../project-gate-step.service';
-import { ProjectWorkerService } from '../../project-department-summary/project-department-summary-form/project-woker/project-worker-service/project-worker.service';
-import { AppUserService } from '../../../../services/app-user.service';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { ProjectWorkerService } from '../../../project-department-summary/project-department-summary-form/project-woker/project-worker-service/project-worker.service';
+import { AppUserService } from '../../../../../services/app-user.service';
+import { PermissionService } from '../../../../../services/permission.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-project-gate-step-files-modal',
@@ -25,7 +27,8 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzTableModule,
     NzButtonModule,
     NzCheckboxModule,
-    TableModule
+    TableModule,
+    HasPermissionDirective
   ],
   templateUrl: './project-gate-step-files-modal.component.html',
   styleUrls: ['./project-gate-step-files-modal.component.css']
@@ -34,8 +37,14 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
   @Input() checklists: any[] = [];
   @Input() gateCode: string = '';
   @Input() gateName: string = '';
+  @Input() projectCode: string = '';
   @Input() stepLinkId!: number;
   @Input() selectedRuleId: number | null = null;
+  @Input() isApproved: any = false;
+
+  get isStepApproved(): boolean {
+    return this.isApproved === true || this.isApproved === 1 || this.isApproved === '1' || this.isApproved === 'true';
+  }
 
   selectedRule: any = null;
   allChecked = false;
@@ -46,6 +55,8 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
   // Cached properties — tránh gọi method trong template gây lag
   displayFiles: any[] = [];
   isUserLeader = false;
+  workerEmployeeIds: number[] = [];
+  canWorkerAction = false;
 
   @ViewChild('fileInputHidden') fileInputHidden!: ElementRef<HTMLInputElement>;
 
@@ -54,6 +65,7 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
     private projectGateStepService: ProjectGateStepService,
     private projectWorkerService: ProjectWorkerService,
     public appUserService: AppUserService,
+    private permissionService: PermissionService,
     private notification: NzNotificationService,
     private modalService: NzModalService,
     private cdr: ChangeDetectorRef
@@ -61,11 +73,39 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
 
   ngOnInit(): void {
     this.isUserLeader = this.checkIsLeader();
+    this.updateCanWorkerAction();
+    if (this.isStepApproved) {
+      this.notification.warning(NOTIFICATION_TITLE.warning || 'Thông báo', 'Công đoạn này đã được phê duyệt. Bạn chỉ có quyền xem!');
+    }
     if (this.stepLinkId) {
       this.loadCheckLists();
+      this.loadWorkers();
     } else if (this.checklists) {
       this.initCheckLists();
     }
+  }
+
+  loadWorkers(): void {
+    if (!this.stepLinkId) return;
+    this.projectGateStepService.getWorkersByStepLink(this.stepLinkId).subscribe({
+      next: (res: any) => {
+        if (res?.status === 1) {
+          this.workerEmployeeIds = res.data || [];
+          this.updateCanWorkerAction();
+        }
+      },
+      error: (err: any) => {
+        console.error('Lỗi tải danh sách nhân viên thực hiện:', err);
+      }
+    });
+  }
+
+  updateCanWorkerAction(): void {
+    const hasPerm = this.permissionService.hasPermission('N109,N110');
+    const currentEmpId = this.appUserService.currentUser?.EmployeeID;
+    const isWorker = currentEmpId ? this.workerEmployeeIds.includes(currentEmpId) : false;
+    this.canWorkerAction = hasPerm || isWorker;
+    this.cdr.markForCheck();
   }
 
   loadCheckLists(): void {
@@ -96,9 +136,9 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
         this.checklists.forEach(cl => {
           if (cl.Files && cl.Files.length > 0) {
             cl.Files.forEach((f: any) => {
-              list.push({ 
-                ...f, 
-                ruleId: cl.ID, 
+              list.push({
+                ...f,
+                ruleId: cl.ID,
                 ruleDescription: cl.Description || cl.FileRule,
                 isRuleApproved: cl.IsApprovedTBP === 1
               });
@@ -243,6 +283,11 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
   }
 
   bulkComplete(isCompleted: boolean): void {
+    if (this.isStepApproved) {
+      this.notification.warning(NOTIFICATION_TITLE.warning || 'Thông báo', 'Công đoạn này đã được phê duyệt. Bạn chỉ có quyền xem!');
+      return;
+    }
+
     let selectedRules = this.checklists.filter(cl => cl._selected);
     if (selectedRules.length === 0) {
       if (this.selectedRule) {
@@ -255,7 +300,7 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
 
     const actionText = isCompleted ? 'xác nhận hoàn thành' : 'hủy xác nhận hoàn thành';
     const isSingle = selectedRules.length === 1;
-    const contentText = isSingle 
+    const contentText = isSingle
       ? `Bạn có chắc chắn muốn ${actionText} check list: "${selectedRules[0].Description || 'này'}"?`
       : `Bạn có chắc chắn muốn ${actionText} cho ${selectedRules.length} check list đã chọn?`;
 
@@ -338,6 +383,11 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
   }
 
   bulkApprove(status: number): void {
+    if (this.isStepApproved) {
+      this.notification.warning(NOTIFICATION_TITLE.warning || 'Thông báo', 'Công đoạn này đã được phê duyệt. Bạn chỉ có quyền xem!');
+      return;
+    }
+
     let selectedRules = this.checklists.filter(cl => cl._selected);
     if (selectedRules.length === 0) {
       if (this.selectedRule) {
@@ -350,7 +400,7 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
 
     const actionText = status === 1 ? 'phê duyệt' : 'hủy phê duyệt';
     const isSingle = selectedRules.length === 1;
-    const contentText = isSingle 
+    const contentText = isSingle
       ? `Bạn có chắc chắn muốn ${actionText} check list: "${selectedRules[0].Description || 'này'}"?`
       : `Bạn có chắc chắn muốn ${actionText} cho ${selectedRules.length} check list đã chọn?`;
 
@@ -362,11 +412,27 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
     const detailLinkIds = selectedRules.map(cl => cl.ID);
     this.projectGateStepService.checkRequiredFiles(detailLinkIds).subscribe({
       next: (res: any) => {
-        if (res?.status === 1 && res.data && res.data.length > 0) {
-          const violationContent = '<div class="text-danger fw-bold mb-2">Có check list chưa tải đủ số lượng file yêu cầu.</div><div>Bạn có chắc chắn muốn tiếp tục thực hiện hay không?</div>';
+        const missingFileRules = res?.status === 1 && res.data && res.data.length > 0 ? res.data : [];
+        const unconfirmedNVRules = selectedRules.filter(cl => !cl.IsPass);
+
+        if (missingFileRules.length > 0 || unconfirmedNVRules.length > 0) {
+          const warningMessages: string[] = [];
+
+          if (unconfirmedNVRules.length > 0) {
+            warningMessages.push('• Có check list chưa được nhân viên (NV) xác nhận hoàn thành.');
+          }
+          if (missingFileRules.length > 0) {
+            warningMessages.push('• Có check list chưa tải đủ số lượng file yêu cầu.');
+          }
+
+          const violationContent = `
+            <div class="text-danger fw-bold mb-2">Cảnh báo trước khi phê duyệt:</div>
+            <div class="mb-2 text-dark">${warningMessages.join('<br/>')}</div>
+            <div>Bạn có chắc chắn muốn tiếp tục thực hiện phê duyệt hay không?</div>
+          `;
 
           this.modalService.confirm({
-            nzTitle: 'Cảnh báo thiếu file đính kèm',
+            nzTitle: 'Cảnh báo phê duyệt check list',
             nzContent: violationContent,
             nzOkText: 'Đồng ý',
             nzCancelText: 'Hủy',
@@ -377,9 +443,11 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
             },
             nzOnCancel: () => {
               this.invalidRuleIds.clear();
-              res.data.forEach((v: any) => {
-                this.invalidRuleIds.add(v.DetailLinkID);
-              });
+              if (missingFileRules.length > 0) {
+                missingFileRules.forEach((v: any) => {
+                  this.invalidRuleIds.add(v.DetailLinkID);
+                });
+              }
               this.cdr.markForCheck();
             }
           });
@@ -472,6 +540,11 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
   }
 
   triggerUpload(): void {
+    if (this.isStepApproved) {
+      this.notification.warning(NOTIFICATION_TITLE.warning || 'Thông báo', 'Công đoạn này đã được phê duyệt. Bạn chỉ có quyền xem!');
+      return;
+    }
+
     if (!this.selectedRule) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một dòng checklist từ bảng checklist phía trên để tải file lên!');
       return;
@@ -522,10 +595,10 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
       if (standardFileName) {
         const lastDotIdxStd = standardFileName.lastIndexOf('.');
         const standardBase = lastDotIdxStd !== -1 ? standardFileName.substring(0, lastDotIdxStd).trim().toLowerCase() : standardFileName.trim().toLowerCase();
-        
+
         const lastDotIdxFile = fileName.lastIndexOf('.');
         const fileBase = lastDotIdxFile !== -1 ? fileName.substring(0, lastDotIdxFile).trim().toLowerCase() : fileName.trim().toLowerCase();
-        
+
         if (!fileBase.includes(standardBase)) {
           this.notification.error(NOTIFICATION_TITLE.error, `Tên file "${fileName}" không đúng quy chuẩn. Tên file yêu cầu chứa từ khóa: "${standardBase}"`);
           return;
@@ -545,7 +618,8 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
 
     this.notification.info('Đang upload', 'Đang tải file lên...');
 
-    this.projectWorkerService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
+    const projCode = this.projectCode || activeRule.ProjectCode || activeRule.projectCode || '';
+    this.projectGateStepService.uploadMultipleFiles(filesToUpload, subPath, projCode).subscribe({
       next: (res: any) => {
         if (res?.status === 1) {
           const uploadedFiles: any[] = res.data || [];
@@ -584,6 +658,11 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
   }
 
   deleteOneFile(file: any): void {
+    if (this.isStepApproved) {
+      this.notification.warning(NOTIFICATION_TITLE.warning || 'Thông báo', 'Công đoạn này đã được phê duyệt. Bạn chỉ có quyền xem!');
+      return;
+    }
+
     const ruleId = file.ruleId || this.selectedRule?.ID;
     const cl = this.checklists.find(c => c.ID === ruleId);
     if (!cl) return;
@@ -668,6 +747,11 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
   }
 
   deleteSelectedFiles(): void {
+    if (this.isStepApproved) {
+      this.notification.warning(NOTIFICATION_TITLE.warning || 'Thông báo', 'Công đoạn này đã được phê duyệt. Bạn chỉ có quyền xem!');
+      return;
+    }
+
     const fileIdsToDelete = Array.from(this.selectedFileIds);
     if (fileIdsToDelete.length === 0) return;
 

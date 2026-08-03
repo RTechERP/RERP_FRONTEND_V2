@@ -17,7 +17,7 @@ import { ProjectTypeDepartmentFormComponent } from './project-type-department-fo
 import { ProjectTypeDepartmentTemplateFormComponent } from './project-type-department-template-form/project-type-department-template-form.component';
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
-import { ProjectGateStepManagementComponent } from '../../project-gate-step/project-gate-step-management/project-gate-step-management.component';
+import { ProjectGateStepManagementComponent } from '../project-gate-step/project-gate-step-management/project-gate-step-management.component';
 
 @Component({
   selector: 'app-project-type-department',

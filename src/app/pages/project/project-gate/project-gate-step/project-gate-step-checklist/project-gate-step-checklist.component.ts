@@ -15,11 +15,13 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { TableModule } from 'primeng/table';
 import { finalize } from 'rxjs/operators';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { ProjectGateStepService } from '../project-gate-step.service';
-import { TabServiceService } from '../../../../layouts/tab-service.service';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { FileFormatService } from '../../file-format/file-format.service';
+import { FileFormatFormComponent } from '../../file-format/file-format-form/file-format-form.component';
+import { TabServiceService } from '../../../../../layouts/tab-service.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 @Component({
   selector: 'app-project-gate-step-checklist',
@@ -74,9 +76,11 @@ export class ProjectGateStepChecklistComponent implements OnInit {
     @Optional() public activeModal: NgbActiveModal,
     @Optional() @Inject('tabData') public tabData: any,
     private service: ProjectGateStepService,
+    private fileFormatService: FileFormatService,
     private tabService: TabServiceService,
     private notification: NzNotificationService,
     private modal: NzModalService,
+    private ngbModal: NgbModal,
   ) { }
 
   ngOnInit(): void {
@@ -85,7 +89,57 @@ export class ProjectGateStepChecklistComponent implements OnInit {
       this.stepCode = this.tabData.stepCode ?? this.stepCode;
       this.stepName = this.tabData.stepName ?? this.stepName;
     }
+    this.loadFileFormats();
     this.loadData();
+  }
+
+  loadFileFormats(): void {
+    this.fileFormatService.getAll().subscribe({
+      next: (res: any) => {
+        const formats = res.data || [];
+        if (formats.length > 0) {
+          this.formatOptions = formats.map((f: any) => {
+            const formatName = f.FormatName ? f.FormatName.trim() : '';
+            const extension = f.Extension ? f.Extension.trim() : '';
+
+            let label = '';
+            if (formatName && extension) {
+              label = `${formatName} - ${extension}`;
+            } else {
+              label = formatName || extension;
+            }
+
+            return {
+              label: label,
+              value: extension || formatName
+            };
+          });
+        }
+      },
+      error: () => { }
+    });
+  }
+
+  openAddFileFormatModal(): void {
+    const modalRef = this.ngbModal.open(FileFormatFormComponent, {
+      size: 'md',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true
+    });
+    modalRef.componentInstance.dataInput = null;
+
+    modalRef.result.then(
+      (result) => {
+        if (result === 'save') {
+          this.loadFileFormats();
+        }
+      },
+      () => {
+        // Tự động nạp lại danh sách định dạng file khi đóng modal
+        this.loadFileFormats();
+      }
+    );
   }
 
   loadData(): void {

@@ -1,4 +1,5 @@
 import { ProjectTaskSumaryAttendanceComponent } from './pages/project_task/project-task-sumary-attendance/project-task-sumary-attendance.component';
+import { ProjectTaskGridComponent } from './pages/project_task/project-task-grid/project-task-grid.component';
 import { Routes } from '@angular/router';
 import { CourseDashboardComponent } from './pages/course-web/course-dashboard/course-dashboard.component';
 import { WelcomeComponent } from './pages/old/welcome/welcome.component';
@@ -68,12 +69,14 @@ import { EmployeeTeamComponent } from './pages/hrm/employee/employee-team/employ
 import { SummaryEmployeeComponent } from './pages/hrm/employee/summary-employee/summary-employee.component';
 import { FilmManagementComponent } from './pages/hrm/film-management/film-management.component';
 import { HandoverComponent } from './pages/hrm/handover/handover.component';
-import { ProjectGateStepManagementComponent } from './pages/project/project-gate-step/project-gate-step-management/project-gate-step-management.component';
-import { ProjectGateStepByProjectComponent } from './pages/project/project-gate-step/project-gate-step-by-project/project-gate-step-by-project.component';
-import { ProjectControlDashboardViewComponent } from './pages/project/project-control-dashboard-view/project-control-dashboard-view.component';
+import { ProjectGateStepManagementComponent } from './pages/project/project-gate/project-gate-step/project-gate-step-management/project-gate-step-management.component';
+import { ProjectGateStepByProjectComponent } from './pages/project/project-gate/project-gate-step/project-gate-step-by-project/project-gate-step-by-project.component';
+import { ProjectControlDashboardViewComponent } from './pages/project/project-gate/project-control-dashboard-view/project-control-dashboard-view.component';
+import { ProjectProgressReportComponent } from './pages/project/project-gate/project-progress-report/project-progress-report.component';
 //import { HandoverNewComponent } from './pages/hrm/handover/handover-new/handover-new.component';
 import { ProjectGateManagementComponent } from './pages/project/project-gate/project-gate-management/project-gate-management.component';
 import { ProjectGateCheckListTypeManagementComponent } from './pages/project/project-gate/project-gate-checklist-type/project-gate-checklist-type-management.component';
+import { FileFormatManagementComponent } from './pages/project/project-gate/file-format/file-format-management/file-format-management.component';
 import { HolidayComponent } from './pages/hrm/holiday/holiday.component';
 import { HrPurchaseProposalComponent } from './pages/hrm/hr-purchase-proposal/hr-purchase-proposal.component';
 import { HrhiringRequestComponent } from './pages/hrm/hr-recruitment/hrhiring-request/hrhiring-request.component';
@@ -819,9 +822,11 @@ export const routes: Routes = [
       { path: 'project-gate-step-by-project', component: ProjectGateStepByProjectComponent, canActivate: [authGuard] },
       { path: 'project-gate-step-by-project/:id', component: ProjectGateStepByProjectComponent, canActivate: [authGuard] },
       { path: 'project-control-dashboard-view', component: ProjectControlDashboardViewComponent, canActivate: [authGuard] },
+      { path: 'project-progress-report', component: ProjectProgressReportComponent, canActivate: [authGuard] },
       //{ path: 'project-worker', component: ProjectWokerSlickGridComponent, canActivate: [authGuard] },
       { path: 'project-task-setting', component: ProjectTaskSettingComponent, canActivate: [authGuard] },
       { path: 'project-task-time-line-project', component: ProjectTaskTimeLineProjectComponent, canActivate: [authGuard] },
+      { path: 'project-task-grid', component: ProjectTaskGridComponent, canActivate: [authGuard] },
 
       { path: 'project-application-types', component: ProjectApplicationTypesComponent, canActivate: [authGuard] },
 
@@ -1362,6 +1367,7 @@ export const routes: Routes = [
       { path: 'project-gate-step', component: ProjectGateStepManagementComponent, canActivate: [authGuard] },
       { path: 'project-gate', component: ProjectGateManagementComponent, canActivate: [authGuard] },
       { path: 'project-gate-checklist-type', component: ProjectGateCheckListTypeManagementComponent, canActivate: [authGuard] },
+      { path: 'file-format', component: FileFormatManagementComponent, canActivate: [authGuard] },
       { path: 'project-type-department', component: ProjectTypeDepartmentComponent, canActivate: [authGuard] },
     ],
   },

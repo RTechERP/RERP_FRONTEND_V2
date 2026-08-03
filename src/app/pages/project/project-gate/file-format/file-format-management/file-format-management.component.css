@@ -1,0 +1,8 @@
+.custom-menubar {
+  background-color: #f8f9fa !important;
+  border-bottom: 1px solid #e9ecef !important;
+}
+
+.table-wrapper {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}

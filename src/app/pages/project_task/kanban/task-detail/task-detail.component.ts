@@ -31,6 +31,8 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
+import { NzTreeNodeOptions } from 'ng-zorro-antd/tree';
 import { KanbanService } from '../kanban.service';
 import { ProjectTaskService } from '../../project-task/project-task.service';
 import { WorkItemServiceService } from '../../../project/work-item/work-item-service/work-item-service.service';
@@ -87,6 +89,7 @@ import { AddRelatedPeopleComponent } from '../add-related-people/add-related-peo
         NzDrawerModule,
         NzAlertModule,
         NzSpinModule,
+        NzTreeSelectModule,
         AddRelatedPeopleComponent,
         DragDropModule
     ],
@@ -340,6 +343,19 @@ export class TaskDetailComponent implements OnInit {
                 }
             }
         }
+
+        // Ràng buộc: Deadline không được vượt quá ngày kết thúc dự kiến của công việc cha
+        if (this.parentTaskId && this.deadline) {
+            const parentTask = this.parentTaskList.find((t: any) => t.ID === this.parentTaskId);
+            if (parentTask && parentTask.PlanEndDate) {
+                const parentEndDate = new Date(parentTask.PlanEndDate).setHours(0, 0, 0, 0);
+                const deadlineDate = new Date(this.deadline).setHours(0, 0, 0, 0);
+                if (deadlineDate > parentEndDate) {
+                    const parentEndDateStr = this.toDateInputString(new Date(parentTask.PlanEndDate));
+                    this.dateValidationError = `Deadline không được vượt quá ngày KT dự kiến của công việc cha (${parentEndDateStr})`;
+                }
+            }
+        }
     }
 
     onPersonalProjectChange(checked: boolean): void {
@@ -430,6 +446,7 @@ export class TaskDetailComponent implements OnInit {
     set deadlineStr(val: string) {
         const d = this.parseInputDate(val);
         this.deadline = d;
+        this.validateDates();
     }
 
     get minActualEndDate(): string {
@@ -682,6 +699,7 @@ export class TaskDetailComponent implements OnInit {
 
     // Parent Task properties
     parentTaskList: any[] = [];
+    parentTaskTreeNodes: NzTreeNodeOptions[] = [];
     _parentTaskId?: number;
     get parentTaskId(): number | undefined {
         return this._parentTaskId;
@@ -690,6 +708,14 @@ export class TaskDetailComponent implements OnInit {
         this._parentTaskId = value;
         // Kiểm tra validation khi thay đổi công việc cha
         this.validateDates();
+    }
+
+    get selectedParentTaskPlanEndDateStr(): string {
+        if (!this.parentTaskId) return '';
+        const parentTask = this.parentTaskList.find((t: any) => t.ID === this.parentTaskId);
+        if (!parentTask || !parentTask.PlanEndDate) return '';
+        const d = new Date(parentTask.PlanEndDate);
+        return isNaN(d.getTime()) ? '' : this.toDateInputString(d);
     }
 
     // Employee properties
@@ -1180,6 +1206,87 @@ export class TaskDetailComponent implements OnInit {
         return label.includes(input.toLowerCase());
     };
 
+    private buildParentTaskTree(rawList: any[], currentTaskId: number): any[] {
+        const filtered = (rawList || []).filter((t: any) => t.ID !== currentTaskId);
+        const map = new Map<number, any>();
+
+        filtered.forEach((item: any) => {
+            map.set(item.ID, { ...item, children: [] });
+        });
+
+        const roots: any[] = [];
+        filtered.forEach((item: any) => {
+            const node = map.get(item.ID);
+            const parentId = item.ParentID;
+            if (parentId && map.has(parentId)) {
+                map.get(parentId).children.push(node);
+            } else {
+                roots.push(node);
+            }
+        });
+
+        const flattenedResult: any[] = [];
+        const visited = new Set<number>();
+
+        const traverse = (node: any, level: number) => {
+            if (visited.has(node.ID)) return;
+            visited.add(node.ID);
+            node.treeLevel = level;
+            flattenedResult.push(node);
+
+            if (node.children && node.children.length > 0) {
+                node.children.forEach((child: any) => traverse(child, level + 1));
+            }
+        };
+
+        roots.forEach(root => traverse(root, 0));
+
+        // Add any unvisited items at root level
+        filtered.forEach(item => {
+            if (!visited.has(item.ID)) {
+                const node = map.get(item.ID);
+                if (node) traverse(node, 0);
+            }
+        });
+
+        return flattenedResult;
+    }
+
+    private buildParentTaskTreeNodes(rawList: any[], currentTaskId: number): NzTreeNodeOptions[] {
+        const filtered = (rawList || []).filter((t: any) => t.ID !== currentTaskId);
+        const map = new Map<number, NzTreeNodeOptions>();
+
+        filtered.forEach((item: any) => {
+            const label = `${(item.Code || '').trim()} - ${item.Mission || ''}`;
+            const node: NzTreeNodeOptions = {
+                title: label,
+                key: item.ID,
+                value: item.ID,
+                isLeaf: true,
+                children: []
+            };
+            map.set(item.ID, node);
+        });
+
+        const roots: NzTreeNodeOptions[] = [];
+        filtered.forEach((item: any) => {
+            const node = map.get(item.ID);
+            if (!node) return;
+
+            const parentId = item.ParentID;
+            if (parentId && map.has(parentId)) {
+                const parent = map.get(parentId)!;
+                parent.isLeaf = false;
+                parent.children = parent.children || [];
+                parent.children.push(node);
+            } else {
+                roots.push(node);
+            }
+        });
+
+        return roots;
+    }
+
     loadParentTasks(): void {
         const activeTask = this.currentTaskData || this.task;
         const currentTaskId = activeTask?.ID || 0;
@@ -1187,16 +1294,19 @@ export class TaskDetailComponent implements OnInit {
         this.kanbanService.getProjectTasksList(this.selectedProjectId || 0, this.isPersonalProject).subscribe({
             next: (res) => {
                 if (res.status === 200 || res.status === 1) {
-                    // Loại trừ bản thân bản ghi hiện tại
-                    this.parentTaskList = (res.data || []).filter((t: any) => t.ID !== currentTaskId);
+                    const rawList = (res.data || []).filter((t: any) => t.ID !== currentTaskId);
+                    this.parentTaskList = rawList;
+                    this.parentTaskTreeNodes = this.buildParentTaskTreeNodes(res.data || [], currentTaskId);
                 } else {
                     this.parentTaskList = [];
+                    this.parentTaskTreeNodes = [];
                 }
                 this.cdr.detectChanges();
             },
             error: (err) => {
                 console.error('Error loading parent tasks', err);
                 this.parentTaskList = [];
+                this.parentTaskTreeNodes = [];
             }
         });
     }

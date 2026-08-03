@@ -123,13 +123,19 @@
 
                 <!-- FileFormat (Allowed Extensions) -->
                 <td style="padding:8px 8px; vertical-align: middle;">
-                  <nz-select [(ngModel)]="row._selectedFormats" (ngModelChange)="markDetailDirty(row)"
-                    (keydown)="onKeyDown(rowIndex, 'FileFormat', $event)" [attr.data-row]="rowIndex"
-                    [attr.data-col]="'FileFormat'" nzMode="multiple" nzPlaceHolder="Chọn định dạng..." nzSize="small"
-                    nzShowSearch nzAllowClear class="w-100" style="font-size:12px;" [nzDisabled]="!row.IsFile">
-                    <nz-option *ngFor="let opt of getFormatOptions(row._selectedFormats)" [nzValue]="opt.value"
-                      [nzLabel]="opt.label"></nz-option>
-                  </nz-select>
+                  <div class="d-flex align-items-center gap-1">
+                    <nz-select [(ngModel)]="row._selectedFormats" (ngModelChange)="markDetailDirty(row)"
+                      (keydown)="onKeyDown(rowIndex, 'FileFormat', $event)" [attr.data-row]="rowIndex"
+                      [attr.data-col]="'FileFormat'" nzMode="multiple" nzPlaceHolder="Chọn định dạng..." nzSize="small"
+                      nzShowSearch nzAllowClear class="flex-grow-1" style="font-size:12px;" [nzDisabled]="!row.IsFile">
+                      <nz-option *ngFor="let opt of getFormatOptions(row._selectedFormats)" [nzValue]="opt.value"
+                        [nzLabel]="opt.label"></nz-option>
+                    </nz-select>
+                    <button nz-button nzType="default" nzSize="small" type="button" (click)="openAddFileFormatModal()"
+                      [disabled]="!row.IsFile" title="Khai báo thêm định dạng file" style="padding: 0 6px; height: 24px;">
+                      <i class="fa-solid fa-plus text-primary"></i>
+                    </button>
+                  </div>
                 </td>
 
                 <!-- FileQuantity (Quantity) -->

@@ -266,6 +266,12 @@
                                 [ngClass]="{'btn-filter-active': filterReturn}" (click)="toggleColorFilter('return')">
                                 Hàng đã về
                             </button>
+                            <button class="fs-12" nz-button nzType="text" nzSize="small"
+                                [style.background-color]="filterReturnPartial ? '#d48806' : '#ffd666'"
+                                [ngClass]="{'btn-filter-active': filterReturnPartial}"
+                                (click)="toggleColorFilter('returnPartial')">
+                                Về chưa đủ
+                            </button>
                             <button class="fs-12 border" nz-button nzType="text" nzSize="small"
                                 [style.background-color]="filterProductSale ? '#ffd700' : 'lightyellow'"
                                 [style.color]="filterProductSale ? 'black' : 'black'"

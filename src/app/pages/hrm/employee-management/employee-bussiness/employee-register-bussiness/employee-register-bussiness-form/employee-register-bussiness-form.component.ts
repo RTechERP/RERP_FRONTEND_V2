@@ -1041,11 +1041,17 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
   }
 
   onSubmit() {
+    // NDNhat Update 04/08/2026 (fix bug): updateValueAndValidity() mặc định EMIT valueChanges —
+    // vòng lặp này chạy trên MỌI control mỗi khi bấm Lưu, nên vô tình bắn lại valueChanges của
+    // IsSelfTransport (và các control khác có subscription riêng) dù giá trị không đổi, khiến
+    // subscriber ở dưới tưởng user vừa bỏ tích và tự ý gọi setDefaultVehicle(), xoá mất phương
+    // tiện (vd. Xe máy) mà user vừa chọn ngay trước khi Lưu. Chỉ cần validate hiển thị lỗi,
+    // không cần bắn lại side-effect nghiệp vụ → dùng emitEvent: false.
     Object.keys(this.bussinessForm.controls).forEach(key => {
       const control = this.bussinessForm.get(key);
       if (control) {
         control.markAsTouched();
-        control.updateValueAndValidity();
+        control.updateValueAndValidity({ emitEvent: false });
       }
     });
 

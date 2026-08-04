@@ -115,7 +115,7 @@ export class VehicleSelectModalComponent implements OnInit {
     const duplicates = this.vehicleItems.filter(
       v => v.vehicleId === item.vehicleId && v.id !== item.id && v.vehicleId !== 0 && v.vehicleId !== 3
     );
-    
+
     if (duplicates.length > 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Phương tiện đã tồn tại');
       // Reset về giá trị trước đó hoặc 0

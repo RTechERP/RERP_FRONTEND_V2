@@ -91,7 +91,7 @@
                 </td>
                 <td class="text-center" style="font-size: 12px;">{{ item.BirthDay | date: 'dd/MM/yyyy' }}</td>
                 <td class="text-center" style="font-size: 12px;">{{ item.Age }}</td>
-                <td class="text-center" style="font-size: 12px;">{{ item.Height ? item.Height + ' cm' : '' }}</td>
+                <td class="text-center" style="font-size: 12px;">{{ item.Height || '' }}</td>
                 <td class="text-center">
                   <span *ngIf="item.Gender" [ngClass]="item.Gender === 'Nam' ? 'gender-badge-nam' : 'gender-badge-nu'">
                     {{ item.Gender }}

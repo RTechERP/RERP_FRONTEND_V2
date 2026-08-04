@@ -94,6 +94,7 @@ export class HotelBookingFormComponent implements OnInit, OnChanges {
   historicalSuggestions: any[] = [];
   filteredLocations: string[] = [];
   filteredRoomTypes: string[] = [];
+  filteredHotelNames: string[] = [];
 
   formatterVND = (value: number | string): string => {
     if (!value && value !== 0) return '';
@@ -207,6 +208,7 @@ export class HotelBookingFormComponent implements OnInit, OnChanges {
   addProposal(data?: any): void {
     const proposalGroup = this.fb.group({
       ID: this.fb.control(data?.ID ?? data?.id ?? 0),
+      HotelName: this.fb.control(data?.HotelName ?? data?.hotelName ?? ''),
       TypeRoom: this.fb.control(data?.TypeRoom ?? data?.typeRoom ?? '', [Validators.required]),
       Quantity: this.fb.control(data?.Quantity ?? data?.quantity ?? 1, [Validators.required, Validators.min(1)]),
       UnitPrice: this.fb.control(data?.UnitPrice ?? data?.unitPrice ?? 0, [Validators.required, Validators.min(0)]),
@@ -361,6 +363,15 @@ export class HotelBookingFormComponent implements OnInit, OnChanges {
       this.historicalSuggestions
         .filter(s => s.TypeRoom && s.TypeRoom.toString().toLowerCase().includes(valStr))
         .map(s => s.TypeRoom)
+    ));
+  }
+
+  onHotelNameInput(value: string | any): void {
+    const valStr = (value || '').toString().toLowerCase();
+    this.filteredHotelNames = Array.from(new Set(
+      this.historicalSuggestions
+        .filter(s => s.HotelName && s.HotelName.toString().toLowerCase().includes(valStr))
+        .map(s => s.HotelName)
     ));
   }
 

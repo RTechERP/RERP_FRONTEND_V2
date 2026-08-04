@@ -30,7 +30,7 @@ export interface TravelFlatRow {
   PositionName: string;
   BirthDay: string;
   Age: number | string;
-  Height: number | string;
+  Height: string;
   Gender: string;
   Relationship: string;
   Address: string;
@@ -368,7 +368,7 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
         PositionName,
         BirthDay,
         Age: parseNumberSmart(Age) ?? 0,
-        Height: parseNumberSmart(Height) ?? 0,
+        Height: Height ? String(Height).trim() : '',
         Gender,
         Relationship,
         Address,
@@ -494,7 +494,7 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
         PositionName: r.PositionName || '',
         BirthDay: this.parseDateString(r.BirthDay),
         Age: parseNumberSmart(r.Age) ?? null,
-        Height: parseNumberSmart(r.Height) ?? null,
+        Height: r.Height ? String(r.Height).trim() : null,
         Gender: r.Gender || '',
         Relationship: r.Relationship || '',
         Address: r.Address || '',

@@ -71,7 +71,7 @@ export class TravelRegistrationDetailComponent implements OnInit {
       PositionName: [''],
       BirthDay: [null],
       Age: [null],
-      Height: [null],
+      Height: [''],
       Gender: ['Nam'],
       Relationship: [''],
       Address: [''],
@@ -83,8 +83,22 @@ export class TravelRegistrationDetailComponent implements OnInit {
       ConfirmStatus: [0],
       ConfirmDate: [null],
       ConfirmBy: [''],
-      OwnerEmployeeID: [0]
+      OwnerEmployeeID: [0],
+      CreatedBy: [null],
+      CreatedDate: [null],
+      IsDeleted: [false]
     });
+  }
+
+  formatDateForSubmit(dateVal: any): string | null {
+    if (!dateVal) return null;
+    if (dateVal instanceof Date && !isNaN(dateVal.getTime())) {
+      const year = dateVal.getFullYear();
+      const month = String(dateVal.getMonth() + 1).padStart(2, '0');
+      const day = String(dateVal.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    return dateVal;
   }
 
   get title(): string {
@@ -105,8 +119,13 @@ export class TravelRegistrationDetailComponent implements OnInit {
 
     this.isLoading = true;
 
-    // Convert dates back to string format if needed before sending to API
-    const submitData = { ...this.form.value };
+    // Convert dates back to string format (yyyy-MM-dd) before sending to API
+    const submitData = {
+      ...this.form.value,
+      BirthDay: this.formatDateForSubmit(this.form.value.BirthDay),
+      CCCDIssueDate: this.formatDateForSubmit(this.form.value.CCCDIssueDate),
+      ConfirmDate: this.formatDateForSubmit(this.form.value.ConfirmDate)
+    };
 
     this.travelRegistrationService.saveData(submitData).subscribe({
       next: (res: any) => {

@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Menubar } from 'primeng/menubar';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -124,6 +125,7 @@ export class KpiTargetTabComponent implements OnInit {
   menuBars: any[] = [];
   isLoading = false;
   isApiMode = false;
+  sendingApprovalRequestEmail = false;
 
   // Masters datasets
   templates: KpiSaleTemplate[] = [];
@@ -139,6 +141,7 @@ export class KpiTargetTabComponent implements OnInit {
   // N1 / N27 (admin phòng sale) — cũng có toàn quyền duyệt như leader
   isN1Admin = false;
   isN27Admin = false;
+  isN111Admin = false;
 
   // User hiện tại
   currentUserId = 0;
@@ -270,12 +273,34 @@ export class KpiTargetTabComponent implements OnInit {
   }
 
   get canBoardApproveTeamTargets(): boolean {
-    // Chỉ Admin tổng hoặc N1 mới duyệt được
-    return this.isGlobalAdmin || this.isN1Admin;
+    // Chỉ Admin tổng hoặc N1 mới duyệt được, và phải đủ 6/6 SM duyệt
+    console.log('[canBoardApprove] isGlobalAdmin:', this.isGlobalAdmin, 'isN1Admin:', this.isN1Admin, 'allSmApproved:', this.allSmApproved, 'approvedMembers:', this.teamTargetData?.approvedMembers, 'totalMembers:', this.teamTargetData?.totalMembers);
+    return (this.isGlobalAdmin || this.isN1Admin) && this.allSmApproved;
+  }
+
+  /**
+   * User hiện tại có phải Sales Manager của team đang chọn không
+   * (leader của team hiện tại, hoặc N1 — admin phòng sale).
+   * BGD, N27, nhân viên thường đều trả về false.
+   */
+  get isSalesManagerOfCurrentTeam(): boolean {
+    if (!this.selectedTeamId) return false;
+    // N111, N1 hoặc Admin tổng: được quyền gửi mail / duyệt cho mọi team
+    if (this.isN111Admin || this.isGlobalAdmin) return true;
+    // Leader của đúng team đang chọn
+    const isLeaderOfThisTeam = this.myLeaderTeams?.some(t => t.id === this.selectedTeamId);
+    return !!isLeaderOfThisTeam;
+  }
+
+  get allSmApproved(): boolean {
+    if (!this.teamTargetData) return false;
+    return this.teamTargetData.approvedMembers === this.teamTargetData.totalMembers;
   }
 
   get canApproveTeamTargets(): boolean {
-    // Điều kiện để duyệt: tất cả thành viên đều đã SM duyệt
+    // Chỉ Sales Manager của team hiện tại mới thấy nút gửi mail yêu cầu BGĐ duyệt
+    if (!this.isSalesManagerOfCurrentTeam) return false;
+    // Điều kiện dữ liệu: tất cả thành viên đều đã SM duyệt
     if (!this.teamTargetData) return false;
     return this.teamTargetData.approvedMembers === this.teamTargetData.totalMembers;
   }
@@ -316,7 +341,8 @@ export class KpiTargetTabComponent implements OnInit {
 
   // Filter models
   selectedTemplateId = 0;
-  selectedPeriodId = 0;
+  selectedPeriodId: string | null = null;
+  private _queryParams: { periodId: number | null; teamId: number | null } = { periodId: null, teamId: null };
   selectedEmployeeId = 0;
   selectedEmployeeIds: number[] = [];
   selectedTeamId: number | null = null;
@@ -361,7 +387,7 @@ export class KpiTargetTabComponent implements OnInit {
   }
 
   private getCachedPivotRows(): TableRow[] {
-    const currentPeriodId = this.selectedPeriodId || 0;
+    const currentPeriodId = this.resolveSelectedPeriod()?.id || 0;
     const rev = this.targets.length + this.targets.reduce((a, t) => a + (t.id || 0), 0);
 
     console.log('[DEBUG getCachedPivotRows] currentPeriodId:', currentPeriodId, 'rev:', rev);
@@ -1022,7 +1048,7 @@ export class KpiTargetTabComponent implements OnInit {
           const parentQuarterId = selectedPeriod!.parentPeriodId;
           if (parentQuarterId) {
             const savedPeriodId = this.selectedPeriodId;
-            this.selectedPeriodId = parentQuarterId;
+            this.selectedPeriodId = String(parentQuarterId);
             await this.loadTargets();
             await this.cascadeQuarterTargetsFromMonths();
             this.selectedPeriodId = savedPeriodId;
@@ -1100,6 +1126,7 @@ export class KpiTargetTabComponent implements OnInit {
         this.notification.success('Thành công', `Đã SM duyệt ${approved} mục tiêu`);
       }
       this.tabService.notifyDataSaved('kpi-targets');
+      await this.loadTeamTargets();
     } finally {
       this.isLoading = false;
     }
@@ -1162,6 +1189,7 @@ export class KpiTargetTabComponent implements OnInit {
         this.notification.success('Thành công', `Đã SM duyệt ${approved} mục tiêu`);
       }
       this.tabService.notifyDataSaved('kpi-targets');
+      await this.loadTeamTargets();
     } finally {
       this.isLoading = false;
     }
@@ -1404,10 +1432,12 @@ export class KpiTargetTabComponent implements OnInit {
     private modalService: NzModalService,
     private notification: NzNotificationService,
     private appUserService: AppUserService,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private route: ActivatedRoute
   ) {
     this.isN1Admin = this.permissionService.hasPermission('N1');
     this.isN27Admin = this.permissionService.hasPermission('N27');
+    this.isN111Admin = this.permissionService.hasPermission('N111');
     this.isGlobalAdmin = this.appUserService.isAdmin === true;
     this.currentUserId = this.appUserService.id || 0;
   }
@@ -1475,6 +1505,14 @@ export class KpiTargetTabComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Lưu query params để apply sau khi loadInitialData xong
+    this.route.queryParams.subscribe(params => {
+      this._queryParams = {
+        periodId: params['periodId'] ? parseInt(params['periodId'], 10) : null,
+        teamId: params['teamId'] ? parseInt(params['teamId'], 10) : null
+      };
+    });
+
     this.menuBars = [
       {
         label: 'Tải lại',
@@ -1568,7 +1606,8 @@ export class KpiTargetTabComponent implements OnInit {
         this.selectedTemplateId = this.templates[0].id;
       }
       if (this.periods.length > 0 && !this.selectedPeriodId) {
-        this.selectedPeriodId = this.periods.find(p => !p.isClosed)?.id || this.periods[0].id;
+        const defaultPeriod = this.periods.find(p => !p.isClosed) || this.periods[0];
+        this.selectedPeriodId = String(defaultPeriod.id);
       }
       // N1/Leader: tự động chọn team để mặc định bật "Thông số Team" khi vào trang
       // - Leader: ưu tiên team đầu tiên trong myLeaderTeams
@@ -1582,6 +1621,15 @@ export class KpiTargetTabComponent implements OnInit {
           this.selectedTeamId = this.teams[0].id;
         }
       }
+
+      // Apply query params from deep link (email): override default selections if provided
+      if (this._queryParams.periodId && this.periods.some(p => p.id === this._queryParams.periodId)) {
+        this.selectedPeriodId = String(this._queryParams.periodId);
+      }
+      if (this._queryParams.teamId && this.teams.some(t => t.id === this._queryParams.teamId)) {
+        this.selectedTeamId = this._queryParams.teamId;
+      }
+
       if (this.employees.length > 0 && !this.selectedEmployeeId) {
         // Nếu là restricted user → auto chọn đúng nhân viên hiện tại
         if (this.isRestrictedUser && this.currentUserId) {
@@ -1709,7 +1757,7 @@ export class KpiTargetTabComponent implements OnInit {
         const response = await firstValueFrom(
           this.safeApi<any[]>(this.kpiSaleService.getTargets(
             empId,
-            this.selectedPeriodId || undefined,
+            this.resolveSelectedPeriod()?.id || undefined,
             this.selectedTemplateId || undefined
           ))
         );
@@ -1750,9 +1798,11 @@ export class KpiTargetTabComponent implements OnInit {
     }
     this.isTeamWeightLoading = true;
     try {
+      const periodId = this.resolveSelectedPeriod()?.id;
+      if (!periodId) return;
       // Load cả weights và targets song song
       const [weightRes, targetRes] = await Promise.all([
-        firstValueFrom(this.safeApi<any>(this.kpiSaleService.getTeamWeights(this.selectedTeamId, this.selectedPeriodId))),
+        firstValueFrom(this.safeApi<any>(this.kpiSaleService.getTeamWeights(this.selectedTeamId, periodId))),
         this.loadTeamTargetsData()
       ]);
 
@@ -1957,8 +2007,10 @@ export class KpiTargetTabComponent implements OnInit {
     const templateId = this.resolveTeamTemplateId();
     if (!templateId) return null;
     try {
+      const periodId = this.resolveSelectedPeriod()?.id;
+      if (!periodId) return null;
       const response = await firstValueFrom(
-        this.kpiSaleService.getTeamTargets(this.selectedTeamId!, this.selectedPeriodId!, templateId)
+        this.kpiSaleService.getTeamTargets(this.selectedTeamId!, periodId, templateId)
       );
       return response?.status === 1 ? response.data : null;
     } catch {
@@ -2000,14 +2052,16 @@ export class KpiTargetTabComponent implements OnInit {
   async saveTeamWeightChanges(): Promise<void> {
     if (!this.selectedTeamId || !this.selectedPeriodId) return;
     if (this.teamWeightEdited.size === 0) return;
+    const periodId = this.resolveSelectedPeriod()?.id;
+    if (!periodId) return;
     const payload = Array.from(this.teamWeightEdited.entries()).map(([kpiIndexId, wp]) => ({
-      PeriodID: this.selectedPeriodId,
+      PeriodID: periodId,
       KpiIndexID: kpiIndexId,
       WeightPercent: wp ?? 0
     }));
     const res = await firstValueFrom(
       this.safeApi<any>(this.kpiSaleService.updateTeamWeights(
-        this.selectedTeamId, this.selectedPeriodId, payload))
+        this.selectedTeamId, periodId, payload))
     );
     if (res?.status === 1) {
       const cascaded = res?.data?.cascadedMonths ?? 0;
@@ -2024,9 +2078,11 @@ export class KpiTargetTabComponent implements OnInit {
 
   async resetTeamWeight(kpiIndexId: number): Promise<void> {
     if (!this.selectedTeamId || !this.selectedPeriodId) return;
+    const periodId = this.resolveSelectedPeriod()?.id;
+    if (!periodId) return;
     const res = await firstValueFrom(
       this.safeApi<any>(this.kpiSaleService.deleteTeamWeight(
-        this.selectedTeamId, this.selectedPeriodId, kpiIndexId))
+        this.selectedTeamId, periodId, kpiIndexId))
     );
     if (res?.status === 1) {
       const removed = res?.data?.removedCount ?? 1;
@@ -2044,12 +2100,12 @@ export class KpiTargetTabComponent implements OnInit {
 
   /** Trả về 'MONTH' | 'QUARTER' | 'YEAR' | '' cho kỳ đang chọn. */
   getCurrentSelectedPeriodType(): string {
-    const p = this.periods.find(x => x.id === this.selectedPeriodId);
+    const p = this.resolveSelectedPeriod();
     return (p?.periodType ?? '').toUpperCase();
   }
 
   getCurrentSelectedPeriodCode(): string {
-    const p = this.periods.find(x => x.id === this.selectedPeriodId);
+    const p = this.resolveSelectedPeriod();
     return p?.periodCode ?? '';
   }
 
@@ -2120,8 +2176,10 @@ export class KpiTargetTabComponent implements OnInit {
 
     this.isTeamTargetLoading = true;
     try {
+      const periodId = this.resolveSelectedPeriod()?.id;
+      if (!periodId) return;
       const response = await firstValueFrom(
-        this.kpiSaleService.getTeamTargets(this.selectedTeamId, this.selectedPeriodId, templateId)
+        this.kpiSaleService.getTeamTargets(this.selectedTeamId, periodId, templateId)
       );
 
       if (response?.status === 1 && response.data) {
@@ -2161,10 +2219,29 @@ export class KpiTargetTabComponent implements OnInit {
       return;
     }
 
+    const teamName = this.teamTargetData?.teamName ?? '';
+    const periodCode = this.teamTargetData?.periodCode ?? '';
+
+    const confirmed = await new Promise<boolean>((resolve) => {
+      this.modalService.confirm({
+        nzTitle: 'Xác nhận duyệt Ban Giám Đốc',
+        nzContent: `Bạn có chắc muốn duyệt Ban Giám Đốc cho toàn bộ mục tiêu của team <strong>${teamName}</strong> cho kỳ <strong>${periodCode || ''}</strong>?`,
+        nzOkText: 'Duyệt',
+        nzOkType: 'primary',
+        nzCancelText: 'Hủy',
+        nzOnOk: () => resolve(true),
+        nzOnCancel: () => resolve(false)
+      });
+    });
+
+    if (!confirmed) return;
+
     this.isLoading = true;
     try {
+      const periodId = this.resolveSelectedPeriod()?.id;
+      if (!periodId) return;
       const response = await firstValueFrom(
-        this.kpiSaleService.approveTeamTargets(this.selectedTeamId, this.selectedPeriodId, templateId)
+        this.kpiSaleService.approveTeamTargets(this.selectedTeamId, periodId, templateId)
       );
 
       if (response?.status === 1) {
@@ -2182,6 +2259,49 @@ export class KpiTargetTabComponent implements OnInit {
     }
   }
 
+  async sendApprovalRequestEmail(): Promise<void> {
+    if (!this.selectedPeriodId || this.sendingApprovalRequestEmail) return;
+
+    const templateId = this.resolveTeamTemplateId();
+    const periodId = this.resolveSelectedPeriod()?.id;
+
+    const teamName = this.teamTargetData?.teamName ?? '';
+    const periodCode = this.teamTargetData?.periodCode ?? '';
+
+    this.modalService.confirm({
+      nzTitle: 'Xác nhận gửi mail yêu cầu BGĐ duyệt',
+      nzContent: `Gửi email yêu cầu Ban Giám Đốc duyệt mục tiêu${teamName ? ` của team <strong>${teamName}</strong>` : ''} cho kỳ <strong>${periodCode || ('#' + periodId)}</strong>?`,
+      nzOkText: 'Gửi mail',
+      nzOkType: 'primary',
+      nzCancelText: 'Đóng',
+      nzOnOk: async () => {
+        this.sendingApprovalRequestEmail = true;
+        try {
+          const response = await firstValueFrom(
+            this.kpiSaleService.sendApprovalRequestEmail({
+              periodId: periodId!,
+              teamId: this.selectedTeamId ?? undefined,
+              templateId: templateId ?? undefined,
+              note: 'Sales Manager đã hoàn tất duyệt mục tiêu, kính mong Ban Giám Đốc xem xét duyệt.'
+            })
+          );
+
+          if (response?.status === 1) {
+            this.notification.success('Thành công', response?.message || 'Gửi email yêu cầu duyệt thành công.');
+          } else {
+            this.notification.error('Lỗi', response?.message || 'Không thể gửi email yêu cầu duyệt');
+          }
+        } catch (err: any) {
+          console.error('[sendApprovalRequestEmail] error:', err);
+          const msg = err?.error?.message || err?.message || 'Không thể gửi email yêu cầu duyệt';
+          this.notification.error('Lỗi', msg);
+        } finally {
+          this.sendingApprovalRequestEmail = false;
+        }
+      }
+    });
+  }
+
   async boardUnapproveTeamTargets(): Promise<void> {
     if (!this.selectedTeamId || !this.selectedPeriodId || !this.canBoardApproveTeamTargets) return;
 
@@ -2190,6 +2310,9 @@ export class KpiTargetTabComponent implements OnInit {
       this.notification.error('Lỗi', 'Không tìm thấy mẫu KPI của team');
       return;
     }
+
+    const periodId = this.resolveSelectedPeriod()?.id;
+    if (!periodId) return;
 
     this.modalService.confirm({
       nzTitle: 'Xác nhận hủy duyệt Ban Giám Đốc',
@@ -2201,7 +2324,7 @@ export class KpiTargetTabComponent implements OnInit {
         this.isLoading = true;
         try {
           const response = await firstValueFrom(
-            this.kpiSaleService.unapproveTeamTargets(this.selectedTeamId!, this.selectedPeriodId!, templateId)
+            this.kpiSaleService.unapproveTeamTargets(this.selectedTeamId!, periodId, templateId)
           );
 
           if (response?.status === 1) {
@@ -2274,10 +2397,12 @@ export class KpiTargetTabComponent implements OnInit {
 
     this.isLoading = true;
     try {
+      const periodId = this.resolveSelectedPeriod()?.id;
+      if (!periodId) return;
       const response = await firstValueFrom(
         this.safeApi<any>(this.kpiSaleService.autoCreateTargets(
           this.selectedEmployeeId,
-          this.selectedPeriodId,
+          periodId,
           this.selectedTemplateId
         ))
       );
@@ -2478,16 +2603,14 @@ export class KpiTargetTabComponent implements OnInit {
   // --- Quick Assign Modal (từ bảng trái) ---
 
   /**
-   * Chuẩn hoá selectedPeriodId (có thể là string từ nz-tree-select) về number
+   * Chuẩn hoá selectedPeriodId (string từ nz-tree-select) về number
    * và tìm KpiSalePeriod tương ứng. Trả về undefined nếu không hợp lệ.
    */
   private resolveSelectedPeriod(): KpiSalePeriod | undefined {
-    if (this.selectedPeriodId === null || this.selectedPeriodId === undefined || this.selectedPeriodId === 0) {
+    if (!this.selectedPeriodId) {
       return undefined;
     }
-    const id = typeof this.selectedPeriodId === 'string'
-      ? parseInt(this.selectedPeriodId, 10)
-      : this.selectedPeriodId;
+    const id = parseInt(this.selectedPeriodId, 10);
     if (!id || Number.isNaN(id)) return undefined;
     return this.periods.find(p => p.id === id);
   }
@@ -2807,9 +2930,13 @@ export class KpiTargetTabComponent implements OnInit {
     let list = this.employees;
     if (this.selectedTeamId) {
       const team = this.teams.find(t => t.id === this.selectedTeamId);
+      // console.log('[DEBUG filteredEmployees] team:', team?.name, '| employeeIDs:', team?.employeeIDs);
+      // console.log('[DEBUG filteredEmployees] this.employees count:', this.employees.length);
       if (team && Array.isArray(team.employeeIDs)) {
         const ids = new Set(team.employeeIDs);
         list = list.filter(e => ids.has(e.id));
+        // console.log('[DEBUG filteredEmployees] after filter, result count:', list.length);
+        // console.log('[DEBUG filteredEmployees] result employee names:', list.map(e => e.fullName));
       }
     }
 
@@ -3285,7 +3412,7 @@ export class KpiTargetTabComponent implements OnInit {
     return {
       id: 0,
       employeeId: this.selectedEmployeeId || this.employees[0]?.id || 0,
-      periodId: this.selectedPeriodId || this.periods[0]?.id || 0,
+      periodId: this.resolveSelectedPeriod()?.id || this.periods[0]?.id || 0,
       kpiIndexId: this.indexesForTemplate[0]?.id || 0,
       goalValue: 0,
       weightPercent: 0,

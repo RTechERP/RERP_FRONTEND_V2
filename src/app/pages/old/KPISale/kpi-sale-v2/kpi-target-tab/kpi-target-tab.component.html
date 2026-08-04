@@ -152,17 +152,17 @@
               </button>
               <!-- Nút Duyệt nhanh — Quarter Mode (chọn nhiều dòng) -->
               <button *ngIf="canApproveTargets && isQuarterMode()" nz-button nzType="primary" nzSize="small"
-                nz-tooltip nzTooltipTitle="SM duyệt tất cả các dòng đã chọn (Quarter mode)"
+                nz-tooltip nzTooltipTitle="Sales Manager duyệt tất cả các dòng đã chọn (Quarter mode)"
                 [disabled]="selectedPivotTargetIds.size === 0"
                 (click)="approveSelectedPivot()">
-                <i nz-icon nzType="check-circle"></i> SM duyệt ({{ selectedPivotTargetIds.size }})
+                <i nz-icon nzType="check-circle"></i> Sales Manager duyệt ({{ selectedPivotTargetIds.size }})
               </button>
               <!-- Nút Duyệt nhanh — Month Mode (chọn nhiều dòng) -->
               <button *ngIf="canApproveTargets && !isQuarterMode()" nz-button nzType="primary" nzSize="small"
-                nz-tooltip nzTooltipTitle="SM duyệt tất cả các dòng đã chọn"
+                nz-tooltip nzTooltipTitle="Sales Manager duyệt tất cả các dòng đã chọn"
                 [disabled]="selectedTargetIds.size === 0"
                 (click)="approveSelected()">
-                <i nz-icon nzType="check-circle"></i> SM duyệt ({{ selectedTargetIds.size }})
+                <i nz-icon nzType="check-circle"></i> Sales Manager duyệt ({{ selectedTargetIds.size }})
               </button>
               <!-- Nút Lưu inline -->
               <button nz-button nzType="default" nzSize="small"
@@ -327,22 +327,43 @@
 
             <div class="team-weight-footer">
               <div class="footer-left">
-                <!-- Nút duyệt Ban GD cho Team (duyệt 1 phát 4 bản ghi: 3 tháng + quý) -->
-                <button *ngIf="canBoardApproveTeamTargets && (!teamTargetData || (teamTargetData.boardApprovedMembers ?? 0) === 0)" nz-button nzType="default" nzSize="small"
+                <!-- Nút Sales Manager gửi mail yêu cầu BGĐ duyệt -->
+                <button *ngIf="canApproveTeamTargets" nz-button nzType="default" nzSize="small"
+                  [style.background]="canApproveTeamTargets ? '#fa8c16' : '#bfbfbf'"
+                  [style.border-color]="canApproveTeamTargets ? '#fa8c16' : '#bfbfbf'"
+                  [style.color]="canApproveTeamTargets ? '#fff' : '#fff'"
+                  [style.cursor]="canApproveTeamTargets ? 'pointer' : 'not-allowed'"
+                  [style.font-weight]="600"
+                  nz-tooltip [nzTooltipTitle]="canApproveTeamTargets
+                    ? 'Gửi email yêu cầu Ban Giám Đốc duyệt mục tiêu team'
+                    : canBoardApproveTeamTargets && (teamTargetData?.boardApprovedMembers ?? 0) > 0
+                      ? 'Ban Giám Đốc đã duyệt rồi, không cần gửi mail'
+                      : 'Sales Manager phải duyệt tất cả thành viên trong team trước thì mới gửi được mail'"
+                  [disabled]="!canApproveTeamTargets || sendingApprovalRequestEmail || (teamTargetData?.boardApprovedMembers ?? 0) > 0"
+                  [nzLoading]="sendingApprovalRequestEmail"
+                  (click)="sendApprovalRequestEmail()">
+                  <i nz-icon nzType="mail"></i> Sales Manager gửi mail yêu cầu BGĐ duyệt
+                </button>
+                <!-- Nút duyệt Ban GD cho Team (duyệt 1 phát 4 bản ghi: 3 tháng + quý) - Ẩn khi đã duyệt -->
+                <button *ngIf="canBoardApproveTeamTargets && (teamTargetData?.boardApprovedMembers ?? 0) === 0" nz-button nzType="primary" nzSize="small"
+                  [style.background]="'#722ed1'"
+                  [style.border-color]="'#722ed1'"
+                  [style.box-shadow]="'0 2px 4px rgba(114, 46, 209, 0.3)'"
+                  [style.cursor]="'pointer'"
+                  [style.font-weight]="600"
                   nz-tooltip nzTooltipTitle="Duyệt Ban Giám Đốc sẽ duyệt toàn bộ mục tiêu của các thành viên trong team"
-                  [disabled]="!canApproveTeamTargets"
                   (click)="boardApproveTeamTargets()">
-                  <i nz-icon nzType="check-circle"></i> Ban GD Duyệt
+                  <i nz-icon nzType="bank"></i> Ban Giám Đốc Duyệt
                 </button>
                 <!-- Nút hủy duyệt Ban GD cho Team -->
                 <button *ngIf="canBoardApproveTeamTargets && teamTargetData && (teamTargetData.boardApprovedMembers ?? 0) > 0" nz-button nzType="default" nzDanger nzSize="small"
                   nz-tooltip nzTooltipTitle="Hủy duyệt Ban Giám Đốc sẽ hủy duyệt toàn bộ mục tiêu đã được BGD duyệt của team"
                   (click)="boardUnapproveTeamTargets()">
-                  <i nz-icon nzType="undo"></i> Hủy BGD Duyệt
+                  <i nz-icon nzType="undo"></i> Hủy Ban Giám Đốc Duyệt
                 </button>
-                <!-- Thông tin SM duyệt -->
+                <!-- Thông tin Sales Manager duyệt -->
                 <nz-tag *ngIf="teamTargetData" [nzColor]="teamTargetData.approvedMembers === teamTargetData.totalMembers ? 'green' : 'orange'">
-                  {{ teamTargetData.approvedMembers }}/{{ teamTargetData.totalMembers }} SM duyệt
+                  {{ teamTargetData.approvedMembers }}/{{ teamTargetData.totalMembers }} Sales Manager duyệt
                 </nz-tag>
                 <!-- Thông tin BGD duyệt -->
                 <nz-tag *ngIf="teamTargetData && (teamTargetData.boardApprovedMembers ?? 0) > 0" nzColor="purple">
@@ -615,7 +636,7 @@
                     <!-- Trạng thái -->
                     <td nzAlign="center">
                       <ng-container *ngIf="!isGroupIndex(row.kpiIndexId)">
-                        <!-- SM Duyệt -->
+                        <!-- Sales Manager Duyệt -->
                         <nz-tag [nzColor]="getApprovalStatusColor(row.approvalStatus)">
                           <i nz-icon nzType="user"></i> SM
                         </nz-tag>
@@ -639,16 +660,16 @@
                         </a>
                         <a *ngIf="canApprove(row)"
                           class="action-btn text-success"
-                          nz-tooltip nzTooltipTitle="SM duyệt giá trị đề xuất"
+                          nz-tooltip nzTooltipTitle="Sales Manager duyệt giá trị đề xuất"
                           (click)="approveTarget(row)">
-                          <i nz-icon nzType="check-circle"></i> SM duyệt
+                          <i nz-icon nzType="check-circle"></i> Sales Manager duyệt
                         </a>
                         <a *ngIf="canReject(row)"
                           class="action-btn text-danger"
-                          nz-tooltip nzTooltipTitle="Hủy SM duyệt"
+                          nz-tooltip nzTooltipTitle="Hủy Sales Manager duyệt"
                           nz-popconfirm
-                          nzPopconfirmTitle="Hủy SM duyệt của mục tiêu này?"
-                          nzOkText="Hủy SM duyệt"
+                          nzPopconfirmTitle="Hủy Sales Manager duyệt của mục tiêu này?"
+                          nzOkText="Hủy Sales Manager duyệt"
                           nzCancelText="Đóng"
                           (nzOnConfirm)="rejectTarget(row)">
                           <i nz-icon nzType="close-circle"></i> Hủy
@@ -669,10 +690,13 @@
 
           <!-- Footer BGD duyệt cho Quarter Mode -->
           <div *ngIf="isQuarterMode() && boardApproveSummary.total > 0" class="board-approve-footer">
-            <nz-tag nzColor="purple" nz-tooltip [nzTooltipTitle]="
-              boardApproveSummary.approved === boardApproveSummary.total
-                ? 'Toàn bộ mục tiêu của nhân viên này đã được Ban Giám Đốc duyệt'
-                : 'Một số mục tiêu chưa được Ban Giám Đốc duyệt'">
+            <nz-tag
+              [nzColor]="boardApproveSummary.approved === boardApproveSummary.total ? 'purple' : 'orange'"
+              nz-tooltip [nzTooltipTitle]="
+                boardApproveSummary.approved === boardApproveSummary.total
+                  ? 'Toàn bộ mục tiêu của nhân viên này đã được Ban Giám Đốc duyệt'
+                  : 'Một số mục tiêu chưa được Ban Giám Đốc duyệt'"
+              style="font-size: 14px; padding: 4px 12px; font-weight: 600; border-radius: 4px;">
               <i nz-icon nzType="bank"></i>
               {{ boardApproveSummary.approved === boardApproveSummary.total
                   ? 'Đã được Ban Giám Đốc duyệt'

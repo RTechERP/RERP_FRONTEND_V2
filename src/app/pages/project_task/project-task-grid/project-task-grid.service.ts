@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
@@ -11,24 +11,24 @@ export class ProjectTaskGridService {
 
   constructor(private http: HttpClient) {}
 
-  // Lấy công việc của dự án
+  // Lấy công việc của dự án (Tách riêng Controller: ProjectItemGrid)
   getProjectItems(projectID: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}ProjectItemNew/get-project-item?projectID=${projectID}`);
+    return this.http.get<any>(`${this.apiUrl}ProjectItemGrid/get-project-item?projectID=${projectID}`);
   }
 
-  // Sinh mã task gốc
+  // Sinh mã task gốc (Tách riêng Controller: ProjectItemGrid)
   getRootCode(projectID: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}ProjectItemNew/get-project-item-code?projectId=${projectID}`);
+    return this.http.get<any>(`${this.apiUrl}ProjectItemGrid/get-project-item-code?projectId=${projectID}`);
   }
 
-  // Sinh mã task con
+  // Sinh mã task con (Tách riêng Controller: ProjectItemGrid)
   getChildCode(parentId: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}ProjectItemNew/get-child-project-item-code?parentId=${parentId}`);
+    return this.http.get<any>(`${this.apiUrl}ProjectItemGrid/get-child-project-item-code?parentId=${parentId}`);
   }
 
-  // Lưu danh sách công việc (dùng lại endpoint save-data-person)
+  // Lưu danh sách công việc (Tách riêng Controller: ProjectItemGrid)
   saveProjectItems(payload: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}ProjectItemNew/save-data-person`, payload);
+    return this.http.post<any>(`${this.apiUrl}ProjectItemGrid/save-data`, payload);
   }
 
   // Dropdown data
@@ -37,11 +37,11 @@ export class ProjectTaskGridService {
   }
 
   getEmployeeRequests(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}WorkItem/get-employee-request`);
+    return this.http.get<any>(`${this.apiUrl}employee/employees`);
   }
 
   getUsers(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}WorkItem/get-user`);
+    return this.http.get<any>(`${this.apiUrl}employee/employees`);
   }
 
   getProjects(): Observable<any> {

@@ -1651,25 +1651,27 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   validateForm(): boolean {
     this.trimAllStringControls();
 
-    // Kiểm tra lĩnh vực khách hàng
-    const customerIndustryId = this.formGroup.get('customerIndustryId')?.value;
-    if (!customerIndustryId) {
-      const customerId = this.formGroup.get('customerId')?.value;
-      const customer = this.customers.find(c => c.ID === customerId);
-      const customerName = customer ? ` cho khách hàng [${customer.CustomerName}]` : '';
-      this.notification.error('Thông báo', `Vui lòng thêm lĩnh vực${customerName}`);
-      return false;
+    // Kiểm tra lĩnh vực khách hàng và End User (bỏ qua đối với dự án Nội bộ)
+    if (this.projectTypeId !== 4) {
+      const customerIndustryId = this.formGroup.get('customerIndustryId')?.value;
+      if (!customerIndustryId) {
+        const customerId = this.formGroup.get('customerId')?.value;
+        const customer = this.customers.find(c => c.ID === customerId);
+        const customerName = customer ? ` cho khách hàng [${customer.CustomerName}]` : '';
+        this.notification.error('Thông báo', `Vui lòng thêm lĩnh vực${customerName}`);
+        return false;
+      }
+
+      const endUserIndustryId = this.formGroup.get('endUserIndustryId')?.value;
+      if (!endUserIndustryId) {
+        const endUserId = this.formGroup.get('endUserId')?.value;
+        const endUser = this.customers.find(c => c.ID === endUserId);
+        const endUserName = endUser ? ` cho End User [${endUser.CustomerName}]` : '';
+        this.notification.error('Thông báo', `Vui lòng thêm lĩnh vực${endUserName}`);
+        return false;
+      }
     }
 
-    // Kiểm tra lĩnh vực End User
-    const endUserIndustryId = this.formGroup.get('endUserIndustryId')?.value;
-    if (!endUserIndustryId) {
-      const endUserId = this.formGroup.get('endUserId')?.value;
-      const endUser = this.customers.find(c => c.ID === endUserId);
-      const endUserName = endUser ? ` cho End User [${endUser.CustomerName}]` : '';
-      this.notification.error('Thông báo', `Vui lòng thêm lĩnh vực${endUserName}`);
-      return false;
-    }
 
     const requiredFields = [
       'customerId',

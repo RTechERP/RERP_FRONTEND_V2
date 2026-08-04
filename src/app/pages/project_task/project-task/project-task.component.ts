@@ -33,6 +33,7 @@ import { PaginatorModule } from 'primeng/paginator';
 import { MenuItem } from 'primeng/api';
 import { AppUserService } from '../../../services/app-user.service';
 import { ProjectTaskService, ProjectTaskItem } from './project-task.service';
+import { ProjectTaskDetailComponent } from '../kanban/project-task-detail/project-task-detail.component';
 
 type TabType = 'all' | 'assigned' | 'related' | 'myApproval';
 
@@ -376,22 +377,18 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
   }
 
   allStatuses: any[] = [];
-  statusConfigMap: Record<number, { label: string; bgColor: string; color: string }> = {};
 
   loadTaskStatuses(): void {
     this.projectTaskService.getProjectTaskStatuses().subscribe({
       next: (statuses) => {
         this.allStatuses = statuses || [];
-        this.statusConfigMap = {}; // Reset cache khi load lại statuses
         // Type = 1: Statuses for work
         let type1Statuses = statuses.filter((s: any) => s.Type === 1);
         type1Statuses.sort((a: any, b: any) => a.No - b.No);
         this.taskStatusOptions = type1Statuses.map((s: any) => ({
-          label: s.Title,
+          label: s.Description || s.Title,
           value: s.No
         }));
-        // Update the hardcoded statusOptions for table column filters too
-        this.statusOptions = this.taskStatusOptions;
       },
       error: (err) => console.error('Error loading project task statuses:', err)
     });
@@ -585,7 +582,7 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
             ProjectSearchText: `${t.ProjectCode || ''} ${t.ProjectName || ''}`,
             TaskSearchText: `${t.Code || ''} ${t.Mission || ''} ${t.ParentCode || ''} ${t.ParentTitle || ''}`,
             ParentSearchText: `${t.ParentCode || ''} ${t.ParentTitle || ''}`,
-            DisplayStatus: this.computeDisplayStatus(t),
+            DisplayStatus: t.DisplayStatus,
             ParentCode: (t.ParentCode || '').trim(),
             PlanStartDate: t.PlanStartDate ? new Date(t.PlanStartDate) : null,
             PlanEndDate: t.PlanEndDate ? new Date(t.PlanEndDate) : null,
@@ -691,61 +688,17 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
   }
 
   // ========== TRẠNG THÁI GỘP (Status + ReviewStatus + Quá hạn) ==========
-  // Mã trạng thái mới:
+  // DisplayStatus + label/màu giờ được tính sẵn trong spGetProjectTaskByEmployeeID
+  // (dbo.fnGetProjectTaskDisplayStatusInfo) - xem Scripts/Document/ProjectTaskDisplayStatus.md.
+  // Mã trạng thái:
   // 0  = Chưa làm
   // 1  = Đang làm
   // 11 = Đang làm quá hạn
   // 2  = Hoàn thành
   // 21 = Hoàn thành quá hạn
-  // 22 = Đã duyệt (Hoàn thành + IsApproved=2)
-  // 23 = Đã hủy duyệt (Hoàn thành + IsApproved=3)
+  // 22 = Đã duyệt (Hoàn thành + ApprovalStatus=true)
+  // 23 = Đã hủy duyệt (Hoàn thành + ApprovalStatus=false)
   // 3  = Pending
-
-  computeDisplayStatus(task: any): number {
-    const isOverdue = this.isTaskOverdue(task);
-
-    // Hoàn thành + đã duyệt
-    if (task.Status === 2 && task.ApprovalStatus === true) return 22;
-    // Hoàn thành + hủy duyệt
-    if (task.Status === 2 && task.ApprovalStatus === false) return 23;
-    // Hoàn thành + quá hạn (chưa duyệt/hủy)
-    if (task.Status === 2 && isOverdue) return 21;
-    // Hoàn thành bình thường
-    if (task.Status === 2) return 2;
-    // Đang làm + quá hạn
-    if (task.Status === 1 && isOverdue) return 11;
-    // Đang làm
-    if (task.Status === 1) return 1;
-    // Pending
-    if (task.Status === 3) return 3;
-    // Hủy
-    if (task.Status === 4) return 4;
-    // Chưa làm
-    if (task.Status === 0 && isOverdue) return 10;
-    return 0;
-  }
-
-  // Kiểm tra quá hạn
-  private isTaskOverdue(task: any): boolean {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-
-    const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
-    if (!planEnd) return false;
-    planEnd.setHours(0, 0, 0, 0);
-
-    const actualEnd = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
-    if (actualEnd) actualEnd.setHours(0, 0, 0, 0);
-
-    // Nếu status là Pending (3) thì không tính quá hạn theo yêu cầu người dùng
-    if (task.Status === 3) return false;
-
-    if (actualEnd) {
-      return actualEnd > planEnd;
-    } else {
-      return now > planEnd;
-    }
-  }
 
   // Tính tỷ lệ % thời gian thực tế / kế hoạch
   calculateActualPlannedRatio(task: any): number {
@@ -770,73 +723,11 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
   }
 
   getDisplayStatus(task: any): { label: string; bgColor: string; color: string } {
-    const ds = task.DisplayStatus ?? task.Status;
-    
-    if (this.statusConfigMap[ds]) {
-      return this.statusConfigMap[ds];
-    }
-
-    const findStatus = (type: number, no: number) => this.allStatuses.find(s => s.Type === type && s.No === no);
-    const overdueBg = '#fff1f2';
-    const overdueColor = '#e11d48';
-
-    let result = { label: 'Chưa xác định', bgColor: '#f5f5f5', color: '#595959' };
-
-    switch (ds) {
-      case 0: {
-        const s = findStatus(1, 0);
-        result = { label: s?.Title || 'Chưa làm', bgColor: s?.ColorBackground || '#f5f5f5', color: s?.ColorFont || '#595959' };
-        break;
-      }
-      case 10: {
-        const s = findStatus(1, 0);
-        result = { label: (s?.Title || 'Chưa làm') + '\nOverdue', bgColor: overdueBg, color: overdueColor };
-        break;
-      }
-      case 1: {
-        const s = findStatus(1, 1);
-        result = { label: s?.Title || 'Đang làm', bgColor: s?.ColorBackground || '#e6f7ff', color: s?.ColorFont || '#1890ff' };
-        break;
-      }
-      case 11: {
-        const s = findStatus(1, 1);
-        result = { label: (s?.Title || 'Đang làm') + '\nOverdue', bgColor: overdueBg, color: overdueColor };
-        break;
-      }
-      case 2: {
-        const s = findStatus(1, 2);
-        result = { label: s?.Title || 'Hoàn thành', bgColor: s?.ColorBackground || '#f6ffed', color: s?.ColorFont || '#52c41a' };
-        break;
-      }
-      case 21: {
-        const s = findStatus(1, 2);
-        result = { label: (s?.Title || 'Hoàn thành') + '\nOverdue', bgColor: overdueBg, color: overdueColor };
-        break;
-      }
-      case 22: {
-        const s = findStatus(2, 1); // Đã duyệt
-        result = { label: s?.Title || 'Đã duyệt', bgColor: s?.ColorBackground || '#f6ffed', color: s?.ColorFont || '#52c41a' };
-        break;
-      }
-      case 23: {
-        const s = findStatus(2, 0); // Chưa duyệt / Hủy duyệt
-        result = { label: s?.Title || 'Đã hủy duyệt', bgColor: s?.ColorBackground || '#fff2f0', color: s?.ColorFont || '#ff4d4f' };
-        break;
-      }
-      case 3: {
-        const s = findStatus(1, 3);
-        result = { label: s?.Title || 'Pending', bgColor: s?.ColorBackground || '#fffbe6', color: s?.ColorFont || '#faad14' };
-        break;
-      }
-      case 4: {
-        const s = findStatus(1, 4);
-        result = { label: s?.Title || 'Hủy', bgColor: s?.ColorBackground || '#fff1f2', color: s?.ColorFont || '#e11d48' };
-        break;
-      }
-    }
-    
-    this.statusConfigMap[ds] = result;
-    return result;
+    return {
+      label: task.DisplayStatusLabel ?? 'Chưa xác định',
+      bgColor: task.DisplayStatusBgColor ?? '#f5f5f5',
+      color: task.DisplayStatusFontColor ?? '#595959'
+    };
   }
 
   getPriorityColor(priority: number | null): string {
@@ -1225,7 +1116,14 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
       data: { id: null }
     });
   }
-
+  openAddTaskNewModal(): void {
+    this.tabService.openTabComp({
+      comp: ProjectTaskDetailComponent,
+      title: 'Thêm công việc mới',
+      key: `project-task-addnew-${Date.now()}`,
+      data: { id: null }
+    });
+  }
   // Mở modal Import Excel
   openImportExcelModal(): void {
     const modalRef = this.ngbModal.open(ImportExcelProjectTaskComponent, {
@@ -1304,7 +1202,7 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
     
     const taskCode = task?.Code || `Task-${taskId}`;
     this.tabService.openTabComp({
-      comp: TaskDetailComponent,
+      comp: ProjectTaskDetailComponent,
       title: taskCode,
       key: `project-task-detail-${taskId}`,
       data: { id: taskId, ApprovalStatus: task?.ApprovalStatus ?? null }

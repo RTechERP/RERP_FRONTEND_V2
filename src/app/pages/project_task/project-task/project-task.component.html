@@ -35,12 +35,43 @@
                     <span nz-icon nzType="plus" nzTheme="outline"></span>
                     Thêm công việc
                 </button>
-                <button class="btn-primary btn-sm btn-split-arrow" nz-dropdown [nzDropdownMenu]="menu" nzPlacement="bottomRight">
+                <button class="btn-primary btn-sm btn-split-arrow" nz-dropdown [nzDropdownMenu]="menu"
+                    nzPlacement="bottomRight">
+                    <span nz-icon nzType="down" nzTheme="outline"></span>
+                </button>
+            </div>
+            <div class="split-btn-group">
+                <button class="btn-primary btn-sm btn-split-main" (click)="openAddTaskNewModal()">
+                    <span nz-icon nzType="plus" nzTheme="outline"></span>
+                    Thêm công việc mới
+                </button>
+                <button class="btn-primary btn-sm btn-split-arrow" nz-dropdown [nzDropdownMenu]="menuNew"
+                    nzPlacement="bottomRight">
                     <span nz-icon nzType="down" nzTheme="outline"></span>
                 </button>
             </div>
 
             <nz-dropdown-menu #menu="nzDropdownMenu">
+                <ul nz-menu>
+                    <li nz-menu-item (click)="goToProjectWorker()">
+                        <span nz-icon nzType="ordered-list" nzTheme="outline"></span>
+                        Thêm danh sách công việc
+                    </li>
+                    <li nz-menu-item (click)="copySelectedTask()" [nzDisabled]="!selectedTaskForCopy">
+                        <span nz-icon nzType="copy" nzTheme="outline"></span>
+                        Copy công việc
+                    </li>
+                    <li nz-menu-item (click)="exportToExcel()">
+                        <span nz-icon nzType="file-excel" nzTheme="outline"></span>
+                        Xuất Excel
+                    </li>
+                    <li nz-menu-item (click)="openImportExcelModal()">
+                        <span nz-icon nzType="file-excel" nzTheme="outline"></span>
+                        Import Excel
+                    </li>
+                </ul>
+            </nz-dropdown-menu>
+            <nz-dropdown-menu #menuNew="nzDropdownMenu">
                 <ul nz-menu>
                     <li nz-menu-item (click)="goToProjectWorker()">
                         <span nz-icon nzType="ordered-list" nzTheme="outline"></span>
@@ -94,9 +125,9 @@
             </div>
             <div class="search-field">
                 <label class="search-label">Trạng thái</label>
-                <p-multiSelect [options]="taskStatusOptions" [(ngModel)]="filterStatus"
-                    placeholder="All" [maxSelectedLabels]="5" selectedItemsLabel="..."
-                    styleClass="status-filter-multi" panelStyleClass="timeline-status-panel-global" [filter]="false" appendTo="body" scrollHeight="400px"
+                <p-multiSelect [options]="taskStatusOptions" [(ngModel)]="filterStatus" placeholder="All"
+                    [maxSelectedLabels]="5" selectedItemsLabel="..." styleClass="status-filter-multi"
+                    panelStyleClass="timeline-status-panel-global" [filter]="false" appendTo="body" scrollHeight="400px"
                     [style]="{'min-width': '200px', 'max-width': '450px', 'height': '28px', 'font-size': '12px', 'line-height': '28px'}">
                 </p-multiSelect>
             </div>
@@ -105,7 +136,7 @@
                 <select [(ngModel)]="filterIsApprove"
                     style="padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px;">
                     @for (opt of approvalStatusOptions; track opt.value) {
-                        <option [ngValue]="opt.value">{{ opt.label }}</option>
+                    <option [ngValue]="opt.value">{{ opt.label }}</option>
                     }
                 </select>
             </div>
@@ -128,23 +159,28 @@
     </div>
 
     <!-- Mobile Drawer -->
-    <nz-drawer [nzVisible]="isMobileMenuOpen" nzPlacement="right" nzTitle="MENU CHỨC NĂNG" (nzOnClose)="closeMobileMenu()">
+    <nz-drawer [nzVisible]="isMobileMenuOpen" nzPlacement="right" nzTitle="MENU CHỨC NĂNG"
+        (nzOnClose)="closeMobileMenu()">
         <ng-container *nzDrawerContent>
             <div class="mobile-drawer-content">
                 <!-- Group: Tabs -->
                 <div class="drawer-group">
                     <div class="drawer-group-title">PHÂN LOẠI</div>
                     <div class="drawer-tabs">
-                        <div class="drawer-tab" [class.active]="activeTab() === 'assigned'" (click)="setActiveTab('assigned'); closeMobileMenu()">
+                        <div class="drawer-tab" [class.active]="activeTab() === 'assigned'"
+                            (click)="setActiveTab('assigned'); closeMobileMenu()">
                             <span>Việc giao cho tôi</span>
                         </div>
-                        <div class="drawer-tab" [class.active]="activeTab() === 'myApproval'" (click)="setActiveTab('myApproval'); closeMobileMenu()">
+                        <div class="drawer-tab" [class.active]="activeTab() === 'myApproval'"
+                            (click)="setActiveTab('myApproval'); closeMobileMenu()">
                             <span>Việc tôi giao</span>
                         </div>
-                        <div class="drawer-tab" [class.active]="activeTab() === 'related'" (click)="setActiveTab('related'); closeMobileMenu()">
+                        <div class="drawer-tab" [class.active]="activeTab() === 'related'"
+                            (click)="setActiveTab('related'); closeMobileMenu()">
                             <span>Việc liên quan đến tôi</span>
                         </div>
-                        <div class="drawer-tab" [class.active]="activeTab() === 'all'" (click)="setActiveTab('all'); closeMobileMenu()">
+                        <div class="drawer-tab" [class.active]="activeTab() === 'all'"
+                            (click)="setActiveTab('all'); closeMobileMenu()">
                             <span>Tổng công việc</span>
                         </div>
                     </div>
@@ -157,8 +193,7 @@
                         <p-paginator [first]="first()" [rows]="rows()" [totalRecords]="totalRecords()"
                             [rowsPerPageOptions]="[20, 50, 100, 200]" (onPageChange)="onLazyLoad($event)"
                             [showCurrentPageReport]="true" [showFirstLastIcon]="false"
-                            currentPageReportTemplate="{first}-{last}/{totalRecords}"
-                            styleClass="mobile-paginator">
+                            currentPageReportTemplate="{first}-{last}/{totalRecords}" styleClass="mobile-paginator">
                         </p-paginator>
                     </div>
                 </div>
@@ -176,7 +211,8 @@
                             Thêm danh sách công việc
                         </button>
                         <div class="d-flex gap-2 mb-2">
-                            <button class="btn-outline flex-1" (click)="copySelectedTask(); closeMobileMenu()" [disabled]="!selectedTaskForCopy">
+                            <button class="btn-outline flex-1" (click)="copySelectedTask(); closeMobileMenu()"
+                                [disabled]="!selectedTaskForCopy">
                                 <span nz-icon nzType="copy" nzTheme="outline"></span>
                                 Copy
                             </button>
@@ -191,14 +227,14 @@
                         </button>
 
                         @if (activeTab() === 'myApproval' && selectedTasks().length > 0) {
-                            <div class="d-flex gap-2 mt-2">
-                                <button class="btn-outline flex-1" (click)="rejectSelected(); closeMobileMenu()">
-                                    Từ chối ({{ selectedTasks().length }})
-                                </button>
-                                <button class="btn-success flex-1" (click)="approveSelected(); closeMobileMenu()">
-                                    Duyệt ({{ selectedTasks().length }})
-                                </button>
-                            </div>
+                        <div class="d-flex gap-2 mt-2">
+                            <button class="btn-outline flex-1" (click)="rejectSelected(); closeMobileMenu()">
+                                Từ chối ({{ selectedTasks().length }})
+                            </button>
+                            <button class="btn-success flex-1" (click)="approveSelected(); closeMobileMenu()">
+                                Duyệt ({{ selectedTasks().length }})
+                            </button>
+                        </div>
                         }
                     </div>
                 </div>
@@ -209,28 +245,30 @@
                     <div class="drawer-filters">
                         <div class="filter-item">
                             <label>Từ ngày</label>
-                            <input type="date" [(ngModel)]="dateStart" class="mobile-input"/>
+                            <input type="date" [(ngModel)]="dateStart" class="mobile-input" />
                         </div>
                         <div class="filter-item">
                             <label>Đến ngày</label>
-                            <input type="date" [(ngModel)]="dateEnd" class="mobile-input"/>
+                            <input type="date" [(ngModel)]="dateEnd" class="mobile-input" />
                         </div>
                         <div class="filter-item">
                             <label>Trạng thái</label>
-                            <p-multiSelect [options]="taskStatusOptions" [(ngModel)]="filterStatus"
-                                placeholder="All" [maxSelectedLabels]="5" selectedItemsLabel="..."
-                                styleClass="mobile-input w-100" panelStyleClass="timeline-status-panel-global" [filter]="false" appendTo="body" scrollHeight="400px">
+                            <p-multiSelect [options]="taskStatusOptions" [(ngModel)]="filterStatus" placeholder="All"
+                                [maxSelectedLabels]="5" selectedItemsLabel="..." styleClass="mobile-input w-100"
+                                panelStyleClass="timeline-status-panel-global" [filter]="false" appendTo="body"
+                                scrollHeight="400px">
                             </p-multiSelect>
                         </div>
                         <div class="filter-item">
                             <label>Trạng thái duyệt</label>
                             <select [(ngModel)]="filterIsApprove" class="mobile-input">
                                 @for (opt of approvalStatusOptions; track opt.value) {
-                                    <option [ngValue]="opt.value">{{ opt.label }}</option>
+                                <option [ngValue]="opt.value">{{ opt.label }}</option>
                                 }
                             </select>
                         </div>
-                        <button class="btn-search w-100 mt-2" (click)="loadTasks(); closeMobileMenu()" [disabled]="!dateStart || !dateEnd">
+                        <button class="btn-search w-100 mt-2" (click)="loadTasks(); closeMobileMenu()"
+                            [disabled]="!dateStart || !dateEnd">
                             <span nz-icon nzType="search" nzTheme="outline"></span> TÌM KIẾM
                         </button>
                     </div>
@@ -241,12 +279,10 @@
 
     <!-- Data Table -->
     <div class="table-container">
-        <p-table #dt [value]="pagedTasks()" [resizableColumns]="true" columnResizeMode="fit"
-            [reorderableColumns]="true"
+        <p-table #dt [value]="pagedTasks()" [resizableColumns]="true" columnResizeMode="fit" [reorderableColumns]="true"
             [(selection)]="selectedTasks" dataKey="ID" [loading]="loading()"
             styleClass="p-datatable-sm p-datatable-gridlines" [scrollable]="true" scrollHeight="flex"
-            (onFilter)="handleFilter($event)"
-            [lazy]="true" (onLazyLoad)="onLazyLoad($event)">
+            (onFilter)="handleFilter($event)" [lazy]="true" (onLazyLoad)="onLazyLoad($event)">
 
             <ng-template pTemplate="header">
                 <tr>
@@ -286,51 +322,64 @@
                     }
 
                     <th pResizableColumn pSortableColumn="IsPersonalProject" style="width: 80px">
-                        <div>Loại</div> <div>dự án <p-sortIcon field="IsPersonalProject" /></div>
+                        <div>Loại</div>
+                        <div>dự án <p-sortIcon field="IsPersonalProject" /></div>
                     </th>
                     <th pResizableColumn pSortableColumn="Priority" style="width: 80px; text-align: center;">
                         <div>Ưu tiên <p-sortIcon field="Priority" /></div>
                     </th>
                     <th pResizableColumn pSortableColumn="EstimatedTime" style="width: 85px; text-align: center;">
-                        <div>TG dự</div> <div>kiến (h) <p-sortIcon field="EstimatedTime" /></div>
+                        <div>TG dự</div>
+                        <div>kiến (h) <p-sortIcon field="EstimatedTime" /></div>
                     </th>
                     <th pResizableColumn pSortableColumn="ProjectTaskTypeName" style="width: 95px">
-                        <div>Loại</div> <div>công việc <p-sortIcon field="ProjectTaskTypeName" /></div>
+                        <div>Loại</div>
+                        <div>công việc <p-sortIcon field="ProjectTaskTypeName" /></div>
                     </th>
                     <th pResizableColumn pSortableColumn="PlanStartDate" class="col-date" style="width: 85px">
-                        <div>Ngày</div> <div>BĐ dự kiến <p-sortIcon field="PlanStartDate" /></div>
+                        <div>Ngày</div>
+                        <div>BĐ dự kiến <p-sortIcon field="PlanStartDate" /></div>
                     </th>
                     <th pResizableColumn pSortableColumn="PlanEndDate" class="col-date" style="width: 85px">
-                        <div>Ngày</div> <div>KT dự kiến <p-sortIcon field="PlanEndDate" /></div>
+                        <div>Ngày</div>
+                        <div>KT dự kiến <p-sortIcon field="PlanEndDate" /></div>
                     </th>
                     <th pResizableColumn pSortableColumn="Deadline" class="col-date" style="width: 85px">
                         <div>Deadline <p-sortIcon field="Deadline" /></div>
                     </th>
                     <th pResizableColumn pSortableColumn="ActualStartDate" class="col-date" style="width: 85px">
-                        <div>Ngày</div> <div>BĐ thực tế <p-sortIcon field="ActualStartDate" /></div>
+                        <div>Ngày</div>
+                        <div>BĐ thực tế <p-sortIcon field="ActualStartDate" /></div>
                     </th>
                     <th pResizableColumn pSortableColumn="ActualEndDate" class="col-date" style="width: 85px">
-                        <div>Ngày</div> <div>KT thực tế <p-sortIcon field="ActualEndDate" /></div>
+                        <div>Ngày</div>
+                        <div>KT thực tế <p-sortIcon field="ActualEndDate" /></div>
                     </th>
                     @if (activeTab() === 'assigned') {
                     <th pResizableColumn pSortableColumn="IsCheck" style="width: 80px; text-align: center">
-                        <div>Điểm</div> <div>danh <p-sortIcon field="IsCheck" /></div>
+                        <div>Điểm</div>
+                        <div>danh <p-sortIcon field="IsCheck" /></div>
                     </th>
                     }
                     <th pResizableColumn pSortableColumn="IsAdditional" style="width: 65px; text-align: center">
-                        <div>Phát</div> <div>sinh <p-sortIcon field="IsAdditional" /></div>
+                        <div>Phát</div>
+                        <div>sinh <p-sortIcon field="IsAdditional" /></div>
                     </th>
                     <th pResizableColumn pSortableColumn="TaskComplexity" style="width: 65px; text-align: center">
-                        <div>Phức</div> <div>tạp <p-sortIcon field="TaskComplexity" /></div>
+                        <div>Phức</div>
+                        <div>tạp <p-sortIcon field="TaskComplexity" /></div>
                     </th>
                     <th pResizableColumn pSortableColumn="TotalActualHours" style="width: 80px; text-align: center">
-                        <div>TG</div> <div>thực tế <p-sortIcon field="TotalActualHours" /></div>
+                        <div>TG</div>
+                        <div>thực tế <p-sortIcon field="TotalActualHours" /></div>
                     </th>
                     <th pResizableColumn pSortableColumn="ActualPlannedRatio" style="width: 85px; text-align: center">
-                        <div>% TG thực</div> <div>tế/KH <p-sortIcon field="ActualPlannedRatio" /></div>
+                        <div>% TG thực</div>
+                        <div>tế/KH <p-sortIcon field="ActualPlannedRatio" /></div>
                     </th>
                     <th pResizableColumn pSortableColumn="PercentOverTime" style="width: 70px; text-align: center">
-                        <div>%</div> <div>Quá hạn <p-sortIcon field="PercentOverTime" /></div>
+                        <div>%</div>
+                        <div>Quá hạn <p-sortIcon field="PercentOverTime" /></div>
                     </th>
 
                     @if (activeTab() === 'all' || activeTab() === 'assigned') {
@@ -348,11 +397,14 @@
                     </th>
                     }
                     @if (filterIsApprove === -1 || filterIsApprove === 1) {
-                    <th pResizableColumn pSortableColumn="ReviewCompletionRating" style="width: 90px; text-align: center">
-                        <div>Đánh giá</div> <div>(Review) <p-sortIcon field="ReviewCompletionRating" /></div>
+                    <th pResizableColumn pSortableColumn="ReviewCompletionRating"
+                        style="width: 90px; text-align: center">
+                        <div>Đánh giá</div>
+                        <div>(Review) <p-sortIcon field="ReviewCompletionRating" /></div>
                     </th>
                     }
-                    <th pResizableColumn pSortableColumn="CreatedDate" class="col-date" style="width: 90px; text-align: center;">
+                    <th pResizableColumn pSortableColumn="CreatedDate" class="col-date"
+                        style="width: 90px; text-align: center;">
                         <div>Ngày tạo <p-sortIcon field="CreatedDate" /></div>
                     </th>
                 </tr>
@@ -369,7 +421,8 @@
                                 <p-multiSelect [options]="statusOptions" [ngModel]="value"
                                     (onChange)="filter($event.value)" placeholder="Tất cả" [showHeader]="false"
                                     [filter]="false" class="status-filter-multi" [maxSelectedLabels]="5"
-                                    selectedItemsLabel="..." panelStyleClass="timeline-status-panel-global" appendTo="body" />
+                                    selectedItemsLabel="..." panelStyleClass="timeline-status-panel-global"
+                                    appendTo="body" />
                             </ng-template>
                         </p-columnFilter>
                     </th>
@@ -382,9 +435,9 @@
                         <p-columnFilter field="ProjectCode" matchMode="in" [showMenu]="false">
                             <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                                 <p-multiSelect [options]="projectOptions" [ngModel]="value"
-                                    (onChange)="filter($event.value)" placeholder="Tất cả"
-                                    [filter]="true" class="status-filter-multi" [maxSelectedLabels]="1"
-                                    selectedItemsLabel="..." panelStyleClass="timeline-status-panel-global" appendTo="body" />
+                                    (onChange)="filter($event.value)" placeholder="Tất cả" [filter]="true"
+                                    class="status-filter-multi" [maxSelectedLabels]="1" selectedItemsLabel="..."
+                                    panelStyleClass="timeline-status-panel-global" appendTo="body" />
                             </ng-template>
                         </p-columnFilter>
                     </th>
@@ -393,9 +446,9 @@
                         <p-columnFilter field="FullName" matchMode="in" [showMenu]="false">
                             <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                                 <p-multiSelect [options]="assignerOptions" [ngModel]="value"
-                                    (onChange)="filter($event.value)" placeholder="Tất cả"
-                                    [filter]="true" class="status-filter-multi" [maxSelectedLabels]="1"
-                                    selectedItemsLabel="..." panelStyleClass="timeline-status-panel-global" appendTo="body" />
+                                    (onChange)="filter($event.value)" placeholder="Tất cả" [filter]="true"
+                                    class="status-filter-multi" [maxSelectedLabels]="1" selectedItemsLabel="..."
+                                    panelStyleClass="timeline-status-panel-global" appendTo="body" />
                             </ng-template>
                         </p-columnFilter>
                     </th>
@@ -405,9 +458,9 @@
                         <p-columnFilter field="AsigneeEmployeeFullName" matchMode="in" [showMenu]="false">
                             <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                                 <p-multiSelect [options]="assigneeOptions" [ngModel]="value"
-                                    (onChange)="filter($event.value)" placeholder="Tất cả"
-                                    [filter]="true" class="status-filter-multi" [maxSelectedLabels]="1"
-                                    selectedItemsLabel="..." panelStyleClass="timeline-status-panel-global" appendTo="body" />
+                                    (onChange)="filter($event.value)" placeholder="Tất cả" [filter]="true"
+                                    class="status-filter-multi" [maxSelectedLabels]="1" selectedItemsLabel="..."
+                                    panelStyleClass="timeline-status-panel-global" appendTo="body" />
                             </ng-template>
                         </p-columnFilter>
                     </th>
@@ -440,7 +493,8 @@
                         </p-columnFilter>
                     </th>
                     <th>
-                        <p-columnFilter type="text" field="EstimatedTime" matchMode="equals" placeholder="Tìm..."></p-columnFilter>
+                        <p-columnFilter type="text" field="EstimatedTime" matchMode="equals"
+                            placeholder="Tìm..."></p-columnFilter>
                     </th>
                     <th>
                         <p-columnFilter field="ProjectTaskTypeID" matchMode="equals" [showMenu]="false">
@@ -553,9 +607,9 @@
                         <p-columnFilter field="DepartmentAssignerName" matchMode="in" [showMenu]="false">
                             <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                                 <p-multiSelect [options]="deptAssignerOptions" [ngModel]="value"
-                                    (onChange)="filter($event.value)" placeholder="Tất cả"
-                                    [filter]="true" class="status-filter-multi" [maxSelectedLabels]="1"
-                                    selectedItemsLabel="..." panelStyleClass="timeline-status-panel-global" appendTo="body" />
+                                    (onChange)="filter($event.value)" placeholder="Tất cả" [filter]="true"
+                                    class="status-filter-multi" [maxSelectedLabels]="1" selectedItemsLabel="..."
+                                    panelStyleClass="timeline-status-panel-global" appendTo="body" />
                             </ng-template>
                         </p-columnFilter>
                     </th>
@@ -565,9 +619,9 @@
                         <p-columnFilter field="DepartmentAssigneeName" matchMode="in" [showMenu]="false">
                             <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                                 <p-multiSelect [options]="deptAssigneeOptions" [ngModel]="value"
-                                    (onChange)="filter($event.value)" placeholder="Tất cả"
-                                    [filter]="true" class="status-filter-multi" [maxSelectedLabels]="1"
-                                    selectedItemsLabel="..." panelStyleClass="timeline-status-panel-global" appendTo="body" />
+                                    (onChange)="filter($event.value)" placeholder="Tất cả" [filter]="true"
+                                    class="status-filter-multi" [maxSelectedLabels]="1" selectedItemsLabel="..."
+                                    panelStyleClass="timeline-status-panel-global" appendTo="body" />
                             </ng-template>
                         </p-columnFilter>
                     </th>
@@ -599,13 +653,15 @@
                 <tr (click)="selectTaskForCopy(task)" [class.row-selected]="selectedTaskForCopy?.ID === task.ID"
                     (contextmenu)="onCellContextMenu($event, cm, task)">
                     @if (activeTab() === 'myApproval') {
-                    <td style="width: 3rem; min-width: 3rem; max-width: 3rem; text-align: center;" (click)="$event.stopPropagation()">
+                    <td style="width: 3rem; min-width: 3rem; max-width: 3rem; text-align: center;"
+                        (click)="$event.stopPropagation()">
                         <p-tableCheckbox [value]="task"
                             [disabled]="task.Status !== 2 || task.ApprovalStatus === true || task.ApprovalStatus === false" />
                     </td>
                     }
                     @if (activeTab() === 'related') {
-                    <td style="width: 3rem; min-width: 3rem; max-width: 3rem; text-align: center;" (click)="$event.stopPropagation()">
+                    <td style="width: 3rem; min-width: 3rem; max-width: 3rem; text-align: center;"
+                        (click)="$event.stopPropagation()">
                         <p-tableCheckbox [value]="task" />
                     </td>
                     }
@@ -634,21 +690,23 @@
                             <div class="d-flex align-items-center gap-1 text-nowrap w-100 overflow-hidden">
                                 <a class="task-code-link" (click)="openTaskDetail(task); $event.stopPropagation()">{{
                                     task.Code || 'N/A' }}</a>
-                                <span *ngIf="task.ParentCode" class="text-muted d-inline-block text-truncate"
-                                    nz-tooltip [nzTooltipTitle]="task.ParentTitle" style="max-width: 130px;">
+                                <span *ngIf="task.ParentCode" class="text-muted d-inline-block text-truncate" nz-tooltip
+                                    [nzTooltipTitle]="task.ParentTitle" style="max-width: 130px;">
                                     - <a class="task-code-link"
                                         (click)="openTaskDetail({ ID: task.ParentID }); $event.stopPropagation()">{{
                                         task.ParentCode || 'N/A' }}</a>
                                 </span>
                             </div>
-                            <div class="task-description text-wrap mission-truncate" [pTooltip]="task.Mission" tooltipPosition="top">
+                            <div class="task-description text-wrap mission-truncate" [pTooltip]="task.Mission"
+                                tooltipPosition="top">
                                 {{ task.Mission }}
                             </div>
                         </div>
                     </td>
                     <td>
                         <div class="task-info" nz-tooltip [nzTooltipTitle]="task.ProjectName">
-                            <span class="project-code">{{ task.ProjectCode }}{{ task.ProjectStatusName ? ' (' + task.ProjectStatusName + ')' : '' }}</span>
+                            <span class="project-code">{{ task.ProjectCode }}{{ task.ProjectStatusName ? ' (' +
+                                task.ProjectStatusName + ')' : '' }}</span>
                         </div>
                     </td>
                     @if (activeTab() !== 'myApproval') {
@@ -679,19 +737,23 @@
                             styleClass="small-tag" />
                     </td>
                     <td class="col-date">
-                        <span class="date-text">{{ task.PlanStartDate ? (task.PlanStartDate | date:'dd/MM/yyyy') : '-' }}</span>
+                        <span class="date-text">{{ task.PlanStartDate ? (task.PlanStartDate | date:'dd/MM/yyyy') : '-'
+                            }}</span>
                     </td>
                     <td class="col-date">
-                        <span class="date-text">{{ task.PlanEndDate ? (task.PlanEndDate | date:'dd/MM/yyyy') : '-' }}</span>
+                        <span class="date-text">{{ task.PlanEndDate ? (task.PlanEndDate | date:'dd/MM/yyyy') : '-'
+                            }}</span>
                     </td>
                     <td class="col-date">
                         <span class="date-text">{{ task.Deadline ? (task.Deadline | date:'dd/MM/yyyy') : '-' }}</span>
                     </td>
                     <td class="col-date">
-                        <span class="date-text">{{ task.ActualStartDate ? (task.ActualStartDate | date:'dd/MM/yyyy') : '-' }}</span>
+                        <span class="date-text">{{ task.ActualStartDate ? (task.ActualStartDate | date:'dd/MM/yyyy') :
+                            '-' }}</span>
                     </td>
                     <td class="col-date">
-                        <span class="date-text">{{ task.ActualEndDate ? (task.ActualEndDate | date:'dd/MM/yyyy') : '-' }}</span>
+                        <span class="date-text">{{ task.ActualEndDate ? (task.ActualEndDate | date:'dd/MM/yyyy') : '-'
+                            }}</span>
                     </td>
                     @if (activeTab() === 'assigned') {
                     <td style="text-align: center;">

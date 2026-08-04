@@ -1,0 +1,45 @@
+:host {
+  display: block;
+  height: 99.8vh;
+}
+
+.pokh-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.modal-header,
+.modal-footer {
+  flex-shrink: 0;
+}
+
+/* Header filter input text color - black text */
+:host ::ng-deep .tabulator .tabulator-header .tabulator-header-filter input,
+:host ::ng-deep .tabulator .tabulator-header-filter input,
+:host ::ng-deep .tabulator-header-filter input {
+  color: #000 !important;
+  background-color: #fff !important;
+}
+
+/* PrimeNG DatePicker in TreeTable */
+:host ::ng-deep .p-datepicker {
+  z-index: 10000 !important;
+}
+
+:host ::ng-deep .p-datepicker .p-datepicker-trigger {
+  opacity: 1 !important;
+}
+
+:host ::ng-deep .p-treetable-cell-editor .p-inputtext {
+  width: 100%;
+}
+
+/* Ensure date picker icon is visible */
+:host ::ng-deep .p-datepicker .p-datepicker-button {
+  opacity: 0.8;
+}
+
+:host ::ng-deep .p-datepicker:not(.p-disabled):hover .p-datepicker-button {
+  opacity: 1;
+}

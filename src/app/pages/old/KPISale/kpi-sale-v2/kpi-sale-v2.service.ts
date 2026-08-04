@@ -499,6 +499,14 @@ export class KpiSaleV2Service {
     );
   }
 
+  // Sales Manager gửi mail yêu cầu Ban Giám Đốc duyệt mục tiêu KPI.
+  sendApprovalRequestEmail(payload: { periodId: number; teamId?: number; templateId?: number; note?: string }): Observable<KpiApiResponse<any>> {
+    return this.http.post<KpiApiResponse<any>>(
+      `${this.apiUrl}/send-approval-request-email`,
+      payload
+    );
+  }
+
   saveTargets(targets: any[]): Observable<KpiApiResponse<any>> {
     return this.http.put<KpiApiResponse<any>>(`${this.apiUrl}/targets`, targets);
   }
@@ -573,7 +581,7 @@ export class KpiSaleV2Service {
   }
 
   getEmployees(): Observable<KpiApiResponse<any[]>> {
-    return this.http.get<KpiApiResponse<any[]>>(`${environment.host}api/Employee/employees`, {
+    return this.http.get<KpiApiResponse<any[]>>(`${this.apiUrl}/employees`, {
       params: { status: 0 },
     });
   }

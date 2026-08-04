@@ -26,6 +26,7 @@ export interface HotelBookingManagement {
 
 export interface HotelBookingProposal {
     ID: number;
+    HotelName?: string;
     TypeRoom?: string;
     Quantity?: number;
     UnitPrice?: number;

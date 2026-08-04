@@ -271,6 +271,7 @@
                       <tr>
                         <th style="width: 100px; text-align: center;">Thao tác</th>
                         <th style="width: 50px; text-align: center;">STT</th>
+                        <th style="width: 150px; text-align: center;">Tên khách sạn</th>
                         <th style="width: 150px; text-align: center;">Loại phòng</th>
                         <th style="width: 80px; text-align: center;">Số lượng</th>
                         <th style="width: 120px; text-align: center;">Đơn giá</th>
@@ -302,6 +303,7 @@
                           </div>
                         </td>
                         <td style="text-align: center;">{{ idx + 1 }}</td>
+                        <td>{{ prop.HotelName }}</td>
                         <td>{{ prop.TypeRoom }}</td>
                         <td style="text-align: center;">{{ prop.Quantity }}</td>
                         <td style="text-align: right;">{{ prop.UnitPrice | number: '1.0-0' }}</td>
@@ -322,7 +324,7 @@
 
                     <ng-template pTemplate="emptymessage">
                       <tr>
-                        <td colspan="11" style="text-align: center; padding: 20px; color: #8c8c8c;">
+                        <td colspan="12" style="text-align: center; padding: 20px; color: #8c8c8c;">
                           Không có phương án đề xuất nào
                         </td>
                       </tr>

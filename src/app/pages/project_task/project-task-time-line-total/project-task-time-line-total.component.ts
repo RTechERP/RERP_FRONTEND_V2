@@ -155,26 +155,35 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
 
         // For column filter (Type=1 only, number values)
         this.statusOptions = type1Statuses.map((s: any) => ({
-          label: s.Title,
+          label: s.Description || s.Title,
           value: s.No
         }));
 
         // For search bar dropdown groups (string values: 'type_no')
         this.statusType1Options = type1Statuses.map((s: any) => ({
-          label: s.Title,
+          label: s.Description || s.Title,
           value: `1_${s.No}`
         }));
         this.statusType2Options = type2Statuses.map((s: any) => ({
-          label: s.Title,
+          label: s.Description || s.Title,
           value: `2_${s.No}`
         }));
 
-        // columnStatusOptions = Type 1 + Type 2 (Approve/Reject) cho filter cột
+        // columnStatusOptions = Type 1 + Quá hạn (0/1/2 -> 10/11/21) + Type 2 (Approve/Reject) cho filter cột
         this.columnStatusOptions = [...this.statusOptions];
+        const overdueValueByNo: Record<number, number> = { 0: 10, 1: 11, 2: 21 };
+        type1Statuses.forEach((s: any) => {
+          const overdueValue = overdueValueByNo[s.No];
+          if (overdueValue === undefined) return;
+          this.columnStatusOptions.push({
+            label: `${s.Description || s.Title} quá hạn`,
+            value: overdueValue
+          });
+        });
         type2Statuses.forEach((s: any) => {
           const customValue = s.No === 1 ? 22 : 23;
           this.columnStatusOptions.push({
-            label: s.Title,
+            label: s.Description || s.Title,
             value: customValue
           });
         });
@@ -274,9 +283,9 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     this.userId = 0;
     this.teamList = [];
     this.loadEmployees();
-    if (this.departmentId > 0) {
-      this.loadTeamsByDepartment(this.departmentId);
-    }
+    // if (this.departmentId > 0) {
+      this.loadTeamsByDepartment(this.departmentId || 0);
+    // }
     this.loadTimeline();
   }
 
@@ -608,6 +617,13 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
           tasks: p.tasks.filter((t: any) => {
             if (this.filterStatusColumn.includes(t.Status)) return true;
 
+            // Quá hạn (mã 10/11/21 ứng với Status 0/1/2 + isOverdue)
+            if (t.isOverdue) {
+              if (this.filterStatusColumn.includes(10) && t.Status === 0) return true;
+              if (this.filterStatusColumn.includes(11) && t.Status === 1) return true;
+              if (this.filterStatusColumn.includes(21) && t.Status === 2) return true;
+            }
+
             // Xử lý filter cho Approval/Reject
             const approved = t.IsApproved;
             const isApproveValue = approved === 1 || approved === true || approved === '1';
@@ -797,11 +813,13 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
 
   getStatusDisplayName(task: any): string {
     const statusConfig = this.getTaskStatusConfig(task);
-    const baseName = statusConfig ? statusConfig.Title : this.getStatusName(task.Status);
-    const isOverdue = this.isTaskOverdue(task);
+    const baseName = (statusConfig && statusConfig.Description) || this.getStatusName(task.Status);
+    // taskEntry ở tasksMap không mang theo PlanEndDate/ActualEndDate, nên phải dùng
+    // isOverdue đã tính sẵn (từ item gốc có đủ ngày) thay vì tính lại ở đây.
+    const isOverdue = task.isOverdue ?? this.isTaskOverdue(task);
 
     if (isOverdue) {
-      return baseName + '\nOverdue';
+      return baseName + '\nQuá hạn';
     }
 
     return baseName;

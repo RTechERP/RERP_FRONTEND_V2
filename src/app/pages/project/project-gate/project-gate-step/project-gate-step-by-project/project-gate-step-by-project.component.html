@@ -16,21 +16,43 @@
       </div>
 
       <!-- Tiêu đề cấp cao nhất: Nhân công -->
-      <div class="fw-bold px-2 py-2 border-bottom mb-2 d-flex align-items-center sidebar-header"
-        [class.text-primary]="!isSummaryActive" [class.text-secondary]="isSummaryActive">
-        <i class="fa-solid fa-users me-2"></i> NHÂN CÔNG
+      <div
+        class="fw-bold px-2 py-2 border-bottom mb-2 d-flex align-items-center justify-content-between sidebar-header cursor-pointer"
+        (click)="toggleManpowerMenu()" [class.text-primary]="!isSummaryActive" [class.text-secondary]="isSummaryActive"
+        style="user-select: none;" title="Bấm để mở rộng / thu gọn danh sách phòng ban">
+        <span><i class="fa-solid fa-users me-2"></i> NHÂN CÔNG</span>
+        <div class="d-flex align-items-center gap-2">
+          @if (isManpowerExpanded) {
+          <button type="button" class="btn btn-sm p-0 text-secondary border-0"
+            (click)="toggleAllDeptGroups(); $event.stopPropagation()"
+            title="{{ isAllDeptGroupsCollapsed ? 'Mở tất cả các nhóm' : 'Thu gọn tất cả các nhóm' }}"
+            style="font-size: 11px;">
+            <i class="fa-solid" [class.fa-chevron-down]="isAllDeptGroupsCollapsed"
+              [class.fa-chevron-up]="!isAllDeptGroupsCollapsed"></i>
+          </button>
+          }
+          <i class="fa-solid text-secondary ms-1" [class.fa-chevron-right]="!isManpowerExpanded"
+            [class.fa-chevron-down]="isManpowerExpanded" style="font-size: 11px;"></i>
+        </div>
       </div>
 
+      @if (isManpowerExpanded) {
       <div class="flex-grow-1 overflow-y-auto">
         @for (group of groupedMenuDepartments; track group.id) {
-        <div class="dept-group mb-3">
-          <!-- Tiêu đề nhóm Phòng ban -->
-          <div class="fw-bold px-2 py-1 text-uppercase text-secondary mb-1 dept-title"
-            style="letter-spacing: 0.5px; background: #f8f9fa; border-radius: 4px; border-left: 3px solid #23458a;">
-            {{ group.name }}
+        <div class="dept-group mb-2">
+          <!-- Tiêu đề nhóm Phòng ban (Click để thu gọn / mở rộng) -->
+          <div
+            class="fw-bold px-2 py-1 text-uppercase text-secondary mb-1 dept-title d-flex align-items-center justify-content-between cursor-pointer"
+            (click)="toggleDeptGroup(group)"
+            style="letter-spacing: 0.5px; background: #f8f9fa; border-radius: 4px; border-left: 3px solid #23458a; user-select: none;"
+            title="Bấm để thu gọn/mở rộng nhóm phòng ban">
+            <span class="text-truncate flex-grow-1 me-1" style="font-size: 11px;">{{ group.name }}</span>
+            <i class="fa-solid" [class.fa-chevron-right]="group.collapsed" [class.fa-chevron-down]="!group.collapsed"
+              style="font-size: 10px;"></i>
           </div>
 
-          <ul class="nav flex-column gap-1 ps-2">
+          @if (!group.collapsed) {
+          <ul class="nav flex-column gap-1 ps-2 mb-2">
             @for (pt of group.projectTypes; track pt.ID) {
             <li class="nav-item">
               <button
@@ -43,9 +65,11 @@
             </li>
             }
           </ul>
+          }
         </div>
         }
       </div>
+      }
     </div>
     <!-- Vùng nội dung chính (Bên phải) -->
     <div class="flex-grow-1 bg-white p-3 d-flex flex-column overflow-hidden" style="min-width: 0; height: 100%;">
@@ -71,6 +95,14 @@
           style="font-size: 12px;" *hasPermission="'N109'">
           <i class="fa-solid fa-trash-can me-1"></i> Danh sách đã xóa
         </button>
+        @if (canAddStepOrTemplate && activeProjectTypeId && activeDepartmentId !== undefined) {
+        <button nz-button nzType="default" class="text-primary"
+          (click)="addSelectedSubStep(activeProjectTypeId + '_' + activeDepartmentId)"
+          [disabled]="isSaving || isLoading || !selectedStepInTable || selectedStepInTable.ParentID || selectedStepInTable.isSubStep"
+          style="font-size: 12px;" title="Chọn 1 công đoạn gốc (cha) trong bảng rồi bấm vào đây để thêm công đoạn con">
+          <i class="fa-solid fa-code-branch me-1"></i> Thêm con
+        </button>
+        }
         @if (selectedStepLinkIds.size > 0) {
         <button nz-button nzType="default" nzDanger (click)="confirmApproveMultiple(false)"
           [nzLoading]="isApprovingMultiple" style="font-size: 12px;" *hasPermission="'N110'">
@@ -81,14 +113,15 @@
           <i class="fa-solid fa-circle-check me-1"></i> Duyệt công đoạn ({{ selectedStepLinkIds.size }})
         </button>
         }
-        <button nz-button nzType="primary" (click)="save(false)" [nzLoading]="isSaving" style="font-size: 12px;"
-          *hasPermission="'N109'">
+        @if (hasEditPermission) {
+        <button nz-button nzType="primary" (click)="save(false)" [nzLoading]="isSaving" style="font-size: 12px;">
           <i class="fa-solid fa-floppy-disk me-1"></i> Lưu
         </button>
         <button nz-button nzType="primary" (click)="save(true)" [nzLoading]="isSaving" style="font-size: 12px;"
           *hasPermission="'N109'">
           <i class="fa-solid fa-floppy-disk me-1"></i> Lưu và đóng
         </button>
+        }
         } @else {
         <div class="d-flex align-items-center gap-1 me-auto">
           <span class="text-muted fw-bold" style="font-size: 12px;">Phòng ban:</span>
@@ -635,7 +668,7 @@
         <colgroup>
           <col style="width: 40px;">
           <col style="width: 60px;">
-          <col style="width: 50px;">
+          <col style="width: 110px;">
           <col style="width: 60px;">
           <col style="width: 150px;">
           <col style="width: 320px;">
@@ -665,7 +698,7 @@
             </button>
             }
           </th>
-          <th style="width: 50px;" class="text-center" pResizableColumn pSortableColumn="TT">TT <p-sortIcon
+          <th style="width: 110px;" class="text-center" pResizableColumn pSortableColumn="TT">TT <p-sortIcon
               field="TT"></p-sortIcon></th>
           <!-- <th style="width: 60px;" class="text-center" pResizableColumn pSortableColumn="SortOrder">Thứ tự
             <p-sortIcon field="SortOrder"></p-sortIcon>
@@ -746,15 +779,34 @@
             }
           </td>
           <td class="text-center" style="width: 60px;">
-            <button nz-button nzType="text" nzDanger
-              (click)="removeStep(activeProjectTypeId + '_' + activeDepartmentId, item.ID)"
-              [disabled]="isStepPassed(item) || isStepApprovedTBP(item)"
-              class="btn-delete-step p-0 d-flex align-items-center justify-content-center mx-auto"
-              style="height: 24px; width: 24px;">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
+            <div class="d-flex align-items-center justify-content-center gap-1">
+              @if (!item.ParentID && !item.isSubStep && !item.isNew && canAddStepOrTemplate) {
+              <button nz-button nzType="text" class="text-primary p-0 d-flex align-items-center justify-content-center"
+                (click)="addSubStep(activeProjectTypeId + '_' + activeDepartmentId, item)"
+                style="height: 22px; width: 22px;" title="Thêm công đoạn con">
+                <i class="fa-solid fa-plus" style="font-size: 11px;"></i>
+              </button>
+              }
+              <button nz-button nzType="text" nzDanger
+                (click)="removeStep(activeProjectTypeId + '_' + activeDepartmentId, item.ID)"
+                [disabled]="isStepPassed(item) || isStepApprovedTBP(item)"
+                class="btn-delete-step p-0 d-flex align-items-center justify-content-center"
+                style="height: 22px; width: 22px;" title="Xóa công đoạn">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
           </td>
-          <td class="text-center" style="width: 50px;">{{ item.isNew ? '' : item.TT }}</td>
+          <td style="width: 110px;" [class.text-center]="!item.ParentID && !item.isSubStep">
+            @if (item.isNew) {
+            } @else if (item.ParentID || item.isSubStep) {
+            <div class="d-flex align-items-center justify-content-end pe-2 gap-1 text-primary fw-bold">
+              <i class="fa-solid fa-turn-up fa-rotate-90 text-primary" style="font-size: 10px;"></i>
+              <span>{{ item.TT }}</span>
+            </div>
+            } @else {
+            <span class="fw-bold text-dark">{{ item.TT }}</span>
+            }
+          </td>
           <!-- <td class="text-center" style="width: 60px;">{{ item.isNew ? '' : item.SortOrder }}</td> -->
           <td style="width: 150px;">
             @if (item.isNew) {
@@ -772,10 +824,27 @@
             {{ item.GateCode }}-{{item.GateName}}
             }
           </td>
-          <td style="width: 320px; white-space: pre-wrap; word-break: break-word;">{{ item.isNew ? '' : item.Content
-            }}</td>
-          <td style="width: 320px; white-space: pre-wrap; word-break: break-word;">{{ item.isNew ? '' : item.Content
-            }}</td>
+          <td style="width: 320px; white-space: pre-wrap; word-break: break-word;"
+            [style.padding-left]="(item.ParentID || item.isSubStep) ? '20px' : '8px'">
+            @if (item.ParentID || item.isSubStep) {
+            <div class="d-flex align-items-center gap-1 ps-1">
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle flex-shrink-0"
+                style="font-size: 10px;">Con</span>
+              <input nz-input nzSize="small" class="w-100" style="font-size: 12px;" [(ngModel)]="item.Content"
+                placeholder="Nhập nội dung công việc..." />
+            </div>
+            } @else {
+            {{ item.isNew ? '' : item.Content }}
+            }
+          </td>
+          <td style="width: 320px; white-space: pre-wrap; word-break: break-word;">
+            @if (item.ParentID || item.isSubStep || item.isNew) {
+            <input nz-input nzSize="small" class="w-100" style="font-size: 12px;" [(ngModel)]="item.ActualContent"
+              placeholder="Nhập nội dung thực tế..." />
+            } @else {
+            {{ item.isNew ? '' : (item.ActualContent || item.Content) }}
+            }
+          </td>
           <!-- Cột Checklist & Biểu mẫu -->
           <td style="width: 160px; font-size: 11px; text-align: center;">
             @if (!item.isNew) {

@@ -9,7 +9,7 @@
         <span class="p-menuitem-text ms-1" style="font-size: 12px;">{{ item.label }}</span>
       </a>
     </ng-template>
-    <ng-template pTemplate="end">
+    <!-- <ng-template pTemplate="end">
       <div class="d-flex align-items-center gap-2 pe-2">
         <button nz-button nzType="primary" nzSize="small" (click)="onSave()" [nzLoading]="loading"
           [disabled]="!selectedMasterTemplate"
@@ -20,8 +20,12 @@
           style="font-size: 12px; height: 28px; border-color: #1890ff; color: #1890ff;">
           <i class="fa-solid fa-plus me-1"></i>Thêm dòng
         </button>
+        <button nz-button nzType="default" nzSize="small" (click)="openCopyTemplateModal()" [disabled]="!selectedMasterTemplate"
+          style="font-size: 12px; height: 28px; border-color: #17a2b8; color: #17a2b8;">
+          <i class="fa-solid fa-copy me-1"></i>Copy từ template
+        </button>
       </div>
-    </ng-template>
+    </ng-template> -->
   </p-menubar>
 
   <!-- Master-Detail Splitter Container -->
@@ -110,8 +114,8 @@
                         <p-tableHeaderCheckbox />
                       </th>
                       <th style="width: 80px; text-align: center; font-size: 12px;">Thứ tự</th>
-                      <th style="width: 220px; text-align: center; font-size: 12px;">Gate</th>
-                      <th style="width: 350px; text-align: center; font-size: 12px;">Nội dung công việc</th>
+                      <th style="width: 220px; text-align: center; font-size: 12px;">Gate <span class="text-danger">*</span></th>
+                      <th style="width: 350px; text-align: center; font-size: 12px;">Nội dung công việc <span class="text-danger">*</span></th>
                       <th style="width: 250px; text-align: center; font-size: 12px;">Checklist / Yêu cầu</th>
                       <th style="width: 60px; text-align: center; font-size: 12px;">Thao tác</th>
                     </tr>
@@ -175,9 +179,11 @@
                         <nz-select [(ngModel)]="item.ProjectGateID" nzPlaceHolder="-- Chọn Gate --" nzAllowClear
                           nzShowSearch nzSize="small" style="width: 100%; font-size: 12px;" [attr.data-row]="rowIndex"
                           data-col="ProjectGateID" (ngModelChange)="onGateChange(item, $event)"
-                          (keydown)="onKeyDown(rowIndex, 'ProjectGateID', $event)">
+                          (keydown)="onKeyDown(rowIndex, 'ProjectGateID', $event)"
+                          [nzStatus]="(isSubmitted && !item.ProjectGateID) ? 'error' : ''">
                           <nz-option *ngFor="let gate of gateList" [nzValue]="gate.ID"
-                            [nzLabel]="gate.GateCode + ' - ' + gate.GateName">
+                            [nzLabel]="gate.GateCode + ' - ' + gate.GateName"
+                            [nzDisabled]="isGateDisabled(gate.ID, item)">
                           </nz-option>
                         </nz-select>
                       </td>
@@ -186,7 +192,8 @@
                       <td style="width: 350px;" class="p-1">
                         <input nz-input [(ngModel)]="item.Content" placeholder="Nhập nội dung công việc..."
                           style="font-size: 12px; height: 28px;" [attr.data-row]="rowIndex" data-col="Content"
-                          (keydown)="onKeyDown(rowIndex, 'Content', $event)" />
+                          (keydown)="onKeyDown(rowIndex, 'Content', $event)"
+                          [nzStatus]="(isSubmitted && (!item.Content || !item.Content.trim())) ? 'error' : ''" />
                       </td>
 
                       <!-- Checklist & Biểu mẫu Column -->
@@ -272,7 +279,6 @@
               style="font-size: 12px; height: 28px;" />
           </nz-col>
 
-          <!-- Delete Action -->
           <nz-col [nzSpan]="2" class="text-end">
             <button nz-button nzType="text" nzDanger nzSize="small" type="button" (click)="removeModalCheckListItem(i)"
               style="font-size: 12px;">
@@ -280,6 +286,85 @@
             </button>
           </nz-col>
         </nz-row>
+      </div>
+    </div>
+  </ng-container>
+</nz-modal>
+
+<!-- Modal Copy công đoạn từ Template khác -->
+<nz-modal [(nzVisible)]="isCopyTemplateModalVisible" nzTitle="Copy công đoạn từ Template khác" [nzWidth]="950"
+  (nzOnCancel)="closeCopyTemplateModal()" (nzOnOk)="confirmCopyTemplate()" nzOkText="Sao chép" nzCancelText="Hủy">
+  <ng-container *nzModalContent>
+    <div class="p-2 fs-12" style="font-size: 12px;">
+      <!-- Chọn Template Nguồn -->
+      <div class="mb-3">
+        <label class="fw-bold mb-1" style="font-size: 12px;">Chọn Template nguồn để sao chép:</label>
+        <nz-select [ngModel]="selectedSourceTemplateId" (ngModelChange)="onSourceTemplateChange($event)"
+          nzPlaceHolder="-- Chọn Template nguồn --" nzShowSearch nzSize="small" style="width: 100%; font-size: 12px;">
+          <ng-container *ngFor="let group of groupedSourceTemplates">
+            <nz-option-group [nzLabel]="group.label">
+              <ng-container *ngFor="let opt of group.options">
+                <nz-option *ngIf="opt.isHeader" [nzValue]="opt.value" [nzLabel]="opt.label" [nzDisabled]="true"></nz-option>
+                <nz-option *ngIf="!opt.isHeader" [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+              </ng-container>
+            </nz-option-group>
+          </ng-container>
+        </nz-select>
+      </div>
+
+      <!-- Tùy chọn chép đè hay nối tiếp -->
+      <div class="mb-3 d-flex align-items-center gap-3" *ngIf="selectedSourceTemplateId">
+        <label class="fw-bold" style="font-size: 12px;">Chế độ sao chép:</label>
+        <label class="cursor-pointer" style="font-size: 12px;">
+          <input type="radio" name="copyMode" [value]="false" [(ngModel)]="copyOverwriteMode" /> Thêm nối tiếp
+        </label>
+        <label class="cursor-pointer text-danger" style="font-size: 12px;">
+          <input type="radio" name="copyMode" [value]="true" [(ngModel)]="copyOverwriteMode" /> Ghi đè (xóa các công
+          đoạn hiện tại)
+        </label>
+      </div>
+
+      <!-- Danh sách công đoạn xem trước -->
+      <div *ngIf="selectedSourceTemplateId">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="fw-bold text-primary" style="font-size: 12px;">
+            Danh sách công đoạn sẽ sao chép ({{ selectedSourceSteps.length }}/{{ sourceTemplateSteps.length }})
+          </span>
+        </div>
+
+        <div *ngIf="sourceTemplateSteps.length === 0" class="text-center text-muted py-4 border rounded bg-light"
+          style="font-size: 12px;">
+          Template này chưa có công đoạn nào.
+        </div>
+
+        <div *ngIf="sourceTemplateSteps.length > 0" class="border rounded overflow-hidden">
+          <p-table [value]="sourceTemplateSteps" [(selection)]="selectedSourceSteps" dataKey="_tempId"
+            styleClass="p-datatable-sm p-datatable-gridlines fs-12" [scrollable]="true" scrollHeight="380px">
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width: 3rem; text-align: center;">
+                  <p-tableHeaderCheckbox />
+                </th>
+                <th style="width: 70px; text-align: center; font-size: 12px;">Thứ tự</th>
+                <th style="width: 220px; font-size: 12px;">Gate</th>
+                <th style="width: 320px; font-size: 12px;">Nội dung công việc</th>
+                <th style="font-size: 12px;">Checklist</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-row>
+              <tr [pSelectableRow]="row">
+                <td class="text-center" style="width: 3rem;">
+                  <p-tableCheckbox [value]="row" />
+                </td>
+                <td class="text-center" style="width: 70px; font-size: 12px;">{{ row.SortOrder }}</td>
+                <td style="width: 220px; font-size: 12px;" class="fw-semibold">{{ row.GateCode }} - {{ row.GateName }}
+                </td>
+                <td style="width: 320px; font-size: 12px;">{{ row.Content }}</td>
+                <td style="font-size: 12px;">{{ row.CheckListNames || 'Chưa có' }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
       </div>
     </div>
   </ng-container>

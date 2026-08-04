@@ -98,6 +98,31 @@
 }
 
 .row-group-header td {
+  font-weight: bold;
+}
+
+/* Định dạng dòng công đoạn con */
+::ng-deep .p-datatable .p-datatable-tbody > tr.sub-step-row {
+  background-color: #fcfcfc !important;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody > tr.sub-step-row:hover {
+  background-color: #f0f7ff !important;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody > tr.sub-step-row > td:first-child {
+  border-left: 3px solid #1890ff !important;
+}
+
+/* Định dạng dòng được chọn trong bảng */
+::ng-deep .p-datatable .p-datatable-tbody > tr.selected-row-active {
+  background-color: #e6f7ff !important;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody > tr.selected-row-active > td {
+  border-top: 1px solid #91caff !important;
+  border-bottom: 1px solid #91caff !important;
+}
   background-color: #f1f3f5 !important;
   color: #2b3035 !important;
   font-weight: bold;
@@ -218,15 +243,49 @@
 
 /* Sơ đồ Gate summary styles */
 .gate-pipeline-scroll {
-  white-space: nowrap;
   background-color: #fdfdfd;
   scroll-behavior: smooth;
 }
 
 .gate-node-card {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  border-color: #dee2e6;
   border-width: 1px;
+  min-width: 0;
+  flex: 1 1 0px;
+}
+
+/* Gate card bôi vàng (Giải pháp) */
+.gate-node-card.gate-card-solution {
+  background-color: #fffbe6 !important;
+  border: 1px solid #ffe58f !important;
+}
+
+.gate-node-card.gate-card-solution:hover {
+  background-color: #fff1b8 !important;
+  border-color: #d48806 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(212, 136, 6, 0.15) !important;
+}
+
+/* Gate card bôi xanh (Triển khai) */
+.gate-node-card.gate-card-deployment {
+  background-color: #e6f7ff !important;
+  border: 1px solid #91caff !important;
+}
+
+.gate-node-card.gate-card-deployment:hover {
+  background-color: #bae7ff !important;
+  border-color: #1890ff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(24, 144, 255, 0.15) !important;
+}
+
+/* Gate card đang được chọn (Selected) */
+.gate-node-card.gate-card-selected {
+  border: 2px solid #23458a !important;
+  box-shadow: 0 4px 8px rgba(35, 69, 138, 0.3) !important;
+  background-color: #ffffff !important;
+  transform: translateY(-2px);
 }
 
 .gate-node-card:hover {

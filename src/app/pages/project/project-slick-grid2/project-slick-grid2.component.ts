@@ -352,7 +352,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 command: () => this.openProjectWorkerModal(),
             },
             {
-                label: 'Chi tiết nhân công',
+                label: 'Chi tiết dự án',
                 icon: 'fa-solid fa-people-group fa-lg text-info',
                 command: () => this.openProjectGateStepByProjectModal(),
             },
@@ -1762,7 +1762,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
 
         this.tabService.openTabComp({
             comp: ProjectGateStepByProjectComponent,
-            title: `Chi tiết nhân công - ${projectCode}`,
+            title: `Chi tiết dự án - ${projectCode}`,
             key: key,
             data: {
                 projectId: projectId,

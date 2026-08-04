@@ -33,6 +33,7 @@ import { ProjectGateStepFormAttachComponent } from '../project-gate-step-form-at
 import { TabServiceService } from '../../../../../layouts/tab-service.service';
 import { ProjectTypeDepartmentService } from '../../project-type-department/project-type-department.service';
 import { ProjectTypeDepartmentTemplateFormComponent } from '../../project-type-department/project-type-department-template-form/project-type-department-template-form.component';
+import { PermissionService } from '../../../../../services/permission.service';
 
 export interface ColDef {
   field: string; header: string; width: string;
@@ -114,11 +115,21 @@ export class ProjectGateStepManagementComponent implements OnInit {
     }>;
   }> = [];
 
+  // Validation flag
+  isSubmitted: boolean = false;
+
   // Checklist modal state
   isChecklistModalVisible: boolean = false;
   checklistModalTitle: string = 'Cấu hình Checklist';
   editingStep: any = null;
   editingStepCheckLists: any[] = [];
+
+  // Copy template modal state
+  isCopyTemplateModalVisible: boolean = false;
+  selectedSourceTemplateId: number | null = null;
+  sourceTemplateSteps: any[] = [];
+  selectedSourceSteps: any[] = [];
+  copyOverwriteMode: boolean = false;
 
   columns: ColDef[] = [
     { field: 'SortOrder', header: 'Thứ tự', width: '80px', filterType: 'number' },
@@ -135,6 +146,7 @@ export class ProjectGateStepManagementComponent implements OnInit {
     private modal: NzModalService,
     private ngbModal: NgbModal,
     private tabService: TabServiceService,
+    private permissionService: PermissionService,
     @Optional() @Inject('tabData') public tabData: any
   ) { }
 
@@ -160,30 +172,43 @@ export class ProjectGateStepManagementComponent implements OnInit {
       {
         label: 'Thêm template',
         icon: 'fa-solid fa-square-plus text-warning',
-        command: () => this.openAddTemplateModal()
+        command: () => this.openAddTemplateModal(),
+        visible: this.permissionService.hasPermission("N1,109"),
       },
       {
         label: 'Thêm dòng',
         icon: 'fa-solid fa-plus text-primary',
-        command: () => this.onAddRow()
+        command: () => this.onAddRow(),
+        visible: this.permissionService.hasPermission("N1,109"),
+      },
+      {
+        label: 'Copy từ template khác',
+        icon: 'fa-solid fa-copy text-info',
+        command: () => this.openCopyTemplateModal(),
+        disabled: !this.selectedMasterTemplate && !this.templateId,
+        visible: this.permissionService.hasPermission("N1,109"),
       },
       {
         label: 'Lưu',
         icon: 'fa-solid fa-floppy-disk text-success',
-        command: () => this.onSave()
+        command: () => this.onSave(),
+        visible: this.permissionService.hasPermission("N1,109"),
       },
       {
         label: 'Xóa',
         icon: 'fa-solid fa-trash text-danger',
         command: () => this.onDelete(),
-        disabled: this.selectedItems.length === 0
+        disabled: this.selectedItems.length === 0,
+        visible: this.permissionService.hasPermission("N1,109"),
       },
       {
         label: 'CheckList',
         icon: 'fa-solid fa-list-check text-info',
         command: () => this.onOpenChecklist(),
-        disabled: this.selectedItems.length !== 1
+        disabled: this.selectedItems.length !== 1,
+        visible: this.permissionService.hasPermission("N1,109"),
       },
+
       {
         label: 'Biểu mẫu',
         icon: 'fa-solid fa-file-signature text-warning',
@@ -193,12 +218,14 @@ export class ProjectGateStepManagementComponent implements OnInit {
       {
         label: 'Xuất excel',
         icon: 'fa-solid fa-file-excel text-success',
-        command: () => this.onExportExcel()
+        command: () => this.onExportExcel(),
+        visible: this.permissionService.hasPermission("N1,109"),
       },
       {
         label: 'Tải lại',
         icon: 'fa-solid fa-arrows-rotate text-secondary',
-        command: () => this.loadData()
+        command: () => this.loadData(),
+        visible: this.permissionService.hasPermission("N1,109"),
       }
     ];
   }
@@ -218,6 +245,7 @@ export class ProjectGateStepManagementComponent implements OnInit {
     this.menuBars = this.menuBars.map(item => {
       if (item.label === 'Xóa') return { ...item, disabled: this.selectedItems.length === 0 };
       if (item.label === 'CheckList') return { ...item, disabled: this.selectedItems.length !== 1 };
+      if (item.label === 'Copy từ template khác') return { ...item, disabled: !this.selectedMasterTemplate && !this.templateId };
       return item;
     });
   }
@@ -435,6 +463,7 @@ export class ProjectGateStepManagementComponent implements OnInit {
   }
 
   loadData(): void {
+    this.isSubmitted = false;
     this.loading = true;
     this.service.getAll(null, null)
       .pipe(finalize(() => this.loading = false))
@@ -504,6 +533,7 @@ export class ProjectGateStepManagementComponent implements OnInit {
     }
 
     this.filteredDataset = result;
+    this.updateUsedGateIds();
   }
 
   onTemplateChange(value: number | null): void {
@@ -569,6 +599,31 @@ export class ProjectGateStepManagementComponent implements OnInit {
     }, 100);
   }
 
+  usedGateIds: Set<number> = new Set<number>();
+  cachedGroupedSourceTemplates: any[] = [];
+
+  updateUsedGateIds(): void {
+    const currentTemplateId = this.templateId ?? (this.selectedMasterTemplate ? this.selectedMasterTemplate.ID : null);
+    const used = new Set<number>();
+    for (const row of (this.dataset || [])) {
+      if (row.ProjectGateID != null) {
+        if (currentTemplateId == null || row.ProjectGateStepTemplateID === currentTemplateId) {
+          used.add(row.ProjectGateID);
+        }
+      }
+    }
+    this.usedGateIds = used;
+  }
+
+  isGateDisabled(gateId: number, currentRow: any): boolean {
+    return this.usedGateIds.has(gateId) && currentRow.ProjectGateID !== gateId;
+  }
+
+  getAvailableGates(currentRow: any): any[] {
+    if (!this.gateList || this.gateList.length === 0) return [];
+    return this.gateList;
+  }
+
   onGateChange(row: any, gateId: number | null): void {
     row.ProjectGateID = gateId;
     const gate = this.gateList.find(g => g.ID === gateId);
@@ -581,32 +636,62 @@ export class ProjectGateStepManagementComponent implements OnInit {
       row.GateName = '';
       row.GateType = 999;
     }
+    this.updateUsedGateIds();
   }
 
   onSave(): void {
-    if (!this.dataset || this.dataset.length === 0) {
+    const currentTemplateId = this.templateId ?? (this.selectedMasterTemplate ? this.selectedMasterTemplate.ID : null);
+
+    const targetRows = currentTemplateId
+      ? this.dataset.filter(item => item.ProjectGateStepTemplateID === currentTemplateId)
+      : this.dataset;
+
+    if (!targetRows || targetRows.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để lưu');
       return;
     }
 
-    // Validate required fields
-    for (let i = 0; i < this.dataset.length; i++) {
-      const item = this.dataset[i];
+    this.isSubmitted = true;
+
+    // Tự động xoá bộ lọc tìm kiếm cột để hiển thị toàn bộ các dòng thuộc template đang chọn (nếu có ô bị lỗi)
+    if (this.sortOrderFilter || this.gateFilter || this.contentFilter || this.checklistFilter) {
+      this.sortOrderFilter = null;
+      this.gateFilter = '';
+      this.contentFilter = '';
+      this.checklistFilter = '';
+      this.onFilterChange();
+    }
+
+    // Validate required fields các dòng thuộc template đang chọn
+    for (let i = 0; i < targetRows.length; i++) {
+      const item = targetRows[i];
+      const displayIndex = this.filteredDataset.indexOf(item);
+      const rowNum = displayIndex >= 0 ? displayIndex + 1 : i + 1;
+
       if (!item.ProjectGateID) {
-        this.notification.warning(NOTIFICATION_TITLE.warning, `Dòng ${i + 1}: Vui lòng chọn Gate!`);
-        this.focusRowInput(i, 'ProjectGateID');
+        this.notification.warning(NOTIFICATION_TITLE.warning, `Dòng ${rowNum}: Vui lòng chọn Gate!`);
+        if (displayIndex >= 0) {
+          this.focusRowInput(displayIndex, 'ProjectGateID');
+        }
+        return;
+      }
+      if (!item.Content || !item.Content.trim()) {
+        this.notification.warning(NOTIFICATION_TITLE.warning, `Dòng ${rowNum}: Vui lòng nhập nội dung công việc!`);
+        if (displayIndex >= 0) {
+          this.focusRowInput(displayIndex, 'Content');
+        }
         return;
       }
     }
 
     this.loading = true;
-    const payload = this.dataset.map(item => ({
+    const payload = targetRows.map(item => ({
       ID: item.ID || 0,
       ProjectGateID: item.ProjectGateID,
       TT: item.TT || '',
       SortOrder: item.SortOrder ?? null,
       Content: item.Content || '',
-      ProjectGateStepTemplateID: item.ProjectGateStepTemplateID || this.templateId || null,
+      ProjectGateStepTemplateID: item.ProjectGateStepTemplateID || currentTemplateId,
       CheckLists: (item.CheckLists || []).map((c: any) => ({
         ID: c.ID || 0,
         ProjectGateStepID: item.ID || 0,
@@ -711,6 +796,237 @@ export class ProjectGateStepManagementComponent implements OnInit {
 
   closeChecklistModal(): void {
     this.isChecklistModalVisible = false;
+  }
+
+  // ── Copy Công đoạn từ Template khác ───────────────────────────
+  openCopyTemplateModal(): void {
+    const currentTemplateId = this.templateId ?? (this.selectedMasterTemplate ? this.selectedMasterTemplate.ID : null);
+    if (!currentTemplateId) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 template trước khi thực hiện copy!');
+      return;
+    }
+    this.buildGroupedSourceTemplates();
+    this.selectedSourceTemplateId = null;
+    this.sourceTemplateSteps = [];
+    this.selectedSourceSteps = [];
+    this.copyOverwriteMode = false;
+    this.isCopyTemplateModalVisible = true;
+  }
+
+  get groupedSourceTemplates(): any[] {
+    return this.cachedGroupedSourceTemplates;
+  }
+
+  buildGroupedSourceTemplates(): void {
+    const currentTemplateId = this.templateId ?? (this.selectedMasterTemplate ? this.selectedMasterTemplate.ID : null);
+
+    const curTpl = this.selectedMasterTemplate
+      || (this.masterTemplates || []).find((t: any) => t.ID === currentTemplateId)
+      || (this.templateList || []).find((t: any) => t.ID === currentTemplateId);
+
+    const curDept = (curTpl?.DepartmentName || this.departmentName || '').trim();
+    const curProjType = (curTpl?.ProjectTypeName || this.projectTypeName || '').trim();
+
+    const sourceTemplatesMap = new Map<number, any>();
+
+    (this.masterTemplates || []).forEach((t: any) => {
+      if (t.ID && t.ID !== currentTemplateId) {
+        sourceTemplatesMap.set(t.ID, t);
+      }
+    });
+
+    (this.templateList || []).forEach((t: any) => {
+      if (t.ID && t.ID !== currentTemplateId && !sourceTemplatesMap.has(t.ID)) {
+        sourceTemplatesMap.set(t.ID, t);
+      }
+    });
+
+    const allSources = Array.from(sourceTemplatesMap.values());
+    if (allSources.length === 0) {
+      this.cachedGroupedSourceTemplates = [];
+      return;
+    }
+
+    const deptMap: { [dept: string]: { [projType: string]: any[] } } = {};
+    const noDeptName = 'Mẫu chung';
+
+    allSources.forEach((t: any) => {
+      const dept = t.DepartmentName ? t.DepartmentName.trim() : noDeptName;
+      const projType = t.ProjectTypeName ? t.ProjectTypeName.trim() : 'Không xác định kiểu dự án';
+
+      if (!deptMap[dept]) deptMap[dept] = {};
+      if (!deptMap[dept][projType]) deptMap[dept][projType] = [];
+      deptMap[dept][projType].push(t);
+    });
+
+    const depts = Object.keys(deptMap).sort((a, b) => {
+      if (curDept && a.toLowerCase() === curDept.toLowerCase()) return -1;
+      if (curDept && b.toLowerCase() === curDept.toLowerCase()) return 1;
+      if (a === noDeptName) return 1;
+      if (b === noDeptName) return -1;
+      return a.localeCompare(b);
+    });
+
+    const groups: Array<{
+      label: string;
+      isCurrentDept?: boolean;
+      options: Array<{
+        label: string;
+        value: number | null;
+        disabled: boolean;
+        isHeader?: boolean;
+      }>;
+    }> = [];
+
+    depts.forEach(dept => {
+      const isCurDept = curDept && dept.toLowerCase() === curDept.toLowerCase();
+      const groupLabel = isCurDept ? `★ ${dept} (Phòng ban hiện tại)` : dept;
+
+      const options: Array<{ label: string; value: number | null; disabled: boolean; isHeader?: boolean }> = [];
+      const projTypesMap = deptMap[dept];
+
+      const projTypes = Object.keys(projTypesMap).sort((a, b) => {
+        if (curProjType && a.toLowerCase() === curProjType.toLowerCase()) return -1;
+        if (curProjType && b.toLowerCase() === curProjType.toLowerCase()) return 1;
+        return a.localeCompare(b);
+      });
+
+      projTypes.forEach(projType => {
+        const isCurProjType = curProjType && projType.toLowerCase() === curProjType.toLowerCase();
+        const headerLabel = isCurProjType
+          ? `--- ★ ${projType} (Cùng kiểu dự án) ---`
+          : `--- ${projType} ---`;
+
+        options.push({
+          label: headerLabel,
+          value: null,
+          disabled: true,
+          isHeader: true
+        });
+
+        const templates = projTypesMap[projType];
+        templates.sort((a, b) => (a.Code || '').localeCompare(b.Code || ''));
+
+        templates.forEach(tpl => {
+          options.push({
+            label: `   [${tpl.Code}] ${tpl.Name}`,
+            value: tpl.ID,
+            disabled: false
+          });
+        });
+      });
+
+      groups.push({
+        label: groupLabel,
+        isCurrentDept: !!isCurDept,
+        options: options
+      });
+    });
+
+    this.cachedGroupedSourceTemplates = groups;
+  }
+
+  onSourceTemplateChange(sourceId: number | null): void {
+    this.selectedSourceTemplateId = sourceId;
+    if (!sourceId) {
+      this.sourceTemplateSteps = [];
+      this.selectedSourceSteps = [];
+      return;
+    }
+
+    const steps = this.dataset.filter(r => r.ProjectGateStepTemplateID === sourceId);
+    this.sourceTemplateSteps = steps.map(s => ({ ...s }));
+    this.selectedSourceSteps = [...this.sourceTemplateSteps];
+  }
+
+  closeCopyTemplateModal(): void {
+    this.isCopyTemplateModalVisible = false;
+  }
+
+  confirmCopyTemplate(): void {
+    const currentTemplateId = this.templateId ?? (this.selectedMasterTemplate ? this.selectedMasterTemplate.ID : null);
+    if (!currentTemplateId) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa chọn template mục tiêu!');
+      return;
+    }
+
+    if (!this.selectedSourceSteps || this.selectedSourceSteps.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 công đoạn để copy!');
+      return;
+    }
+
+    if (this.copyOverwriteMode) {
+      this.dataset = this.dataset.filter(r => r.ProjectGateStepTemplateID !== currentTemplateId);
+    }
+
+    const existingGateIds = new Set(
+      this.dataset
+        .filter(r => r.ProjectGateStepTemplateID === currentTemplateId && r.ProjectGateID != null)
+        .map(r => r.ProjectGateID)
+    );
+
+    let maxSortOrder = this.dataset
+      .filter(item => item.ProjectGateStepTemplateID === currentTemplateId)
+      .reduce((max, item) => {
+        const val = Number(item.SortOrder);
+        return !isNaN(val) && val > max ? val : max;
+      }, 0);
+
+    const newRows: any[] = [];
+    const skippedGates: string[] = [];
+
+    this.selectedSourceSteps.forEach(src => {
+      if (src.ProjectGateID && existingGateIds.has(src.ProjectGateID)) {
+        skippedGates.push(src.GateCode || `Gate #${src.ProjectGateID}`);
+        return;
+      }
+
+      maxSortOrder++;
+      const newRow: any = {
+        ID: 0,
+        ProjectGateID: src.ProjectGateID,
+        GateCode: src.GateCode || '',
+        GateName: src.GateName || '',
+        GateType: src.GateType ?? 999,
+        TT: src.TT || '',
+        SortOrder: maxSortOrder,
+        Content: src.Content || '',
+        ProjectGateStepTemplateID: currentTemplateId,
+        CheckListNames: src.CheckListNames || '',
+        CheckLists: (src.CheckLists || []).map((c: any) => ({
+          ID: 0,
+          ProjectGateStepID: 0,
+          Type: c.Type || '',
+          ProjectGateCheckListType: c.ProjectGateCheckListType || null,
+          Description: c.Description || ''
+        })),
+        _isNew: true,
+        _tempId: -Date.now() - Math.floor(Math.random() * 10000)
+      };
+
+      if (src.ProjectGateID) {
+        existingGateIds.add(src.ProjectGateID);
+      }
+      newRows.push(newRow);
+    });
+
+    if (newRows.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Tất cả các bước được chọn đều thuộc Gate đã tồn tại trong template mục tiêu!'
+      );
+      return;
+    }
+
+    this.dataset = [...this.dataset, ...newRows];
+    this.onFilterChange();
+    this.isCopyTemplateModalVisible = false;
+
+    let msg = `Đã sao chép ${newRows.length} công đoạn vào template! Vui lòng kiểm tra và bấm "Lưu".`;
+    if (skippedGates.length > 0) {
+      msg += ` (Bỏ qua ${skippedGates.length} Gate đã có: ${skippedGates.join(', ')})`;
+    }
+    this.notification.success(NOTIFICATION_TITLE.success, msg);
   }
 
   onOpenChecklist(): void {

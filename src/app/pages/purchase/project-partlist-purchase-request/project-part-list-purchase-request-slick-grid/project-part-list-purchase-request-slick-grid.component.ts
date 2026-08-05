@@ -195,6 +195,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   isDeletedFilter: number = 0;
   isApprovedBGDFilter: number = -1;
   isApprovedTBPFilter: number = -1;
+  isRequestApprovedFilter: number = -1;
   @Input() pokhIdFilter: number = 0;
 
   // Filter options
@@ -3384,7 +3385,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
     return selectedRowIndexes
       .map((rowIndex: number) => angularGrid.dataView.getItem(rowIndex))
-      .filter((item: any) => item);
+      .filter((item: any) => item && !item.__group && !item.__groupTotals);
   }
 
   // Event handlers
@@ -3486,13 +3487,20 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     ) {
       let hasUpdatedRows = false;
 
-      for (const selectedRowIndex of selectedRowIndexes) {
-        // Bỏ qua dòng đang được edit
-        if (selectedRowIndex === rowIndex) continue;
+      // Chốt danh sách item TRƯỚC khi mutate: nếu cột đang có filter, mỗi lần
+      // dataView.updateItem() bên dưới có thể khiến DataView tự re-filter ngay
+      // giữa vòng lặp, làm lệch vị trí index của các dòng chưa xử lý và khiến
+      // một số dòng bị bỏ sót (không nhận change).
+      const selectedItemsSnapshot = selectedRowIndexes
+        .filter((selectedRowIndex: number) => selectedRowIndex !== rowIndex)
+        .map((selectedRowIndex: number) =>
+          angularGrid.dataView.getItem(selectedRowIndex)
+        )
+        .filter((it: any) => it);
 
-        const selectedItem = angularGrid.dataView.getItem(selectedRowIndex);
-        if (!selectedItem) continue;
+      angularGrid.dataView.beginUpdate();
 
+      for (const selectedItem of selectedItemsSnapshot) {
         // Fill giá trị vào dòng này (bỏ qua kiểm tra QuoteEmployeeID)
 
         // Fill giá trị vào dòng này
@@ -3568,6 +3576,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         }
         hasUpdatedRows = true;
       }
+
+      angularGrid.dataView.endUpdate();
 
       // Refresh grid nếu có dòng được update
       if (hasUpdatedRows) {
@@ -3776,7 +3786,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       IsDeleted: this.isDeletedFilter,
       IsTechBought: -1,
       IsJobRequirement: -1,
-      IsRequestApproved: this.isApprovedBGD ? 1 : -1,
+      IsRequestApproved: this.isApprovedBGD ? 1 : this.isRequestApprovedFilter,
       EmployeeID: this.isFromHr ? (this.appUserService.employeeID || 0) : 0,
       Page: 1,
       Size: 100000,

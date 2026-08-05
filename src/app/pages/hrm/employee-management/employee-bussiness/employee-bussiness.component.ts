@@ -619,8 +619,10 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
 
       if (employeeId === 0) continue;
 
-      // Kiểm tra quyền nếu không phải admin
-      if (!this.isAdmin) {
+      // Kiểm tra quyền nếu không phải admin hoặc có quyền N1, N113
+      const hasN1Permission = this.permissionService.hasPermission('N1');
+      const hasN113Permission = this.permissionService.hasPermission('N113');
+      if (!this.isAdmin && !hasN1Permission && !hasN113Permission) {
         if (departmentId !== this.currentDepartmentId && this.currentDepartmentId !== 1) {
           this.notification.warning(
             NOTIFICATION_TITLE.warning,
@@ -1105,13 +1107,14 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
     return isTBPApproved || isHRApproved;
   }
 
-  // Helper method để kiểm tra user có quyền chỉnh sửa nhân viên (N1, N2 hoặc IsAdmin)
+  // Helper method để kiểm tra user có quyền chỉnh sửa nhân viên (N1, N2, N113 hoặc IsAdmin)
   private canEditEmployee(): boolean {
     const hasN1Permission = this.permissionService.hasPermission('N1');
     const hasN2Permission = this.permissionService.hasPermission('N2');
+    const hasN113Permission = this.permissionService.hasPermission('N113');
     const isAdminCheck = this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true || this.isAdmin;
 
-    return hasN1Permission || hasN2Permission || isAdminCheck;
+    return hasN1Permission || hasN2Permission || hasN113Permission || isAdminCheck;
   }
 
   // Kiểm tra user có quyền sửa/xóa bản ghi đã duyệt (N1, N2 hoặc IsAdmin)

@@ -3494,7 +3494,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
         }
 
         const userId = this.appUserService.id;
-        const isAdmin = this.appUserService.isAdmin;
+        const isAdmin = this.appUserService.isAdmin || this.appUserService.id === 1110;
 
         const targetRows = selectedRows.filter((row: any) =>
             row.IsOrderPrepared !== isPreparing &&
@@ -3540,7 +3540,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
 
         const msgStatus = !isReceive ? 'đã nhận hàng' : 'chưa nhận hàng';
         const userId = this.appUserService.id;
-        const isAdmin = this.appUserService.isAdmin;
+        const isAdmin = this.appUserService.isAdmin || this.appUserService.id === 1110;
 
         const targetRows = selectedRows.filter((row: any) =>
             row.IsOrderReceived !== isReceive &&

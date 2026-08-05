@@ -4,11 +4,23 @@
   <div class="card border-0 mb-2 p-1 bg-white shadow-sm filter-card">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 px-2 py-1">
       <!-- Phía bên trái: Chú thích màu sắc -->
-      <div class="legend-container d-none d-md-flex align-items-center gap-3">
-        <span class="legend-item"><span class="legend-color legend-parent"></span> Dòng cha</span>
-        <span class="legend-item"><span class="legend-color legend-orange"></span> Hoàn thành nhưng trễ</span>
-        <span class="legend-item"><span class="legend-color legend-red"></span> Quá hạn / Fail</span>
-        <span class="legend-item"><span class="legend-color legend-yellow"></span> Sắp hết hạn (≤ 3 ngày)</span>
+      <div class="legend-container d-none d-md-flex align-items-center gap-2">
+        <span class="legend-item" [class.active]="filterTag === 'parent'" (click)="toggleTagFilter('parent')"
+          title="Bấm để lọc dòng cha">
+          <span class="legend-color legend-parent"></span> Dòng cha
+        </span>
+        <span class="legend-item" [class.active]="filterTag === 1" (click)="toggleTagFilter(1)"
+          title="Bấm để lọc công việc hoàn thành nhưng trễ">
+          <span class="legend-color legend-orange"></span> Hoàn thành nhưng trễ
+        </span>
+        <span class="legend-item" [class.active]="filterTag === 2" (click)="toggleTagFilter(2)"
+          title="Bấm để lọc công việc quá hạn / Fail">
+          <span class="legend-color legend-red"></span> Quá hạn / Fail
+        </span>
+        <span class="legend-item" [class.active]="filterTag === 3" (click)="toggleTagFilter(3)"
+          title="Bấm để lọc công việc sắp hết hạn (≤ 3 ngày)">
+          <span class="legend-color legend-yellow"></span> Sắp hết hạn (≤ 3 ngày)
+        </span>
       </div>
 
       <!-- Phía bên phải: Các nút chức năng PrimeNG (p-menubar) đặt SÁT BÊN TRÁI icon Toggle -->
@@ -31,10 +43,8 @@
           <div class="form-field-vertical">
             <label>Dự án <span class="text-danger">*</span></label>
             <nz-select nzPlaceHolder="Chọn dự án..." [(ngModel)]="projectId" nzSize="small" nzShowSearch nzAllowClear
+              nzDropdownClassName="select-dropdown" [nzOptions]="projectOptions" [nzOptionHeightPx]="32"
               (ngModelChange)="onProjectChange()" style="width: 100%;">
-              <nz-option *ngFor="let item of projectList" [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"
-                [nzValue]="item.ID">
-              </nz-option>
             </nz-select>
           </div>
         </nz-col>
@@ -59,31 +69,30 @@
         <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="3" [nzLg]="3">
           <div class="form-field-vertical">
             <label>Trạng thái</label>
-            <nz-select nzPlaceHolder="Tất cả" [(ngModel)]="filterStatus" nzSize="small" nzAllowClear
-              style="width: 100%;">
+            <nz-select nzPlaceHolder="Tất cả" [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()" nzSize="small"
+              nzAllowClear style="width: 100%;">
               <nz-option *ngFor="let s of statusList" [nzValue]="s.value" [nzLabel]="s.label"></nz-option>
             </nz-select>
           </div>
         </nz-col>
 
         <!-- 5. Người thực hiện -->
-        <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4" [nzLg]="4">
+        <!-- <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4" [nzLg]="4">
           <div class="form-field-vertical">
             <label>Người thực hiện</label>
             <nz-select nzPlaceHolder="Tất cả" [(ngModel)]="filterUser" nzSize="small" nzShowSearch nzAllowClear
-              style="width: 100%;">
-              <nz-option *ngFor="let u of users" [nzValue]="u.ID" [nzLabel]="u.FullName || u.LoginName"></nz-option>
+              [nzOptions]="userOptions" [nzOptionHeightPx]="32" style="width: 100%;">
             </nz-select>
           </div>
-        </nz-col>
+        </nz-col> -->
 
         <!-- 6. Từ khóa -->
-        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="3" [nzLg]="4">
+        <!-- <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="3" [nzLg]="4">
           <div class="form-field-vertical">
             <label>Từ khóa</label>
             <input nz-input nzSize="small" placeholder="Mã hoặc tên công việc..." [(ngModel)]="filterKeyword" />
           </div>
-        </nz-col>
+        </nz-col> -->
 
         <!-- 7. Button Tìm kiếm -->
         <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="2" [nzLg]="2" class="d-flex justify-content-end">
@@ -97,11 +106,23 @@
   </div>
 
   <!-- ===== BẢNG CÂY CÔNG VIỆC VỚI PRIME-NG RESIZABLE COLUMNS ===== -->
-  <nz-spin [nzSpinning]="loading()">
+  <nz-spin [nzSpinning]="loading()" nzTip="Đang tải dữ liệu công việc...">
     <div class="table-scroll-wrapper">
-      <p-table [value]="flatVisibleData" [scrollable]="true" scrollHeight="flex" [resizableColumns]="true"
-        columnResizeMode="expand" styleClass="p-datatable-sm p-datatable-gridlines tree-grid-p-table">
+      <p-table [value]="flatVisibleData" dataKey="Code" [scrollable]="true" scrollHeight="flex"
+        [resizableColumns]="true" [loading]="loading()" [filterDelay]="300" columnResizeMode="expand"
+        styleClass="p-datatable-sm p-datatable-gridlines tree-grid-p-table">
         <ng-template pTemplate="header">
+          <!-- Hàng nhóm: gom 2 cột Dự kiến và 2 cột Thực tế -->
+          <tr>
+            <th colspan="7" style="border: none; background: transparent;"></th>
+            <th colspan="2" class="text-center header-group group-planned" style="letter-spacing: 0.04em;">
+              📅 DỰ KIẾN
+            </th>
+            <th colspan="2" class="text-center header-group group-actual" style="letter-spacing: 0.04em;">
+              ✅ THỰC TẾ
+            </th>
+            <th colspan="3" style="border: none; background: transparent;"></th>
+          </tr>
           <tr>
             <th pResizableColumn style="width: 60px;" class="text-center">Thao tác</th>
             <th pSortableColumn="Code" pResizableColumn style="width: 160px;">Mã CV <p-sortIcon
@@ -114,6 +135,8 @@
                 field="EmployeeIDRequest"></p-sortIcon> <span class="text-danger">*</span></th>
             <th pSortableColumn="UserID" pResizableColumn style="width: 200px;">Người thực hiện <p-sortIcon
                 field="UserID"></p-sortIcon> <span class="text-danger">*</span></th>
+            <th pSortableColumn="RelatedUserIDName" pResizableColumn style="width: 200px;">Người liên quan <p-sortIcon
+                field="RelatedUserIDName"></p-sortIcon></th>
             <th pSortableColumn="PlanStartDate" pResizableColumn style="width: 120px;"
               class="group-planned-sub text-center">BĐ dự kiến <p-sortIcon field="PlanStartDate"></p-sortIcon></th>
             <th pSortableColumn="PlanEndDate" pResizableColumn style="width: 120px;"
@@ -123,9 +146,11 @@
             <th pSortableColumn="ActualEndDate" pResizableColumn style="width: 120px;"
               class="group-actual-sub text-center">KT thực tế <p-sortIcon field="ActualEndDate"></p-sortIcon></th>
             <th pSortableColumn="Deadline" pResizableColumn style="width: 120px;" class="text-center">Deadline
-              <p-sortIcon field="Deadline"></p-sortIcon></th>
+              <p-sortIcon field="Deadline"></p-sortIcon>
+            </th>
             <th pSortableColumn="Status" pResizableColumn style="width: 100px;" class="text-center">Trạng thái
-              <p-sortIcon field="Status"></p-sortIcon></th>
+              <p-sortIcon field="Status"></p-sortIcon>
+            </th>
             <th pResizableColumn style="width: 50px;" class="text-center">Chi tiết</th>
           </tr>
           <tr>
@@ -149,6 +174,10 @@
             <th>
               <p-columnFilter type="text" field="UserIDName" [showMenu]="false" matchMode="contains"
                 placeholder="Lọc Người thực hiện"></p-columnFilter>
+            </th>
+            <th>
+              <p-columnFilter type="text" field="RelatedUserIDName" [showMenu]="false" matchMode="contains"
+                placeholder="Lọc Người liên quan"></p-columnFilter>
             </th>
             <th>
               <!-- <p-columnFilter type="text" field="PlanStartDate" [showMenu]="false"
@@ -180,9 +209,9 @@
 
         <ng-template pTemplate="body" let-row>
           <tr [ngClass]="{
-              'row-late-red': getRowLateStatus(row) === 2,
-              'row-late-orange': getRowLateStatus(row) === 1,
-              'row-expiring-soon': getRowLateStatus(row) === 3,
+              'row-late-red': row._lateStatus === 2,
+              'row-late-orange': row._lateStatus === 1,
+              'row-expiring-soon': row._lateStatus === 3,
               'row-parent': row.hasChildren,
               'row-dirty': row._isDirty && !row._isNew,
               'row-new': row._isNew
@@ -223,10 +252,8 @@
             <td>
               <nz-select nzSize="small" class="w-100" [class.input-invalid]="row._invalidType"
                 [nzDropdownMatchSelectWidth]="false" [nzDropdownStyle]="{ 'min-width': '220px' }"
-                [(ngModel)]="row.TypeProjectItem" (ngModelChange)="onCellChange(row)" nzPlaceHolder="Chọn loại..."
-                nzShowSearch>
-                <nz-option *ngFor="let t of typeProjectItems" [nzValue]="t.ID"
-                  [nzLabel]="t.ProjectTypeName"></nz-option>
+                [nzOptions]="typeProjectOptions" [(ngModel)]="row.TypeProjectItem" (ngModelChange)="onCellChange(row)"
+                nzPlaceHolder="Chọn loại..." nzShowSearch>
               </nz-select>
             </td>
 
@@ -237,8 +264,8 @@
                 style="width: 100%; height: 100%; min-height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; cursor: pointer;">
                 <span class="table-lookup-value" [class.text-400]="!row.EmployeeIDRequest"
                   style="white-space: pre-wrap; word-break: break-word; flex: 1; padding: 2px 0;"
-                  [title]="getEmployeeRequestName(row.EmployeeIDRequest) || 'Chọn người giao...'">
-                  {{ getEmployeeRequestName(row.EmployeeIDRequest) || 'Chọn người giao...' }}
+                  [title]="row.EmployeeIDRequestName || 'Chọn người giao...'">
+                  {{ row.EmployeeIDRequestName || 'Chọn người giao...' }}
                 </span>
                 <i class="pi pi-chevron-down table-lookup-chevron"
                   style="font-size: 0.8rem; color: #6c757d; margin-left: 4px;"></i>
@@ -252,8 +279,23 @@
                 style="width: 100%; height: 100%; min-height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; cursor: pointer;">
                 <span class="table-lookup-value" [class.text-400]="!row.UserIDs || row.UserIDs.length === 0"
                   style="white-space: pre-wrap; word-break: break-word; flex: 1; padding: 2px 0;"
-                  [title]="getUserDisplay(row.UserIDs) || 'Chọn người thực hiện...'">
-                  {{ getUserDisplay(row.UserIDs) || 'Chọn người thực hiện...' }}
+                  [title]="row.UserIDName || 'Chọn người thực hiện...'">
+                  {{ row.UserIDName || 'Chọn người thực hiện...' }}
+                </span>
+                <i class="pi pi-chevron-down table-lookup-chevron"
+                  style="font-size: 0.8rem; color: #6c757d; margin-left: 4px;"></i>
+              </div>
+            </td>
+
+            <!-- Người liên quan (Table Lookup Popover - Chọn nhiều người) -->
+            <td style="position: relative;">
+              <div class="table-lookup-cell" (click)="openRelatedLookup($event, row, relatedLookupPanel)"
+                style="width: 100%; height: 100%; min-height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; cursor: pointer;">
+                <span class="table-lookup-value"
+                  [class.text-400]="!row.RelatedUserIDs || row.RelatedUserIDs.length === 0"
+                  style="white-space: pre-wrap; word-break: break-word; flex: 1; padding: 2px 0;"
+                  [title]="row.RelatedUserIDName || 'Chọn người liên quan...'">
+                  {{ row.RelatedUserIDName || 'Chọn người liên quan...' }}
                 </span>
                 <i class="pi pi-chevron-down table-lookup-chevron"
                   style="font-size: 0.8rem; color: #6c757d; margin-left: 4px;"></i>
@@ -270,7 +312,7 @@
             <td>
               <input type="date" class="input-cell text-center"
                 [class.input-invalid]="row._invalidPlanDates || row._invalidParentEndDate"
-                [max]="getParentPlanEndDate(row)" [(ngModel)]="row.PlanEndDate" (ngModelChange)="onCellChange(row)" />
+                [max]="row._parentPlanEndDate" [(ngModel)]="row.PlanEndDate" (ngModelChange)="onCellChange(row)" />
             </td>
 
             <!-- BĐ thực tế -->
@@ -293,8 +335,7 @@
 
             <!-- Trạng thái -->
             <td class="text-center">
-              <nz-select nzSize="small" class="w-100" [(ngModel)]="row.Status" (ngModelChange)="onCellChange(row)">
-                <nz-option *ngFor="let s of statusList" [nzValue]="s.value" [nzLabel]="s.label"></nz-option>
+              <nz-select nzSize="small" class="w-100" [nzOptions]="statusOptions" [(ngModel)]="row.Status" (ngModelChange)="onCellChange(row)">
               </nz-select>
             </td>
 
@@ -311,7 +352,7 @@
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="13" class="text-center py-4 text-muted">
+            <td colspan="14" class="text-center py-4 text-muted">
               <i class="fa-solid fa-folder-open fa-2x mb-2 d-block"></i>
               {{ projectId ? 'Không có công việc nào' : 'Vui lòng chọn Dự án để hiển thị danh sách công việc' }}
             </td>
@@ -321,7 +362,7 @@
     </div>
   </nz-spin>
 
-  <!-- Popover tra cứu người thực hiện -->
+  <!-- Popover tra cứu người thực hiện (Chọn nhiều) -->
   <p-popover #userLookupPanel appendTo="body"
     [style]="{ 'min-width': '450px', 'max-width': '750px', 'font-size': '12px' }">
     <div class="p-2 d-flex flex-column" style="max-height: 480px;">
@@ -330,7 +371,7 @@
           placeholder="Tìm theo Mã, Tên hoặc Phòng ban..." class="p-inputtext-sm flex-grow-1"
           style="font-size: 12px;" />
         <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" size="small"
-          (click)="clearUserSelection()" title="Bỏ chọn"></p-button>
+          (click)="clearUserSelection()" title="Bỏ chọn tất cả"></p-button>
       </div>
 
       <div class="table-container flex-grow-1 overflow-auto">
@@ -345,10 +386,10 @@
           </ng-template>
           <ng-template pTemplate="body" let-row>
             <tr class="lookup-row cursor-pointer" [class.lookup-row-selected]="isUserSelected(row)"
-              (click)="selectUser(row, userLookupPanel)">
+              (click)="toggleSelectUser(row)">
               <td class="text-center" style="width: 3rem;" (click)="$event.stopPropagation()">
-                <input type="radio" name="selectedUser" [checked]="isUserSelected(row)"
-                  (change)="selectUser(row, userLookupPanel)" style="cursor: pointer;" />
+                <input type="checkbox" [checked]="isUserSelected(row)" (change)="toggleSelectUser(row)"
+                  style="cursor: pointer;" />
               </td>
               <td>{{ row.Code }}</td>
               <td class="fw-bold">{{ row.FullName }}</td>
@@ -360,10 +401,12 @@
 
       <div class="d-flex justify-content-between align-items-center mt-2 border-top pt-2">
         <span class="text-muted">
-          Người thực hiện: <b style="color: var(--p-primary-color, #1890ff);">{{ getSelectedUserName() || 'Chưa chọn'
-            }}</b>
+          Người thực hiện (<b>{{ activeTaskItem?.UserIDs?.length || 0 }}</b>):
+          <b style="color: var(--p-primary-color, #1890ff);">
+            {{ getUserDisplay(activeTaskItem?.UserIDs || []) || 'Chưa chọn' }}
+          </b>
         </span>
-        <p-button label="Đóng" size="small" [text]="true" severity="primary"
+        <p-button label="Xác nhận" size="small" [text]="false" severity="primary"
           (click)="userLookupPanel.hide()"></p-button>
       </div>
     </div>
@@ -408,11 +451,63 @@
 
       <div class="d-flex justify-content-between align-items-center mt-2 border-top pt-2">
         <span class="text-muted">
-          Người giao việc: <b style="color: var(--p-primary-color, #1890ff);">{{ getSelectedAssignerName() || 'Chưa chọn'
+          Người giao việc: <b style="color: var(--p-primary-color, #1890ff);">{{ getSelectedAssignerName() || 'Chưa
+            chọn'
             }}</b>
         </span>
         <p-button label="Đóng" size="small" [text]="true" severity="primary"
           (click)="assignerLookupPanel.hide()"></p-button>
+      </div>
+    </div>
+  </p-popover>
+
+  <!-- Popover tra cứu người liên quan (Chọn nhiều người) -->
+  <p-popover #relatedLookupPanel appendTo="body"
+    [style]="{ 'min-width': '450px', 'max-width': '750px', 'font-size': '12px' }">
+    <div class="p-2 d-flex flex-column" style="max-height: 480px;">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <input pInputText type="text" [(ngModel)]="relatedSearchText" (input)="filterRelatedUsersData()"
+          placeholder="Tìm theo Mã, Tên hoặc Phòng ban..." class="p-inputtext-sm flex-grow-1"
+          style="font-size: 12px;" />
+        <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" size="small"
+          (click)="clearRelatedSelection()" title="Bỏ chọn tất cả"></p-button>
+      </div>
+
+      <div class="table-container flex-grow-1 overflow-auto">
+        <p-table [value]="relatedUsersFilteredData" [scrollable]="true" scrollHeight="300px"
+          styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 3rem;" class="text-center">Chọn</th>
+              <th style="width: 80px;">Mã NV</th>
+              <th>Họ và tên</th>
+              <th>Bộ phận</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr class="lookup-row cursor-pointer" [class.lookup-row-selected]="isRelatedSelected(row)"
+              (click)="toggleSelectRelated(row)">
+              <td class="text-center" style="width: 3rem;" (click)="$event.stopPropagation()">
+                <input type="checkbox" [checked]="isRelatedSelected(row)" (change)="toggleSelectRelated(row)"
+                  style="cursor: pointer;" />
+              </td>
+              <td>{{ row.Code }}</td>
+              <td class="fw-bold">{{ row.FullName }}</td>
+              <td>{{ row.DepartmentName }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mt-2 border-top pt-2">
+        <span class="text-muted">
+          Người liên quan (<b>{{ activeLookupRowForRelated?.RelatedUserIDs?.length || 0 }}</b>):
+          <b style="color: var(--p-primary-color, #1890ff);">
+            {{ getRelatedUserDisplay(activeLookupRowForRelated?.RelatedUserIDs) || 'Chưa chọn' }}
+          </b>
+        </span>
+        <p-button label="Xác nhận" size="small" [text]="false" severity="primary"
+          (click)="relatedLookupPanel.hide()"></p-button>
       </div>
     </div>
   </p-popover>

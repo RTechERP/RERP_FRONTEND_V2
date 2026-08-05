@@ -809,6 +809,39 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
     });
   }
 
+  copyFilePath(file: any): void {
+    if (!file || !file.FilePath) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy đường dẫn file để sao chép!');
+      return;
+    }
+    const path = file.FilePath;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(path).then(() => {
+        this.notification.success(NOTIFICATION_TITLE.success, 'Đã sao chép đường dẫn file vào bộ nhớ tạm!');
+      }).catch(() => {
+        this.fallbackCopyTextToClipboard(path);
+      });
+    } else {
+      this.fallbackCopyTextToClipboard(path);
+    }
+  }
+
+  private fallbackCopyTextToClipboard(text: string): void {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      this.notification.success(NOTIFICATION_TITLE.success, 'Đã sao chép đường dẫn file vào bộ nhớ tạm!');
+    } catch (err) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không thể sao chép đường dẫn file!');
+    }
+    document.body.removeChild(textArea);
+  }
+
   downloadFile(file: any): void {
     if (!file || !file.FilePath) return;
     this.projectGateStepService.downloadFile(file.FilePath).subscribe({
@@ -824,8 +857,17 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
       },
       error: (err: any) => {
         console.error('Lỗi tải file:', err);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải file xuống.');
+        this.notification.error(NOTIFICATION_TITLE.error, 'File không tồn tại trên hệ thống hoặc đã bị xóa trên máy chủ server!');
+        if (file && file.ID) {
+          file.Status = 0;
+          this.cdr.markForCheck();
+          this.projectGateStepService.updateFileStatus(file.ID, 0).subscribe({
+            next: () => {},
+            error: (e: any) => console.error('Lỗi cập nhật trạng thái file không tồn tại:', e)
+          });
+        }
       }
     });
   }
 }
+

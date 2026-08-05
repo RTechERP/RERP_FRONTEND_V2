@@ -74,9 +74,17 @@ nz-spin,
   color: #0369a1 !important;
 }
 
+/* Cột Dự kiến — xanh lam nhạt, ghi đè PrimeNG */
 .group-planned-sub {
-  background-color: #f0f9ff !important;
-  color: #0369a1 !important;
+  background-color: #dbeafe !important;
+  color: #1d4ed8 !important;
+  border-bottom: 2px solid #3b82f6 !important;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-datatable-thead > tr > th.group-planned-sub {
+  background-color: #dbeafe !important;
+  color: #1d4ed8 !important;
+  border-bottom: 2px solid #3b82f6 !important;
 }
 
 .group-actual {
@@ -84,10 +92,19 @@ nz-spin,
   color: #be185d !important;
 }
 
+/* Cột Thực tế — xanh lá nhạt, ghi đè PrimeNG */
 .group-actual-sub {
-  background-color: #fdf2f8 !important;
-  color: #be185d !important;
+  background-color: #dcfce7 !important;
+  color: #15803d !important;
+  border-bottom: 2px solid #22c55e !important;
 }
+
+:host ::ng-deep .tree-grid-p-table .p-datatable-thead > tr > th.group-actual-sub {
+  background-color: #dcfce7 !important;
+  color: #15803d !important;
+  border-bottom: 2px solid #22c55e !important;
+}
+
 
 .tree-grid-table td {
   padding: 4px 6px;
@@ -438,6 +455,25 @@ nz-spin,
   display: flex;
   align-items: center;
   gap: 4px;
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  user-select: none;
+  border: 1px solid transparent;
+}
+
+.legend-item:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.legend-item.active {
+  background-color: #e2e8f0;
+  border-color: #0284c7;
+  font-weight: 600;
+  color: #0369a1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .legend-color {

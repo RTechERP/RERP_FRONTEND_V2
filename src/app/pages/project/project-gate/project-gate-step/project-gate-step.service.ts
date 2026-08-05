@@ -85,6 +85,10 @@ export class ProjectGateStepService {
         return this.http.delete<any>(`${environment.host}api/ProjectGateStepCheckListDetailLink/DeleteFile/${fileId}`);
     }
 
+    updateFileStatus(fileId: number, status: number): Observable<any> {
+        return this.http.post<any>(`${environment.host}api/ProjectGateStepCheckListDetailLink/UpdateFileStatus/${fileId}?status=${status}`, {});
+    }
+
     approve(linkId: number, comment?: string): Observable<any> {
         return this.http.post<any>(`${environment.host}api/ProjectGateStepLink/Approve/${linkId}`, comment ? JSON.stringify(comment) : null, {
             headers: { 'Content-Type': 'application/json' }

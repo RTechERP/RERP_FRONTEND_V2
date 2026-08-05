@@ -1,12 +1,13 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 
 // Ng-Zorro
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
-import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -35,6 +36,7 @@ export interface GridTaskItem {
   ParentID: number | null;
   UserID: number | null;
   UserIDs: number[]; // Multi-select support
+  RelatedUserIDs?: number[]; // Multi-select related people
   EmployeeIDRequest: number | null;
   TypeProjectItem: number | null;
   PlanStartDate: string | null;
@@ -48,6 +50,7 @@ export interface GridTaskItem {
   TypeProjectItemName?: string;
   EmployeeIDRequestName?: string;
   UserIDName?: string;
+  RelatedUserIDName?: string;
   StatusName?: string;
 
   // UI properties
@@ -57,6 +60,8 @@ export interface GridTaskItem {
   children: GridTaskItem[];
   _isNew?: boolean;
   _isDirty?: boolean;
+  _lateStatus?: number;
+  _parentPlanEndDate?: string | null;
   _invalidMission?: boolean;
   _invalidType?: boolean;
   _invalidAssigner?: boolean;
@@ -87,14 +92,16 @@ export interface GridTaskItem {
     InputTextModule,
     MenubarModule
   ],
+  providers: [NzNotificationService],
   templateUrl: './project-task-grid.component.html',
   styleUrl: './project-task-grid.component.css'
 })
 export class ProjectTaskGridComponent implements OnInit {
+  private route = inject(ActivatedRoute);
   private gridService = inject(ProjectTaskGridService);
   private appUserService = inject(AppUserService);
   private tabService = inject(TabServiceService);
-  private message = inject(NzMessageService);
+  private notification = inject(NzNotificationService);
 
   // Filters
   projectId: number = 0;
@@ -103,6 +110,7 @@ export class ProjectTaskGridComponent implements OnInit {
   filterKeyword: string = '';
   filterStatus: number | null = null;
   filterUser: number | null = null;
+  filterTag: 'parent' | 1 | 2 | 3 | null = null;
 
   showSearchBar: boolean = true;
   loading = signal(false);
@@ -114,25 +122,35 @@ export class ProjectTaskGridComponent implements OnInit {
     this.showSearchBar = !this.showSearchBar;
   }
 
+  toggleTagFilter(tag: 'parent' | 1 | 2 | 3): void {
+    if (this.filterTag === tag) {
+      this.filterTag = null;
+    } else {
+      this.filterTag = tag;
+    }
+    this.applyFilters();
+  }
+
   initMenuItems(): void {
     const dirtyCount = this.getDirtyCount();
+    const isSaving = this.saving();
     this.menuItems = [
       {
-        label: 'Thêm cha',
+        label: 'Thêm CV cha',
         icon: 'fa-solid fa-plus fa-lg text-success',
-        disabled: !this.projectId,
+        disabled: !this.projectId || isSaving,
         command: () => this.addRootTask(),
       },
       {
-        label: dirtyCount > 0 ? `Lưu (${dirtyCount})` : 'Lưu',
-        icon: 'fa-solid fa-floppy-disk fa-lg text-primary',
-        disabled: dirtyCount === 0 || this.saving(),
+        label: isSaving ? 'Đang lưu...' : (dirtyCount > 0 ? `Lưu (${dirtyCount})` : 'Lưu'),
+        icon: isSaving ? 'fa-solid fa-spinner fa-spin fa-lg text-primary' : 'fa-solid fa-floppy-disk fa-lg text-primary',
+        disabled: dirtyCount === 0 || isSaving,
         command: () => this.saveAll(),
       },
       {
-        label: 'Lưu và đóng',
-        icon: 'fa-solid fa-square-check fa-lg text-success',
-        disabled: dirtyCount === 0 || this.saving(),
+        label: isSaving ? 'Đang lưu...' : 'Lưu và đóng',
+        icon: isSaving ? 'fa-solid fa-spinner fa-spin fa-lg text-success' : 'fa-solid fa-square-check fa-lg text-success',
+        disabled: dirtyCount === 0 || isSaving,
         command: () => this.saveAndClose(),
       }
     ];
@@ -140,9 +158,12 @@ export class ProjectTaskGridComponent implements OnInit {
 
   // Dropdowns
   projectList: any[] = [];
+  projectOptions: Array<{ label: string; value: number }> = [];
   typeProjectItems: any[] = [];
+  typeProjectOptions: Array<{ label: string; value: number }> = [];
   employeeRequests: any[] = [];
   users: any[] = [];
+  userOptions: Array<{ label: string; value: number }> = [];
 
   // User Lookup Popover state
   activeTaskItem: GridTaskItem | null = null;
@@ -152,6 +173,11 @@ export class ProjectTaskGridComponent implements OnInit {
   // Assigner Lookup Popover state
   assignerSearchText: string = '';
   assignersFilteredData: any[] = [];
+
+  // Related People Lookup Popover state
+  activeLookupRowForRelated: GridTaskItem | null = null;
+  relatedSearchText: string = '';
+  relatedUsersFilteredData: any[] = [];
 
   // Tree data
   rawTasks: any[] = [];
@@ -166,11 +192,27 @@ export class ProjectTaskGridComponent implements OnInit {
     { value: 3, label: 'Pending', class: 'status-3' },
     { value: 4, label: 'Cancel', class: 'status-4' }
   ];
+  statusOptions: Array<{ label: string; value: number }> = [
+    { value: 0, label: 'Not Started' },
+    { value: 1, label: 'In Progress' },
+    { value: 2, label: 'Done' },
+    { value: 3, label: 'Pending' },
+    { value: 4, label: 'Cancel' }
+  ];
 
   ngOnInit(): void {
+    if (this.route && this.route.snapshot && this.route.snapshot.queryParams) {
+      const q = this.route.snapshot.queryParams;
+      if (q['projectId']) this.projectId = Number(q['projectId']);
+    }
+
     this.initDefaultDates();
-    this.loadDropdowns();
     this.initMenuItems();
+    this.loadDropdowns();
+
+    if (this.projectId > 0) {
+      this.loadTasks();
+    }
   }
 
   initDefaultDates(): void {
@@ -194,6 +236,10 @@ export class ProjectTaskGridComponent implements OnInit {
       next: (res: any) => {
         if (res && res.status === 1 && res.data) {
           this.projectList = Array.isArray(res.data) ? res.data : [];
+          this.projectOptions = this.projectList.map((item: any) => ({
+            label: `${item.ProjectCode || ''} - ${item.ProjectName || ''}`,
+            value: item.ID
+          }));
         }
       },
       error: (err: any) => console.error('Error loading projects:', err)
@@ -203,6 +249,10 @@ export class ProjectTaskGridComponent implements OnInit {
       next: (res: any) => {
         if (res && res.data) {
           this.typeProjectItems = Array.isArray(res.data) ? res.data : [];
+          this.typeProjectOptions = this.typeProjectItems.map((t: any) => ({
+            label: t.ProjectTypeName || '',
+            value: t.ID
+          }));
           if (this.treeNodes.length > 0) {
             this.updateAllNodesDisplayNames(this.treeNodes);
           }
@@ -231,6 +281,10 @@ export class ProjectTaskGridComponent implements OnInit {
           });
 
           this.users = mappedUsers;
+          this.userOptions = mappedUsers.map((u: any) => ({
+            label: u.Code ? `${u.Code} - ${u.FullName || u.LoginName || ''}` : (u.FullName || u.LoginName || ''),
+            value: u.UserID
+          }));
           this.employeeRequests = mappedUsers;
 
           if (this.rawTasks.length > 0) {
@@ -257,7 +311,7 @@ export class ProjectTaskGridComponent implements OnInit {
     if (!this.projectId) return;
     this.loading.set(true);
 
-    this.gridService.getProjectItems(this.projectId).subscribe({
+    this.gridService.getProjectItems(this.projectId, this.dateStart, this.dateEnd).subscribe({
       next: (res: any) => {
         this.loading.set(false);
         const data = res?.data || res || [];
@@ -267,7 +321,7 @@ export class ProjectTaskGridComponent implements OnInit {
       error: (err: any) => {
         this.loading.set(false);
         console.error('Error loading project tasks:', err);
-        this.message.error('Không thể tải danh sách công việc');
+        this.notification.create('error', 'Lỗi', 'Không thể tải danh sách công việc');
       }
     });
   }
@@ -276,68 +330,45 @@ export class ProjectTaskGridComponent implements OnInit {
     const map = new Map<number, GridTaskItem>();
     const roots: GridTaskItem[] = [];
 
-    // Filter raw tasks: Only keep items that have BOTH an assigner AND an assignee (or unsaved new tasks)
-    const validRawTasks = this.rawTasks.filter(item => {
-      if (!item.ID || item.ID === 0) return true;
-
-      // 1. Check Người giao việc theo UserID trong employeeRequests
+    // Process all raw tasks from backend API
+    this.rawTasks.forEach(item => {
+      // 1. Parse EmployeeIDRequest (Người giao việc) — lưu theo EmployeeID
       const reqIdVal = item.EmployeeIDRequest ?? item.EmployeeRequestID ?? item.EmployeeCreateID;
-      const assignerId = reqIdVal != null && reqIdVal !== '' ? Number(reqIdVal) : null;
-      const hasAssigner = this.employeeRequests.length === 0 || this.employeeRequests.some(e =>
-        (assignerId != null && Number(e.UserID) === assignerId) ||
-        (item.EmployeeRequest && e.FullName && e.FullName.toLowerCase() === item.EmployeeRequest.toLowerCase())
-      );
+      let assignerEmpId = reqIdVal != null && reqIdVal !== '' && !isNaN(Number(reqIdVal)) ? Number(reqIdVal) : null;
 
-      // 2. Check Người thực hiện CHỈ theo UserID trong users
-      const rawUserId = item.UserID != null && item.UserID !== '' ? Number(item.UserID) : null;
-      const hasAssignee = this.users.length === 0 || this.users.some(u =>
-        (rawUserId != null && Number(u.UserID) === rawUserId) ||
-        (item.FullName && u.FullName && u.FullName.toLowerCase() === item.FullName.toLowerCase())
-      );
-
-      return hasAssigner && hasAssignee;
-    });
-
-    // Transform raw tasks to GridTaskItem
-    validRawTasks.forEach(item => {
-      // 1. Parse EmployeeIDRequest (Người giao việc) - CHỈ so sánh theo UserID
-      const reqIdVal = item.EmployeeIDRequest ?? item.EmployeeRequestID ?? item.EmployeeCreateID;
-      let assignerId = reqIdVal != null && reqIdVal !== '' && !isNaN(Number(reqIdVal)) ? Number(reqIdVal) : null;
-
-      if (this.employeeRequests.length > 0) {
+      if (assignerEmpId != null && this.employeeRequests.length > 0) {
         const matchAssigner = this.employeeRequests.find(e =>
-          (assignerId != null && Number(e.UserID) === assignerId) ||
-          (item.EmployeeRequest && (e.FullName && e.FullName.toLowerCase() === item.EmployeeRequest.toLowerCase())) ||
-          (item.CreatedName && (e.FullName && e.FullName.toLowerCase() === item.CreatedName.toLowerCase()))
+          Number(e.ID) === assignerEmpId ||
+          Number(e.EmployeeID) === assignerEmpId ||
+          Number(e.UserID) === assignerEmpId ||
+          (item.EmployeeRequest && e.FullName && e.FullName.toLowerCase() === item.EmployeeRequest.toLowerCase()) ||
+          (item.CreatedName && e.FullName && e.FullName.toLowerCase() === item.CreatedName.toLowerCase())
         );
         if (matchAssigner) {
-          assignerId = Number(matchAssigner.UserID);
-        } else {
-          assignerId = null; // Loại bỏ nếu không khớp UserID trong danh mục
+          // Luôn lưu Employee ID (u.ID = EmployeeID)
+          assignerEmpId = Number(matchAssigner.ID ?? matchAssigner.EmployeeID);
         }
       }
 
-      // 2. Parse UserIDs (Người thực hiện) - CHỈ so sánh theo UserID
+      // 2. Parse UserIDs (Người thực hiện) — lưu theo EmployeeID
       let userIds: number[] = [];
 
       if (Array.isArray(item.UserIDs) && item.UserIDs.length > 0) {
-        const rawIds = item.UserIDs.map((x: any) => Number(x)).filter((x: number) => !isNaN(x) && x > 0);
-        userIds = rawIds.filter((id: number) => this.users.some((u: any) => Number(u.UserID) === id));
+        // UserIDs từ API là EmployeeID (lấy từ ProjectTaskEmployee.EmployeeID)
+        userIds = item.UserIDs.map((x: any) => Number(x)).filter((x: number) => !isNaN(x) && x > 0);
       } else if (item.ProjectEmployee && typeof item.ProjectEmployee === 'string' && item.ProjectEmployee.trim()) {
-        const rawIds = item.ProjectEmployee.split(',')
+        // ProjectEmployee là chuỗi EmployeeID ngăn cách dấu phẩy
+        userIds = item.ProjectEmployee.split(',')
           .map((s: string) => Number(s.trim()))
           .filter((x: number) => !isNaN(x) && x > 0);
-        userIds = rawIds.filter((id: number) => this.users.some((u: any) => Number(u.UserID) === id));
       } else if (item.UserID != null && item.UserID !== '') {
+        // Fallback: tìm theo UserID, map sang EmployeeID
         const rawUserId = Number(item.UserID);
         if (!isNaN(rawUserId) && rawUserId > 0) {
-          // CHỈ so sánh theo u.UserID (không so sánh u.ID hay u.EmployeeID)
-          const matchingUser = this.users.find(u => Number(u.UserID) === rawUserId);
-          if (matchingUser) {
-            userIds = [Number(matchingUser.UserID)];
-          } else {
-            userIds = []; // Nếu không khớp UserID trong danh mục thì loại bỏ
-          }
+          const matchUser = this.users.find(u =>
+            Number(u.UserID) === rawUserId || Number(u.ID) === rawUserId || Number(u.EmployeeID) === rawUserId
+          );
+          userIds = matchUser ? [Number(matchUser.ID ?? matchUser.EmployeeID)] : [rawUserId];
         }
       }
 
@@ -347,11 +378,21 @@ export class ProjectTaskGridComponent implements OnInit {
           (u.Name && u.Name.toLowerCase() === item.FullName.toLowerCase())
         );
         if (matchingUser) {
-          userIds = [Number(matchingUser.UserID ?? matchingUser.ID)];
+          userIds = [Number(matchingUser.ID ?? matchingUser.EmployeeID)];
         }
       }
 
-      const primaryUserId = userIds.length > 0 ? userIds[0] : (item.UserID != null ? Number(item.UserID) : null);
+      const primaryUserId = userIds.length > 0 ? userIds[0] : null;
+
+      // 3. Parse RelatedUserIDs (Người liên quan)
+      let relatedUserIds: number[] = [];
+      if (Array.isArray(item.RelatedUserIDs) && item.RelatedUserIDs.length > 0) {
+        relatedUserIds = item.RelatedUserIDs.map((x: any) => Number(x)).filter((x: number) => !isNaN(x) && x > 0);
+      } else if (item.RelatedUserIDs && typeof item.RelatedUserIDs === 'string' && item.RelatedUserIDs.trim()) {
+        relatedUserIds = item.RelatedUserIDs.split(',')
+          .map((s: string) => Number(s.trim()))
+          .filter((x: number) => !isNaN(x) && x > 0);
+      }
 
       const node: GridTaskItem = {
         ID: item.ID,
@@ -361,7 +402,8 @@ export class ProjectTaskGridComponent implements OnInit {
         ParentID: item.ParentID || null,
         UserID: primaryUserId,
         UserIDs: userIds,
-        EmployeeIDRequest: assignerId,
+        RelatedUserIDs: relatedUserIds,
+        EmployeeIDRequest: assignerEmpId,
         TypeProjectItem: item.TypeProjectItem != null ? Number(item.TypeProjectItem) : null,
         PlanStartDate: item.PlanStartDate ? this.formatDateInput(item.PlanStartDate) : null,
         PlanEndDate: item.PlanEndDate ? this.formatDateInput(item.PlanEndDate) : null,
@@ -389,8 +431,16 @@ export class ProjectTaskGridComponent implements OnInit {
       }
     });
 
+    // Sort root tasks: newest items first (ID DESC)
+    roots.sort((a, b) => {
+      if (a._isNew && !b._isNew) return -1;
+      if (!a._isNew && b._isNew) return 1;
+      return b.ID - a.ID;
+    });
+
     this.setLevels(roots, 0);
     this.treeNodes = roots;
+    this.updateAllNodesDisplayNames(this.treeNodes);
     this.applyFilters();
   }
 
@@ -405,11 +455,19 @@ export class ProjectTaskGridComponent implements OnInit {
   }
 
   applyFilters(): void {
-    // Dynamically recalculate levels from root to all sub-children
     this.setLevels(this.treeNodes, 0);
-    // Filter without deep cloning so references remain intact
-    const filtered = this.filterTreeNodes(this.treeNodes);
-    this.flatVisibleData = this.flattenTree(filtered);
+
+    const kw = this.filterKeyword ? this.filterKeyword.toLowerCase() : '';
+    const st = this.filterStatus;
+    const usr = this.filterUser;
+    const dStart = this.dateStart;
+    const dEnd = this.dateEnd;
+
+    const isAnyFilterActive = Boolean(kw || st !== null || usr !== null || dStart || dEnd || this.filterTag !== null);
+
+    const filtered = isAnyFilterActive ? this.filterTreeNodes(this.treeNodes) : this.treeNodes;
+    this.flatVisibleData = this.flattenTree(filtered, isAnyFilterActive);
+    this.initMenuItems();
   }
 
   private filterTreeNodes(nodes: GridTaskItem[]): GridTaskItem[] {
@@ -428,42 +486,54 @@ export class ProjectTaskGridComponent implements OnInit {
         match = match && (isCodeMatch || isMissionMatch);
       }
 
-      if (st !== null) {
+      if (st !== null && st !== undefined) {
         match = match && (node.Status === st);
       }
 
-      if (usr !== null) {
-        match = match && Boolean(node.UserIDs && node.UserIDs.includes(usr));
+      if (usr !== null && usr !== undefined) {
+        const numUsr = Number(usr);
+        const userMatch = (node.UserIDs && node.UserIDs.map(Number).includes(numUsr)) ||
+                          (node.UserID != null && Number(node.UserID) === numUsr);
+        match = match && Boolean(userMatch);
       }
 
       if (dStart && dEnd) {
-        // Range check on PlanStartDate or PlanEndDate
-        if (node.PlanStartDate || node.PlanEndDate) {
-          const pStart = node.PlanStartDate || node.PlanEndDate!;
-          const pEnd = node.PlanEndDate || node.PlanStartDate!;
-          if (pEnd < dStart || pStart > dEnd) {
+        const pStart = node.PlanStartDate || node.ActualStartDate || node.Deadline;
+        const pEnd = node.PlanEndDate || node.ActualEndDate || node.Deadline;
+        if (pStart || pEnd) {
+          const startVal = pStart || pEnd!;
+          const endVal = pEnd || pStart!;
+          if (endVal < dStart || startVal > dEnd) {
             match = false;
           }
+        }
+      }
+
+      if (this.filterTag !== null) {
+        if (this.filterTag === 'parent') {
+          match = match && Boolean(node.hasChildren);
+        } else {
+          const lateStatus = node._lateStatus ?? this.getRowLateStatus(node);
+          match = match && (lateStatus === this.filterTag);
         }
       }
 
       const filteredChildren = node.children && node.children.length > 0 ? this.filterTreeNodes(node.children) : [];
 
       if (match || filteredChildren.length > 0) {
-        // Only auto-expand when actively searching with a keyword
-        if (kw && filteredChildren.length > 0) node.expand = true;
         return true;
       }
       return false;
     });
   }
 
-  private flattenTree(nodes: GridTaskItem[]): GridTaskItem[] {
+  private flattenTree(nodes: GridTaskItem[], isAnyFilterActive: boolean = false): GridTaskItem[] {
     const result: GridTaskItem[] = [];
     for (const node of nodes) {
       result.push(node);
-      if (node.expand && node.children && node.children.length > 0) {
-        result.push(...this.flattenTree(node.children));
+      const shouldExpand = isAnyFilterActive ? true : node.expand;
+      if (shouldExpand && node.children && node.children.length > 0) {
+        result.push(...this.flattenTree(node.children, isAnyFilterActive));
       }
     }
     return result;
@@ -527,7 +597,7 @@ export class ProjectTaskGridComponent implements OnInit {
   /** Thêm dòng cha - Hiện lên ĐẦU danh sách */
   addRootTask(): void {
     if (!this.projectId) {
-      this.message.warning('Vui lòng chọn Dự án trước khi thêm công việc');
+      this.notification.create('warning', 'Cảnh báo', 'Vui lòng chọn Dự án trước khi thêm công việc');
       return;
     }
 
@@ -537,7 +607,7 @@ export class ProjectTaskGridComponent implements OnInit {
         this.loading.set(false);
         const rawCode = res?.data || res || `TASK_${Date.now()}`;
         const code = this.generateUniqueRootCode(rawCode);
-        const currentUserId = this.appUserService.id || null;
+        // Dùng employeeID cho cả 2 trường (EmployeeIDRequest và UserIDs)
         const currentEmployeeId = this.appUserService.employeeID || null;
         const defaultType = this.typeProjectItems.length > 0 ? this.typeProjectItems[0].ID : null;
 
@@ -547,8 +617,9 @@ export class ProjectTaskGridComponent implements OnInit {
           Code: code,
           Mission: '',
           ParentID: null,
-          UserID: currentUserId,
-          UserIDs: currentUserId ? [currentUserId] : [],
+          UserID: currentEmployeeId,
+          UserIDs: currentEmployeeId ? [currentEmployeeId] : [],
+          RelatedUserIDs: [],
           EmployeeIDRequest: currentEmployeeId,
           TypeProjectItem: defaultType,
           PlanStartDate: this.dateStart || null,
@@ -565,7 +636,6 @@ export class ProjectTaskGridComponent implements OnInit {
           _isDirty: true
         };
 
-        // Hiện lên ĐẦU danh sách
         this.treeNodes.unshift(newTask);
         this.applyFilters();
       },
@@ -573,7 +643,6 @@ export class ProjectTaskGridComponent implements OnInit {
         this.loading.set(false);
         console.error('Error generating root code:', err);
         const fallbackCode = this.generateUniqueRootCode(`TASK_${this.treeNodes.length + 1}`);
-        const currentUserId = this.appUserService.id || null;
         const currentEmployeeId = this.appUserService.employeeID || null;
         const defaultType = this.typeProjectItems.length > 0 ? this.typeProjectItems[0].ID : null;
 
@@ -583,8 +652,9 @@ export class ProjectTaskGridComponent implements OnInit {
           Code: fallbackCode,
           Mission: '',
           ParentID: null,
-          UserID: currentUserId,
-          UserIDs: currentUserId ? [currentUserId] : [],
+          UserID: currentEmployeeId,
+          UserIDs: currentEmployeeId ? [currentEmployeeId] : [],
+          RelatedUserIDs: [],
           EmployeeIDRequest: currentEmployeeId,
           TypeProjectItem: defaultType,
           PlanStartDate: this.dateStart || null,
@@ -639,16 +709,17 @@ export class ProjectTaskGridComponent implements OnInit {
   }
 
   private insertChildNode(parent: GridTaskItem, code: string): void {
-    const currentUserId = this.appUserService.id || null;
     const currentEmployeeId = this.appUserService.employeeID || null;
     const defaultType = parent.TypeProjectItem || (this.typeProjectItems.length > 0 ? this.typeProjectItems[0].ID : null);
 
-    // Inherit info from parent (TypeProjectItem, EmployeeIDRequest, UserIDs)
     const inheritedAssigner = parent.EmployeeIDRequest || currentEmployeeId;
     const inheritedUserIDs = (parent.UserIDs && parent.UserIDs.length > 0)
       ? [...parent.UserIDs]
-      : (currentUserId ? [currentUserId] : []);
-    const inheritedPrimaryUser = inheritedUserIDs.length > 0 ? inheritedUserIDs[0] : currentUserId;
+      : (currentEmployeeId ? [currentEmployeeId] : []);
+    const inheritedPrimaryUser = inheritedUserIDs.length > 0 ? inheritedUserIDs[0] : currentEmployeeId;
+    const inheritedRelatedUserIDs = (parent.RelatedUserIDs && parent.RelatedUserIDs.length > 0)
+      ? [...parent.RelatedUserIDs]
+      : [];
 
     const newChild: GridTaskItem = {
       ID: 0,
@@ -658,6 +729,7 @@ export class ProjectTaskGridComponent implements OnInit {
       ParentID: parent.ID > 0 ? parent.ID : null,
       UserID: inheritedPrimaryUser,
       UserIDs: inheritedUserIDs,
+      RelatedUserIDs: inheritedRelatedUserIDs,
       EmployeeIDRequest: inheritedAssigner,
       TypeProjectItem: defaultType,
       PlanStartDate: parent.PlanStartDate || null,
@@ -683,10 +755,13 @@ export class ProjectTaskGridComponent implements OnInit {
   }
 
   /** Lấy PlanEndDate của cha (để disable ngày quá KT dự kiến của cha) */
-  getParentPlanEndDate(row: GridTaskItem): string | null {
+  getParentPlanEndDate(row: GridTaskItem, codeMap?: Map<string, GridTaskItem>): string | null {
     if (!row || !row.Code || !row.Code.includes('.')) return null;
     const lastDot = row.Code.lastIndexOf('.');
     const parentCode = row.Code.substring(0, lastDot);
+    if (codeMap) {
+      return codeMap.get(parentCode)?.PlanEndDate || null;
+    }
     const all = this.getAllNodesFlat(this.treeNodes);
     const parent = all.find(x => x.Code === parentCode);
     return parent?.PlanEndDate || null;
@@ -761,7 +836,7 @@ export class ProjectTaskGridComponent implements OnInit {
       item.ActualEndDate = null;
     }
 
-    this.updateNodeDisplayNames(item);
+    this.updateAllNodesDisplayNames(this.treeNodes);
     this.initMenuItems();
   }
 
@@ -840,11 +915,15 @@ export class ProjectTaskGridComponent implements OnInit {
   // ===== LƯU TẤT CẢ =====
 
   saveAll(closeTab: boolean = false): void {
+    if (this.saving()) {
+      return;
+    }
+
     const allNodes = this.getAllNodesFlat(this.treeNodes);
     const dirtyItems = allNodes.filter(x => x._isDirty || x._isNew);
 
     if (dirtyItems.length === 0) {
-      this.message.info('Không có thay đổi nào cần lưu');
+      this.notification.create('info', 'Thông báo', 'Không có thay đổi nào cần lưu');
       if (closeTab) {
         this.tabService.closeTabByKey(`project-task-grid-${this.projectId}`);
       }
@@ -874,18 +953,24 @@ export class ProjectTaskGridComponent implements OnInit {
     });
 
     if (allErrors.length > 0) {
-      this.message.error(allErrors[0]);
+      this.notification.create('error', 'Lỗi kiểm tra dữ liệu', allErrors[0]);
       return;
     }
 
-    // Prepare payload (UserID gets the primary selected UserID)
+    // Prepare payload
+    // UserIDs & RelatedUserIDs đều chứa EmployeeID (ID trong bảng Employee)
+    // giống cách task-detail dùng: Employee = assigneeIds (EmployeeID), EmployeeIDRequest = assignerId (EmployeeID)
     const projectItemsPayload = dirtyItems.map(item => ({
       ID: item.ID,
       ProjectID: item.ProjectID,
       Code: item.Code,
       Mission: item.Mission.trim(),
       ParentID: item.ParentID || 0,
-      UserID: item.UserIDs && item.UserIDs.length > 0 ? item.UserIDs[0] : item.UserID,
+      // UserID field = Employee ID đại diện chính (trường legacy)
+      UserID: item.UserIDs && item.UserIDs.length > 0 ? item.UserIDs[0] : (item.UserID ?? null),
+      // UserIDs = mảng EmployeeID để backend đồng bộ ProjectTaskEmployee (Type=1)
+      UserIDs: item.UserIDs || [],
+      // EmployeeIDRequest = EmployeeID của người giao việc
       EmployeeIDRequest: item.EmployeeIDRequest,
       TypeProjectItem: item.TypeProjectItem,
       PlanStartDate: item.PlanStartDate ? `${item.PlanStartDate}T00:00:00` : null,
@@ -893,28 +978,34 @@ export class ProjectTaskGridComponent implements OnInit {
       ActualStartDate: item.ActualStartDate ? `${item.ActualStartDate}T00:00:00` : null,
       ActualEndDate: item.ActualEndDate ? `${item.ActualEndDate}T00:00:00` : null,
       Deadline: item.Deadline ? `${item.Deadline}T00:00:00` : null,
-      Status: item.Status
+      Status: item.Status,
+      // RelatedUserIDs = mảng EmployeeID để backend đồng bộ ProjectTaskEmployee (Type=2)
+      RelatedUserIDs: item.RelatedUserIDs || []
     }));
 
     this.saving.set(true);
+    this.initMenuItems();
+
     this.gridService.saveProjectItems({ projectItems: projectItemsPayload }).subscribe({
       next: (res: any) => {
         this.saving.set(false);
+        this.initMenuItems();
         if (res && res.status === 1) {
-          this.message.success('Lưu thành công!');
+          this.notification.create('success', 'Thông báo', 'Lưu thành công!');
           if (closeTab) {
             this.tabService.closeTabByKey(`project-task-grid-${this.projectId}`);
           } else {
             this.loadTasks();
           }
         } else {
-          this.message.error(res?.message || 'Lưu thất bại');
+          this.notification.create('error', 'Lỗi', res?.message || 'Lưu thất bại');
         }
       },
       error: (err: any) => {
         this.saving.set(false);
+        this.initMenuItems();
         console.error('Error saving tasks:', err);
-        this.message.error('Đã xảy ra lỗi khi lưu dữ liệu');
+        this.notification.create('error', 'Lỗi', 'Đã xảy ra lỗi khi lưu dữ liệu');
       }
     });
   }
@@ -925,7 +1016,7 @@ export class ProjectTaskGridComponent implements OnInit {
 
   openDetail(item: GridTaskItem): void {
     if (item.ID <= 0) {
-      this.message.warning('Vui lòng lưu công việc trước khi mở chi tiết');
+      this.notification.create('warning', 'Cảnh báo', 'Vui lòng lưu công việc trước khi mở chi tiết');
       return;
     }
 
@@ -946,12 +1037,19 @@ export class ProjectTaskGridComponent implements OnInit {
 
   // --- BỘ XỬ LÝ TRA CỨU/CHỌN NGƯỜI THỰC HIỆN ---
   getUserDisplay(userIds: number[]): string {
-    if (!userIds || userIds.length === 0) return '';
-    const numericUserIds = userIds.map(Number);
-    return this.users
-      .filter(u => numericUserIds.includes(Number(u.UserID)))
-      .map(u => u.FullName || u.Name || u.LoginName || u.Code)
-      .join('\n');
+    if (userIds && userIds.length > 0) {
+      const numericEmpIds = userIds.map(Number);
+      // UserIDs lưu EmployeeID, tìm theo u.ID (EmployeeID) trước
+      const matched = this.users
+        .filter(u =>
+          numericEmpIds.includes(Number(u.ID)) ||
+          numericEmpIds.includes(Number(u.EmployeeID)) ||
+          numericEmpIds.includes(Number(u.UserID))
+        )
+        .map(u => u.FullName || u.Name || u.LoginName || u.Code);
+      if (matched.length > 0) return matched.join('\n');
+    }
+    return '';
   }
 
   getTypeProjectItemName(typeId: number | null): string {
@@ -961,9 +1059,16 @@ export class ProjectTaskGridComponent implements OnInit {
   }
 
   getEmployeeRequestName(assignerId: number | null): string {
-    if (!assignerId) return '';
-    const match = this.employeeRequests.find(e => Number(e.UserID) === Number(assignerId));
-    return match ? (match.FullName || match.Name || match.Code || '') : '';
+    if (assignerId) {
+      // Tìm theo EmployeeID trước (ID là EmployeeID sau khi map)
+      const match = this.employeeRequests.find(e =>
+        Number(e.ID) === Number(assignerId) ||
+        Number(e.EmployeeID) === Number(assignerId) ||
+        Number(e.UserID) === Number(assignerId)
+      );
+      if (match) return match.FullName || match.Name || match.Code || '';
+    }
+    return '';
   }
 
   getStatusLabel(status: number): string {
@@ -971,19 +1076,23 @@ export class ProjectTaskGridComponent implements OnInit {
     return match ? match.label : '';
   }
 
-  updateNodeDisplayNames(node: GridTaskItem): void {
+  updateNodeDisplayNames(node: GridTaskItem, codeMap?: Map<string, GridTaskItem>): void {
     node.TypeProjectItemName = this.getTypeProjectItemName(node.TypeProjectItem);
     node.EmployeeIDRequestName = this.getEmployeeRequestName(node.EmployeeIDRequest);
     node.UserIDName = this.getUserDisplay(node.UserIDs);
+    node.RelatedUserIDName = this.getRelatedUserDisplay(node.RelatedUserIDs);
     node.StatusName = this.getStatusLabel(node.Status);
+    node._lateStatus = this.getRowLateStatus(node);
+    node._parentPlanEndDate = this.getParentPlanEndDate(node, codeMap);
   }
 
   updateAllNodesDisplayNames(nodes: GridTaskItem[]): void {
-    for (const node of nodes) {
-      this.updateNodeDisplayNames(node);
-      if (node.children && node.children.length > 0) {
-        this.updateAllNodesDisplayNames(node.children);
-      }
+    const allFlat = this.getAllNodesFlat(nodes);
+    const codeMap = new Map<string, GridTaskItem>();
+    allFlat.forEach(n => codeMap.set(n.Code, n));
+
+    for (const node of allFlat) {
+      this.updateNodeDisplayNames(node, codeMap);
     }
   }
 
@@ -1009,8 +1118,9 @@ export class ProjectTaskGridComponent implements OnInit {
     if (this.activeTaskItem && this.activeTaskItem.UserIDs) {
       const selectedUsers = new Set(this.activeTaskItem.UserIDs.map(Number));
       filtered.sort((a, b) => {
-        const aSelected = selectedUsers.has(Number(a.UserID)) ? 1 : 0;
-        const bSelected = selectedUsers.has(Number(b.UserID)) ? 1 : 0;
+        // Sort by EmployeeID (a.ID)
+        const aSelected = selectedUsers.has(Number(a.ID)) ? 1 : 0;
+        const bSelected = selectedUsers.has(Number(b.ID)) ? 1 : 0;
         return bSelected - aSelected;
       });
     }
@@ -1020,8 +1130,9 @@ export class ProjectTaskGridComponent implements OnInit {
 
   isUserSelected(user: any): boolean {
     if (!this.activeTaskItem || !this.activeTaskItem.UserIDs) return false;
-    const userId = Number(user.UserID);
-    return this.activeTaskItem.UserIDs.length > 0 && Number(this.activeTaskItem.UserIDs[0]) === userId;
+    // So sánh theo EmployeeID (u.ID) — multi-select
+    const empId = Number(user.ID ?? user.EmployeeID);
+    return this.activeTaskItem.UserIDs.some(id => Number(id) === empId);
   }
 
   getSelectedUserId(): number | null {
@@ -1032,16 +1143,32 @@ export class ProjectTaskGridComponent implements OnInit {
   getSelectedUserName(): string {
     const uid = this.getSelectedUserId();
     if (!uid) return '';
-    const u = this.users.find((x: any) => Number(x.UserID) === uid);
+    const u = this.users.find((x: any) => Number(x.ID) === uid || Number(x.EmployeeID) === uid);
     return u ? (u.FullName || u.Name || u.Code) : '';
   }
 
-  selectUser(user: any, lookupPanel?: any): void {
+  /** Toggle chọn/bỏ chọn người thực hiện (multi-select) */
+  toggleSelectUser(user: any): void {
     if (!this.activeTaskItem) return;
-    const userId = Number(user.UserID);
-    this.activeTaskItem.UserIDs = [userId];
-    this.activeTaskItem.UserID = userId;
+    if (!this.activeTaskItem.UserIDs) {
+      this.activeTaskItem.UserIDs = [];
+    }
+    const empId = Number(user.ID ?? user.EmployeeID);
+    const idx = this.activeTaskItem.UserIDs.findIndex(id => Number(id) === empId);
+    if (idx >= 0) {
+      this.activeTaskItem.UserIDs.splice(idx, 1);
+    } else {
+      this.activeTaskItem.UserIDs.push(empId);
+    }
+    // Cập nhật UserID (trường legacy) = phần tử đầu tiên
+    this.activeTaskItem.UserID = this.activeTaskItem.UserIDs.length > 0 ? this.activeTaskItem.UserIDs[0] : null;
     this.onCellChange(this.activeTaskItem);
+    this.updateNodeDisplayNames(this.activeTaskItem);
+  }
+
+  /** Giữ lại selectUser cho tương thích ngược (không dùng nữa trong UI) */
+  selectUser(user: any, lookupPanel?: any): void {
+    this.toggleSelectUser(user);
     if (lookupPanel) {
       lookupPanel.hide();
     }
@@ -1052,6 +1179,7 @@ export class ProjectTaskGridComponent implements OnInit {
       this.activeTaskItem.UserIDs = [];
       this.activeTaskItem.UserID = null;
       this.onCellChange(this.activeTaskItem);
+      this.updateNodeDisplayNames(this.activeTaskItem);
     }
   }
 
@@ -1078,8 +1206,9 @@ export class ProjectTaskGridComponent implements OnInit {
     if (this.activeTaskItem && this.activeTaskItem.EmployeeIDRequest) {
       const selectedId = Number(this.activeTaskItem.EmployeeIDRequest);
       filtered.sort((a, b) => {
-        const aSelected = Number(a.UserID) === selectedId ? 1 : 0;
-        const bSelected = Number(b.UserID) === selectedId ? 1 : 0;
+        // Sort by EmployeeID (a.ID)
+        const aSelected = Number(a.ID) === selectedId ? 1 : 0;
+        const bSelected = Number(b.ID) === selectedId ? 1 : 0;
         return bSelected - aSelected;
       });
     }
@@ -1089,7 +1218,8 @@ export class ProjectTaskGridComponent implements OnInit {
 
   isAssignerSelected(user: any): boolean {
     if (!this.activeTaskItem || !this.activeTaskItem.EmployeeIDRequest) return false;
-    return Number(user.UserID) === Number(this.activeTaskItem.EmployeeIDRequest);
+    // So sánh theo EmployeeID (u.ID)
+    return Number(user.ID ?? user.EmployeeID) === Number(this.activeTaskItem.EmployeeIDRequest);
   }
 
   getSelectedAssignerId(): number | null {
@@ -1104,8 +1234,9 @@ export class ProjectTaskGridComponent implements OnInit {
 
   selectAssigner(user: any, lookupPanel?: any): void {
     if (!this.activeTaskItem) return;
-    const userId = Number(user.UserID);
-    this.activeTaskItem.EmployeeIDRequest = userId;
+    // Luôn dùng EmployeeID (u.ID) — giống task-detail.component.ts dùng assignerId = EmployeeID
+    const empId = Number(user.ID ?? user.EmployeeID);
+    this.activeTaskItem.EmployeeIDRequest = empId;
     this.onCellChange(this.activeTaskItem);
     if (lookupPanel) {
       lookupPanel.hide();
@@ -1116,6 +1247,88 @@ export class ProjectTaskGridComponent implements OnInit {
     if (this.activeTaskItem) {
       this.activeTaskItem.EmployeeIDRequest = null;
       this.onCellChange(this.activeTaskItem);
+    }
+  }
+
+  // --- BỘ XỬ LÝ TRA CỨU/CHỌN NGƯỜI LIÊN QUAN (MULTI-SELECT) ---
+  getRelatedUserDisplay(relatedIds: number[] | undefined): string {
+    if (!relatedIds || relatedIds.length === 0) return '';
+    const names = relatedIds.map(id => {
+      const match = this.users.find(u =>
+        Number(u.UserID) === Number(id) ||
+        Number(u.ID) === Number(id) ||
+        Number(u.EmployeeID) === Number(id)
+      );
+      return match ? (match.FullName || match.Name || match.Code) : '';
+    }).filter(n => Boolean(n));
+    return names.join(', ');
+  }
+
+  openRelatedLookup(event: Event, item: GridTaskItem, lookupPanel: any): void {
+    event.stopPropagation();
+    this.activeLookupRowForRelated = item;
+    if (!item.RelatedUserIDs) {
+      item.RelatedUserIDs = [];
+    }
+    this.relatedSearchText = '';
+    this.filterRelatedUsersData();
+    lookupPanel.toggle(event);
+  }
+
+  filterRelatedUsersData(): void {
+    let filtered = [...this.users];
+    if (this.relatedSearchText) {
+      const search = this.relatedSearchText.toLowerCase();
+      filtered = filtered.filter(u =>
+        (u.Code && u.Code.toLowerCase().includes(search)) ||
+        (u.FullName && u.FullName.toLowerCase().includes(search)) ||
+        (u.LoginName && u.LoginName.toLowerCase().includes(search)) ||
+        (u.DepartmentName && u.DepartmentName.toLowerCase().includes(search))
+      );
+    }
+
+    if (this.activeLookupRowForRelated && this.activeLookupRowForRelated.RelatedUserIDs) {
+      const selected = new Set(this.activeLookupRowForRelated.RelatedUserIDs.map(Number));
+      filtered.sort((a, b) => {
+        // Sort by EmployeeID (a.ID)
+        const aSelected = selected.has(Number(a.ID)) ? 1 : 0;
+        const bSelected = selected.has(Number(b.ID)) ? 1 : 0;
+        return bSelected - aSelected;
+      });
+    }
+
+    this.relatedUsersFilteredData = filtered;
+  }
+
+  isRelatedSelected(user: any): boolean {
+    if (!this.activeLookupRowForRelated || !this.activeLookupRowForRelated.RelatedUserIDs) return false;
+    // So sánh theo EmployeeID (u.ID)
+    const empId = Number(user.ID ?? user.EmployeeID);
+    return this.activeLookupRowForRelated.RelatedUserIDs.some(id => Number(id) === empId);
+  }
+
+  toggleSelectRelated(user: any): void {
+    if (!this.activeLookupRowForRelated) return;
+    if (!this.activeLookupRowForRelated.RelatedUserIDs) {
+      this.activeLookupRowForRelated.RelatedUserIDs = [];
+    }
+    // Dùng EmployeeID (u.ID) nhất quán
+    const empId = Number(user.ID ?? user.EmployeeID);
+    const existingIndex = this.activeLookupRowForRelated.RelatedUserIDs.findIndex(id => Number(id) === empId);
+    if (existingIndex >= 0) {
+      this.activeLookupRowForRelated.RelatedUserIDs.splice(existingIndex, 1);
+    } else {
+      this.activeLookupRowForRelated.RelatedUserIDs.push(empId);
+    }
+    this.onCellChange(this.activeLookupRowForRelated);
+    this.updateNodeDisplayNames(this.activeLookupRowForRelated);
+  }
+
+  clearRelatedSelection(): void {
+    if (this.activeLookupRowForRelated) {
+      this.activeLookupRowForRelated.RelatedUserIDs = [];
+      this.onCellChange(this.activeLookupRowForRelated);
+      this.updateNodeDisplayNames(this.activeLookupRowForRelated);
     }
   }
 

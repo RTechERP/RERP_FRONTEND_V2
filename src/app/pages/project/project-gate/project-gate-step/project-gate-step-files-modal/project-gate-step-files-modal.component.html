@@ -190,9 +190,10 @@
               </th>
               <th>Tên file</th>
               <th>Thuộc quy tắc</th>
-              <th nzWidth="120px">Người tải</th>
-              <th nzWidth="120px">Ngày tải</th>
-              <th nzWidth="60px" class="text-center">Xóa</th>
+              <th nzWidth="110px" class="text-center">Trạng thái</th>
+              <th nzWidth="110px">Người tải</th>
+              <th nzWidth="110px">Ngày tải</th>
+              <th nzWidth="90px" class="text-center">Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -207,8 +208,8 @@
               <td class="word-break-all">
                 <div class="d-flex align-items-center gap-2">
                   <i [class]="getFileIcon(file.ContentType, file.FileName)" style="font-size: 14px;"></i>
-                  <a class="file-name-link text-primary font-weight-500" (click)="downloadFile(file)"
-                    [title]="'Tải: ' + file.FileName" style="cursor: pointer;">
+                  <a class="file-name-link font-weight-500" [class.text-primary]="file.Status !== 0" [class.text-danger]="file.Status === 0"
+                    (click)="downloadFile(file)" [title]="'Tải: ' + file.FileName" style="cursor: pointer;">
                     {{ file.FileName }}
                   </a>
                 </div>
@@ -219,6 +220,13 @@
                 <span class="text-muted" style="font-size: 11px;">{{ file.ruleDescription }}</span>
               </td>
 
+              <!-- Status -->
+              <td class="text-center">
+                <span class="badge" [class.bg-success]="file.Status !== 0" [class.bg-danger]="file.Status === 0" style="font-size: 10px;">
+                  {{ file.Status === 0 ? 'File không tồn tại' : 'Hoạt động' }}
+                </span>
+              </td>
+
               <!-- Uploaded User -->
               <td>{{ file.CreatorFullName || file.CreatedBy || 'System' }}</td>
 
@@ -227,14 +235,19 @@
 
               <!-- Actions -->
               <td class="text-center">
-                <button nz-button nzType="text" nzDanger nzSize="small" (click)="deleteOneFile(file)"
-                  [disabled]="isStepApproved || file.isRuleApproved" style="padding:0; height:24px; width:24px;">
-                  <i class="fa-solid fa-trash-can"></i>
-                </button>
+                <div class="d-flex justify-content-center gap-1">
+                  <button nz-button nzType="text" nzSize="small" (click)="copyFilePath(file)" title="Sao chép đường dẫn file" style="padding:0; height:24px; width:24px;">
+                    <i class="fa-solid fa-copy text-primary"></i>
+                  </button>
+                  <button nz-button nzType="text" nzDanger nzSize="small" (click)="deleteOneFile(file)"
+                    [disabled]="isStepApproved || file.isRuleApproved" title="Xóa file" style="padding:0; height:24px; width:24px;">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </div>
               </td>
             </tr>
             <tr *ngIf="displayFiles.length === 0">
-              <td colspan="6" class="text-center text-muted py-4">Chưa có tệp đính kèm nào được tải lên.</td>
+              <td colspan="7" class="text-center text-muted py-4">Chưa có tệp đính kèm nào được tải lên.</td>
             </tr>
           </tbody>
         </nz-table>

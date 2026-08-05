@@ -32,6 +32,7 @@ import { ProjectRequestComponent } from '../../../project-request/project-reques
 import { PermissionService } from '../../../../../services/permission.service';
 import { AppUserService } from '../../../../../services/app-user.service';
 import { ProjectGateTaskDetailComponent } from '../../../project-gate-step/project-gate-task-detail/project-gate-task-detail.component';
+import { ProjectDetailComponent } from '../../../project-detail/project-detail.component';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 
 @Component({
@@ -124,7 +125,8 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   // Chi tiết step khi click trong view tổng hợp
   selectedStepDetail: any = null;
   selectedStepDetailDept: any = null;
-  selectedDetailTab: number = 1; // 1: Công việc, 2: Checklist
+  selectedDetailTab: number = 1; // 1: Công việc, 2: Checklist, 3: Biểu mẫu
+  summaryGateTab: number = 1; // 1: Phòng ban tham gia, 2: Tổng hợp biểu mẫu Gate
   detailTasks: any[] = [];
   isLoadingDetailTasks: boolean = false;
   // Dành cho Tab 2 Checklist detail files
@@ -211,7 +213,16 @@ export class ProjectGateStepByProjectComponent implements OnInit {
           }
         }
       },
-      error: () => { }
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
+      }
     });
   }
 
@@ -257,8 +268,15 @@ export class ProjectGateStepByProjectComponent implements OnInit {
           }
         }
       },
-      error: (error: any) => {
-
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }
@@ -398,7 +416,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
               this.buildSummaryData();
             },
             error: (err: any) => {
-
+              this.notification.create(
+                NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                err?.error?.message || `${err.error}\n${err.message}`,
+                {
+                  nzStyle: { whiteSpace: 'pre-line' }
+                }
+              );
               this.savedGateSteps = [];
               this.isGateStepsLoaded = true;
               this.updateTabsSteps(true);
@@ -414,7 +439,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         }
       },
       error: (err: any) => {
-
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
         this.isGateStepsLoaded = true;
         this.isLoading = false;
       }
@@ -486,6 +518,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
                 parentStepId: savedItem.ProjectGateStepID,
                 groupName: this.getGateGroupNameForMachine(templateStep?.GateCode || `G${savedItem.ProjectGateStepID}`, savedItem.IsRepeat ? 2 : 1),
                 StartDate: savedItem.StartDate ? savedItem.StartDate.substring(0, 10) : null,
+                DateEnd: savedItem.DateEnd ? String(savedItem.DateEnd).substring(0, 10) : null,
                 IsApproved: savedItem.IsApproved,
                 IsApprovedTBP: savedItem.IsApprovedTBP,
                 CheckLists: savedItem.CheckLists || [],
@@ -504,6 +537,10 @@ export class ProjectGateStepByProjectComponent implements OnInit {
                 stepObj.DayCount = null;
                 stepObj.UnitPrice = null;
                 stepObj.TotalEffort = 1;
+              }
+
+              if (!stepObj.DateEnd && stepObj.StartDate && stepObj.DayCount) {
+                this.calculateDateEnd(stepObj);
               }
 
               steps.push(stepObj);
@@ -613,6 +650,36 @@ export class ProjectGateStepByProjectComponent implements OnInit {
 
   isDeptGroupExpanded(deptId: any): boolean {
     return !this.collapsedDeptGroups.has(deptId);
+  }
+
+  /** Kiểm tra công đoạn cha có các công đoạn con hay không */
+  hasChildrenStep(item: any, comboKey: string): boolean {
+    if (!item || item.ParentID || item.isSubStep || item.isNew) return false;
+    const steps = this.projectTypeStepsMap[comboKey] || [];
+    const parentRealId = item.ID || item.ProjectGateStepLinkID;
+    return steps.some((s: any) =>
+      (s.ParentID && (s.ParentID === item.ID || s.ParentID === item.ProjectGateStepLinkID || s.parentLinkId === item.ID)) ||
+      (s.isSubStep && (s.parentLinkId === parentRealId || s.ParentID === parentRealId))
+    );
+  }
+
+  /** Bật / tắt thu gọn các công đoạn con của 1 công đoạn cha */
+  toggleExpandStep(item: any): void {
+    if (!item) return;
+    item.collapsed = !item.collapsed;
+  }
+
+  /** Kiểm tra công đoạn (con) có bị ẩn/thu gọn bởi công đoạn cha không */
+  isStepCollapsed(item: any, comboKey: string): boolean {
+    if (!item || (!item.ParentID && !item.isSubStep)) return false;
+    const steps = this.projectTypeStepsMap[comboKey] || [];
+    const parentId = item.ParentID || item.parentLinkId;
+    const parent = steps.find((s: any) =>
+      (s.ID && s.ID === parentId) ||
+      (s.ProjectGateStepLinkID && s.ProjectGateStepLinkID === parentId) ||
+      (!s.ParentID && !s.isSubStep && s.ProjectGateStepID === item.parentStepId)
+    );
+    return parent ? !!parent.collapsed : false;
   }
 
   selectProjectType(ptId: number, deptId: number | null): void {
@@ -840,7 +907,30 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     }
   }
 
+  calculateDateEnd(item: any): void {
+    if (!item || !item.StartDate) return;
+    const startDt = DateTime.fromISO(String(item.StartDate).substring(0, 10));
+    if (!startDt.isValid) return;
+    const dayCount = Number(item.DayCount) || 1;
+    const endDt = startDt.plus({ days: dayCount > 0 ? dayCount - 1 : 0 });
+    item.DateEnd = endDt.toFormat('yyyy-MM-dd');
+  }
+
+  onDateEndValueChange(item: any): void {
+    if (!item || !item.StartDate || !item.DateEnd) return;
+    const startDt = DateTime.fromISO(String(item.StartDate).substring(0, 10));
+    const endDt = DateTime.fromISO(String(item.DateEnd).substring(0, 10));
+    if (startDt.isValid && endDt.isValid && endDt >= startDt) {
+      const diffDays = Math.floor(endDt.diff(startDt, 'days').days) + 1;
+      if (diffDays > 0) {
+        item.DayCount = diffDays;
+        this.onGateStepValueChange(item);
+      }
+    }
+  }
+
   onStartDateValueChange(item: any, comboKey: string) {
+    this.calculateDateEnd(item);
     const steps = this.projectTypeStepsMap[comboKey] || [];
     const index = steps.findIndex((s: any) => s.ID === item.ID);
     if (index !== -1) {
@@ -1238,6 +1328,27 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     if (item.PeopleCount != null && item.DayCount != null) {
       item.TotalEffort = item.PeopleCount * item.DayCount;
     }
+
+    // Tự động tính lại Ngày kết thúc khi số ngày hoặc ngày bắt đầu thay đổi
+    this.calculateDateEnd(item);
+
+    // Tự động tính tổng số ngày fill vào công đoạn cha khi chỉnh sửa số ngày ở công đoạn con
+    if (item && (item.ParentID || item.isSubStep)) {
+      const comboKey = `${this.activeProjectTypeId}_${this.activeDepartmentId}`;
+      const steps = this.projectTypeStepsMap[comboKey] || [];
+      const parentId = item.ParentID || item.parentLinkId;
+      const parent = steps.find((s: any) => s.ID === parentId || s.ProjectGateStepLinkID === parentId);
+      if (parent) {
+        const parentRealId = parent.ID || parent.ProjectGateStepLinkID;
+        const children = steps.filter((s: any) => s.ParentID === parentRealId || s.parentLinkId === parentRealId || s.isSubStep);
+        const sumDays = children.reduce((acc: number, c: any) => acc + (Number(c.DayCount) || 0), 0);
+        parent.DayCount = sumDays;
+        this.calculateDateEnd(parent);
+        if (parent.PeopleCount != null) {
+          parent.TotalEffort = parent.PeopleCount * parent.DayCount;
+        }
+      }
+    }
   }
 
   onWorkersChange(item: any) {
@@ -1261,6 +1372,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
             ProjectGateStepID: s.ProjectGateStepID || (s.isRepeated ? s.parentStepId : s.ID),
             ProjectTypeID: s.ProjectTypeID || (typeId > 0 ? typeId : this.activeProjectTypeId),
             StartDate: s.StartDate,
+            DateEnd: s.DateEnd || null,
             IsRepeat: s.isRepeated ? true : false,
             Content: s.Content,
             ActualContent: s.ActualContent || '',
@@ -1461,7 +1573,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         this.buildSummaryData();
       },
       error: (err: any) => {
-
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }
@@ -1507,7 +1626,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         }
       },
       error: (err: any) => {
-
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }
@@ -1530,6 +1656,11 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     const gateMap: { [gateId: number]: any } = {};
 
     this.savedGateSteps.forEach(link => {
+      // Bỏ qua các công đoạn con, chỉ hiển thị công đoạn cha ở TỔNG HỢP GATE
+      if (link.ParentID || link.parentLinkId || link.isSubStep) {
+        return;
+      }
+
       const stepDef = this.allGateSteps.find(s => s.ID === link.ProjectGateStepID);
       if (!stepDef) return;
 
@@ -1614,11 +1745,13 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         isCompleted: isCompleted,
         isDelayed: isStepDelayed,
         checkLists: link.CheckLists || [],
+        forms: link.Forms || [],
+        Forms: link.Forms || [],
         projectTaskID: link.ProjectTaskID
       });
     });
 
-    const gates = Object.values(gateMap).map((g: any) => {
+    let gates = Object.values(gateMap).map((g: any) => {
       const deptsArray = Object.values(g.departments).map((d: any) => {
         const totalSteps = d.steps.length;
         const completedSteps = d.steps.filter((s: any) => s.isCompleted).length;
@@ -1661,6 +1794,10 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         isDelayed: !!isGateDelayedFlag
       };
     });
+
+    if (this.selectedSummaryDepartmentId !== null) {
+      gates = gates.filter((g: any) => g.totalDepartments > 0);
+    }
 
     gates.sort((a, b) => {
       const typeA = a.type ?? 1;
@@ -1804,13 +1941,99 @@ export class ProjectGateStepByProjectComponent implements OnInit {
 
   selectSummaryGate(gateId: number): void {
     this.selectedSummaryGateId = gateId;
-    this.summaryGateDetails = this.summaryGates.find(g => g.gateId === gateId) || null;
+    const gate = this.summaryGates.find(g => g.gateId === gateId) || null;
+    this.summaryGateDetails = gate;
+    this.summaryGateTab = 1;
     this.selectedStepDetail = null;
     this.selectedStepDetailDept = null;
     this.detailTasks = [];
     this.selectedRuleInTab = null;
     this.displayFilesInTab = [];
     this.scrollToSelectedGate(gateId);
+
+    const gateCodeUpper = gate?.gateCode?.trim()?.toUpperCase() || '';
+    if (gateCodeUpper === 'G3A') {
+      if (!this.projectId) return;
+      this.projectService.getDemoProject(this.projectId).subscribe({
+        next: (res: any) => {
+          const demoPrj = res?.data;
+          if (demoPrj && demoPrj.ID) {
+            const key = `project-gate-step-by-project/${demoPrj.ID}`;
+            const projectStatusName = demoPrj.ProjectStatusName || demoPrj.ProjectStatusText || demoPrj.ProjectStatus || '';
+            this.tabService.openTabComp({
+              comp: ProjectGateStepByProjectComponent,
+              title: `Chi tiết dự án - ${demoPrj.ProjectCode}`,
+              key: key,
+              data: {
+                projectId: demoPrj.ID,
+                projectCode: demoPrj.ProjectCode,
+                projectName: demoPrj.ProjectName,
+                projectStatusName: projectStatusName,
+                _tabKey: key
+              }
+            });
+          } else {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa tạo dự án demo!');
+          }
+        },
+        error: (err: any) => {
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            { nzStyle: { whiteSpace: 'pre-line' } }
+          );
+        }
+      });
+    }
+  }
+
+  selectSummaryGateTab(tabIndex: number): void {
+    this.summaryGateTab = tabIndex;
+    if (tabIndex === 2) {
+      this.loadFormsForCurrentGate();
+    }
+  }
+
+  loadFormsForCurrentGate(): void {
+    if (!this.summaryGateDetails || !this.summaryGateDetails.departments) return;
+    this.summaryGateDetails.departments.forEach((dept: any) => {
+      if (dept.steps && Array.isArray(dept.steps)) {
+        dept.steps.forEach((step: any) => {
+          const stepId = step.projectGateStepID || step.stepId || step.ID || step.stepLinkId;
+          if (stepId && (!step.forms || step.forms.length === 0)) {
+            this.projectGateStepService.getFormsByStep(stepId).subscribe({
+              next: (res: any) => {
+                if (res?.data) {
+                  step.forms = res.data;
+                  step.Forms = res.data;
+                }
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+
+  getAllFormsOfCurrentGate(): any[] {
+    if (!this.summaryGateDetails || !this.summaryGateDetails.departments) return [];
+    const formsList: any[] = [];
+    this.summaryGateDetails.departments.forEach((dept: any) => {
+      if (dept.steps && Array.isArray(dept.steps)) {
+        dept.steps.forEach((step: any) => {
+          const stepForms = step.forms || step.Forms || [];
+          stepForms.forEach((f: any) => {
+            formsList.push({
+              ...f,
+              deptName: dept.deptName || '',
+              stepContent: step.content || 'Công đoạn'
+            });
+          });
+        });
+      }
+    });
+    return formsList;
   }
 
   scrollToSelectedGate(gateId?: number): void {
@@ -1876,7 +2099,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
           this.isLoadingDetailTasks = false;
         },
         error: (err: any) => {
-
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
+          );
           this.isLoadingDetailTasks = false;
         }
       });
@@ -1893,22 +2123,95 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       } else {
         this.refreshDisplayFilesInTab();
       }
+    } else if (tabIndex === 3) {
+      this.loadFormsForSelectedDept();
     }
   }
 
-  openGateTaskDetailTab(): void {
-    if (!this.selectedStepDetail) {
+  getDepartmentForms(): any[] {
+    const dept = this.selectedStepDetailDept;
+    if (dept && dept.steps) {
+      const forms: any[] = [];
+      dept.steps.forEach((step: any) => {
+        const stepForms = step.forms || step.Forms || [];
+        stepForms.forEach((f: any) => {
+          forms.push({
+            ...f,
+            stepContent: step.content || step.Content || 'Công đoạn',
+            deptName: dept.deptName || ''
+          });
+        });
+      });
+      return forms;
+    }
+
+    if (this.selectedStepDetail) {
+      const stepForms = this.selectedStepDetail.forms || this.selectedStepDetail.Forms || [];
+      return stepForms.map((f: any) => ({
+        ...f,
+        stepContent: this.selectedStepDetail.content || 'Công đoạn',
+        deptName: this.selectedStepDetailDept?.deptName || ''
+      }));
+    }
+
+    return [];
+  }
+
+  loadFormsForSelectedDept(): void {
+    const dept = this.selectedStepDetailDept;
+    if (!dept || !dept.steps) return;
+    dept.steps.forEach((step: any) => {
+      const stepId = step.projectGateStepID || step.stepId || step.ID || step.stepLinkId;
+      if (stepId && (!step.forms || step.forms.length === 0)) {
+        this.projectGateStepService.getFormsByStep(stepId).subscribe({
+          next: (res: any) => {
+            if (res?.data) {
+              step.forms = res.data;
+              step.Forms = res.data;
+            }
+          }
+        });
+      }
+    });
+  }
+
+  downloadFormFile(form: any): void {
+    if (!form || !form.FilePath) return;
+    this.projectGateStepService.downloadFile(form.FilePath).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = form.FileName || 'bieu_mau_dinh_kem';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          'Không thể tải xuống tệp tin!',
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
+      }
+    });
+  }
+
+  openGateTaskDetailTab(stepParam?: any, deptParam?: any): void {
+    const step = stepParam || this.selectedStepDetail;
+    const dept = deptParam || this.selectedStepDetailDept;
+    const gate = this.summaryGateDetails;
+
+    if (!step) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn công đoạn để xem chi tiết công việc!');
       return;
     }
 
-    const step = this.selectedStepDetail;
-    const dept = this.selectedStepDetailDept;
-    const gate = this.summaryGateDetails;
-
-    const tabKey = `gate-task-detail-${step.stepLinkId || step.projectTaskID || Date.now()}`;
+    const tabKey = `gate-task-detail-${step.stepLinkId || step.projectTaskID || step.ID || Date.now()}`;
     const gateLabel = gate ? `${gate.gateCode}` : 'Gate';
-    const stepLabel = step.content ? step.content : 'Công việc';
+    const stepLabel = step.content || step.Content || 'Công việc';
 
     this.tabService.openTabComp({
       comp: ProjectGateTaskDetailComponent,
@@ -1920,10 +2223,10 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         projectName: this.projectName,
         gateCode: gate?.gateCode || '',
         gateName: gate?.gateName || '',
-        stepContent: step.content || '',
-        deptName: dept?.deptName || '',
-        projectTaskId: step.projectTaskID,
-        detailTasks: this.detailTasks,
+        stepContent: step.content || step.Content || '',
+        deptName: dept?.deptName || step.deptName || '',
+        projectTaskId: step.projectTaskID || step.ProjectTaskID || null,
+        detailTasks: stepParam ? [] : this.detailTasks,
         _tabKey: tabKey
       }
     });
@@ -1953,7 +2256,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         this.isLoadingRuleFiles = false;
       },
       error: (err: any) => {
-
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
         cl.Files = [];
         this.refreshDisplayFilesInTab();
         this.isLoadingRuleFiles = false;
@@ -2234,7 +2544,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         this.updateGroupedMenuDepartments();
       },
       error: (err: any) => {
-
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }
@@ -2247,7 +2564,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         this.updateTabsSteps();
       },
       error: (err: any) => {
-
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }

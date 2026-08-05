@@ -190,10 +190,11 @@
 
                       <!-- Content Input -->
                       <td style="width: 350px;" class="p-1">
-                        <input nz-input [(ngModel)]="item.Content" placeholder="Nhập nội dung công việc..."
-                          style="font-size: 12px; height: 28px;" [attr.data-row]="rowIndex" data-col="Content"
+                        <textarea nz-input [(ngModel)]="item.Content" placeholder="Nhập nội dung công việc..."
+                          style="font-size: 12px; resize: vertical;" [nzAutosize]="{ minRows: 1, maxRows: 5 }"
+                          [attr.data-row]="rowIndex" data-col="Content"
                           (keydown)="onKeyDown(rowIndex, 'Content', $event)"
-                          [nzStatus]="(isSubmitted && (!item.Content || !item.Content.trim())) ? 'error' : ''" />
+                          [nzStatus]="(isSubmitted && (!item.Content || !item.Content.trim())) ? 'error' : ''"></textarea>
                       </td>
 
                       <!-- Checklist & Biểu mẫu Column -->

@@ -236,7 +236,7 @@ export class ProjectGateStepManagementComponent implements OnInit {
         this.checkListTypes = res.data || [];
       },
       error: (err: any) => {
-        console.error('Error loading checklist types', err);
+        this.showError(err);
       }
     });
   }
@@ -263,8 +263,9 @@ export class ProjectGateStepManagementComponent implements OnInit {
         this.loadMasterTemplates();
         this.loadData();
       },
-      error: () => {
+      error: (err: any) => {
         this.loading = false;
+        this.showError(err);
       }
     });
   }
@@ -279,10 +280,11 @@ export class ProjectGateStepManagementComponent implements OnInit {
           this.loadingMasterTemplates = false;
           this.syncSelectedMasterTemplate();
         },
-        error: () => {
+        error: (err: any) => {
           this.loadingMasterTemplates = false;
           this.masterTemplates = [];
           this.syncSelectedMasterTemplate();
+          this.showError(err);
         }
       });
     } else {
@@ -733,9 +735,10 @@ export class ProjectGateStepManagementComponent implements OnInit {
             this.editingStepCheckLists = list.map((c: any) => ({ ...c }));
             this.isChecklistModalVisible = true;
           },
-          error: () => {
+          error: (err: any) => {
             this.editingStepCheckLists = [];
             this.isChecklistModalVisible = true;
+            this.showError(err);
           }
         });
     } else {

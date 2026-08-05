@@ -9,6 +9,8 @@ import {
   ViewChild,
   ElementRef,
   TemplateRef,
+  Optional,
+  Inject
 } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -41,6 +43,7 @@ import { SelectTechnologyComponent } from '../project-control/select-technology.
 import { combineLatest, debounceTime, distinctUntilChanged, filter } from 'rxjs';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { AuthService } from '../../../auth/auth.service';
+import { TabServiceService } from '../../../layouts/tab-service.service';
 import { TreeTableModule } from 'primeng/treetable';
 import { CheckboxModule } from 'primeng/checkbox';
 import { MultiSelectModule } from 'primeng/multiselect';
@@ -171,7 +174,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   //#endregion
 
   constructor(
-    public activeModal: NgbActiveModal,
+    @Optional() public activeModal: NgbActiveModal,
+    @Optional() @Inject('tabData') public tabData: any,
     private projectService: ProjectService,
     private notification: NzNotificationService,
     private modal: NzModalService,
@@ -179,7 +183,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     private appRef: ApplicationRef,
     private modalService: NgbModal,
     private fb: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService,
+    @Optional() private tabService: TabServiceService
   ) {
     this.formGroup = this.fb.group({
       customerId: [null, [Validators.required]],
@@ -217,6 +222,9 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
 
   //#region Chạy khi mở chương trình
   ngOnInit(): void {
+    if (this.tabData) {
+      this.projectId = this.tabData.projectId ?? this.projectId;
+    }
     // Đồng bộ dữ liệu từ form controls với các biến
     this.formGroup.get('customerId')?.valueChanges.subscribe(value => {
       this.customerId = value;
@@ -327,6 +335,14 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     this.initTableColumns();
     this.loadProject(this.projectId);
     this.projectIdleader = this.projectId;
+  }
+
+  closeModal(): void {
+    if (this.activeModal) {
+      this.activeModal.dismiss();
+    } else if (this.tabData && this.tabData._tabKey && this.tabService) {
+      this.tabService.closeTabByKey(this.tabData._tabKey);
+    }
   }
   //#endregion
 

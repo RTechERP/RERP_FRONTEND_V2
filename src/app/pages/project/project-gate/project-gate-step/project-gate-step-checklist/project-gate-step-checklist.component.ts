@@ -21,7 +21,7 @@ import { ProjectGateStepService } from '../project-gate-step.service';
 import { FileFormatService } from '../../file-format/file-format.service';
 import { FileFormatFormComponent } from '../../file-format/file-format-form/file-format-form.component';
 import { TabServiceService } from '../../../../../layouts/tab-service.service';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 
 @Component({
   selector: 'app-project-gate-step-checklist',
@@ -116,7 +116,16 @@ export class ProjectGateStepChecklistComponent implements OnInit {
           });
         }
       },
-      error: () => { }
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
+      }
     });
   }
 
@@ -164,7 +173,14 @@ export class ProjectGateStepChecklistComponent implements OnInit {
           });
         },
         error: (err: any) => {
-          this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message || 'Lỗi tải danh sách quy tắc');
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
+          );
         }
       });
   }
@@ -290,7 +306,14 @@ export class ProjectGateStepChecklistComponent implements OnInit {
           this.loadData();
         },
         error: (err: any) => {
-          this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message || 'Lỗi khi lưu quy tắc!');
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
+          );
         }
       });
   }

@@ -392,6 +392,11 @@ export class ProjectService {
     return this.http.post<any>(`${this.urlProject}create-demo-project?sourceProjectId=${sourceProjectId}`, {});
   }
 
+  // Lấy thông tin dự án demo từ dự án gốc
+  getDemoProject(sourceProjectId: number): Observable<any> {
+    return this.http.get<any>(`${this.urlProject}get-demo-project?sourceProjectId=${sourceProjectId}`);
+  }
+
 
   // Lưu riêng thông tin lĩnh vực và công nghệ kiểu dự án
   saveProjectApplicationTechnology(payload: any): Observable<any> {

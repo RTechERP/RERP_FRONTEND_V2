@@ -8,7 +8,7 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ProjectGateStepService } from '../../project-gate/project-gate-step/project-gate-step.service';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
 
 @Component({
   selector: 'app-project-gate-task-detail',
@@ -80,7 +80,14 @@ export class ProjectGateTaskDetailComponent implements OnInit {
       },
       error: (err: any) => {
         this.isLoading = false;
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách công việc chi tiết!');
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }

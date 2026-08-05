@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -31,6 +31,8 @@ import { ProjectGateService } from '../project-gate.service';
 })
 export class ProjectGateFormComponent implements OnInit {
   @Input() dataInput: any = null;
+  @Input() saveCallback?: () => void;
+  @Output() saveSuccess = new EventEmitter<void>();
 
   form!: FormGroup;
   isEdit = false;
@@ -56,39 +58,74 @@ export class ProjectGateFormComponent implements OnInit {
   ngOnInit(): void {
     this.isEdit = !!this.dataInput;
     this.initForm();
-    this.loadAllGates();
-
-    if (this.isEdit) {
-      this.form.patchValue({
-        ID: this.dataInput.ID,
-        STT: this.dataInput.STT,
-        GateCode: this.dataInput.GateCode,
-        GateName: this.dataInput.GateName,
-        StepName: this.dataInput.StepName,
-        Target: this.dataInput.Target,
-        RequireInput: this.dataInput.RequireInput,
-        RequireOuput: this.dataInput.RequireOuput,
-        ActionIfRejected: this.dataInput.ActionIfRejected,
-        Type: this.dataInput.Type ?? null,
-        Optional: this.dataInput.Optional ?? false,
-        ParentID: this.dataInput.ParentID ?? null
-      });
-    }
 
     // Watch Optional toggle to clear/validate ParentID
     this.form.get('Optional')!.valueChanges.subscribe((isOptional: boolean) => {
       const parentCtrl = this.form.get('ParentID')!;
       if (!isOptional) {
-        parentCtrl.setValue(null);
+        parentCtrl.setValue(null, { emitEvent: false });
       }
       this.refreshParentOptions();
     });
 
     // Watch Type to filter parent gate options
     this.form.get('Type')!.valueChanges.subscribe(() => {
-      this.form.get('ParentID')!.setValue(null);
       this.refreshParentOptions();
     });
+
+    this.loadAllGates();
+
+    if (this.isEdit && this.dataInput?.ID) {
+      this.loadGateDetail(this.dataInput.ID);
+    }
+  }
+
+  loadGateDetail(id: number): void {
+    this.loading = true;
+    this.service.getByID(id).subscribe({
+      next: (res: any) => {
+        this.loading = false;
+        if (res.data) {
+          this.dataInput = res.data;
+          this.patchFormData();
+        }
+      },
+      error: (err: any) => {
+        this.loading = false;
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
+        this.patchFormData();
+      }
+    });
+  }
+
+  patchFormData(): void {
+    if (!this.dataInput) return;
+    const parentId = this.dataInput.ParentID ?? this.dataInput.parentId ?? this.dataInput.ParentId ?? null;
+    const isOpt = !!(this.dataInput.Optional ?? this.dataInput.isOptional ?? this.dataInput.IsOptional ?? (parentId != null));
+
+    this.form.patchValue({
+      ID: this.dataInput.ID,
+      STT: this.dataInput.STT,
+      GateCode: this.dataInput.GateCode,
+      GateName: this.dataInput.GateName,
+      StepName: this.dataInput.StepName,
+      Target: this.dataInput.Target,
+      RequireInput: this.dataInput.RequireInput,
+      RequireOuput: this.dataInput.RequireOuput,
+      ActionIfRejected: this.dataInput.ActionIfRejected,
+      Type: this.dataInput.Type ?? null,
+      Optional: isOpt,
+      ParentID: parentId
+    }, { emitEvent: false });
+
+    this.refreshParentOptions();
   }
 
   loadAllGates(): void {
@@ -96,10 +133,12 @@ export class ProjectGateFormComponent implements OnInit {
       next: (res: any) => {
         const allData: any[] = res.data || [];
         this.allGates = allData.filter((g: any) => g.ID !== (this.dataInput?.ID ?? 0));
-        this.refreshParentOptions();
 
-        // Auto-fill next STT when adding new (not edit)
-        if (!this.isEdit) {
+        if (this.isEdit && this.dataInput) {
+          this.refreshParentOptions();
+        } else {
+          this.refreshParentOptions();
+          // Auto-fill next STT when adding new (not edit)
           const maxSTT = allData.reduce((max: number, g: any) => {
             const stt = typeof g.STT === 'number' ? g.STT : 0;
             return stt > max ? stt : max;
@@ -107,14 +146,26 @@ export class ProjectGateFormComponent implements OnInit {
           this.form.get('STT')!.setValue(maxSTT + 1);
         }
       },
-      error: () => { }
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
+        if (this.isEdit && this.dataInput) {
+          this.refreshParentOptions();
+        }
+      }
     });
   }
 
   refreshParentOptions(): void {
     const selectedType = this.form.get('Type')!.value;
-    if (selectedType) {
-      this.parentGateOptions = this.allGates.filter(g => g.Type === selectedType);
+    if (selectedType != null) {
+      this.parentGateOptions = this.allGates.filter(g => g.Type == selectedType);
     } else {
       this.parentGateOptions = [...this.allGates];
     }
@@ -144,7 +195,12 @@ export class ProjectGateFormComponent implements OnInit {
   onSubmit(closeAfterSave: boolean): void {
     if (this.form.valid) {
       this.loading = true;
-      const payload = [this.form.value];
+      const formValue = { ...this.form.value };
+      formValue.Optional = !!formValue.Optional;
+      if (!formValue.Optional) {
+        formValue.ParentID = null;
+      }
+      const payload = [formValue];
 
       this.service.save(payload).subscribe({
         next: (res: any) => {
@@ -154,6 +210,10 @@ export class ProjectGateFormComponent implements OnInit {
             return;
           }
           this.notification.success(NOTIFICATION_TITLE.success, res.message || 'Lưu thành công');
+          this.saveSuccess.emit();
+          if (this.saveCallback) {
+            this.saveCallback();
+          }
           if (closeAfterSave) {
             this.activeModal.close('save');
           } else {

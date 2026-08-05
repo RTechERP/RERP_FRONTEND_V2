@@ -304,7 +304,7 @@ export class ProjectTypeDepartmentComponent implements OnInit {
     this.notification.create(
       NOTIFICATION_TYPE_MAP[err.status] || 'error',
       NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-      err?.error?.message || err?.message || 'Có lỗi xảy ra',
+      err?.error?.message || `${err.error}\n${err.message}`,
       { nzStyle: { whiteSpace: 'pre-line' } }
     );
   }

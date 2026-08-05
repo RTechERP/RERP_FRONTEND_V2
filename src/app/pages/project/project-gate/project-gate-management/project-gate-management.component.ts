@@ -222,6 +222,10 @@ export class ProjectGateManagementComponent implements OnInit {
       centered: true
     });
     modalRef.componentInstance.dataInput = null;
+    modalRef.componentInstance.saveCallback = () => this.loadData();
+    if (modalRef.componentInstance.saveSuccess) {
+      modalRef.componentInstance.saveSuccess.subscribe(() => this.loadData());
+    }
 
     modalRef.result.then(
       (result) => {
@@ -244,6 +248,10 @@ export class ProjectGateManagementComponent implements OnInit {
       centered: true
     });
     modalRef.componentInstance.dataInput = { ...selected };
+    modalRef.componentInstance.saveCallback = () => this.loadData();
+    if (modalRef.componentInstance.saveSuccess) {
+      modalRef.componentInstance.saveSuccess.subscribe(() => this.loadData());
+    }
 
     modalRef.result.then(
       (result) => {

@@ -143,7 +143,12 @@ export class ProjectGateStepFormComponent implements OnInit {
         this.resolveLegacyCheckListTypes();
       },
       error: (err: any) => {
-        console.error('Error loading checklist types', err);
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
       }
     });
   }

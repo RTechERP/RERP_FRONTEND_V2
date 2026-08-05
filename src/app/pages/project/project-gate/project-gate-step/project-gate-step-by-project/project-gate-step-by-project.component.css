@@ -102,31 +102,29 @@
 }
 
 /* Định dạng dòng công đoạn con */
-::ng-deep .p-datatable .p-datatable-tbody > tr.sub-step-row {
+::ng-deep .p-datatable .p-datatable-tbody>tr.sub-step-row {
   background-color: #fcfcfc !important;
 }
 
-::ng-deep .p-datatable .p-datatable-tbody > tr.sub-step-row:hover {
+::ng-deep .p-datatable .p-datatable-tbody>tr.sub-step-row:hover {
   background-color: #f0f7ff !important;
 }
 
-::ng-deep .p-datatable .p-datatable-tbody > tr.sub-step-row > td:first-child {
+::ng-deep .p-datatable .p-datatable-tbody>tr.sub-step-row>td:first-child {
   border-left: 3px solid #1890ff !important;
 }
 
 /* Định dạng dòng được chọn trong bảng */
-::ng-deep .p-datatable .p-datatable-tbody > tr.selected-row-active {
+::ng-deep .p-datatable .p-datatable-tbody>tr.selected-row-active {
   background-color: #e6f7ff !important;
 }
 
-::ng-deep .p-datatable .p-datatable-tbody > tr.selected-row-active > td {
+::ng-deep .p-datatable .p-datatable-tbody>tr.selected-row-active>td {
   border-top: 1px solid #91caff !important;
   border-bottom: 1px solid #91caff !important;
 }
-  background-color: #f1f3f5 !important;
-  color: #2b3035 !important;
-  font-weight: bold;
-}
+
+
 
 .row-group-header.group-giai-phap td {
   background-color: #fffbe6 !important;
@@ -234,11 +232,11 @@
 }
 
 .sidebar-menu .sidebar-header {
-  font-size: 16px !important;
+  font-size: 12px !important;
 }
 
 .sidebar-menu .sidebar-header i {
-  font-size: 16px !important;
+  font-size: 12px !important;
 }
 
 /* Sơ đồ Gate summary styles */
@@ -349,4 +347,18 @@
 /* Hover effect for step items in summary view */
 .list-group-item.cursor-pointer:hover {
   background-color: #f0f2f5 !important;
+}
+
+/* Toggle expand/collapse button for parent steps */
+.toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 4px;
+  color: #64748b;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.toggle-btn:hover {
+  color: #23458a !important;
 }

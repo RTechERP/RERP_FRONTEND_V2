@@ -270,4 +270,16 @@ export class BillImportServiceService {
             environment.host + `api/BillImport/get-sale-logs/${billImportId}`
         );
     }
+
+    getImageSignature(billID: number): Observable<any> {
+        return this.http.get(
+            environment.host + `api/BillImport/image-signature?id=${billID}`
+        );
+    }
+
+    getDataPrint(billID: number): Observable<any> {
+        return this.http.get(
+            environment.host + `api/BillImport/data-print?id=${billID}`
+        );
+    }
 }

@@ -134,4 +134,11 @@ export class EmployeeBussinessService {
   getEmployeeBussinessVehicle(id: number): Observable<any> {
     return this.http.get<any>(this._url + `EmployeeBussiness/get-employee-buissiness-vehicle?id=${id}`);
   }
+
+  // NDNhat Update 27/07/2026: Lấy danh sách phiếu đặt xe cho combobox (phòng Sale)
+  getVehicleBookingsForBussiness(employeeId: number, dateStart: string, dateEnd: string): Observable<any> {
+    return this.http.get<any>(
+      this._url + `EmployeeBussiness/get-vehicle-bookings-for-bussiness?employeeId=${employeeId}&dateStart=${encodeURIComponent(dateStart)}&dateEnd=${encodeURIComponent(dateEnd)}`
+    );
+  }
 }

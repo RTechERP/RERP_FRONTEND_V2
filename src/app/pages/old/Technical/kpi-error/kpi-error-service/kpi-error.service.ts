@@ -12,10 +12,11 @@ export class KpiErrorService {
   constructor(private http: HttpClient) {}
 
   // Lấy danh sách KPI Error
-  getKPIError(departmentId: number, keyword: string = ''): Observable<any> {
+  getKPIError(departmentId: number, keyword: string = '', userLoginDepartmentId: number = 0): Observable<any> {
     const params = new HttpParams()
       .set('departmentId', departmentId.toString())
-      .set('keyword', keyword);
+      .set('keyword', keyword)
+      .set('userLoginDepartmentID', (userLoginDepartmentId || 0).toString());
     return this.http.get(this._url + 'get-kpierror', { params });
   }
 

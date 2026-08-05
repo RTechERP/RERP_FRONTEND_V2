@@ -70,6 +70,16 @@ export class HrRecruitmentApproveFormComponent implements OnInit {
 
   @Input() HRRecruitmentCandidateID: number = 0;
   @Input() Status: number = 0;
+  @Input() isEdit: boolean = false;
+  @Input() isTTSMode: boolean | null = null;
+
+  get isTTS(): boolean {
+    if (this.isTTSMode !== null && this.isTTSMode !== undefined) {
+      return this.isTTSMode;
+    }
+    const title = (this.chucDanh || (this.infomation.length > 0 ? this.infomation[0].PositionName : '') || '').toLowerCase();
+    return title.includes('thực tập') || title.includes('tts') || title.includes('tập sự');
+  }
 
 
   experiences: Experiences[] = [];
@@ -155,7 +165,9 @@ export class HrRecruitmentApproveFormComponent implements OnInit {
             this.ngaySinh = this.formatDate(info.DateOfBirth);
             this.hoKhau = info.PermanentResidence;
             this.noiO = info.CurrentAddress;
-            this.trinhDo = info.Major;
+            const major = (info.Major || '').trim();
+            const school = (info.NameOfSchool || '').trim();
+            this.trinhDo = (major && school) ? `${major} - ${school}` : (major || school || '');
             this.truong = info.NameOfSchool;
             this.chucDanh = info.PositionName;
             this.luongCB = this.formatSalary(info.Salary) ?? "";
@@ -235,7 +247,9 @@ export class HrRecruitmentApproveFormComponent implements OnInit {
             if (app.ProbationPeriod) this.thoiGianThuViec = app.ProbationPeriod;
 
             // Kiểm tra quyền chỉnh sửa
-            if (this.Status > 6) {
+            if (this.isEdit) {
+              this.isReadOnly = false;
+            } else if (this.Status > 6) {
               this.isReadOnly = true;
             } else if (this.Status === 6) {
               // Nếu đã có bất kỳ cấp nào khác ký (ngoài người lập) thì khóa form

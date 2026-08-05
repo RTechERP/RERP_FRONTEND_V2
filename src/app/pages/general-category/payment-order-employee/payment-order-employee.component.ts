@@ -146,6 +146,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
     datasetSpecialDetail: any[] = [];
 
     columnDefFiles: ColumnDef[] = [];
+    columnDefFileBankSlips: ColumnDef[] = [];
     datasetFiles: any[] = [];
     datasetFileBankslip: any[] = [];
 
@@ -664,7 +665,24 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                     `<span class="text-primary cursor-pointer hover:underline"><i class="pi pi-file mr-2"></i>${val}</span>`,
             },
         ];
-
+        this.columnDefFileBankSlips = [
+            {
+                field: 'FileName',
+                header: 'File đính kèm',
+                width: '250px',
+                clickable: true,
+                format: (val) =>
+                    `<span class="text-primary cursor-pointer hover:underline"><i class="pi pi-file mr-2"></i>${val}</span>`,
+            },
+            {
+                field: 'CreatedDate',
+                header: 'Ngày tạo',
+                width: '80px',
+                clickable: true,
+                format: (val) =>
+                    fmtDateTime(val),
+            },
+        ];
         const logRowStyle = (row: any) => {
             if (row.IsApproved === 1) return { 'background-color': '#dcfce7', 'color': '#14532d' };
             if (row.IsApproved === 2) return { 'background-color': '#fee2e2', 'color': '#7f1d1d' };

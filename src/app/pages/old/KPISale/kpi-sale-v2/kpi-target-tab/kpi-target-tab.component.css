@@ -538,3 +538,146 @@ nz-input-number.inline-edit .ant-input-number {
   justify-content: flex-end;
   padding-top: 4px;
 }
+
+/* ===== Team Weight Override Section ===== */
+.team-weight-section {
+  flex: 1;
+  min-height: 0;
+  /* KHÔNG overflow ở đây — để footer cố định bên dưới, body tự cuộn riêng */
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
+/* Phần thân (header + table) — chiếm hết không gian còn lại, tự sinh scrollbar */
+.team-weight-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 4px;
+}
+
+/* Footer cố định — luôn dính ở dưới, không cuộn theo bảng */
+.team-weight-footer {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin: 0;
+  background: #ffffff;
+  border-top: 1px solid #e8e8e8;
+  border-radius: 4px;
+}
+
+.team-weight-footer .footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.team-weight-footer .footer-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Footer BGD duyệt (màn cá nhân Quarter/Month) */
+.board-approve-footer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 12px;
+  margin: 0;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+  border-radius: 4px;
+}
+
+.board-approve-footer nz-tag {
+  margin: 0;
+  font-size: 12px;
+  padding: 2px 10px;
+}
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.04);
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+}
+
+.team-weight-header h6 {
+  margin-bottom: 4px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.team-weight-header small {
+  display: block;
+  line-height: 1.5;
+}
+
+/* Bôi màu các chỉ tiêu loại "Nhóm" — đồng bộ style với kpi-sale-v2.component */
+::ng-deep .team-weight-section .ant-table-tbody > tr.row-group > td {
+  background: #e6f4ff !important;
+  color: #0b3a66;
+  font-weight: 600;
+  border-top: 1px solid #91caff;
+  border-bottom: 1px solid #91caff;
+}
+
+::ng-deep .team-weight-section .ant-table-tbody > tr.row-group > td:first-child {
+  border-left: 3px solid #1677ff;
+}
+
+::ng-deep .team-weight-section .ant-table-tbody > tr.row-group > td:last-child {
+  border-right: 1px solid #91caff;
+}
+
+::ng-deep .team-weight-section .ant-table-tbody > tr.row-group > td .ant-tag {
+  font-weight: 600;
+}
+
+/* Empty state trong Team Weight */
+.team-weight-section .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background: white;
+  border-radius: 6px;
+  border: 1px dashed #d9d9d9;
+}
+
+.team-weight-section .empty-state p {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+/* Row cho chỉ tiêu NHÓM trong Team Weight Section */
+::ng-deep .team-weight-section .ant-table-tbody > tr.row-group > td {
+  background: #e6f4ff !important;
+  color: #0b3a66;
+  font-weight: 600;
+}
+
+::ng-deep .team-weight-section .ant-table-tbody > tr.row-child > td {
+  background: #fafafa !important;
+  color: #595959;
+}
+
+::ng-deep .team-weight-section .ant-table-tbody > tr.row-formula > td {
+  background: #fff7e6 !important;
+}

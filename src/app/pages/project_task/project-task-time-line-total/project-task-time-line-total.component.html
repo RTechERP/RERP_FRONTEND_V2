@@ -183,7 +183,7 @@
 
                         <th rowspan="2" class="sticky-col col-status">
                             Trạng Thái
-                            <p-multiSelect [options]="statusOptions" [(ngModel)]="filterStatusColumn"
+                            <p-multiSelect [options]="columnStatusOptions" [(ngModel)]="filterStatusColumn"
                                 placeholder="Tất cả" [showHeader]="false" [filter]="false" (onChange)="onColumnFilter()"
                                 styleClass="timeline-status-multi" [maxSelectedLabels]="3"
                                 panelStyleClass="timeline-status-multi-panel" selectedItemsLabel="{0} trạng thái"

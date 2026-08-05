@@ -52,10 +52,12 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { map, catchError, of, forkJoin } from 'rxjs';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import * as ExcelJS from 'exceljs';
 
 import { PoRequestBuySlickgridService } from './po-request-buy-slickgrid-service/po-request-buy-slickgrid.service';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { AppUserService } from '../../../services/app-user.service';
+import { PokhSlickgridService } from '../pokh-slickgrid/pokh-slickgrid-service/pokh-slickgrid.service';
 @Component({
   selector: 'app-po-request-buy-slickgrid',
   imports: [
@@ -95,7 +97,9 @@ export class PoRequestBuySlickgridComponent implements OnInit {
     public activeModal: NgbActiveModal,
     private notification: NzNotificationService,
     private PoRequestBuySlickgridService: PoRequestBuySlickgridService,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    private modal: NzModalService,
+    private POKHService: PokhSlickgridService
   ) { }
 
   dataDepartment: any[] = [];
@@ -114,7 +118,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
     // Kiểm tra quyền admin và set employeeId
     const isAdmin = this.appUserService.isAdmin;
     this.isEmployeeDisabled = !isAdmin;
-    
+
     // Nếu không phải admin, set employeeId của user hiện tại
     if (!isAdmin) {
       const currentUserId = this.appUserService.employeeID;
@@ -131,7 +135,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
     this.selectedPokhIds = this.normalizePokhIds(this.pokhIds, this.pokhId);
     this.loadPOKHProductsByPokhIds(this.selectedPokhIds);
   }
-  
+
   closeModal(): void {
     this.activeModal.close();
   }
@@ -142,7 +146,14 @@ export class PoRequestBuySlickgridComponent implements OnInit {
     this.PoRequestBuySlickgridService.getPOKHProductForRequestBuy(id).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
-          this.gridData = response.data;
+          const rawData = Array.isArray(response.data) ? response.data : [];
+          const unapproved = rawData.filter((item: any) => item.IsApproved !== true && item.ProductCode);
+          if (unapproved.length > 0) {
+            this.handleUnapprovedProducts(unapproved, 'yêu cầu mua hàng');
+          }
+
+          // Chỉ lấy sản phẩm thực sự được duyệt và có ProductCode
+          this.gridData = rawData.filter((item: any) => item.IsApproved === true && item.ProductCode);
           this.dataset = this.gridData.map((item: any) => ({
             ...item,
             id: item.ID
@@ -151,7 +162,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
           setTimeout(() => {
             this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, ['Maker', 'Unit']);
           }, 1000);
-          
+
         } else {
           this.notification.error(
             NOTIFICATION_TITLE.error,
@@ -169,6 +180,52 @@ export class PoRequestBuySlickgridComponent implements OnInit {
     });
   }
 
+  private handleUnapprovedProducts(unapproved: any[], requestType: string = 'yêu cầu mua hàng'): void {
+    if (!unapproved || unapproved.length === 0) return;
+
+    const unapprovedCodes = unapproved.map((item: any) => item.ProductCode || item.ProductName || 'Không rõ').filter(Boolean);
+
+    if (this.POKHService) {
+      this.POKHService.inforUserApproved().subscribe({
+        next: (res: any) => {
+          let userNames = '';
+          if (res?.data) {
+            if (typeof res.data === 'string') {
+              userNames = res.data.trim();
+            } else if (Array.isArray(res.data)) {
+              userNames = res.data
+                .map((x: any) => typeof x === 'string' ? x : (x.FullName || x.Name || x.UserName || ''))
+                .filter(Boolean)
+                .join(', ');
+            } else if (typeof res.data === 'object') {
+              userNames = res.data.FullName || res.data.Name || res.data.UserName || '';
+            }
+          }
+
+          const contactText = `<br/><br/><b>Vui lòng liên hệ TBP kỹ thuật để duyệt sản phẩm.</b>`;
+          this.modal.warning({
+            nzTitle: 'Sản phẩm chưa được duyệt',
+            nzContent: `Có ${unapproved.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách ${requestType}:<br/><br/><b>${unapprovedCodes.join(', ')}</b>${contactText}`,
+            nzOkText: 'Đồng ý'
+          });
+        },
+        error: () => {
+          this.modal.warning({
+            nzTitle: 'Sản phẩm chưa được duyệt',
+            nzContent: `Có ${unapproved.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách ${requestType}:<br/><br/><b>${unapprovedCodes.join(', ')}</b>`,
+            nzOkText: 'Đồng ý'
+          });
+        }
+      });
+    } else {
+      this.modal.warning({
+        nzTitle: 'Sản phẩm chưa được duyệt',
+        nzContent: `Có ${unapproved.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách ${requestType}:<br/><br/><b>${unapprovedCodes.join(', ')}</b>`,
+        nzOkText: 'Đồng ý'
+      });
+    }
+  }
+
   loadPOKHProductsByPokhIds(ids: number[] = []): void {
     const normalizedIds = this.normalizePokhIds(ids);
     if (normalizedIds.length === 0) {
@@ -180,7 +237,14 @@ export class PoRequestBuySlickgridComponent implements OnInit {
     this.isLoading = true;
     this.PoRequestBuySlickgridService.getPOKHProductsForRequestBuy(normalizedIds).subscribe({
       next: (result: any) => {
-        this.gridData = Array.isArray(result?.data) ? result.data : [];
+        const rawData = Array.isArray(result?.data) ? result.data : [];
+        const unapproved = rawData.filter((item: any) => item.IsApproved !== true && item.ProductCode);
+        if (unapproved.length > 0) {
+          this.handleUnapprovedProducts(unapproved, 'yêu cầu mua hàng');
+        }
+
+        // Chỉ lấy sản phẩm thực sự được duyệt và có ProductCode
+        this.gridData = rawData.filter((item: any) => item.IsApproved === true && item.ProductCode);
         this.dataset = this.gridData.map((item: any, index: number) => ({
           ...item,
           id: `${item.__pokhId || 'pokh'}_${item.POKHDetailID || item.ID || index}`
@@ -289,7 +353,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
       this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn người yêu cầu!');
       return;
     }
-    
+
     const selectedRows = this.getSelectedRows();
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.error(
@@ -298,7 +362,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
       );
       return;
     }
-    
+
     // Chuẩn bị dữ liệu gửi lên API
     const requestData = selectedRows.map((row) => ({
       EmployeeID: this.selectedEmployee,
@@ -320,7 +384,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
       DateReceive: row.DeliveryRequestedDate,
       ParentProductCode: row.ParentProductCode,
     }));
-    
+
     this.isLoading = true;
     this.PoRequestBuySlickgridService.saveData(requestData).subscribe({
       next: (res: any) => {
@@ -785,5 +849,115 @@ export class PoRequestBuySlickgridComponent implements OnInit {
     angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
     angularGrid.slickGrid.invalidate();
     angularGrid.slickGrid.render();
+  }
+
+  async exportToExcel(): Promise<void> {
+    const dataToExport = this.angularGrid?.dataView?.getItems() || this.dataset;
+    if (!dataToExport || dataToExport.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Yêu cầu mua hàng');
+
+    // Bật đường lưới (gridlines) trong Excel
+    worksheet.views = [{ showGridLines: true }];
+
+    const visibleCols = this.columnDefinitions.filter((col: any) => col.id !== '_checkbox_selector' && col.field);
+    const headers = ['STT', ...visibleCols.map((col: any) => col.name || col.field)];
+
+    // Border mỏng cho dữ liệu
+    const borderStyle: Partial<ExcelJS.Borders> = {
+      top: { style: 'thin', color: { argb: 'D9D9D9' } },
+      left: { style: 'thin', color: { argb: 'D9D9D9' } },
+      bottom: { style: 'thin', color: { argb: 'D9D9D9' } },
+      right: { style: 'thin', color: { argb: 'D9D9D9' } }
+    };
+
+    // Header row
+    const headerRow = worksheet.addRow(headers);
+    headerRow.height = 26;
+    headerRow.eachCell((cell) => {
+      cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0050B3' } };
+      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      cell.border = {
+        top: { style: 'medium', color: { argb: '002766' } },
+        left: { style: 'thin', color: { argb: '40A9FF' } },
+        bottom: { style: 'medium', color: { argb: '002766' } },
+        right: { style: 'thin', color: { argb: '40A9FF' } }
+      };
+    });
+
+    // Mảng lưu max length để tự chỉnh chiều rộng cột
+    const colWidths = headers.map(h => String(h || '').length);
+
+    // Data rows
+    dataToExport.forEach((rowData: any, rowIndex: number) => {
+      const rowValues = [
+        rowIndex + 1,
+        ...visibleCols.map((col: any) => {
+          const value = rowData[col.field];
+          if (typeof value === 'boolean') {
+            return value ? 'Có' : 'Không';
+          }
+          if (typeof value === 'number') {
+            return value;
+          }
+          return value ?? '';
+        })
+      ];
+      const addedRow = worksheet.addRow(rowValues);
+      addedRow.height = 22;
+
+      rowValues.forEach((val, colIdx) => {
+        const strVal = String(val ?? '');
+        if (strVal.length > colWidths[colIdx]) {
+          colWidths[colIdx] = strVal.length;
+        }
+      });
+
+      addedRow.eachCell((cell, colNumber) => {
+        cell.font = { name: 'Segoe UI', size: 10 };
+        cell.border = borderStyle;
+        cell.alignment = { vertical: 'middle' };
+
+        if (colNumber === 1) {
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        } else {
+          const colDef = visibleCols[colNumber - 2];
+          const val = cell.value;
+
+          if (typeof val === 'number') {
+            cell.numFmt = '#,##0.00';
+            cell.alignment = { vertical: 'middle', horizontal: 'right' };
+          } else if (typeof val === 'string') {
+            const fieldName = (colDef?.field || '').toLowerCase();
+            if (fieldName.includes('unit') || fieldName.includes('dvt') || fieldName.includes('code') || (val.length <= 8 && !val.includes(' '))) {
+              cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            }
+          }
+        }
+      });
+    });
+
+    // Tự động điều chỉnh độ rộng cột theo độ dài tiêu đề + dữ liệu
+    worksheet.columns.forEach((column, index) => {
+      const calculatedWidth = (colWidths[index] || 10) + 5;
+      column.width = Math.min(Math.max(calculatedWidth, 12), 50);
+    });
+
+    const dateStr = DateTime.local().toFormat('yyyyMMdd_HHmmss');
+    const fileName = `Yeu_cau_mua_hang_${dateStr}.xlsx`;
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
 }

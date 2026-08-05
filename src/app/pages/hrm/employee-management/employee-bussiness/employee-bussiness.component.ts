@@ -293,6 +293,11 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
             return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
           },
         },
+        // NDNhat Update 03/08/2026: cột "Đặt xe" 
+        {
+          title: 'Đặt xe', field: 'VehicleBookingID', hozAlign: 'center', headerHozAlign: 'center', width: 90, headerSort: false,
+          formatter: 'tickCross', formatterParams: { allowTruthy: true }
+        },
         {
           title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 90, headerSort: false, formatter: 'textarea'
         },

@@ -173,7 +173,7 @@ export class InventoryProjectDetailComponent implements OnInit {
   }
 
   private loadInventoryProducts$(): Observable<any> {
-    return this.inventoryService.getInventory(true, '', this.warehouseCode, false, 0).pipe(
+    return this.inventoryService.getInventory(true, '', this.warehouseCode, false, 0, true).pipe(
       tap((res: any) => {
         this.inventoryProducts = res?.data || [];
         const selected = this.inventoryProducts.find(

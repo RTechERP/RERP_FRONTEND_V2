@@ -65,6 +65,17 @@ export class ActivityLogPartListComponent implements OnInit, OnChanges {
     return 'info-circle';
   }
 
+  getLogColorClass(actionType: string): string {
+    if (!actionType) return 'log-blue';
+    const type = actionType.toUpperCase();
+    if (type.includes('TẠO MỚI') || type.includes('THÊM MỚI')) return 'log-green';
+    if (type.includes('XÓA') || type.includes('XOÁ') || type.includes('DELETE')) return 'log-red';
+    if (type.includes('SỬA') || type.includes('CẬP NHẬT') || type.includes('UPDATE')) return 'log-orange';
+    if (type.includes('DUYỆT') || type.includes('XÁC NHẬN')) return 'log-green-dark';
+    if (type.includes('HỦY') || type.includes('CANCEL')) return 'log-red-dark';
+    return 'log-blue';
+  }
+
   handleReload(): void {
     this.loadLogs();
   }

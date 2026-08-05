@@ -112,7 +112,7 @@ export class ContractTransferReviewComponent implements OnInit, OnDestroy {
     { label: 'NV đánh giá', value: 1 },
     { label: 'TBP đánh giá', value: 2 },
     { label: 'HR xác nhận', value: 3 },
-    { label: 'BGĐ xác nhận', value: 4 },
+    { label: 'BGĐ Phê duyệt', value: 4 },
   ];
 
   columns: ColumnDef[] = [
@@ -140,9 +140,22 @@ export class ContractTransferReviewComponent implements OnInit, OnDestroy {
       width: '250px',
       sortable: true,
       cellStyle: (row) => {
-        if (row.StepName?.includes('BGĐ: Xác nhận')) return { color: '#28a745', 'font-weight': 'bold' };
+        if (row.StepName?.includes('BGĐ: Phê duyệt')) return { color: '#28a745', 'font-weight': 'bold' };
         if (row.StepName?.includes('Không xác nhận')) return { color: '#dc3545', 'font-weight': 'bold' };
         return { color: '#007bff' }; // Màu xanh dương cho "Chờ duyệt"
+      }
+    },
+    {
+      field: 'BGDDateApproved',
+      header: 'Thời gian BGĐ duyệt',
+      width: '150px',
+      sortable: true,
+      filterType: 'date',
+      filterMode: 'datetime',
+      format: (v) => {
+        if (!v) return '';
+        const date = new Date(v);
+        return isNaN(date.getTime()) ? '' : date.toLocaleDateString('vi-VN');
       }
     },
     { field: 'ReasonUnApproved', header: 'Lý do không duyệt', width: '140px', sortable: true },
@@ -330,14 +343,14 @@ export class ContractTransferReviewComponent implements OnInit, OnDestroy {
         ],
       },
 
-      // ─── BGĐ xác nhận ───────────────────────────────────────────────────────
+      // ─── BGĐ Phê duyệt ───────────────────────────────────────────────────────
       {
-        label: 'BGĐ xác nhận',
+        label: 'BGĐ Phê duyệt',
         icon: 'fa-solid fa-crown fa-lg text-warning',
         visible: this.permissionService.hasPermission('N1'),
         items: [
           {
-            label: 'BGĐ xác nhận',
+            label: 'BGĐ Phê duyệt',
             icon: 'fa-solid fa-check text-success',
             command: () => this.approvedTBPNew(1, 'bgd'),
           },
@@ -1363,6 +1376,7 @@ export class ContractTransferReviewComponent implements OnInit, OnDestroy {
       { id: 1, name: 'Đánh giá thử việc' },
       { id: 4, name: 'Đánh giá HĐLĐ XĐTH (12T) Lần 1' },
       { id: 7, name: 'Đánh giá HĐLĐ XĐTH (12T) Lần 2' },
+      { id: 5, name: 'Ký HĐLĐ KXĐ thời hạn' },
       { id: 8, name: 'Đánh giá nghỉ việc' }
     ];
     const conclusions = [
@@ -1372,9 +1386,16 @@ export class ContractTransferReviewComponent implements OnInit, OnDestroy {
       { id: 5, name: 'Ký HĐLĐ KXĐ thời hạn' },
       { id: 8, name: 'Chấm dứt HĐ' }
     ];
+    const employeeConclusions = [
+      { id: 1, name: 'Ký HĐ Thử Việc' },
+      { id: 4, name: 'Ký HĐLĐ' },
+      { id: 8, name: 'Chấm dứt HĐ' }
+    ];
 
-    const evalTypeName = evalTypes.find(t => t.id === d.EvaluationEmployeeLoaiHDID)?.name || '';
-    const conclusionName = conclusions.find(c => c.id === d.ConclusionEmployeeLoaiHDID)?.name || '';
+    const evalLoaiID = d.EvaluationEmployeeLoaiHDID ?? d.EmployeeLoaiHDID ?? d.LoaiHDLDID ?? d.EvaluationLoaiHDID;
+    const evalTypeName = evalTypes.find(t => t.id === evalLoaiID)?.name || '';
+    const conclusionName = employeeConclusions.find(c => c.id === d.ConclusionEmployeeLoaiHDID)?.name 
+      || conclusions.find(c => c.id === d.ConclusionEmployeeLoaiHDID)?.name || '';
     const tbpConclusionName = conclusions.find(c => c.id === d.TBPConclusionEmployeeLoaiHDID)?.name || '';
 
     const fmtDate = (dateStr: any) => {
@@ -1523,8 +1544,8 @@ export class ContractTransferReviewComponent implements OnInit, OnDestroy {
       return 'Không đạt';
     };
 
-    const nldRank = getRank(nldTotal);
-    const tbpRank = getRank(tbpTotal);
+    const nldRank = (nldTotal > 0 ? getRank(nldTotal) : null) || d.EvaluationGrade || getRank(nldTotal);
+    const tbpRank = (tbpTotal > 0 ? getRank(tbpTotal) : null) || d.TBPEvaluationGrade || getRank(tbpTotal);
 
     const tableBody = [];
     tableBody.push([
@@ -1542,7 +1563,7 @@ export class ContractTransferReviewComponent implements OnInit, OnDestroy {
       { text: 'Trọng số', rowSpan: 2, bold: true, alignment: 'center', margin: [0, 8], fillColor: '#D9E1F2' },
       { text: 'NLĐ tự đánh giá', colSpan: 2, bold: true, alignment: 'center', fillColor: '#D9E1F2' },
       { text: '', fillColor: '#D9E1F2' },
-      { text: 'QLTT đánh giá', colSpan: 2, bold: true, alignment: 'center', fillColor: '#D9E1F2' },
+      { text: 'Cán bộ quản lý đánh giá', colSpan: 2, bold: true, alignment: 'center', fillColor: '#D9E1F2' },
       { text: '', fillColor: '#D9E1F2' }
     ]);
     tableBody.push([
@@ -1605,7 +1626,7 @@ export class ContractTransferReviewComponent implements OnInit, OnDestroy {
         { text: 'Tổng kết', rowSpan: 3, bold: true, margin: [0, 20] },
         { text: '', bold: true },
         { text: 'NLĐ tự đánh giá', bold: true, alignment: 'center', fillColor: '#fef2cc' },
-        { text: 'TBP đánh giá', bold: true, alignment: 'center', fillColor: '#fef2cc' }
+        { text: 'Cán bộ quản lý đánh giá', bold: true, alignment: 'center', fillColor: '#fef2cc' }
       ],
       [
         '',

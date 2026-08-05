@@ -120,10 +120,10 @@ export const APPROVAL_STEPS: ApprovalStepDef[] = [
   {
     code: 'P0_APPROVED',
     shortLabel: 'Admin',
-    longLabel: 'Admin duyệt (khóa tính KPI)',
+    longLabel: 'Admin duyệt',
     approverRole: 'ADMIN',
     icon: 'safety',
-    isLockStep: true,
+    isLockStep: false,
     permissionCode: 'N27,N1',
   },
   {
@@ -156,10 +156,10 @@ export const APPROVAL_STEPS: ApprovalStepDef[] = [
   {
     code: 'P4_APPROVED',
     shortLabel: 'Giám đốc',
-    longLabel: 'Giám đốc duyệt',
+    longLabel: 'Giám đốc duyệt (khóa tính KPI)',
     approverRole: 'DIRECTOR',
     icon: 'star',
-    isLockStep: false,
+    isLockStep: true,
     permissionCode: 'N58,N1',
   },
   {

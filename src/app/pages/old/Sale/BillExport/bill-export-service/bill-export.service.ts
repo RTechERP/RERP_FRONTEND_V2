@@ -388,14 +388,14 @@ export class BillExportService {
     }
 
     // Get Bill Import by Bill Export ID (for transfer reference links)
-  // getBillImportByBillExportID(billExportID: number, transferType: number): Observable<any> {
-  //   return this.http.get<any>(
-  //     environment.host + `api/billexport/by-billexport?billExportID=${billExportID}&transferType=${transferType}`
-  //   );
-  // }
-  getBillImportByBillExportID(billExportID: number, transferType: number): Observable<any> {
+    // getBillImportByBillExportID(billExportID: number, transferType: number): Observable<any> {
+    //   return this.http.get<any>(
+    //     environment.host + `api/billexport/by-billexport?billExportID=${billExportID}&transferType=${transferType}`
+    //   );
+    // }
+    getBillImportByBillExportID(billExportID: number, transferType: number): Observable<any> {
         return this.http.get<any>(
-      environment.host + `api/billexport/by-billexport?billExportID=${billExportID}`
+            environment.host + `api/billexport/by-billexport?billExportID=${billExportID}`
         );
     }
 
@@ -428,19 +428,82 @@ export class BillExportService {
             responseType: 'blob',
         });
     }
-        getViewDetail(billId: number): Observable<any> {
+    getViewDetail(billId: number): Observable<any> {
         return this.http.get(environment.host + `api/BillExport/get-view-export-detail/${billId}`);
     }
+    getSaleLogs(billId: number): Observable<any> {
+        return this.http.get(environment.host + `api/BillExport/get-sale-logs/${billId}`);
+    }
     confirmTem(lstBillexportdetailID: number[], status: boolean): Observable<any> {
-    return this.http.post<any>(
-      environment.host + `api/billexport/confirm-tem?status=${status}`,
-      lstBillexportdetailID
-    );
+        return this.http.post<any>(
+            environment.host + `api/billexport/confirm-tem?status=${status}`,
+            lstBillexportdetailID
+        );
     }
 
-    getSaleLogs(billExportId: number): Observable<any> {
-        return this.http.get<any>(
-            environment.host + `api/billexport/get-sale-logs/${billExportId}`
+    approvedIncurred(data: any): Observable<any> {
+        return this.http.post(
+            environment.host + `api/BillExport/approved-incurred`,
+            data
+        );
+    }
+
+    getDataPrint(billID: number): Observable<any> {
+        return this.http.get(
+            environment.host + `api/BillExport/data-print?id=${billID}`
+        );
+    }
+
+    getDataPrintDetail(billID: number): Observable<any> {
+        return this.http.get(
+            environment.host + `api/BillExport/data-print-detail?id=${billID}`
+        );
+    }
+
+    getImageSignature(billID: number): Observable<any> {
+        return this.http.get(
+            environment.host + `api/BillExport/image-signature?id=${billID}`
+        );
+    }
+
+    getFiles(billExportDetailId: number): Observable<any> {
+        return this.http.get(
+            environment.host + `api/BillExport/files?billExportDetailId=${billExportDetailId}`
+        );
+    }
+
+    uploadFiles(files: File[], subPath?: string): Observable<any> {
+        const formData = new FormData();
+        files.forEach((file) => {
+            formData.append('files', file);
+        });
+        formData.append('key', 'BillExport');
+        if (subPath && subPath.trim()) {
+            formData.append('subPath', subPath.trim());
+        }
+        return this.http.post<any>(environment.host + 'api/BillExport/upload-files', formData);
+    }
+
+    downloadFile(filePath: string): Observable<Blob> {
+        const params = new HttpParams().set('path', filePath);
+        return this.http.get(environment.host + 'api/home/download', {
+            params,
+            responseType: 'blob',
+        });
+    }
+
+    updateStatusPreparing(data: any): Observable<any> {
+        return this.http.post(
+            environment.host + `api/BillExport/status-preparing`,
+            data
+        );
+    }
+
+    updateStatusReceive(data: any): Observable<any> {
+        return this.http.post(
+            environment.host + `api/BillExport/status-receive`,
+            data
         );
     }
 }
+

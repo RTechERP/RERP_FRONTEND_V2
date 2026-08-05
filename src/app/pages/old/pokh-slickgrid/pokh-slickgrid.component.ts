@@ -1585,23 +1585,96 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
             );
             return;
         }
-        const modalRef = this.modalService.open(PoRequestBuySlickgridComponent, {
-            centered: true,
-            backdrop: 'static',
-            windowClass: 'full-screen-modal',
-        });
-        modalRef.componentInstance.pokhId = this.selectedId;
-        modalRef.componentInstance.pokhIds = effectivePokhIds;
 
-        modalRef.result.then(
-            (result) => {
-                if (result) {
+        this.isLoadingPOKHProduct = true;
+        const checks = effectivePokhIds.map(id => this.POKHService.getPOKHProduct(id, 0));
+
+        forkJoin(checks).subscribe({
+            next: (responses: any[]) => {
+                this.isLoadingPOKHProduct = false;
+                const invalidPokhs: string[] = [];
+                const unapprovedProducts: string[] = [];
+
+                const unapprovedProductIds: number[] = [];
+                const unapprovedProductObjects: any[] = [];
+                responses.forEach((res, index) => {
+                    const id = effectivePokhIds[index];
+                    const products = res?.data || [];
+                    const poRow = this.selectedPOKHRows.find(r => r.ID === id) || (this.selectedId === id ? this.selectedRow : null);
+                    const poCode = poRow ? poRow.POCode : `ID ${id}`;
+                    const hasApproved = products.some((p: any) => p.IsApproved === true);
+                    if (!hasApproved) {
+                        invalidPokhs.push(poCode);
+                    }
+
+                    products.forEach((p: any) => {
+                        if (p.IsApproved !== true && p.ProductCode) {
+                            unapprovedProducts.push(p.ProductCode);
+                            const prodId = p.ProductID || p.ID || p.ProductSaleID;
+                            if (prodId) {
+                                unapprovedProductIds.push(prodId);
+                            }
+                            unapprovedProductObjects.push({
+                                ...p,
+                                POCode: poCode
+                            });
+                        }
+                    });
+                });
+
+                // Lọc trùng ID sản phẩm chưa duyệt từ nhiều POKH trước khi gửi mail
+                const uniqueUnapprovedProductIds = Array.from(new Set(unapprovedProductIds));
+                if (uniqueUnapprovedProductIds.length > 0) {
+                    this.sendMailApprovedWithAntiSpam(uniqueUnapprovedProductIds, effectivePokhIds);
                 }
+
+                if (unapprovedProductObjects.length > 0) {
+                    this.exportUnapprovedProductsToExcel(unapprovedProductObjects, 'Yêu cầu mua hàng');
+                }
+
+                if (invalidPokhs.length > 0) {
+                    this.notification.warning(
+                        NOTIFICATION_TITLE.warning,
+                        `Các POKH sau không có sản phẩm nào được duyệt: ${invalidPokhs.join(', ')}`
+                    );
+                    return;
+                }
+
+                if (unapprovedProducts.length > 0) {
+                    this.notification.warning(
+                        NOTIFICATION_TITLE.warning,
+                        `Sản phẩm chưa được duyệt: ${unapprovedProducts.join(', ')}`
+                    );
+                }
+
+                const modalRef = this.modalService.open(PoRequestBuySlickgridComponent, {
+                    centered: true,
+                    backdrop: 'static',
+                    windowClass: 'full-screen-modal',
+                });
+                modalRef.componentInstance.pokhId = effectivePokhIds[0] || this.selectedId;
+                modalRef.componentInstance.pokhIds = effectivePokhIds;
+
+                modalRef.result.then(
+                    (result) => {
+                        if (result) {
+                        }
+                    },
+                    (reason) => {
+                        console.log('Modal dismissed');
+                    }
+                );
             },
-            (reason) => {
-                console.log('Modal dismissed');
+            error: (err: any) => {
+                this.isLoadingPOKHProduct = false;
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
             }
-        );
+        });
     }
 
     formatFileSize(bytes: number): string {
@@ -1685,32 +1758,201 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
         });
     }
 
+    sendMailApprovedWithAntiSpam(productIds: number[], pokhIds: number[]) {
+        const SPAM_INTERVAL = 5 * 60 * 1000; // Chặn gửi trùng lặp trong 5 phút
+        const now = Date.now();
+        let sentMailCache: { [key: number]: number } = {};
+
+        try {
+            const cacheStr = localStorage.getItem('sent_approved_mail_products');
+            if (cacheStr) {
+                sentMailCache = JSON.parse(cacheStr);
+            }
+        } catch (e) {
+            console.error('Error parsing mail cache:', e);
+        }
+
+        // Lọc các ID chưa gửi mail hoặc gửi cách đây đã lâu
+        const idsToSend = productIds.filter(id => {
+            const lastSent = sentMailCache[id];
+            return !lastSent || (now - lastSent > SPAM_INTERVAL);
+        });
+
+        if (idsToSend.length === 0) {
+            console.log('Tất cả sản phẩm chưa duyệt đã được gửi email phê duyệt gần đây. Chặn gửi spam.');
+            return;
+        }
+
+        var data = {
+            productSaleIDs: idsToSend,
+            pokhIds: pokhIds
+        }
+
+        this.POKHService.sendMailApproved(data).subscribe({
+            next: (mailRes) => {
+                console.log('Send mail approved success:', mailRes);
+                // Lưu lại mốc thời gian gửi thành công
+                idsToSend.forEach(id => {
+                    sentMailCache[id] = now;
+                });
+                localStorage.setItem('sent_approved_mail_products', JSON.stringify(sentMailCache));
+            },
+            error: (err) => {
+                console.error('Send mail approved error:', err);
+            }
+        });
+    }
+
+    async exportUnapprovedProductsToExcel(products: any[], requestType: string) {
+        if (!products || products.length === 0) return;
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('SP Chưa Duyệt');
+
+        worksheet.views = [{ showGridLines: true }];
+
+        const headers = ['STT', 'Mã POKH', 'Mã sản phẩm', 'Tên sản phẩm', 'Hãng sản xuất', 'Đơn vị tính', 'Số lượng', 'Ghi chú'];
+
+        const borderStyle: Partial<ExcelJS.Borders> = {
+            top: { style: 'thin', color: { argb: 'D9D9D9' } },
+            left: { style: 'thin', color: { argb: 'D9D9D9' } },
+            bottom: { style: 'thin', color: { argb: 'D9D9D9' } },
+            right: { style: 'thin', color: { argb: 'D9D9D9' } }
+        };
+
+        const headerRow = worksheet.addRow(headers);
+        headerRow.height = 26;
+        headerRow.eachCell((cell) => {
+            cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFF' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0050B3' } };
+            cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+            cell.border = {
+                top: { style: 'medium', color: { argb: '002766' } },
+                left: { style: 'thin', color: { argb: '40A9FF' } },
+                bottom: { style: 'medium', color: { argb: '002766' } },
+                right: { style: 'thin', color: { argb: '40A9FF' } }
+            };
+        });
+
+        const colWidths = headers.map(h => String(h || '').length);
+
+        products.forEach((p: any, index: number) => {
+            const qty = p.Quantity ?? p.ProductQuantity ?? p.Qty ?? 0;
+            const rowValues = [
+                index + 1,
+                p.POCode || '',
+                p.ProductCode || '',
+                p.ProductName || p.ProductCodeRTC || p.ProductNameRTC || '',
+                p.Maker || p.Manufacturer || '',
+                p.Unit || '',
+                typeof qty === 'number' ? qty : Number(qty) || 0,
+                p.Note || p.Description || ''
+            ];
+            const addedRow = worksheet.addRow(rowValues);
+            addedRow.height = 22;
+
+            rowValues.forEach((val, colIdx) => {
+                const strVal = String(val ?? '');
+                if (strVal.length > colWidths[colIdx]) {
+                    colWidths[colIdx] = strVal.length;
+                }
+            });
+
+            addedRow.eachCell((cell, colNumber) => {
+                cell.font = { name: 'Segoe UI', size: 10 };
+                cell.border = borderStyle;
+                cell.alignment = { vertical: 'middle' };
+
+                if (colNumber === 1 || colNumber === 2 || colNumber === 3 || colNumber === 6) {
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                } else if (colNumber === 7) {
+                    cell.numFmt = '#,##0.00';
+                    cell.alignment = { vertical: 'middle', horizontal: 'right' };
+                }
+            });
+        });
+
+        worksheet.columns.forEach((column, index) => {
+            const calculatedWidth = (colWidths[index] || 10) + 5;
+            column.width = Math.min(Math.max(calculatedWidth, 12), 50);
+        });
+
+        const dateStr = DateTime.local().toFormat('yyyyMMdd_HHmmss');
+        const fileName = `Danh_sach_SP_Chua_Duyet_${requestType === 'Yêu cầu báo giá' ? 'YCBG' : 'YCMH'}_${dateStr}.xlsx`;
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        link.click();
+        window.URL.revokeObjectURL(url);
+    }
+
     openPORequestPriceRTC() {
         if (!this.selectedId) {
             this.notification.warning('Thông báo', 'Vui lòng chọn POKH trước!');
             return;
         }
-        this.isModalOpen = true;
-        this.modalRef = this.modalService.open(PoRequestPriceRtcComponent, {
-            backdrop: 'static',
-            keyboard: false,
-            centered: true,
-            size: 'xl',
-        });
 
-        // Truyền dữ liệu sang modal con
-        this.modalRef.componentInstance.id = this.selectedId;
-
-        this.modalRef.result.then(
-            (result: any) => {
-                console.log('result: ', result);
-                if (result.success) {
+        this.POKHService.getPOKHProduct(this.selectedId, 0).subscribe({
+            next: (res: any) => {
+                const products = res?.data || [];
+                if (products.length === 0) {
+                    this.notification.warning('Thông báo', 'POKH này chưa có sản phẩm nào!');
+                    return;
                 }
+
+                const poCode = this.selectedRow ? this.selectedRow.POCode : `ID ${this.selectedId}`;
+                // Tìm các sản phẩm chưa được duyệt
+                const unapprovedProducts = products.filter((p: any) => p.IsApproved !== true && p.ProductCode);
+                const unapprovedProductIds = unapprovedProducts.map((p: any) => p.ProductID).filter(Boolean);
+                if (unapprovedProductIds.length > 0) {
+                    this.sendMailApprovedWithAntiSpam(unapprovedProductIds, [this.selectedId]);
+                    const unapprovedObjects = unapprovedProducts.map((p: any) => ({ ...p, POCode: poCode }));
+                    this.exportUnapprovedProductsToExcel(unapprovedObjects, 'Yêu cầu báo giá');
+                }
+
+                // Chỉ chặn nếu không có bất kỳ sản phẩm thực tế nào được duyệt
+                const hasApproved = products.some((p: any) => p.IsApproved === true && p.ProductCode);
+                if (!hasApproved) {
+                    this.modal.warning({
+                        nzTitle: 'Không thể yêu cầu báo giá',
+                        nzContent: `Không có sản phẩm nào được duyệt trong PO này.<br/><br/>Bạn có thể kiểm tra trạng thái duyệt ngay tại bảng <b>Chi tiết sản phẩm</b> phía dưới.`,
+                        nzOkText: 'Đồng ý'
+                    });
+                    return;
+                }
+
+                // Tiến hành mở form bình thường
+                this.isModalOpen = true;
+                this.modalRef = this.modalService.open(PoRequestPriceRtcComponent, {
+                    backdrop: 'static',
+                    keyboard: false,
+                    centered: true,
+                    size: 'xl',
+                });
+
+                // Truyền dữ liệu sang modal con
+                this.modalRef.componentInstance.id = this.selectedId;
+
+                this.modalRef.result.then(
+                    (result: any) => {
+                        console.log('result: ', result);
+                        if (result.success) {
+                        }
+                    },
+                    (reason: any) => {
+                        console.log('Modal dismissed:', reason);
+                    }
+                );
             },
-            (reason: any) => {
-                console.log('Modal dismissed:', reason);
+            error: (err: any) => {
+                this.notification.error('Thông báo', 'Lỗi khi kiểm tra thông tin sản phẩm POKH!');
+                console.error(err);
             }
-        );
+        });
     }
 
     openFollowProductReturnModal() {
@@ -2196,6 +2438,35 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     initGridPOKHProduct(): void {
         this.columnDefinitionsPOKHProduct = [
             { id: 'STT', name: 'STT', field: 'STT', width: 70, minWidth: 70, sortable: true, filterable: true, formatter: Formatters.tree, filter: { model: Filters['compoundInputNumber'] } },
+            {
+                id: 'IsApproved',
+                name: 'TBP duyệt',
+                field: 'IsApproved',
+                width: 100,
+                minWidth: 90,
+                sortable: true,
+                filterable: true,
+                cssClass: 'text-center',
+                formatter: (_row, _cell, value) => {
+                    if (value === true || value === 1 || String(value).toLowerCase() === 'true') {
+                        return `<div style="text-align: center; color: #52c41a; font-weight: bold;"><i class="fa fa-check"></i></div>`;
+                    }
+                    return '';
+                },
+                filter: {
+                    model: Filters['singleSelect'],
+                    collection: [
+                        { value: true, label: 'Có' },
+                        { value: false, label: 'Không' }
+                    ],
+                    collectionOptions: {
+                        addBlankEntry: true
+                    },
+                    filterOptions: {
+                        autoAdjustDropHeight: true
+                    } as any
+                }
+            },
             { id: 'ProductNewCode', name: 'Mã Nội Bộ', field: 'ProductNewCode', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'ProductCode', name: 'Mã Sản Phẩm (Cũ)', field: 'ProductCode', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'ProductName', name: 'Tên sản phẩm', field: 'ProductName', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
@@ -2205,14 +2476,15 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
             { id: 'QuantityReturn', name: 'SL đã về', field: 'QuantityReturn', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'QuantityExport', name: 'SL đã xuất', field: 'QuantityExport', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'QuantityRemain', name: 'SL còn lại', field: 'QuantityRemain', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+            { id: 'QuantityRequest', name: 'SL đã yêu cầu mua', field: 'QuantityRequest', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'FilmSize', name: 'Kích thước phim cắt/Model', field: 'FilmSize', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
             { id: 'Unit', name: 'ĐVT', field: 'Unit', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
-            { id: 'UnitPrice', name: 'Đơn giá trước VAT', field: 'UnitPrice', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+            { id: 'UnitPrice', name: 'Đơn giá trước VAT', field: 'UnitPrice', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+            { id: 'IntoMoney', name: 'Tổng tiền trước VAT', field: 'IntoMoney', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'DiscountAmount', name: 'Tiền chiết khấu', field: 'DiscountAmount', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
-            { id: 'IntoMoneyAfterDiscount', name: 'Tiền sau chiết khấu', field: 'IntoMoneyAfterDiscount', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
-            { id: 'IntoMoney', name: 'Tổng tiền trước VAT', field: 'IntoMoney', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
-            { id: 'VAT', name: 'VAT (%)', field: 'VAT', width: 150, minWidth: 150, sortable: true, filterable: true, cssClass: 'text-end' },
-            { id: 'TotalPriceIncludeVAT', name: 'Tổng tiền sau VAT', field: 'TotalPriceIncludeVAT', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+            { id: 'IntoMoneyAfterDiscount', name: 'Tiền sau chiết khấu (chưa VAT)', field: 'IntoMoneyAfterDiscount', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+            { id: 'VAT', name: 'VAT (%)', field: 'VAT', width: 100, minWidth: 100, sortable: true, filterable: true, cssClass: 'text-end' },
+            { id: 'TotalPriceIncludeVAT', name: 'Tổng tiền sau VAT', field: 'TotalPriceIncludeVAT', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'UserReceiver', name: 'Người nhận', field: 'UserReceiver', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
             { id: 'DeliveryRequestedDate', name: 'Ngày yêu cầu giao hàng', field: 'DeliveryRequestedDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
             { id: 'EstimatedPay', name: 'Thanh toán dự kiến', field: 'EstimatedPay', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },

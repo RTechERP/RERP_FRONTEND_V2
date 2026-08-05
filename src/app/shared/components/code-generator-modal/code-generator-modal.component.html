@@ -1,0 +1,67 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+  <h6 class="modal-title text-white">{{ title }}</h6>
+  <button
+    type="button"
+    class="btn-close"
+    (click)="closeModal()"
+    aria-label="Close"
+  ></button>
+</div>
+
+<div class="modal-body p-3">
+  <div class="d-flex justify-content-center mb-3">
+    <div class="btn-group" role="group">
+      <button
+        type="button"
+        class="btn btn-sm"
+        [ngClass]="mode === 'qr' ? 'btn-primary' : 'btn-outline-primary'"
+        (click)="switchMode('qr')"
+      >
+        <i class="fa-solid fa-qrcode me-1"></i> Mã QR
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm"
+        [ngClass]="mode === 'barcode' ? 'btn-primary' : 'btn-outline-primary'"
+        (click)="switchMode('barcode')"
+      >
+        <i class="fa-solid fa-barcode me-1"></i> Mã vạch
+      </button>
+    </div>
+  </div>
+
+  <div class="text-center">
+    <div class="mb-2 fw-bold">{{ codeLabel }}: {{ code }}</div>
+
+    <nz-spin [nzSpinning]="isLoading">
+      <div
+        class="d-flex justify-content-center align-items-center"
+        style="min-height: 220px;"
+      >
+        <img
+          *ngIf="imageUrl && !isLoading"
+          [src]="imageUrl"
+          [alt]="mode"
+          style="max-width: 100%;"
+        />
+        <div *ngIf="!imageUrl && !isLoading" class="text-muted">
+          Không thể tạo ảnh
+        </div>
+      </div>
+    </nz-spin>
+  </div>
+</div>
+
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="closeModal()">
+    Đóng
+  </button>
+  <button
+    type="button"
+    class="btn btn-primary"
+    [disabled]="!imageUrl || isLoading"
+    (click)="downloadImage()"
+  >
+    <i class="fa-solid fa-download me-1"></i> Tải ảnh
+  </button>
+</div>

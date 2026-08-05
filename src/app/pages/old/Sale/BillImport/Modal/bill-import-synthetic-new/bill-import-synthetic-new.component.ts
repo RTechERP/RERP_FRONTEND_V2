@@ -830,48 +830,55 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
     // Listen to cell change event for updating DueDate and propagate to selected rows
     this.angularGrid.slickGrid.onCellChange.subscribe(
       (_e: any, args: any) => {
-        const columnDef = this.angularGrid.slickGrid.getColumns()[args.cell];
+        const columnDef = args.column || this.angularGrid.slickGrid.getColumns()[args.cell];
         const columnId = columnDef?.id;
         const field = columnDef?.field;
 
+        if (!field) return;
+
         // Get the edited item and its new value
-        const editedItem = this.angularGrid.dataView.getItem(args.row);
+        const editedItem = args.item || this.angularGrid.slickGrid.getDataItem(args.row);
+        if (!editedItem) return;
+
         const newValue = editedItem[field];
         this.dirtyItems.add(editedItem);
 
-        // Get all selected row indexes
+        // Get all selected row indexes from slickGrid view
         const selectedRowIndexes = this.angularGrid.slickGrid.getSelectedRows() || [];
-
-        // Check if the edited row is in the selected rows
         const editedRowIndex = args.row;
         const isEditedRowSelected = selectedRowIndexes.includes(editedRowIndex);
 
-        // If edited row is selected and there are multiple selected rows, propagate the change
-        if (isEditedRowSelected && selectedRowIndexes.length > 1) {
-          // Editable fields that can be propagated
-          const editableFields = ['SomeBill', 'DateSomeBill', 'DPO', 'TaxReduction', 'COFormE'];
+        // Editable fields that can be propagated
+        const editableFields = ['SomeBill', 'DateSomeBill', 'DPO', 'TaxReduction', 'COFormE'];
 
-          if (editableFields.includes(field)) {
-            selectedRowIndexes.forEach((rowIndex: number) => {
-              if (rowIndex !== editedRowIndex) {
-                const item = this.angularGrid.dataView.getItem(rowIndex);
-                if (item) {
-                  // Update the same field with the new value
-                  item[field] = newValue;
-                  this.dirtyItems.add(item);
+        if (editableFields.includes(field)) {
+          // If edited row is among selection or multiple rows are selected, update all selected rows
+          const rowsToUpdate = isEditedRowSelected || selectedRowIndexes.length > 0
+            ? selectedRowIndexes
+            : [];
 
-                  // If DateSomeBill or DPO changed, recalculate DueDate
-                  if (field === 'DateSomeBill' || field === 'DPO') {
-                    if (item.DateSomeBill && item.DPO) {
-                      const dateSomeBill = DateTime.fromISO(item.DateSomeBill);
-                      if (dateSomeBill.isValid) {
-                        item.DueDate = dateSomeBill.plus({ days: item.DPO || 0 }).toISO();
-                      }
+          if (rowsToUpdate.length > 0) {
+            rowsToUpdate.forEach((rowIndex: number) => {
+              const item = this.angularGrid.slickGrid.getDataItem(rowIndex);
+              if (item) {
+                // Update the same field with the new value
+                item[field] = newValue;
+                this.dirtyItems.add(item);
+
+                // If DateSomeBill or DPO changed, recalculate DueDate
+                if (field === 'DateSomeBill' || field === 'DPO') {
+                  if (item.DateSomeBill && item.DPO) {
+                    const dateSomeBill = DateTime.fromISO(item.DateSomeBill);
+                    if (dateSomeBill.isValid) {
+                      item.DueDate = dateSomeBill.plus({ days: item.DPO || 0 }).toISO();
                     }
                   }
+                }
 
-                  // Update the item in dataView
-                  this.angularGrid.dataView.updateItem(item.id, item);
+                // Update the item in dataView
+                const itemId = item.id !== undefined ? item.id : item.IDDetail;
+                if (itemId !== undefined) {
+                  this.angularGrid.dataView.updateItem(itemId, item);
                 }
               }
             });
@@ -902,12 +909,15 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
   }
 
   updateDueDate(rowIndex: number) {
-    const item = this.angularGrid.dataView.getItem(rowIndex);
-    if (item.DateSomeBill && item.DPO) {
+    const item = this.angularGrid.slickGrid.getDataItem(rowIndex);
+    if (item && item.DateSomeBill && item.DPO) {
       const dateSomeBill = DateTime.fromISO(item.DateSomeBill);
       if (dateSomeBill.isValid) {
         item.DueDate = dateSomeBill.plus({ days: item.DPO || 0 }).toISO();
-        this.angularGrid.dataView.updateItem(item.id, item);
+        const itemId = item.id !== undefined ? item.id : item.IDDetail;
+        if (itemId !== undefined) {
+          this.angularGrid.dataView.updateItem(itemId, item);
+        }
         this.angularGrid.slickGrid.invalidate();
       }
     }

@@ -26,6 +26,7 @@ import { KpiErrorDetailComponent } from './kpi-error-detail/kpi-error-detail.com
 import { KpiErrorFineAmountComponent } from './kpi-error-fine-amount/kpi-error-fine-amount.component';
 import { KpiErrorTypeComponent } from './kpi-error-type/kpi-error-type.component';
 import { PermissionService } from '../../../../services/permission.service';
+import { AppUserService } from '../../../../services/app-user.service';
 
 type KpiColumnType = 'text' | 'number' | 'money';
 
@@ -67,10 +68,11 @@ export class KpiErrorComponent implements OnInit {
     columnDefinitions: PrimeColumn[] = [];
     dataset: any[] = [];
     menuBars: any[] = [];
-    private readonly actionPermissionCodes = 'N26,N38,N1';
+    private readonly actionPermissionCodes = 'N26,N38,N1,N107';
 
     keyword: string = '';
     departmentId: number = 0;
+    userLoginDepartmentId: number = 0;
     departments: any[] = [];
 
     selectedId: number = 0;
@@ -84,6 +86,7 @@ export class KpiErrorComponent implements OnInit {
         private notification: NzNotificationService,
         private route: ActivatedRoute,
         private permissionService: PermissionService,
+        private appUserService: AppUserService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
@@ -91,6 +94,7 @@ export class KpiErrorComponent implements OnInit {
         this.route.queryParams.subscribe(params => {
             this.departmentId = params['departmentId'] ?? this.tabData?.departmentId ?? 0;
         });
+        this.userLoginDepartmentId = this.appUserService.departmentID || 0;
 
         this.initMenuBar();
         this.initGrid();
@@ -147,7 +151,7 @@ export class KpiErrorComponent implements OnInit {
 
     loadKPIError(): void {
         this.isLoading = true;
-        this.kpiErrorService.getKPIError(this.departmentId, this.keyword)
+        this.kpiErrorService.getKPIError(this.departmentId, this.keyword, this.userLoginDepartmentId)
             .pipe(finalize(() => this.isLoading = false))
             .subscribe({
                 next: (response: any) => {

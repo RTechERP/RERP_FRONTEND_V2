@@ -1,0 +1,7 @@
+::ng-deep .tabulator .row-error {
+  background-color: #ffe0e0 !important;
+}
+
+::ng-deep .tabulator .row-error:hover {
+  background-color: #ffc8c8 !important;
+}

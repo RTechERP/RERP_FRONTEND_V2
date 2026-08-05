@@ -1,0 +1,329 @@
+<div class="product-sale-import-export-container" [formGroup]="mainForm">
+
+  <!-- Saving Overlay to block user interactions during save -->
+  <div class="saving-overlay" *ngIf="isSaving">
+    <div class="loading-spinner">
+      <i class="pi pi-spin pi-spinner" style="font-size: 3rem; color: #16a34a;"></i>
+      <span class="mt-2 text-success text-bold" style="font-size: 1rem;">Đang lưu phiếu chuẩn hóa... Vui lòng
+        đợi!</span>
+    </div>
+  </div>
+
+  <!-- Main Splitter layout -->
+  <p-splitter [style]="{ height: 'calc(100vh - 40px)' }" [panelSizes]="[25, 75]" layout="horizontal">
+
+    <!-- LEFT PANEL: Search and lists of items to standardise -->
+    <ng-template pTemplate>
+      <div class="left-panel-container" style="position: relative;">
+
+        <!-- WAREHOUSE & PRODUCT GROUP SELECTORS -->
+        <div class="warehouse-selector-box mb-2 p-fluid">
+          <div class="row g-2">
+            <!-- Warehouse -->
+            <div class="col-12 col-sm-6 field">
+              <label class="form-label-required">Kho hàng</label>
+              <p-select [options]="warehouses" formControlName="warehouseCode" optionLabel="warehouseName"
+                optionValue="warehouseCode" placeholder="--Chọn kho hàng--" [filter]="true"
+                (onChange)="onWarehouseChange($event)" size="small"></p-select>
+            </div>
+
+            <!-- Product Group -->
+            <div class="col-12 col-sm-6 field">
+              <label class="form-label-required">Loại kho</label>
+              <p-select [options]="productGroups" formControlName="productGroupId" optionLabel="name" optionValue="id"
+                placeholder="--Chọn loại kho--" [filter]="true" (onChange)="onProductGroupChange($event)"
+                size="small"></p-select>
+            </div>
+          </div>
+        </div>
+
+        <!-- EXPORT PRODUCT LIST -->
+        <div class="product-selection-box">
+          <div class="section-title text-export">
+            <i class="fas fa-sign-out-alt"></i> TỒN KHO XUẤT (Double click chọn)
+          </div>
+          <div class="search-bar-wrapper">
+            <span class="p-input-icon-left w-100">
+              <input type="text" pInputText placeholder="Tìm mã, tên sản phẩm..." [(ngModel)]="searchExportQuery"
+                [ngModelOptions]="{standalone: true}" (ngModelChange)="onExportSearch()" class="p-inputtext-sm w-100" />
+            </span>
+          </div>
+          <div class="product-list-scroll">
+            <p-table [value]="filteredExportProducts" styleClass="p-datatable-sm p-datatable-striped"
+              [scrollable]="true" scrollHeight="100%" [paginator]="true" [rows]="50" [(first)]="firstExport">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width: 20%">Mã nội bộ</th>
+                  <th style="width: 20%">Mã SP</th>
+                  <th style="width: 45%">Tên SP</th>
+                  <th style="width: 15%">Tồn</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-item>
+                <tr (dblclick)="onExportProductSelect(item)" class="product-row"
+                  [ngClass]="{'active-selection-row': isExportSelectedInActiveRow(item)}"
+                  title="Đúp click để gán vào dòng được chọn">
+                  <td>{{ item.productNewCode }}</td>
+                  <td>{{ item.productCode }}</td>
+                  <td>{{ item.productName }}</td>
+                  <td class="text-right text-bold text-success">{{ item.totalQuantityLast }}</td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="4" class="text-center p-3 text-muted">Không tìm thấy sản phẩm</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+
+        <!-- IMPORT PRODUCT LIST -->
+        <div class="product-selection-box mt-2 border-top">
+          <div class="section-title text-import">
+            <i class="fas fa-sign-in-alt"></i> SẢN PHẨM NHẬP (Double click chọn)
+          </div>
+          <div class="search-bar-wrapper">
+            <span class="p-input-icon-left w-100">
+              <input type="text" pInputText placeholder="Tìm mã, tên sản phẩm..." [(ngModel)]="searchImportQuery"
+                [ngModelOptions]="{standalone: true}" (ngModelChange)="onImportSearch()" class="p-inputtext-sm w-100" />
+            </span>
+          </div>
+          <div class="product-list-scroll">
+            <p-table [value]="filteredImportProducts" styleClass="p-datatable-sm p-datatable-striped"
+              [scrollable]="true" scrollHeight="100%" [paginator]="true" [rows]="50" [(first)]="firstImport">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width: 25%">Mã nội bộ</th>
+                  <th style="width: 25%">Mã SP</th>
+                  <th style="width: 50%">Tên SP</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-item>
+                <tr (dblclick)="onImportProductSelect(item)" class="product-row"
+                  [ngClass]="{'active-selection-row': isImportSelectedInActiveRow(item)}"
+                  title="Đúp click để gán vào dòng được chọn">
+                  <td>{{ item.productNewCode }}</td>
+                  <td>{{ item.productCode }}</td>
+                  <td>{{ item.productName }}</td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="3" class="text-center p-3 text-muted">Không tìm thấy sản phẩm</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" *ngIf="isLoadingInventory">
+          <div class="loading-spinner">
+            <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: #2563eb;"></i>
+            <span class="mt-2 text-primary text-bold" style="font-size: 0.75rem;">Đang tải tồn kho...</span>
+          </div>
+        </div>
+
+      </div>
+    </ng-template>
+
+    <!-- RIGHT PANEL: Main form & grid grid rows -->
+    <ng-template pTemplate>
+      <div class="right-panel-container">
+
+        <!-- Header Actions -->
+        <div class="action-header-bar">
+          <div class="d-flex align-items-center gap-2">
+            <button pButton pRipple type="button" label="Lưu phiếu" icon="pi pi-save"
+              class="p-button-success p-button-sm" (click)="saveForm()" [disabled]="isSaving"></button>
+            <button pButton pRipple type="button" label="Lịch sử thao tác" icon="pi pi-history"
+              class="p-button-info p-button-sm" (click)="historyImportExport()" [disabled]="isSaving"></button>
+            <button pButton pRipple type="button" label="Làm mới" icon="pi pi-refresh"
+              class="p-button-secondary p-button-sm" (click)="resetForm()" [disabled]="isSaving"></button>
+          </div>
+          <div class="status-indicator">
+            Trạng thái: <span class="badge"
+              [ngClass]="{'badge-ready': lblStatus === 'Sẵn sàng', 'badge-processing': lblStatus !== 'Sẵn sàng'}">{{
+              lblStatus }}</span>
+          </div>
+        </div>
+
+        <!-- SECTION 1: THÔNG TIN CHUNG -->
+        <p-fieldset legend="THÔNG TIN CHUNG" [toggleable]="false" styleClass="mb-2 custom-fieldset">
+          <div class="row g-2 p-fluid">
+
+            <!-- User (Admin) -->
+            <div class="col-12 col-md-2 field">
+              <label>Người thực hiện</label>
+              <input type="text" pInputText formControlName="user" size="small" />
+            </div>
+
+            <!-- Date -->
+            <div class="col-12 col-md-3 field">
+              <label class="form-label-required">Ngày lập</label>
+              <p-datepicker formControlName="date" dateFormat="dd/mm/yy" [showIcon]="true" size="small"></p-datepicker>
+            </div>
+
+            <!-- Request Date -->
+            <div class="col-12 col-md-3 field">
+              <label class="form-label-required">Ngày yêu cầu</label>
+              <p-datepicker formControlName="requestDate" dateFormat="dd/mm/yy" [showIcon]="true"
+                size="small"></p-datepicker>
+            </div>
+
+            <!-- RulePay -->
+            <div class="col-12 col-md-4 field">
+              <label>Điều khoản TT</label>
+              <p-select [options]="rulePays" formControlName="rulePayId" optionLabel="note" optionValue="id"
+                placeholder="--Chọn điều khoản thanh toán--" [filter]="true" [showClear]="true" size="small"></p-select>
+            </div>
+
+            <!-- Customer -->
+            <div class="col-12 col-md-6 field">
+              <label>Khách hàng</label>
+              <p-select [options]="customers" formControlName="customerId" optionLabel="customerName" optionValue="id"
+                placeholder="--Chọn khách hàng--" [filter]="true" [showClear]="true" size="small"></p-select>
+            </div>
+
+            <!-- Supplier -->
+            <div class="col-12 col-md-6 field">
+              <label>Nhà cung cấp</label>
+              <p-select [options]="suppliers" formControlName="supplierId" optionLabel="nameNcc" optionValue="id"
+                placeholder="--Chọn nhà cung cấp--" [filter]="true" [showClear]="true" size="small"></p-select>
+            </div>
+
+            <!-- Employees Export Grid: Sender & Reciever -->
+            <div class="col-12 col-md-3 field">
+              <label>Người giao xuất</label>
+              <p-select [options]="employees" formControlName="senderExportId" optionLabel="fullName"
+                optionValue="userId" placeholder="--Chọn người giao--" [filter]="true" [showClear]="true"
+                size="small"></p-select>
+            </div>
+
+            <div class="col-12 col-md-3 field">
+              <label>Người nhận xuất</label>
+              <p-select [options]="employees" formControlName="reciverExportId" optionLabel="fullName"
+                optionValue="userId" placeholder="--Chọn người nhận--" [filter]="true" [showClear]="true"
+                size="small"></p-select>
+            </div>
+
+            <!-- Employees Import Grid: Deliver & Reciever -->
+            <div class="col-12 col-md-3 field">
+              <label>Người giao nhập</label>
+              <p-select [options]="employees" formControlName="deliverImportId" optionLabel="fullName"
+                optionValue="userId" placeholder="--Chọn người giao--" [filter]="true" [showClear]="true"
+                size="small"></p-select>
+            </div>
+
+            <div class="col-12 col-md-3 field">
+              <label>Người nhận nhập</label>
+              <p-select [options]="employees" formControlName="reciverImportId" optionLabel="fullName"
+                optionValue="userId" placeholder="--Chọn người nhận--" [filter]="true" [showClear]="true"
+                size="small"></p-select>
+            </div>
+
+            <!-- Note -->
+            <div class="col-12 field">
+              <label>Diễn giải / Ghi chú</label>
+              <textarea pInputTextarea [rows]="2" formControlName="note" placeholder="Nhập diễn giải..." class="w-100"
+                size="small"></textarea>
+            </div>
+
+          </div>
+        </p-fieldset>
+
+        <!-- SECTION 2: GRID CHI TIẾT CHUYỂN ĐỔI CHUẨN HÓA -->
+        <div class="detail-grid-section">
+          <div class="grid-header-meta">
+            <span class="grid-title"><i class="fas fa-list"></i> CHI TIẾT CHUẨN HÓA SẢN PHẨM</span>
+            <span class="active-row-alert" *ngIf="selectedRowIndex !== null">
+              Đang chọn dòng số <strong>{{ selectedRowIndex + 1 }}</strong>. Chọn SP bên trái để điền thông tin.
+            </span>
+          </div>
+
+          <div class="table-scroll-container">
+            <p-table [value]="standardizationRows" styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
+              [scrollable]="true" scrollHeight="100%">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width: 3%; text-align: center;">
+                    <button pButton pRipple type="button" icon="pi pi-plus"
+                      class="p-button-info p-button-text p-button-sm" (click)="addNewRow()" title="Thêm dòng mới"
+                      style="width: 24px; height: 24px; min-width: auto; padding: 0;"></button>
+                  </th>
+                  <th style="width: 4%; text-align: center;">STT</th>
+                  <th style="width: 10%;">Mã nội bộ Xuất</th>
+                  <th style="width: 10%;">Mã SP Xuất</th>
+                  <th style="width: 14%;">Tên SP Xuất</th>
+                  <th style="width: 6%; text-align: right;">Tồn xuất</th>
+                  <th style="width: 3%; text-align: center;">→</th>
+                  <th style="width: 10%;">Mã nội bộ Nhập</th>
+                  <th style="width: 10%;">Mã SP Nhập</th>
+                  <th style="width: 14%;">Tên SP Nhập</th>
+                  <th style="width: 6%;">SL Chuyển</th>
+                  <th style="width: 10%;">Ghi chú hàng</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-row let-rowIndex="rowIndex">
+                <tr [ngClass]="{
+                      'active-grid-row': selectedRowIndex === rowIndex,
+                      'missing-product-row': isRowInvalid(row)
+                    }" (click)="selectGridRow(rowIndex)" class="grid-data-row">
+                  <!-- Delete button first -->
+                  <td style="text-align: center;">
+                    <button pButton pRipple type="button" icon="pi pi-trash"
+                      class="p-button-danger p-button-text p-button-sm"
+                      (click)="removeRow(rowIndex); $event.stopPropagation()"
+                      style="width: 24px; height: 24px; min-width: auto; padding: 0;"></button>
+                  </td>
+
+                  <td style="text-align: center; font-weight: bold;">{{ row.stt }}</td>
+
+                  <!-- Export Product -->
+                  <td>{{ row.exportProductNewCode }}</td>
+                  <td [ngClass]="{'empty-cell': !row.exportProductCode}">
+                    {{ row.exportProductCode || '(Đúp click tồn xuất)' }}
+                  </td>
+                  <td>{{ row.exportProductName }}</td>
+                  <td style="text-align: right;" class="text-bold text-success">{{ row.exportStockQty }}</td>
+
+                  <!-- Arrow symbol -->
+                  <td style="text-align: center; color: #1890ff;"><i class="fas fa-long-arrow-alt-right"></i></td>
+
+                  <!-- Import Product -->
+                  <td>{{ row.importProductNewCode }}</td>
+                  <td [ngClass]="{'empty-cell': !row.importProductCode}">
+                    {{ row.importProductCode || '(Đúp click SP nhập)' }}
+                  </td>
+                  <td>{{ row.importProductName }}</td>
+
+                  <!-- Quantity Transfer (Editable -> Disabled) -->
+                  <td>
+                    <p-inputNumber [(ngModel)]="row.quantity" [min]="0" [max]="row.exportStockQty || 999999"
+                      [ngModelOptions]="{standalone: true}" styleClass="w-100" class="w-100 p-inputnumber-sm"
+                      [disabled]="true"></p-inputNumber>
+                  </td>
+
+                  <!-- Row note (Editable) -->
+                  <td>
+                    <textarea [(ngModel)]="row.note" [ngModelOptions]="{standalone: true}"
+                      class="p-inputtext w-100 note-textarea" placeholder="Ghi chú dòng..." rows="1"></textarea>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="12" class="text-center p-4 text-muted">
+                    Chưa có dòng dữ liệu nào. Bấm nút <strong>"+"</strong> ở góc trái tiêu đề bảng để bắt đầu.
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+
+      </div>
+    </ng-template>
+  </p-splitter>
+</div>

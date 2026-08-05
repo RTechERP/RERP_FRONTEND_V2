@@ -853,6 +853,15 @@ export class HistoryProductRtcComponent
         setTimeout(() => {
             angularGrid.resizerService.resizeGrid();
         }, 100);
+
+        // Handle double click event on grid
+        this.angularGrid.slickGrid.onDblClick.subscribe((_e: any, args: any) => {
+            const row = args.row;
+            const item = this.angularGrid.dataView.getItem(row);
+            if (item && item.ID) {
+                this.productHistoryBorrowDetail(item.ID, item);
+            }
+        });
     }
 
     onRowSelectionChanged(eventData: any, args: OnSelectedRowsChangedEventArgs) {

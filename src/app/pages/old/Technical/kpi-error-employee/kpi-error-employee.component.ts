@@ -28,6 +28,7 @@ import { KpiErrorEmployeeService } from './kpi-error-employee-service/kpi-error-
 import { KpiErrorEmployeeDetailComponent } from './kpi-error-employee-detail/kpi-error-employee-detail.component';
 import { ImportExcelKpiErrorEmployeeComponent } from './import-excel/import-excel.component';
 import { PermissionService } from '../../../../services/permission.service';
+import { AppUserService } from '../../../../services/app-user.service';
 
 type KpiColumnType = 'text' | 'number' | 'date' | 'action';
 
@@ -77,7 +78,8 @@ export class KpiErrorEmployeeComponent implements OnInit {
     selectedFileRow: any = null;
 
     menuBars: any[] = [];
-    private readonly actionPermissionCodes = 'N26,N38,N1,N79';
+    private readonly actionPermissionCodes = 'N26,N38,N1,N79,N107';
+    private readonly autoAddPermissionCodes = 'N26,N38,N1,N79';
 
     keyword: string = '';
     startDate: string | null = null;
@@ -87,6 +89,7 @@ export class KpiErrorEmployeeComponent implements OnInit {
     employeeId: number = 0;
     departmentId: number = 0;
     departmentIds: number[] = [];
+    userLoginDepartmentId: number = 0;
 
     kpiErrorTypes: any[] = [];
     kpiErrors: any[] = [];
@@ -110,6 +113,7 @@ export class KpiErrorEmployeeComponent implements OnInit {
         private message: NzMessageService,
         private route: ActivatedRoute,
         private permissionService: PermissionService,
+        private appUserService: AppUserService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
@@ -132,6 +136,9 @@ export class KpiErrorEmployeeComponent implements OnInit {
                 this.search();
             }
         });
+
+        // NTA B update 13072026: Get user login department ID
+        this.userLoginDepartmentId = this.appUserService.departmentID || 0;
 
         this.initMenuBar();
         this.initGrid();
@@ -231,7 +238,8 @@ export class KpiErrorEmployeeComponent implements OnInit {
             this.employeeId,
             this.kpiErrorTypeId,
             this.departmentIds,
-            this.keyword
+            this.keyword,
+            this.userLoginDepartmentId
         ).pipe(finalize(() => this.isLoading = false)).subscribe({
             next: (response: any) => {
                 if (response.status === 1) {
@@ -293,7 +301,7 @@ export class KpiErrorEmployeeComponent implements OnInit {
             {
                 label: 'Tự động thêm lỗi BCCV',
                 icon: 'fa-solid fa-wand-magic-sparkles fa-lg text-warning',
-                visible: this.canManageActions(),
+                visible: this.canAutoAddError(),
                 command: () => this.autoAddError(),
             },
         ];
@@ -405,7 +413,7 @@ export class KpiErrorEmployeeComponent implements OnInit {
     }
 
     autoAddError(): void {
-        if (!this.canManageActions()) return;
+        if (!this.canAutoAddError()) return;
         if (this.isAutoAdding) {
             this.notification.info('Thông báo', 'Đang tự động thêm lỗi BCCV, vui lòng chờ');
             return;
@@ -623,6 +631,10 @@ export class KpiErrorEmployeeComponent implements OnInit {
 
     private canManageActions(): boolean {
         return this.permissionService.hasPermission(this.actionPermissionCodes);
+    }
+
+    private canAutoAddError(): boolean {
+        return this.permissionService.hasPermission(this.autoAddPermissionCodes);
     }
 
     private formatDateForInput(date: Date): string {

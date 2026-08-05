@@ -6,6 +6,7 @@ import { AppUserDropdownComponent } from "../../../pages/systems/app-user/app-us
 import { NzBadgeComponent } from "ng-zorro-antd/badge";
 import { NzDropDownModule } from "ng-zorro-antd/dropdown";
 import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 
 import { CommonModule, NgSwitchCase } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -32,6 +33,7 @@ import { ApproveTpService } from '../../../pages/person/approve-tp/approve-tp-se
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { HostListener } from '@angular/core';
+import { TravelRegistrationConfirmModalComponent } from '../../../pages/hrm/travel-registration/travel-registration-confirm-modal/travel-registration-confirm-modal.component';
 import { UpdateVersionService } from '../../../pages/systems/update-version/update-version.service';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NotificationService } from '../../../services/notification.service';
@@ -53,6 +55,8 @@ import { HistoryBorrowSaleService } from '../../../pages/old/Sale/HistoryBorrowS
 import { ProjectTaskService } from '../../../pages/project_task/project-task/project-task.service';
 import { PollFormService } from '../../../pages/poll-form/poll-form.service';
 import { ConfigNotificationService } from '../../../pages/systems/app-user/config-notification-key/config-notification-service/config-notification.service';
+import { TravelRegistrationServiceService } from '../../../pages/hrm/travel-registration/travel-registration-service/travel-registration-service.service';
+
 @Component({
   selector: 'app-home-layout-new',
   imports: [
@@ -73,7 +77,8 @@ import { ConfigNotificationService } from '../../../pages/systems/app-user/confi
     HasPermissionDirective,
     NgbModalModule,
     NzModalModule,
-    NzButtonModule
+    NzButtonModule,
+    NzIconModule
   ],
   templateUrl: './home-layout-new.component.html',
   styleUrl: './home-layout-new.component.css'
@@ -85,6 +90,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
   lixis: LiXi[] = [];
   isNotifModalVisible: boolean = false;
   pendingPolls: any[] = [];
+  unconfirmedTravelRegistrations: any[] = [];
   showLixiRain: boolean = false;
   hasNewVersion: boolean = false;
   latestVersionDetails: any = null;
@@ -184,7 +190,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     private projectTaskService: ProjectTaskService,
     private projectTaskAttendanceService: ProjectTaskSumaryAttendanceService,
     private pollFormService: PollFormService,
-    private configNotificationService: ConfigNotificationService
+    private configNotificationService: ConfigNotificationService,
+    private travelRegistrationService: TravelRegistrationServiceService
   ) { }
 
   get notifItems(): NotifyItem[] { return this.notifService.items; }
@@ -228,6 +235,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
       this.getPendingContractReview(),
       this.getProjectTaskAttendance(),
       this.getPendingPollCount(),
+      this.getUnconfirmedTravelRegistrations(),
     ]).subscribe({
       next: () => {
         console.log('Tất cả API quan trọng đã load xong. Khởi tạo SSE và check version...');
@@ -625,6 +633,68 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         return of(null);
       }))
   };
+  allTravelRegistrations: any[] = [];
+
+  get isAllTravelConfirmed(): boolean {
+    const list = this.travelRegistrationsForModal;
+    return list.length > 0 && list.every((x: any) => x.ConfirmStatus === 1);
+  }
+
+  get travelRegistrationsForModal(): any[] {
+    return this.allTravelRegistrations.length > 0 ? this.allTravelRegistrations : this.unconfirmedTravelRegistrations;
+  }
+
+  getUnconfirmedTravelRegistrations() {
+    this.unconfirmedTravelRegistrations = [];
+    this.allTravelRegistrations = [];
+    return this.travelRegistrationService.getByEmployeeId().pipe(
+      tap((res: any) => {
+        if (res?.status === 1 && res.data) {
+          const publishedList = res.data || [];
+          this.allTravelRegistrations = publishedList;
+          this.unconfirmedTravelRegistrations = publishedList.filter((x: any) => x.ConfirmStatus != 1);
+          const countUnconfirmed = this.unconfirmedTravelRegistrations.length;
+
+          if (publishedList.length > 0) {
+            this.notifService.addItem({
+              id: 13,
+              time: new Date().toISOString(),
+              title: 'Đăng ký du lịch',
+              text: countUnconfirmed > 0
+                ? `Bạn có ${countUnconfirmed} đăng ký du lịch chưa xác nhận`
+                : `Vui lòng kiểm tra lại thông tin đăng ký du lịch. Nhấp để xem lại chi tiết.`,
+              group: 'today',
+              icon: 'plane',
+              route: '',
+              queryParams: {}
+            });
+          } else {
+            this.notifService.setItems(this.notifService.items.filter(x => x.id !== 13));
+          }
+        } else {
+          this.notifService.setItems(this.notifService.items.filter(x => x.id !== 13));
+        }
+      }),
+      catchError(() => {
+        this.allTravelRegistrations = [];
+        this.unconfirmedTravelRegistrations = [];
+        this.notifService.setItems(this.notifService.items.filter(x => x.id !== 13));
+        return of(null);
+      })
+    );
+  }
+
+  openTravelConfirmModal() {
+    this.isNotifModalVisible = false;
+    const modalRef = this.modalService.open(TravelRegistrationConfirmModalComponent, { size: 'xl', backdrop: 'static', centered: true });
+    modalRef.componentInstance.dataInput = this.travelRegistrationsForModal;
+    modalRef.result.then(() => {
+      this.getUnconfirmedTravelRegistrations().subscribe();
+    }, () => {
+      this.getUnconfirmedTravelRegistrations().subscribe();
+    });
+  }
+
   getPendingPollCount() {
     return this.pollFormService.getPendingCount().pipe(
       tap((res: any) => {
@@ -662,9 +732,10 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     const hasOverdueSale = this.quantityBorrowExpriedSale > 0;
     const hasSemiExpiredSale = this.quantityBorrowSale > 0;
     const hasPendingPolls = this.pendingPolls && this.pendingPolls.length > 0;
+    const hasUnconfirmedTravel = this.unconfirmedTravelRegistrations && this.unconfirmedTravelRegistrations.length > 0;
 
     if (hasOverdueDemo || hasSemiExpiredDemo || hasOverdueSale || hasSemiExpiredSale
-      || hasPendingPolls) {
+      || hasPendingPolls || hasUnconfirmedTravel) {
       this.isNotifModalVisible = true;
     }
   }
@@ -685,7 +756,9 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
   }
 
   onPick(n: NotifyItem) {
-    if (n.route) {
+    if (n.id === 13 || n.title === 'Đăng ký du lịch' || n.title?.includes('du lịch')) {
+      this.openTravelConfirmModal();
+    } else if (n.route) {
       this.newTab(n.route, n.title || 'Thông báo', n.queryParams);
     }
   }

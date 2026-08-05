@@ -1,7 +1,7 @@
 :host {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: calc(100vh - 65px);
     overflow: hidden;
     background: #fff;
 }
@@ -31,7 +31,13 @@
 }
 
 .fs-12 {
-    font-size: 11.5px;
+    font-size: 0.75rem !important;
+}
+
+.date-input-sm {
+    height: 24px;
+    font-size: 12px;
+    padding: 2px 6px;
 }
 
 .fw-500 {
@@ -40,7 +46,6 @@
 
 ::ng-deep .text-success {
     color: #28a745 !important;
-    font-weight: 500;
 }
 
 ::ng-deep .text-danger {
@@ -52,21 +57,54 @@
     font-style: italic;
 }
 
-.grid-wrapper {
+.table-area {
     flex: 1;
     min-height: 0;
     overflow: hidden;
-}
-
-angular-slickgrid,
-.angular-slickgrid-container {
-    height: 100% !important;
-    width: 100%;
     display: flex;
+    flex-direction: column;
+    border-top: 1px solid #ddd;
+    background: #fff;
 }
 
-:host ::ng-deep .slickgrid-container {
+/* Ép tất cả các container con giãn full chiều cao để đẩy thanh phân trang xuống cuối trang */
+:host ::ng-deep .table-area nz-spin,
+:host ::ng-deep .table-area .ant-spin-nested-loading,
+:host ::ng-deep .table-area .ant-spin-container {
     height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+}
+
+:host ::ng-deep .table-area app-custom-table {
+    flex: 1 !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+}
+
+:host ::ng-deep .p-datatable {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+}
+
+:host ::ng-deep .p-datatable-table-container {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow: auto !important;
+}
+
+:host ::ng-deep .p-paginator,
+:host ::ng-deep .p-paginator-bottom {
+    margin-top: auto !important;
+    flex-shrink: 0 !important;
+    border-top: 1px solid #e8e8e8 !important;
 }
 
 ::ng-deep .text-primary {

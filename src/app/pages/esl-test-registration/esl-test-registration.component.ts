@@ -132,37 +132,39 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
   }
 
   initMenu(): void {
-    const hasCrud = true; // Tạm thời hardcode true để test. Gốc: this.permissionService.hasPermission('ESL_Test_Registration_CRUD');
+    // N28 (Admin kho demo) = full quyền. Đăng ký mới/Sửa/Xóa/Gia hạn/Trả bàn ai cũng thấy được,
+    // việc chỉ được thao tác trên bản ghi của chính mình (hoặc N28 bypass) nằm ở updateMenuState().
+    const hasCrud = this.permissionService.hasPermission('N28');
     this.menuBars = [
       {
         label: 'Đăng ký mới', icon: 'fa-solid fa-circle-plus text-primary',
-        command: () => this.onAdd(), visible: hasCrud
+        command: () => this.onAdd(), visible: true
       },
       {
         label: 'Sửa', icon: 'fa-solid fa-file-pen text-warning',
-        command: () => this.onEdit(), disabled: true, visible: hasCrud
+        command: () => this.onEdit(), disabled: true, visible: true
       },
       {
         label: 'Xóa', icon: 'fa-solid fa-trash text-danger',
-        command: () => this.onDelete(), disabled: true, visible: hasCrud
+        command: () => this.onDelete(), disabled: true, visible: true
       },
       {
         label: 'Duyệt', icon: 'fa-solid fa-check text-success',
-        command: () => this.onApprove(), disabled: true, visible: this.permissionService.hasPermission('N1,N32'),
+        command: () => this.onApprove(), disabled: true, visible: this.permissionService.hasPermission('N1,N32,N85'),
       },
       {
         label: 'Gia hạn/Bàn giao', icon: 'fa-solid fa-clock-rotate-left text-info',
-        command: () => this.onExtend(), disabled: true, visible: hasCrud
+        command: () => this.onExtend(), disabled: true, visible: true
       },
       {
         label: 'Trả bàn', icon: 'fa-solid fa-rotate-left text-secondary',
-        command: () => this.onReturn(), disabled: true, visible: hasCrud
+        command: () => this.onReturn(), disabled: true, visible: true
       },
       { label: 'Tải lại', icon: 'fa-solid fa-arrows-rotate', command: () => this.loadData() },
       { label: 'Xuất Excel', icon: 'fa-solid fa-file-excel text-success', command: () => this.onExport() },
       {
         label: 'Binding lại', icon: 'fa-solid fa-link text-primary',
-        command: () => this.onBiding(), disabled: true, visible: hasCrud
+        command: () => this.onBiding(), visible: hasCrud
       }
     ];
   }
@@ -200,20 +202,30 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
     // Check if current user is in the get-all-user-approve list
     const isApproverInList = this.approvers.some(a => a.ID === currentUserId);
 
+    // N28 (Admin kho demo) = full quyền, bypass mọi ràng buộc sở hữu bên dưới
+    const hasN28 = this.permissionService.hasPermission('N28');
+
     const masterOwnerId = masterItem?.OwnerID;
     const itemOwnerId = item?.OwnerID;
     const itemApproverId = item?.ApproverID;
 
-    // Rule 1: Sửa, Xóa, Gia hạn, Trả bàn
-    const hasRule1Access = currentUserId && (
+    // Rule 1: Sửa (chủ sở hữu / người duyệt của chính bản ghi đó, hoặc N28 full quyền)
+    const hasRule1Access = hasN28 || (currentUserId && (
       currentUserId === masterOwnerId ||
       currentUserId === itemOwnerId ||
       currentUserId === itemApproverId ||
       isApproverInList
-    );
+    ));
 
-    // Rule 2: Duyệt (Chỉ người duyệt được chỉ định của yêu cầu đó mới được phép duyệt)
-    const hasApproveAccess = currentUserId && (currentUserId === itemApproverId);
+    // Rule Xóa: chỉ chủ sở hữu bản ghi (không tính approver/isApproverInList), hoặc N28 full quyền
+    const hasDeleteAccess = hasN28 || (currentUserId && (
+      currentUserId === masterOwnerId ||
+      currentUserId === itemOwnerId
+    ));
+
+    // Rule 2: Duyệt (Người duyệt được chỉ định, hoặc người có quyền N32/N85 đều được phép duyệt)
+    const hasApproveGroupAccess = this.permissionService.hasPermission('N32,N85');
+    const hasApproveAccess = currentUserId && (currentUserId === itemApproverId || hasApproveGroupAccess);
 
     // Logic for Extend / Handover / Return based on max No
     let latestDetailOwnerId = null;
@@ -235,15 +247,20 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
       }
     }
 
-    const canExtendOrReturn = currentUserId && 
-                              (currentUserId === latestDetailOwnerId || currentUserId === latestDetailApproverId || isApproverInList) && 
-                              isLatestDetailApproved && 
-                              !masterItem?.ActualReturnDate;
+    const ownsLatestDetail = currentUserId &&
+                              (currentUserId === latestDetailOwnerId || currentUserId === latestDetailApproverId || isApproverInList);
+
+    // N28 (Admin kho demo) = full quyền, bypass sở hữu cho Gia hạn/Bàn giao và Trả bàn
+    const canExtendOrReturn = (isLatestDetailApproved && !masterItem?.ActualReturnDate) && (ownsLatestDetail || hasN28);
 
     this.menuBars = this.menuBars.map(m => {
       if (m.label === 'Sửa') return { ...m, disabled: !isValidSelection || !canEdit || !hasRule1Access };
-      if (m.label === 'Xóa') return { ...m, disabled: !isValidSelection || item?.Status !== 0 || !hasRule1Access };
-      if (m.label === 'Duyệt') return { ...m, disabled: !isValidSelection || item?.Status !== 0 || !hasApproveAccess };
+      if (m.label === 'Xóa') return { ...m, disabled: !isValidSelection || item?.Status !== 0 || !hasDeleteAccess };
+      if (m.label === 'Duyệt') {
+        // N32/N85: nút Duyệt luôn enable, việc chưa chọn dòng / dòng đã duyệt sẽ báo lỗi khi bấm (xem onApprove)
+        if (hasApproveGroupAccess) return { ...m, disabled: false };
+        return { ...m, disabled: !isValidSelection || item?.Status !== 0 || !hasApproveAccess };
+      }
       if (m.label === 'Gia hạn/Bàn giao') return { ...m, disabled: lenMaster !== 1 || !canExtendOrReturn }; // limit to master for now
       if (m.label === 'Trả bàn') return { ...m, disabled: lenMaster !== 1 || !canExtendOrReturn }; // limit to master for now
       if (m.label === 'Binding lại') return { ...m, disabled: lenMaster !== 1 };
@@ -348,7 +365,7 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
         });
         
         const currentUserId = this.appUserService.currentUser?.EmployeeID;
-        const canViewAll = this.permissionService.hasPermission('ESL_Test_Registration_ViewAll');
+        const canViewAll = this.permissionService.hasPermission('N28');
 
         if (currentUserId && !canViewAll) {
           results = results.filter((item: any) => {
@@ -483,7 +500,10 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
     const lenChild = this.selectedChildItems.length;
     const totalLen = lenMaster + lenChild;
 
-    if (totalLen !== 1) return;
+    if (totalLen !== 1) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn 1 dòng cần duyệt');
+      return;
+    }
 
     let item: any = null;
     if (lenMaster === 1 && lenChild === 0) {
@@ -505,6 +525,11 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
     }
 
     if (!item) return;
+
+    if (item.Status !== 0) {
+      this.notification.warning('Cảnh báo', 'Chỉ có thể duyệt yêu cầu đang ở trạng thái Chờ duyệt');
+      return;
+    }
 
     const modalRef = this.ngbModal.open(EslTestRegistrationApproveComponent, {
       size: 'lg',
@@ -560,7 +585,71 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
 
 
   onExport(): void {
-    this.notification.info('Info', 'Chức năng xuất excel đang được phát triển');
+    if (!this.filteredDataset || this.filteredDataset.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel');
+      return;
+    }
+
+    const exportColumns = this.columns.filter(c => !c.hidden);
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Đăng ký test ESL');
+
+    worksheet.columns = exportColumns.map(col => ({ header: col.header, key: col.field, width: 18 }));
+
+    this.filteredDataset.forEach(item => {
+      const row: any = {};
+      exportColumns.forEach(col => {
+        switch (col.field) {
+          case 'Status':
+            row[col.field] = this.getStatusLabel(item.Status);
+            break;
+          case 'online':
+            row[col.field] = item.online ? 'Online' : 'Offline';
+            break;
+          case 'esl_battery':
+            row[col.field] = item.esl_battery ? `${item.esl_battery} mV` : '';
+            break;
+          default:
+            row[col.field] = col.type === 'date'
+              ? (item[col.field] ? this.datePipe.transform(item[col.field], 'dd/MM/yyyy') : '')
+              : (item[col.field] ?? '');
+        }
+      });
+      worksheet.addRow(row);
+    });
+
+    const headerRow = worksheet.getRow(1);
+    headerRow.height = 25;
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      cell.border = {
+        top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' }
+      };
+    });
+
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return;
+      row.eachCell((cell, colNumber) => {
+        const col = exportColumns[colNumber - 1];
+        cell.alignment = { vertical: 'middle', horizontal: col?.align === 'center' ? 'center' : 'left' };
+        cell.font = { size: 10 };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+          left: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+          bottom: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+          right: { style: 'thin', color: { argb: 'FFD3D3D3' } }
+        };
+      });
+    });
+
+    workbook.xlsx.writeBuffer().then((buffer) => {
+      const blob = new Blob([buffer], { type: 'application/octet-stream' });
+      const formattedDate = this.datePipe.transform(new Date(), 'yyyyMMdd_HHmmss');
+      saveAs(blob, `DangKyTestESL_${formattedDate}.xlsx`);
+    });
   }
 
   onBiding(): void {

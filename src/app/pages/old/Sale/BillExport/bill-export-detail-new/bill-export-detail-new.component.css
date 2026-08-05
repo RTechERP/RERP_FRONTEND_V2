@@ -139,7 +139,7 @@
 }
 
 ::ng-deep div[id^="billExportDetail_"] {
-  height: 65vh !important;
+  height: 56vh !important;
   ;
 }
 

@@ -527,6 +527,15 @@ li.playlist-item.selected {
     color: #8c8c8c;
 }
 
+.lesson-teacher {
+    font-size: 11px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+}
+
 
 /* Lesson Completion Checkbox */
 

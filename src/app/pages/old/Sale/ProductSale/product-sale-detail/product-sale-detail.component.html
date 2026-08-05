@@ -77,7 +77,14 @@
                     <nz-form-label class="fs-12">Mã thiết bị
                         <span class="text-danger ps-1 me-1"> * </span></nz-form-label>
                     <nz-form-control [nzErrorTip]="getProductCodeError()">
-                        <input nz-input formControlName="ProductCode" />
+                        <nz-input-group [nzSuffix]="suffixProductCode">
+                            <input nz-input formControlName="ProductCode" placeholder="Vui lòng nhập mã thiết bị" (keydown.enter)="$event.preventDefault(); loadProductInfo()" />
+                        </nz-input-group>
+                        <ng-template #suffixProductCode>
+                            <button class="border-0 bg-transparent p-0 cursor-pointer" type="button" (click)="loadProductInfo()" title="Tải thông tin sản phẩm" [disabled]="isLoadingProductInfo">
+                                <i class="fas fa-circle-up text-primary" *ngIf="!isLoadingProductInfo"></i>
+                            </button>
+                        </ng-template>
                     </nz-form-control>
                 </div>
                 <div class="col-md-6 pb-3">

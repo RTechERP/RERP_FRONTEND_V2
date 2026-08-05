@@ -289,13 +289,24 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
             {
                 label: 'Tờ trình phê duyệt tuyển dụng',
                 icon: 'fa-solid fa-file-lines fa-lg text-info',
-                command: () => this.viewApproveForm(), // phân quyền hr tạo tờ trình tuyển dụng
                 visible: this.permissionService.hasPermission('N1,N2'),
+                items: [
+                    {
+                        label: '1. Tờ trình cho Thực tập sinh (TTS)',
+                        icon: 'fa-solid fa-user-graduate text-primary',
+                        command: () => this.viewApproveForm(true),
+                    },
+                    {
+                        label: '2. Tờ trình cho Nhân viên & Thử việc',
+                        icon: 'fa-solid fa-user-tie text-success',
+                        command: () => this.viewApproveForm(false),
+                    },
+                ],
             },
         ];
     }
 
-    viewApproveForm() {
+    viewApproveForm(isTTS: boolean = false) {
         const selectedRows = this.angularGrid?.slickGrid?.getSelectedRows() || [];
         if (selectedRows.length !== 1) {
             this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 dòng để thao tác tờ trình tuyển dụng!');
@@ -329,8 +340,9 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
             size: 'xl',
             scrollable: true,
         });
-        modalRef.componentInstance.HRRecruitmentCandidateID = item.ID
-        modalRef.componentInstance.Status = item.Status
+        modalRef.componentInstance.HRRecruitmentCandidateID = item.ID;
+        modalRef.componentInstance.Status = item.Status;
+        modalRef.componentInstance.isTTSMode = isTTS;
         modalRef.result.then(
             (result) => {
                 this.onSearch();

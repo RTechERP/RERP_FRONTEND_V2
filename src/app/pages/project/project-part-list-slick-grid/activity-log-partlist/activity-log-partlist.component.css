@@ -150,3 +150,28 @@
     border-top: 1px solid #f0f0f0;
     flex-shrink: 0;
 }
+
+/* ==================== DYNAMIC COLOR BY ACTION TYPE ==================== */
+/* 1. Log Icon colors */
+.log-icon.log-green { background: #f6ffed !important; color: #52c41a !important; }
+.log-icon.log-red { background: #fff1f0 !important; color: #ff4d4f !important; }
+.log-icon.log-orange { background: #fff7e6 !important; color: #fa8c16 !important; }
+.log-icon.log-green-dark { background: #e6f4ea !important; color: #137333 !important; }
+.log-icon.log-red-dark { background: #fce8e6 !important; color: #c5221f !important; }
+.log-icon.log-blue { background: #e6f7ff !important; color: #1890ff !important; }
+
+/* 2. Action text colors */
+.log-action-text.log-green { color: #52c41a !important; }
+.log-action-text.log-red { color: #ff4d4f !important; }
+.log-action-text.log-orange { color: #fa8c16 !important; }
+.log-action-text.log-green-dark { color: #137333 !important; }
+.log-action-text.log-red-dark { color: #c5221f !important; }
+.log-action-text.log-blue { color: #1890ff !important; }
+
+/* 3. Log Content border-left colors */
+.log-content.log-green { border-left: 3px solid #52c41a !important; }
+.log-content.log-red { border-left: 3px solid #ff4d4f !important; }
+.log-content.log-orange { border-left: 3px solid #fa8c16 !important; }
+.log-content.log-green-dark { border-left: 3px solid #137333 !important; }
+.log-content.log-red-dark { border-left: 3px solid #c5221f !important; }
+.log-content.log-blue { border-left: 3px solid #1890ff !important; }

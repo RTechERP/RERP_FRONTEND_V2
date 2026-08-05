@@ -167,4 +167,12 @@ export class PokhSlickgridService {
   checkProductSaleList(excelData: any[]): Observable<any> {
     return this.http.post<any>(this._url + 'check-productsale', { excelData });
   }
+
+  sendMailApproved(data: any): Observable<any> {
+    return this.http.post<any>(this._url + 'send-mail-approved', data);
+  }
+
+  inforUserApproved(): Observable<any> {
+    return this.http.get<any>(this._url + 'infor-user-approved');
+  }
 }

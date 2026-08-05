@@ -271,7 +271,7 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
     const payload: any = {
       ID: this.ProjectworkerID || 0,
       ProjectSolutionID: this.projectSolutionId,
-      ProjectID: this.projectSolutionId,
+      ProjectID: this.ProjectID,
       STT: valueRaw.STT,
       DescriptionVersion: typeof valueRaw.DescriptionVersion === 'string' ? valueRaw.DescriptionVersion.trim() : valueRaw.DescriptionVersion,
       IsActive: valueRaw.IsActive || false,

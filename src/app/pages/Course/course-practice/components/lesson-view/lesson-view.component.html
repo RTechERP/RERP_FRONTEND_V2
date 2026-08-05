@@ -216,6 +216,9 @@
                             <div class="lesson-content">
                                 <div class="lesson-name">{{ lesson.LessonTitle }}</div>
                                 <div class="lesson-code">{{ lesson.Code }}</div>
+                                <div class="lesson-teacher text-muted" *ngIf="lesson.FullName" style="font-size: 11px;">
+                                    <span nz-icon nzType="user" nzTheme="outline"></span> Phụ trách: {{ lesson.FullName }}
+                                </div>
                             </div>
 
                             <!-- Lesson Exam Dropdown -->

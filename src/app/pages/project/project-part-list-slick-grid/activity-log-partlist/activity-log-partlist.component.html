@@ -32,14 +32,14 @@
             @for (log of logs; track log.ID) {
             <div class="log-item">
                 <div class="log-icon-wrapper">
-                    <div class="log-icon">
+                    <div class="log-icon" [ngClass]="getLogColorClass(log.ActionType)">
                         <i nz-icon [nzType]="getLogIcon(log.ActionType)" nzTheme="outline"></i>
                     </div>
                     <div class="log-line"></div>
                 </div>
                 <div class="log-body">
                     <div class="log-type d-flex align-items-center gap-2 flex-wrap">
-                        <span class="log-action-text">{{ log.ActionType }}</span>
+                        <span class="log-action-text" [ngClass]="getLogColorClass(log.ActionType)">{{ log.ActionType }}</span>
                         <span class="text-muted">-</span>
                         <span class="log-author">
                             <i nz-icon nzType="user" nzTheme="outline"></i>

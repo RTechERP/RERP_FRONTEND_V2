@@ -51,9 +51,13 @@ import { ProjectPartlistPriceRequestNewComponent } from '../../../../purchase/pr
 import { MarketingPurchaseRequestComponent } from '../../../../purchase/marketing-purchase-request/marketing-purchase-request.component';
 import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { ProjectPartListService } from '../../../../project/project-department-summary/project-department-summary-form/project-part-list/project-partlist-service/project-part-list-service.service';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { ProductGroupSettingComponent } from '../product-group-setting/product-group-setting.component';
+import { ProductSaleStandardizedComponent } from '../product-sale-standardized/product-sale-standardized.component';
+import { ProductSaleImportExportComponent } from '../product-sale-import-export/product-sale-import-export.component';
+import { TabServiceService } from '../../../../../layouts/tab-service.service';
+import { AppUserService } from '../../../../../services/app-user.service';
 
 interface ProductGroup {
     ID?: number;
@@ -160,6 +164,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
     isCheckmode: boolean = false;
     dataDelete: any = {};
     selectedList: any[] = [];
+    isAdmin: boolean = false;
 
     isShowProductGroupDeleted: boolean = true;
 
@@ -198,8 +203,10 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
         private projectPartListService: ProjectPartListService,
         private route: ActivatedRoute,
         private elementRef: ElementRef,
+        private tabService: TabServiceService,
         @Optional() @Inject('tabData') private tabData: any,
-        @Optional() public activeModal: NgbActiveModal
+        @Optional() public activeModal: NgbActiveModal,
+        private appUserService: AppUserService
     ) { }
 
     @HostListener('window:resize')
@@ -224,6 +231,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
     }
 
     ngOnInit(): void {
+
+        this.isAdmin = this.appUserService.isAdmin;
         // Get warehouseCode from route query params
         this.route.queryParams.subscribe((params) => {
             if (params['warehouseCode']) {
@@ -347,7 +356,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                 id: 'ProductGroupID',
                 field: 'ProductGroupID',
                 name: 'Mã nhóm',
-                width: 120,
+                minWidth: 120,
+                maxWidth: 120,
                 sortable: true,
                 filterable: true,
                 formatter: this.treeFormatter,
@@ -499,7 +509,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                 id: 'WarehouseCode',
                 field: 'WarehouseCode',
                 name: 'Kho',
-                width: 100,
+                maxWidth: 120,
+                minWidth: 120,
                 sortable: true,
                 filterable: false,
             },
@@ -553,13 +564,13 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
             .replace(/[\u{1F300}-\u{1FAFF}]/gu, '');
     }
 
-    // Formatter cho phép wrap text tối đa 3 dòng với tooltip
+    // Formatter cho phép wrap text tối đa 3 dòng với ellipsis (...) và tooltip
     wrapTextFormatter: Formatter = (_row, _cell, value, _column, dataContext) => {
         if (!value) return '';
         return `
             <span
                 title="${String(value).replace(/"/g, '&quot;')}"
-                style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.3;"
+                style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.25; max-height: 3.75em; word-break: break-word;"
             >
                 ${value}
             </span>
@@ -589,7 +600,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                         filter: true,
                     } as MultipleSelectOption,
                 },
-                formatter: (_r, _c, v) => v, // UI
+                formatter: this.wrapTextFormatter,
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
@@ -607,8 +618,31 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                         filter: true,
                     } as MultipleSelectOption,
                 },
-                formatter: (_r, _c, v) => v, // UI
+                formatter: this.wrapTextFormatter,
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
+            },
+            {
+                id: 'IsApproved',
+                field: 'IsApproved',
+                name: 'TBP duyệt',
+                width: 95,
+                sortable: true,
+                filterable: true,
+                formatter: Formatters.checkmarkMaterial,
+                cssClass: 'text-center',
+                headerCssClass: 'text-center',
+                filter: {
+                    model: Filters['singleSelect'],
+                    collection: [
+                        { value: '', label: '' },
+                        { value: true, label: 'Có' },
+                        { value: false, label: 'Không' },
+                    ],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                    } as MultipleSelectOption,
+                },
+                exportCustomFormatter: this.excelBooleanFormatter,
             },
             {
                 id: 'IsFix',
@@ -631,25 +665,19 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                         autoAdjustDropHeight: true,
                     } as MultipleSelectOption,
                 },
-                // formatter: (_r, _c, v) => v, // UI
                 exportCustomFormatter: this.excelBooleanFormatter,
             },
             {
                 id: 'ProductCode',
                 field: 'ProductCode',
                 name: 'Mã Sản phẩm',
-                width: 150,
+                width: 180,
                 sortable: true,
                 filterable: true,
                 filter: {
                     model: Filters['compoundInputText'],
-                    // collection: [],
-                    // filterOptions: {
-                    //     autoAdjustDropHeight: true,
-                    //     filter: true,
-                    // } as MultipleSelectOption,
                 },
-                formatter: (_r, _c, v) => v, // UI
+                formatter: this.wrapTextFormatter,
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
@@ -661,13 +689,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                 filterable: true,
                 filter: {
                     model: Filters['compoundInputText'],
-                    // collection: [],
-                    // filterOptions: {
-                    //     autoAdjustDropHeight: true,
-                    //     filter: true,
-                    // } as MultipleSelectOption,
                 },
-                formatter: (_r, _c, v) => v, // UI
+                formatter: this.wrapTextFormatter,
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
@@ -679,11 +702,6 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                 filterable: true,
                 filter: {
                     model: Filters['compoundInputText'],
-                    // collection: [],
-                    // filterOptions: {
-                    //     autoAdjustDropHeight: true,
-                    //     filter: true,
-                    // } as MultipleSelectOption,
                 },
                 formatter: this.wrapTextFormatter,
                 customTooltip: {
@@ -700,13 +718,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                 filterable: true,
                 filter: {
                     model: Filters['compoundInputText'],
-                    // collection: [],
-                    // filterOptions: {
-                    //     autoAdjustDropHeight: true,
-                    //     filter: true,
-                    // } as MultipleSelectOption,
                 },
-                formatter: (_r, _c, v) => v, // UI
+                formatter: this.wrapTextFormatter,
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
@@ -718,13 +731,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                 filterable: true,
                 filter: {
                     model: Filters['compoundInputText'],
-                    // collection: [],
-                    // filterOptions: {
-                    //     autoAdjustDropHeight: true,
-                    //     filter: true,
-                    // } as MultipleSelectOption,
                 },
-                formatter: (_r, _c, v) => v, // UI
+                formatter: (_r, _c, v) => v,
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
@@ -736,13 +744,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                 filterable: true,
                 filter: {
                     model: Filters['compoundInputText'],
-                    // collection: [],
-                    // filterOptions: {
-                    //     autoAdjustDropHeight: true,
-                    //     filter: true,
-                    // } as MultipleSelectOption,
                 },
-                formatter: (_r, _c, v) => v, // UI
+                formatter: this.wrapTextFormatter,
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
@@ -829,10 +832,69 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
             });
         }
 
-        // Update footer row sau khi grid ready
+        // Update footer row và nạp giá trị filter cho dropdown sau khi grid ready
         setTimeout(() => {
             this.updateProductSaleFooterRow();
+            this.applyDistinctFilters();
         }, 100);
+    }
+
+    applyDistinctFilters(): void {
+        const angularGrid = this.angularGridProductSale;
+        if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
+
+        const data = angularGrid.dataView.getItems() as any[];
+        if (!data || data.length === 0) return;
+
+        const getUniqueValues = (
+            items: any[],
+            field: string
+        ): Array<{ value: any; label: string }> => {
+            const map = new Map<string, { value: any; label: string }>();
+            items.forEach((row: any) => {
+                const value = row?.[field];
+                if (value === null || value === undefined || value === '') return;
+                const key = `${typeof value}:${String(value)}`;
+                if (!map.has(key)) {
+                    map.set(key, { value, label: String(value) });
+                }
+            });
+            return Array.from(map.values()).sort((a, b) =>
+                a.label.localeCompare(b.label)
+            );
+        };
+
+        const columns = angularGrid.slickGrid.getColumns();
+        if (columns) {
+            columns.forEach((column: any) => {
+                if (
+                    column.filter &&
+                    column.filter.model === Filters['multipleSelect']
+                ) {
+                    const field = column.field;
+                    if (!field) return;
+                    column.filter.collection = getUniqueValues(data, field);
+                }
+            });
+        }
+
+        if (this.columnDefinitionsProductSale) {
+            this.columnDefinitionsProductSale.forEach((colDef: any) => {
+                if (
+                    colDef.filter &&
+                    colDef.filter.model === Filters['multipleSelect']
+                ) {
+                    const field = colDef.field;
+                    if (!field) return;
+                    colDef.filter.collection = getUniqueValues(data, field);
+                }
+            });
+        }
+
+        const updatedColumns = angularGrid.slickGrid.getColumns();
+        angularGrid.slickGrid.setColumns(updatedColumns);
+        angularGrid.slickGrid.invalidate();
+        angularGrid.slickGrid.render();
     }
 
     onProductSaleCellClicked(e: Event, args: OnClickEventArgs) {
@@ -1027,6 +1089,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                             }));
                         }
                         this.isLoading = false;
+                        setTimeout(() => this.applyDistinctFilters(), 200);
                     },
                     error: (err) => {
                         console.error('Lỗi khi lấy dữ liệu toàn bộ sản phẩm:', err);
@@ -1055,6 +1118,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                         }));
                     }
                     this.isLoading = false;
+                    setTimeout(() => this.applyDistinctFilters(), 200);
                 },
                 error: (err) => {
                     console.error('Lỗi khi lấy dữ liệu sản phẩm:', err);
@@ -1080,6 +1144,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                             }));
                         }
                         this.isLoading = false;
+                        setTimeout(() => this.applyDistinctFilters(), 200);
                     },
                     error: (err) => {
                         console.error('Lỗi khi lấy dữ liệu sản phẩm:', err);
@@ -1231,15 +1296,16 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
         this.isCheckmode = true;
         const selectedRows = this.getSelectedProductSaleRows();
         this.selectedList = selectedRows;
-        const ids = this.selectedList.map((item) => item.ID);
+        const ids = this.selectedList.filter((item) => item.IsApproved != true).map((item) => item.ID);
 
         if (ids.length === 0) {
             this.notification.warning(
                 'Thông báo',
-                'Vui lòng chọn ít nhất 1 sản phẩm để sửa!'
+                'Vui lòng chọn ít nhất 1 sản phẩm chưa được duyệt để sửa!'
             );
             return;
         }
+
         if (ids.length > 1) {
             this.notification.warning(
                 'Thông báo',
@@ -1402,7 +1468,6 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
     }
 
     openModalProductSale() {
-        debugger;
         const modalRef = this.modalService.open(ProductSaleDetailComponent, {
             centered: true,
             size: 'lg',
@@ -1418,9 +1483,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
         modalRef.componentInstance.id = this.idSale;
 
         modalRef.result.catch((result) => {
-            if (result === true) {
-                this.getDataProductSaleByIDgroup(this.id);
-            }
+            this.getDataProductSaleByIDgroup(this.id);
         });
     }
 
@@ -1573,5 +1636,94 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
         });
     }
 
+    //#endregion
+
+    //#region Chuẩn hóa TB
+    openModalSettingProductSale(): void {
+        const modalRef = this.modalService.open(ProductSaleStandardizedComponent, {
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+        });
+    }
+
+    openModalProductSaleImportExport() {
+        this.tabService.openTabComp({
+            comp: ProductSaleImportExportComponent,
+            title: 'Chuẩn hóa nhập xuất',
+            key: `product-sale-import-export-new-${Date.now()}`,
+            data: {}
+        });
+    }
+
+    projectApprovedIsfix(isApproved: boolean): void {
+        const selectedData = this.getSelectedProductSaleRows();
+        if (!selectedData || selectedData.length === 0) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                `Vui lòng chọn ít nhất 1 sản phẩm để ${isApproved ? 'duyệt' : 'hủy duyệt'}!`
+            );
+            return;
+        }
+
+        // Lọc các dòng có IsApproved khác với trạng thái mong muốn và có ID > 0
+        const filteredData = selectedData.filter((row: any) => {
+            return row.IsApproved != isApproved && row.ID > 0;
+        });
+
+        if (filteredData.length === 0) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                `Tất cả sản phẩm đã chọn đã ở trạng thái ${isApproved ? 'Đã duyệt' : 'Chưa duyệt'}!`
+            );
+            return;
+        }
+
+        const actionText = isApproved ? 'Duyệt' : 'Hủy duyệt';
+        this.modal.confirm({
+            nzTitle: `Xác nhận ${actionText}`,
+            nzContent: `Bạn có chắc chắn muốn ${actionText.toLowerCase()} cho ${filteredData.length} sản phẩm đã chọn không?`,
+            nzOkText: actionText,
+            nzCancelText: 'Hủy',
+            nzOkDanger: !isApproved,
+            nzOnOk: () => {
+                const payload = filteredData.map((row: any) => ({
+                    ID: row.ID,
+                    IsApproved: isApproved
+                }));
+
+                this.isLoading = true;
+                this.productsaleSV.projectApprovedIsfix(payload).subscribe({
+                    next: (res: any) => {
+                        this.isLoading = false;
+                        if (res?.status === 1 || res?.success || res?.status === 'success') {
+                            this.notification.success(
+                                NOTIFICATION_TITLE.success,
+                                `${actionText} thành công!`
+                            );
+                            if (this.id) {
+                                this.getProductSaleByID(this.id);
+                            }
+                        } else {
+                            this.notification.warning(
+                                NOTIFICATION_TITLE.warning,
+                                res?.message || `${actionText} thất bại!`
+                            );
+                        }
+                    },
+                    error: (err: any) => {
+                        this.isLoading = false;
+                        this.notification.create(
+                            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                            err?.error?.message || `${err.error}\n${err.message}`,
+                            { nzStyle: { whiteSpace: 'pre-line' } }
+                        );
+                    }
+                });
+            }
+        });
+    }
     //#endregion
 }

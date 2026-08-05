@@ -618,6 +618,16 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         }
     }
 
+    // Kiểm tra loại tiền tệ hiện tại đang chọn có phải VNĐ không
+    private isCurrentCurrencyVND(): boolean {
+        const currencyId = this.companyForm.get('CurrencyID')?.value;
+        const currency = this.currencies.find(c => c.ID === currencyId);
+        if (!currency) {
+            return true;
+        }
+        return currency.Code.trim().toLowerCase() === 'vnd';
+    }
+
     onCurrencyChange(selectedCurrencyID: number): void {
         try {
             const currency = this.currencies.find(c => c.ID === selectedCurrencyID);
@@ -657,6 +667,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
                 }
             }
 
+            const isVNDCurrency = currency ? currency.Code.trim().toLowerCase() === 'vnd' : true;
+
             // Tính toán lại tất cả các dòng trong bảng
             if (this.tabulatorHangTien) {
                 const currencyRate = this.companyForm.get('CurrencyRate')?.value || 0;
@@ -674,9 +686,13 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
                     const totalPrice = thanhTien + totalMoneyVAT + feeShip - discount;
                     const currencyExchange = selectedCurrencyID !== 0 ? totalPrice * currencyRate : 0;
 
+                    // Tự động tích checkbox "Hóa đơn" khi loại tiền không phải VNĐ, hoặc VNĐ nhưng có VAT
+                    const isBill = !isVNDCurrency || totalMoneyVAT > 0;
+
                     row.update({
                         TotalPrice: totalPrice,
-                        CurrencyExchange: currencyExchange
+                        CurrencyExchange: currencyExchange,
+                        IsBill: isBill
                     });
                 });
 
@@ -1008,7 +1024,20 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
                     headerSort: false
                 },
                 {
-                    title: 'không mua', field: 'IsPurchase', width: 150, headerSort: false, hozAlign: 'center',
+                    title: 'Không mua', field: 'IsPurchase', width: 150, headerSort: false, hozAlign: 'center',
+                    formatter: function (cell: any) {
+                        const value = cell.getValue();
+                        const checked = value === true || value === 'true' || value === 1 || value === '1';
+                        return `<input type="checkbox" ${checked ? 'checked' : ''} style="accent-color: #1677ff;" />`;
+                    },
+                    cellClick: (e: any, cell: any) => {
+                        const currentValue = cell.getValue();
+                        const newValue = !(currentValue === true || currentValue === 'true' || currentValue === 1 || currentValue === '1');
+                        cell.setValue(newValue);
+                    }
+                },
+                {
+                    title: 'Không giữ', field: 'IsNotKeep', width: 150, headerSort: false, hozAlign: 'center',
                     formatter: function (cell: any) {
                         const value = cell.getValue();
                         const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -1347,8 +1376,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         const totalPrice = thanhTien + vatMoney - discount + feeShip;
         const currencyExchange = totalPrice * currencyRate;
 
-        // Tự động tích checkbox "Hóa đơn" khi VATMoney > 0
-        const isBill = vatMoney > 0;
+        // Tự động tích checkbox "Hóa đơn" khi loại tiền không phải VNĐ, hoặc VNĐ nhưng có VAT
+        const isBill = !this.isCurrentCurrencyVND() || vatMoney > 0;
 
         row.update({
             ThanhTien: thanhTien,
@@ -1488,8 +1517,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
             ? product.ProductName
             : `${product.ProductName} ${product.ProductCode || ''}`;
         productCodeOfSupplier = productGroupIDHR.includes(product.ProductGroupID || 0)
-          ? product.ProductName
-          : productCodeOfSupplier;
+            ? product.ProductName
+            : productCodeOfSupplier;
         const updateData: any = {
             ProductSaleID: isProductSale ? productId : 0,
             ProductRTCID: isProductSale ? 0 : productId,
@@ -1935,6 +1964,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
             ProjectPartlistPurchaseRequestID: row.ProjectPartlistPurchaseRequestID || 0,
             ProjectPartlistID: row.ProjectPartListID || 0,
             IsDeleted: isDeleted,
+            IsNotKeep: row.IsNotKeep || false,
         });
 
         const ponccDetails = [

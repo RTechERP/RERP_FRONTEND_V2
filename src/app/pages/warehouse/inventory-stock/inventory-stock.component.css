@@ -1,0 +1,45 @@
+::ng-deep [id^="grid-inventory-"] {
+  height: 90.5vh !important;
+}
+::ng-deep [id^="grid-pg-warehouse-"] {
+  height: 26vh !important;
+}
+::ng-deep [id^="grid-product-group-"] {
+  height: 64vh !important;
+}
+
+::ng-deep
+  .slickgrid-container
+  .slick-footerrow
+  .slick-footerrow-columns
+  .slick-footerrow-column {
+  border-right: 1px solid #ddd !important;
+}
+
+/* row không đủ số lượng */
+::ng-deep .row-not-enough,
+::ng-deep .row-not-enough .slick-cell {
+  background-color: #fdffab !important;
+  /* Màu đỏ nhạt */
+}
+
+/* Căn phải pagination */
+::ng-deep
+  .slickgrid-container
+  .slick-footerrow
+  .slick-footerrow-columns
+  .slick-footerrow-column {
+  display: flex;
+  justify-content: end !important;
+}
+
+/* Căn phải pagination */
+::ng-deep .slick-pagination {
+  display: flex;
+  justify-content: end;
+}
+
+::ng-deep .slick-pagination-count,
+::ng-deep .text-item-per-page {
+  display: none !important;
+}

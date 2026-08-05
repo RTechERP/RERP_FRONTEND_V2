@@ -304,9 +304,10 @@
                                     </p-tabpanel>
                                     <p-tabpanel value="1">
                                         <div class="grid-wrapper" *ngIf="activeFileTab === '1'">
-                                            <app-custom-table [columns]="columnDefFiles" [data]="datasetFileBankslip"
-                                                [scrollable]="true" [scrollHeight]="'flex'" [virtualScroll]="true"
-                                                [virtualScrollItemSize]="34" [contextMenuItems]="fileContextItems"
+                                            <app-custom-table [columns]="columnDefFileBankSlips"
+                                                [data]="datasetFileBankslip" [scrollable]="true" [scrollHeight]="'flex'"
+                                                [virtualScroll]="true" [virtualScrollItemSize]="34"
+                                                [contextMenuItems]="fileContextItems"
                                                 (cellAction)="onCellActionFile($event)"
                                                 [(selectedContextRow)]="selectedRowFile"
                                                 (selectionChange)="onRowSelectFile($event)" dataKey="ID"

@@ -492,7 +492,8 @@ export class InventoryComponent implements OnInit, AfterViewInit {
                 this.searchParam.Find,
                 this.warehouseCode,
                 this.searchParam.checkedStock,
-                this.productGroupID
+                this.productGroupID,
+                true
             )
             .subscribe({
                 next: (res) => {

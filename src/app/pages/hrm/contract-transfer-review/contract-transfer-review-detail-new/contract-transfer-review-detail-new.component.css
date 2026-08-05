@@ -309,11 +309,25 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     font-weight: bold;
 }
 
+.score-input-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+}
+
+.score-pct-suffix {
+    font-size: 11.5px;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    color: #333;
+    line-height: 1;
+}
+
 .score-input {
     border: none;
     border-bottom: 1px dotted #888;
     background: transparent;
-    width: 60px;
+    width: 44px;
     text-align: center;
     font-size: 11.5px;
     font-family: 'Be Vietnam Pro', sans-serif;

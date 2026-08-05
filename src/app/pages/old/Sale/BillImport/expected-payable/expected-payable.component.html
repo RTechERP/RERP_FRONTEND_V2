@@ -1,0 +1,99 @@
+<ng-container class="w-100">
+    <div class="card h-100 border-0 rounded-0" style="background: transparent">
+        <div class="card-header bg-white p-1">
+            <div class="d-flex gap-1 align-items-center w-100">
+                <p-menubar [model]="expectedPayableMenus" class="p-0 border-0 w-100" style="width: 100%">
+                </p-menubar>
+            </div>
+        </div>
+        <div class="filter-bar bg-light border-bottom p-2 py-0" *ngIf="true" [class.mobile-modal]="true">
+            <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-center">
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+                    <nz-form-control>
+                        <input type="date" class="form-control form-control-sm date-input-sm"
+                            style="width: 130px; font-size: 12px" [ngModel]="dateStart | date:'yyyy-MM-dd'"
+                            (ngModelChange)="onDateChange('dateStart', $event)" name="dateStart" title="Từ ngày" />
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+                    <nz-form-control>
+                        <input type="date" class="form-control form-control-sm date-input-sm"
+                            style="width: 130px; font-size: 12px" [ngModel]="dateEnd | date:'yyyy-MM-dd'"
+                            (ngModelChange)="onDateChange('dateEnd', $event)" name="dateEnd" title="Đến ngày" />
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12">Nhà cung cấp</nz-form-label>
+                    <nz-form-control>
+                        <nz-select nzShowSearch nzAllowClear nzSize="small" style="width: 300px"
+                            nzDropdownClassName="select-dropdown" [(ngModel)]="supplierId" name="supplier"
+                            nzPlaceHolder="Nhà cung cấp">
+                            <nz-option *ngFor="let s of suppliers" [nzValue]="s.ID" [nzLabel]="s.NameNCC"></nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12">Nhân viên</nz-form-label>
+                    <nz-form-control>
+                        <nz-select name="employeeId" [(ngModel)]="employeeId" nzSize="small" style="width: 200px"
+                            nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear
+                            nzPlaceHolder="--Chọn nhân viên--" [nzDisabled]="!isTBP">
+                            <ng-container *ngFor="let group of employees">
+                                <nz-option-group [nzLabel]="group.label">
+                                    <nz-option *ngFor="let option of group.options"
+                                        [nzLabel]="option.item.Code + ' - ' + option.item.FullName"
+                                        [nzValue]="option.item.EmployeeID">
+                                    </nz-option>
+                                </nz-option-group>
+                            </ng-container>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+                    <nz-form-control>
+                        <input name="keyword" nz-input placeholder="Nhập từ khóa" [(ngModel)]="keyWords" nzSize="small"
+                            style="width: 200px; font-size: 12px" (keyup.enter)="onSearch()" />
+                    </nz-form-control>
+                </nz-form-item>
+
+                <!-- Nút tìm kiếm -->
+                <nz-form-item class="mb-0">
+                    <nz-form-control>
+                        <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+                            Tìm kiếm
+                        </button>
+                    </nz-form-control>
+                </nz-form-item>
+            </form>
+        </div>
+        <div class="card-body p-0 w-100" style="height: calc(100vh - 200px)">
+            <div *ngIf="isLoading" style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(255, 255, 255, 0.4);
+          z-index: 999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        ">
+                <nz-spin [nzSpinning]="isLoading"></nz-spin>
+            </div>
+            <div class="expected-payable-grid-container" style="height: 100%">
+                <angular-slickgrid [gridId]="'expectedPayableGrid'" [columns]="columnDefinitions"
+                    [options]="gridOptions" [dataset]="dataset"
+                    (onAngularGridCreated)="angularGridReady($event.detail)">
+                </angular-slickgrid>
+            </div>
+        </div>
+    </div>
+</ng-container>

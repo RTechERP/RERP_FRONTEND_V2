@@ -18,7 +18,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { InputTextModule } from 'primeng/inputtext';
 import { DateTime } from 'luxon';
 
-import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../../app.config';
 import { HRRecruitmentCandidateService } from '../hr-recruitment-candidate.service';
 import { DepartmentServiceService } from '../../department/department-service/department-service.service';
 import { HRRecruitmentApplicationFormService } from '../../hr-recruitment/hr-recruitment-application-form/home-layout-candidate/hr-recruitment-application-form.service';
@@ -59,7 +59,7 @@ export interface ColDef {
 })
 export class HRRecruitmentCandidateSummaryListComponent implements OnInit, AfterViewInit, OnDestroy {
   // Filters state
-  dateStart: Date = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);
+  dateStart: Date = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   dateEnd: Date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
   selectedDepartmentFilter: number = 0;
   selectedStatusFilter: number = -1;
@@ -186,8 +186,15 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
         this.departmentList = res?.data || [];
         this.departmentNodes = this.buildTreeNodes([...this.departmentList]);
       },
-      error: (err) => {
-        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Không thể tải bộ phận');
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }
@@ -228,10 +235,28 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
     return tree;
   }
 
+  onDateChange(field: 'dateStart' | 'dateEnd', value: string): void {
+    if (value) {
+      (this as any)[field] = new Date(value);
+    }
+  }
+
   loadCandidatesList(): void {
     this.isLoadingTable = true;
-    const startStr = this.dateStart ? DateTime.fromJSDate(this.dateStart).toISODate() : '';
-    const endStr = this.dateEnd ? DateTime.fromJSDate(this.dateEnd).toISODate() : '';
+    let startStr = '';
+    let endStr = '';
+    if (this.dateStart) {
+      const y = this.dateStart.getFullYear();
+      const m = String(this.dateStart.getMonth() + 1).padStart(2, '0');
+      const d = String(this.dateStart.getDate()).padStart(2, '0');
+      startStr = `${y}-${m}-${d}`;
+    }
+    if (this.dateEnd) {
+      const y = this.dateEnd.getFullYear();
+      const m = String(this.dateEnd.getMonth() + 1).padStart(2, '0');
+      const d = String(this.dateEnd.getDate()).padStart(2, '0');
+      endStr = `${y}-${m}-${d}`;
+    }
 
     this.hrCandidateService.getCandidateSummaryMaster(
       0,
@@ -248,9 +273,16 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
         this.isLoadingTable = false;
         this.cdr.detectChanges();
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isLoadingTable = false;
-        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Không thể tải danh sách ứng viên');
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
         this.cdr.detectChanges();
       }
     });
@@ -328,12 +360,12 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
 
   onBooleanCellClick(row: any, field: string, event: Event): void {
     event.stopPropagation();
-    
+
     // Đảm bảo dòng được chọn (highlight)
     if (!this.selectedCandidates.find(c => c.ID === row.ID)) {
       this.selectedCandidates = [row];
     }
-    
+
     let tabIndex = 0;
     if (field === 'HasApplicationForm') {
       tabIndex = 1;
@@ -470,7 +502,7 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
         this.showDetail = true;
         this.isLoadingTable = false;
         this.cdr.detectChanges();
-        
+
         setTimeout(() => {
           if (this.pendingTabIndex !== null) {
             this.selectedTabIndex = this.pendingTabIndex;
@@ -479,9 +511,16 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
           }
         }, 50);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isLoadingTable = false;
-        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Không thể tải chi tiết ứng viên');
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
         this.cdr.detectChanges();
       }
     });

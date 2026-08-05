@@ -38,6 +38,8 @@ import { PermissionService } from '../../../services/permission.service';
 import { CourseCatalogDetailComponent } from '../course_management-form/course-catalog-detail/course-catalog-detail.component';
 import { CourseDetailComponent } from '../course_management-form/course-detail/course-detail.component';
 import { LessonDetailComponent } from '../course_management-form/lesson-detail/lesson-detail.component';
+import { CopyCourseModalComponent } from './copy-course-modal/copy-course-modal.component';
+import { CopyLessonModalComponent } from './copy-lesson-modal/copy-lesson-modal.component';
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import { DateTime } from 'luxon';
@@ -123,6 +125,20 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         this.onDeleteCategory();
       },
     },
+    {
+      label: 'Copy',
+      icon: 'fa-solid fa-copy fa-lg text-warning',
+      command: () => {
+        this.onCopyCategory();
+      },
+    },
+    {
+      label: 'Di chuyển',
+      icon: 'fa-solid fa-exchange-alt fa-lg text-info',
+      command: () => {
+        this.onMoveCategory();
+      },
+    },
     { separator: true },
   ];
 
@@ -150,6 +166,20 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       // visible: this.permissionService.hasPermission(""),
       command: () => {
         this.onDeleteCourse();
+      },
+    },
+    {
+      label: 'Copy',
+      icon: 'fa-solid fa-copy fa-lg text-warning',
+      command: () => {
+        this.onCopyCourse();
+      },
+    },
+    {
+      label: 'Di chuyển',
+      icon: 'fa-solid fa-exchange-alt fa-lg text-info',
+      command: () => {
+        this.onMoveCourse();
       },
     },
 
@@ -180,6 +210,20 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       // visible: this.permissionService.hasPermission(""),
       command: () => {
         this.onDeleteLesson();
+      },
+    },
+    {
+      label: 'Copy',
+      icon: 'fa-solid fa-copy fa-lg text-warning',
+      command: () => {
+        this.onCopyLesson();
+      },
+    },
+    {
+      label: 'Di chuyển',
+      icon: 'fa-solid fa-exchange-alt fa-lg text-info',
+      command: () => {
+        this.onMoveLesson();
       },
     },
     { separator: true },
@@ -250,7 +294,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
     this.getDataTeam();
   }
 
-  getDataCategory() {
+  getDataCategory(selectCategoryId?: number) {
     this.courseService.getDataCategory(-1).subscribe(
       (response: any) => {
         if (response && response.status === 1) {
@@ -262,7 +306,15 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
               this.categoryTable?.redraw(true);
             }, 100);
             if (this.categoryData.length > 0) {
-              this.searchParams.categoryID = this.categoryData[0].ID;
+              const categoryToSelect = this.categoryData.find(
+                (item) => item.ID === selectCategoryId,
+              ) || this.categoryData[0];
+              this.searchParams.categoryID = categoryToSelect.ID;
+              this.categoryID = categoryToSelect.ID;
+              this.categoryTable
+                .getRows()
+                .find((row) => row.getData()['ID'] === categoryToSelect.ID)
+                ?.select();
               this.getCourse();
             }
           }
@@ -481,6 +533,204 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       (reason) => {
         // Modal dismissed - không làm gì
       },
+    );
+  }
+
+  onCopyCategory() {
+    const dataToCopy = this.categoryTable?.getSelectedData()?.[0];
+    if (!dataToCopy) {
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một danh mục để sao chép!',
+      );
+      return;
+    }
+
+    const modalRef = this.modalService.open(CourseCatalogDetailComponent, {
+      centered: true,
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    modalRef.componentInstance.dataInput = { ...dataToCopy };
+    modalRef.componentInstance.mode = 'copy';
+    modalRef.componentInstance.dataDepartment = [...this.dataDepartment];
+    modalRef.componentInstance.dataTeam = [...this.dataTeam];
+
+    modalRef.result.then(
+      (result) => {
+        if (result?.success) {
+          this.courseData = [];
+          this.lessonData = [];
+          this.courseID = 0;
+          this.courseTable?.replaceData([]);
+          this.lessonTable?.replaceData([]);
+          this.getDataCategory(result.newCatalogId);
+        }
+      },
+      () => undefined,
+    );
+  }
+
+  onMoveCategory() {
+    const dataToMove = this.categoryTable?.getSelectedData()?.[0];
+    if (!dataToMove) {
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một danh mục để di chuyển!',
+      );
+      return;
+    }
+
+    const modalRef = this.modalService.open(CourseCatalogDetailComponent, {
+      centered: true,
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    modalRef.componentInstance.dataInput = { ...dataToMove };
+    modalRef.componentInstance.mode = 'move';
+    modalRef.componentInstance.dataDepartment = [...this.dataDepartment];
+    modalRef.componentInstance.dataTeam = [...this.dataTeam];
+
+    modalRef.result.then(
+      (result) => {
+        if (result?.success) {
+          this.courseData = [];
+          this.lessonData = [];
+          this.courseID = 0;
+          this.courseTable?.replaceData([]);
+          this.lessonTable?.replaceData([]);
+          this.getDataCategory(result.movedCatalogId);
+        }
+      },
+      () => undefined,
+    );
+  }
+
+  onMoveCourse() {
+    const dataToMove = this.courseTable?.getSelectedData()?.[0];
+    if (!dataToMove) {
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một khóa học để di chuyển!',
+      );
+      return;
+    }
+
+    const modalRef = this.modalService.open(CopyCourseModalComponent, {
+      centered: true,
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    modalRef.componentInstance.sourceCourse = { ...dataToMove };
+    modalRef.componentInstance.dataCatalog = [...this.categoryData];
+    modalRef.componentInstance.mode = 'move';
+
+    modalRef.result.then(
+      (result) => {
+        if (result?.success) {
+          this.courseData = [];
+          this.lessonData = [];
+          this.courseID = 0;
+          this.courseTable?.replaceData([]);
+          this.lessonTable?.replaceData([]);
+          this.getCourse();
+        }
+      },
+      () => undefined,
+    );
+  }
+
+  onMoveLesson() {
+    const dataToMove = this.lessonTable?.getSelectedData()?.[0];
+    if (!dataToMove) {
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một bài học để di chuyển!',
+      );
+      return;
+    }
+
+    const modalRef = this.modalService.open(CopyLessonModalComponent, {
+      centered: true,
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    modalRef.componentInstance.sourceLesson = { ...dataToMove };
+    modalRef.componentInstance.dataCatalog = [...this.categoryData];
+    modalRef.componentInstance.mode = 'move';
+
+    modalRef.result.then(
+      (result) => {
+        if (result?.success) {
+          this.lessonData = [];
+          this.lessonID = 0;
+          this.lessonTable?.replaceData([]);
+          this.getLessonByCourseID(this.courseID);
+        }
+      },
+      () => undefined,
+    );
+  }
+
+  onCopyCourse() {
+    const dataToCopy = this.courseTable?.getSelectedData()?.[0];
+    if (!dataToCopy) {
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một khóa học để sao chép!',
+      );
+      return;
+    }
+
+    const modalRef = this.modalService.open(CopyCourseModalComponent, {
+      centered: true,
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    modalRef.componentInstance.sourceCourse = { ...dataToCopy };
+    modalRef.componentInstance.dataCatalog = [...this.categoryData];
+
+    modalRef.result.then(
+      (result) => {
+        if (result?.success) {
+          this.getCourse();
+        }
+      },
+      () => undefined,
+    );
+  }
+
+  onCopyLesson() {
+    const dataToCopy = this.lessonTable?.getSelectedData()?.[0];
+    if (!dataToCopy) {
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một bài học để sao chép!',
+      );
+      return;
+    }
+
+    const modalRef = this.modalService.open(CopyLessonModalComponent, {
+      centered: true,
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    modalRef.componentInstance.sourceLesson = { ...dataToCopy };
+    modalRef.componentInstance.dataCatalog = [...this.categoryData];
+
+    modalRef.result.then(
+      (result) => {
+        if (result?.success) {
+          this.getLessonByCourseID(this.courseID);
+        }
+      },
+      () => undefined,
     );
   }
 

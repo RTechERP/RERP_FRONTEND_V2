@@ -811,6 +811,18 @@ export class BillImportDetailNewComponent
                                 container.style.bottom = 'auto';
                                 container.style.maxHeight = `${Math.min(spaceBelow - 8, dropdownHeight)}px`;
                             }
+
+                            // Cột "Mã sản phẩm" khá hẹp nên input rất nhỏ, mở rộng dropdown ra
+                            // để tên sản phẩm/mã nội bộ không bị bóp dòng như chiều rộng cột
+                            const desiredWidth = 420;
+                            const viewportWidth = window.innerWidth;
+                            const width = Math.min(desiredWidth, viewportWidth - 16);
+                            container.style.width = `${width}px`;
+                            let left = inputRect.left;
+                            if (left + width > viewportWidth - 8) {
+                                left = Math.max(8, viewportWidth - width - 8);
+                            }
+                            container.style.left = `${left}px`;
                         },
                         fetch: (searchTerm: string, callback: (items: false | any[]) => void) => {
                             const products = this.productGridCollection || [];
@@ -2028,7 +2040,7 @@ export class BillImportDetailNewComponent
                 Unit: item.UnitName || item.Unit || productInfo.Unit || '',
                 QtyRequest: item.QtyRequest || 0,
                 Qty: item.QuantityRemain || 0,
-                IsNotKeep: false,
+                IsNotKeep: item.IsNotKeep || false,
                 ProcessedGoods: false,
                 ProjectID: item.ProjectID || 0,
                 ProjectCode: item.ProductCodeOfSupplier || '',

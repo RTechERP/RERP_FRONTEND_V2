@@ -1,0 +1,88 @@
+<ng-container class="w-100">
+  <nz-splitter>
+    <nz-splitter-panel nzDefaultSize="100%">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex gap-1">
+            <p-menubar [model]="inventoryStockMenu" class="p-0 border-0">
+            </p-menubar>
+            <div style="display: flex; width: 55%" class="ms-auto align-items-center justify-content-center">
+              <!-- <label nz-checkbox [(ngModel)]="checkedAll" name="checkedAll" (ngModelChange)="onSearch()">Tất cả</label> -->
+              <span class="me-1 fs-12 text-nowrap">Kho:</span>
+              <nz-select [(ngModel)]="warehouseId" (ngModelChange)="onWarehouseChange($event)" nzShowSearch
+                nzDisabled nzPlaceHolder="Chọn kho" nzSize="small" style="width: 150px;" class="me-1">
+                <nz-option *ngFor="let wh of warehouses" [nzValue]="wh.ID" [nzLabel]="wh.WarehouseName"></nz-option>
+              </nz-select>
+              <input type="text" nzSize="small" width="80px" [(ngModel)]="keyword" name="Find" nz-input class="fs-12"
+                style="font-style: italic; flex: 1" placeholder="Tìm kiếm" (keyup.enter)="onSearch()" />
+              <button nz-button nzType="primary" nzSize="small" class="ms-1" (click)="onSearch()">
+                <nz-icon nzType="search"></nz-icon>
+              </button>
+              <button class="ms-1" nz-button nzSize="small" class="ms-1" style="background-color: #fdffab">
+                Không đủ
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <nz-splitter>
+            <nz-splitter-panel>
+              <nz-splitter nzLayout="vertical">
+                <!-- table productGroup -->
+                <nz-splitter-panel nzSize="68%">
+                  <div [class]="`position-relative grid-container-product-group-${randomCode}`" style="height: 100%">
+                    <div *ngIf="isLoadingProductGroup" style="
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(255, 255, 255, 0.4);
+                        z-index: 999;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                      ">
+                      <nz-spin [nzSpinning]="isLoadingProductGroup"></nz-spin>
+                    </div>
+                    <angular-slickgrid [gridId]="`grid-product-group-${randomCode}`"
+                      [columns]="columnDefinitionsProductGroup" [options]="gridOptionsProductGroup"
+                      [dataset]="datasetProductGroup" (onAngularGridCreated)="
+                        angularGridReadyProductGroup($any($event).detail)
+                      ">
+                    </angular-slickgrid>
+                  </div>
+                </nz-splitter-panel>
+                <!-- table productGroupWareHouse -->
+                <nz-splitter-panel>
+                  <div [class]="`position-relative grid-container-pg-warehouse-${randomCode}`" style="height: 100%">
+                    <angular-slickgrid [gridId]="`grid-pg-warehouse-${randomCode}`"
+                      [columns]="columnDefinitionsPGWarehouse" [options]="gridOptionsPGWarehouse"
+                      [dataset]="datasetPGWarehouse" (onAngularGridCreated)="
+                        angularGridReadyPGWarehouse($any($event).detail)
+                      ">
+                    </angular-slickgrid>
+                  </div>
+                </nz-splitter-panel>
+              </nz-splitter>
+            </nz-splitter-panel>
+            <nz-splitter-panel [nzCollapsible]="true" nzDefaultSize="85%">
+              <div [class]="`grid-container-inventory-${randomCode}`" style="height: 98%">
+                <div *ngIf="isLoadingInventory"
+                  class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75"
+                  style="z-index: 1000">
+                  <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+                </div>
+                <angular-slickgrid [gridId]="`grid-inventory-${randomCode}`" [columns]="columnDefinitionsInventory"
+                  [options]="gridOptionsInventory" [dataset]="datasetInventory" (onAngularGridCreated)="
+                    angularGridReadyInventory($any($event).detail)
+                  ">
+                </angular-slickgrid>
+              </div>
+            </nz-splitter-panel>
+          </nz-splitter>
+        </div>
+      </div>
+    </nz-splitter-panel>
+  </nz-splitter>
+</ng-container>

@@ -1561,10 +1561,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     const discountAmount = row.getData().DiscountAmount || 0;
     const billDate = row.getData().BillDate;
     const debt = row.getData().Debt || 0;
-    const discountBaseAmount = unitPrice;
-    const unitPriceAfterDiscount = discountBaseAmount - discountAmount;
-    const intoMoney = quantity * unitPriceAfterDiscount;
-    const totalWithVAT = intoMoney * (1 + vat / 100);
+
+    // Tính tổng tiền trước VAT = Đơn giá × Số lượng
+    const intoMoney = unitPrice * quantity;
+    // Tiền sau chiết khấu (chưa VAT) = Tổng tiền trước VAT - Chiết khấu
+    const intoMoneyAfterDiscount = intoMoney - discountAmount;
+    // Tổng tiền có VAT = Tiền sau chiết khấu × (1 + VAT%)
+    const totalWithVAT = intoMoneyAfterDiscount * (1 + vat / 100);
 
     try {
       // Tính thành tiền và tổng tiền bao gồm VAT
@@ -1577,7 +1580,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         ) {
           row.update({
             IntoMoney: intoMoney,
-            IntoMoneyAfterDiscount: unitPriceAfterDiscount,
+            IntoMoneyAfterDiscount: intoMoneyAfterDiscount,
             TotalPriceIncludeVAT: totalWithVAT,
           });
           this.calculateTotalIterative();
@@ -1615,7 +1618,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
       // Tính lại thành tiền khi thay đổi số lượng hoặc đơn giá
       if (columnField === 'Qty' || columnField === 'UnitPrice') {
-        row.update({ IntoMoney: quantity * unitPriceAfterDiscount });
+        row.update({ IntoMoney: unitPrice * quantity, IntoMoneyAfterDiscount: (unitPrice * quantity) - discountAmount });
         this.calculateTotalIterative();
       }
     } catch (error) {
@@ -2451,6 +2454,79 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     //   this.deleteFile(index);
     // };
   }
+
+  // Custom headerFilterFunc to recursively search through tree data children
+  // This shows parent rows if ANY child matches the filter
+  treeHeaderFilterFunc = (headerValue: any, rowValue: any, rowData: any, filterParams: any): boolean => {
+    const headerValLower = String(headerValue).toLowerCase();
+
+    // First check if ANY field in the current row matches (for better UX)
+    const rowValues = this.getRowSearchValues(rowData);
+    if (rowValues.some((v: string) => v.includes(headerValLower))) {
+      return true;
+    }
+
+    // Then recursively check all children in _children field
+    if (rowData && rowData._children && rowData._children.length > 0) {
+      return this.hasMatchingChild(rowData._children, headerValLower);
+    }
+
+    return false;
+  };
+
+  // Helper function to recursively check if any child matches the filter value
+  hasMatchingChild(children: any[], headerValue: string): boolean {
+    for (const child of children) {
+      // Check all searchable fields in the child row
+      for (const key of Object.keys(child)) {
+        if (key === '_children') continue; // Skip internal field
+        const value = child[key];
+        if (value !== null && value !== undefined) {
+          const valStr = String(value).toLowerCase();
+          if (valStr.includes(headerValue)) {
+            return true;
+          }
+        }
+      }
+      // Recursively check grandchildren
+      if (child._children && child._children.length > 0) {
+        if (this.hasMatchingChild(child._children, headerValue)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // Helper function to get searchable field values from a row
+  getRowSearchValues(rowData: any): string[] {
+    const values: string[] = [];
+    if (rowData) {
+      for (const key of Object.keys(rowData)) {
+        if (key === '_children') continue;
+        const value = rowData[key];
+        if (value !== null && value !== undefined) {
+          values.push(String(value).toLowerCase());
+        }
+      }
+    }
+    return values;
+  }
+
+  // Bind dataFiltered event to expand parent rows when filtering tree data
+  bindTreeFilterEvent() {
+    if (this.tb_ProductDetailTreeList) {
+      this.tb_ProductDetailTreeList.on('dataFiltered', (filters: any, rows: any) => {
+        // Expand all parent rows so that filtered children are visible
+        rows.forEach((row: any) => {
+          if (row.getTreeParent && row.getTreeParent()) {
+            row.getTreeParent().treeExpand(true);
+          }
+        });
+      });
+    }
+  }
+
   initProductDetailTreeList(): void {
     if (this.tb_ProductDetailTreeList) {
       this.tb_ProductDetailTreeList.destroy();
@@ -2460,6 +2536,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       {
         data: this.dataPOKHProduct,
         dataTree: true,
+        dataTreeFilter: true,
         selectableRows: 1,
         dataTreeStartExpanded: true,
         dataTreeChildField: '_children',
@@ -2490,6 +2567,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           vertAlign: 'middle',
           resizable: true,
+          headerFilter: true,
+          headerFilterFunc: this.treeHeaderFilterFunc.bind(this),
         },
         columns: [
           {
@@ -2695,7 +2774,31 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
               symbolAfter: true,
             },
           },
-
+          {
+            title: 'Tổng tiền trước VAT',
+            field: 'IntoMoney',
+            sorter: 'number',
+            width: 150,
+            formatter: 'money',
+            formatterParams: {
+              precision: 0,
+              decimal: '.',
+              thousand: ',',
+              symbol: '',
+              symbolAfter: true,
+            },
+            bottomCalc: (values, data) => {
+              return this.accumulateTreeValues(data, 'IntoMoney');
+            },
+            bottomCalcFormatter: 'money',
+            bottomCalcFormatterParams: {
+              precision: 0,
+              decimal: '.',
+              thousand: ',',
+              symbol: '',
+              symbolAfter: true,
+            },
+          },
           {
             title: 'Tiền chiết khấu',
             field: 'DiscountAmount',
@@ -2726,7 +2829,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             },
           },
           {
-            title: 'Tiền sau chiết khấu',
+            title: 'Tiền sau chiết khấu (chưa VAT)',
             field: 'IntoMoneyAfterDiscount',
             sorter: 'number',
             width: 150,
@@ -2740,35 +2843,6 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             },
             bottomCalc: (values, data) => {
               return this.accumulateTreeValues(data, 'IntoMoneyAfterDiscount');
-            },
-            bottomCalcFormatter: 'money',
-            bottomCalcFormatterParams: {
-              precision: 0,
-              decimal: '.',
-              thousand: ',',
-              symbol: '',
-              symbolAfter: true,
-            },
-          },
-          {
-            title: 'Tổng tiền trước VAT',
-            field: 'IntoMoney',
-            sorter: 'number',
-            width: 150,
-            editor: 'number',
-            editorParams: {
-              verticalNavigation: 'table',
-            },
-            formatter: 'money',
-            formatterParams: {
-              precision: 0,
-              decimal: '.',
-              thousand: ',',
-              symbol: '',
-              symbolAfter: true,
-            },
-            bottomCalc: (values, data) => {
-              return this.accumulateTreeValues(data, 'IntoMoney');
             },
             bottomCalcFormatter: 'money',
             bottomCalcFormatterParams: {

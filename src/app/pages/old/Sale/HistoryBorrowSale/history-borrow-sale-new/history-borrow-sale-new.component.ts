@@ -34,6 +34,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
+import { BillExportDetailFileComponent } from '../../BillExport/bill-export-detail-file/bill-export-detail-file.component';
 import { PermissionService } from '../../../../../services/permission.service';
 import { AppUserService } from '../../../../../services/app-user.service';
 
@@ -56,7 +57,8 @@ import { AppUserService } from '../../../../../services/app-user.service';
         NzSpinModule,
         AngularSlickgridModule,
         MenubarModule,
-        NzDropDownModule
+        NzDropDownModule,
+        BillExportDetailFileComponent
     ],
     templateUrl: './history-borrow-sale-new.component.html',
     styleUrl: './history-borrow-sale-new.component.css'
@@ -94,7 +96,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
     menuItems: MenuItem[] = [];
 
     searchParams = {
-        dateStart: new Date(`${new Date().getFullYear()}-01-01`),
+        dateStart: new Date('2020-01-01'),
         dateEnd: new Date(),
         keyword: '',
         status: 1,
@@ -310,6 +312,18 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 params: { minDecimal: 0, maxDecimal: 0 },
                 filter: { model: Filters['compoundInputNumber'] },
                 cssClass: 'text-end'
+            },
+            {
+                id: 'TotalExtend',
+                name: 'Số lần gia hạn',
+                field: 'TotalExtend',
+                sortable: true,
+                filterable: true,
+                width: 80,
+                formatter: Formatters.decimal,
+                params: { minDecimal: 0, maxDecimal: 0 },
+                filter: { model: Filters['compoundInputNumber'] },
+                cssClass: 'text-center'
             },
             {
                 id: 'ExpectedReturnDate',
@@ -657,8 +671,18 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
             enableContextMenu: true,
             contextMenu: {
                 hideCloseButton: false,
+                hideCopyCellValueCommand: true,
                 commandTitle: '',
                 commandItems: [
+                    {
+                        command: 'view-borrow-images',
+                        title: 'Xem ảnh mượn đồ',
+                        iconCssClass: 'fa-solid fa-image text-primary',
+                        positionOrder: 49,
+                        action: (_e, args) => {
+                            this.viewBorrowImages(args.dataContext);
+                        }
+                    },
                     {
                         command: 'copy-cell',
                         title: 'Copy',
@@ -1046,6 +1070,26 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
         });
     }
 
+    viewBorrowImages(rowData: any) {
+        if (!rowData) return;
+
+        const borrowID = rowData.BorrowID;
+        if (!borrowID || borrowID === 0) {
+            this.notification.error(NOTIFICATION_TITLE.error, 'Không có ảnh đăng ký mượn!');
+            return;
+        }
+
+        const modalRef = this.modalService.open(BillExportDetailFileComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            size: 'lg'
+        });
+
+        modalRef.componentInstance.billExportDetailId = borrowID;
+        modalRef.componentInstance.fileName = rowData.ProductName || rowData.BorrowCode || '';
+        modalRef.componentInstance.isHistoryBorrow = true;
+    }
+
     //#region Duyệt gia hạn
     onApproveExtend(isApproved: boolean) {
         const angularGrid = this.angularGrid;
@@ -1065,7 +1109,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
 
         const groupSet = new Set(
             this.productGroupWarehouse
-                .filter(x => x.EmployeeID === personInChargeID)
+                .filter(x => x.EmployeeID === personInChargeID || this.appUserService.isAdmin == true)
                 .map(x => x.ProductGroupID)
         );
 
@@ -1134,20 +1178,61 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
         }
 
         const employeeID = this.appUserService.id;
-        const filteredRows = selectedRows
-            .filter((item: any) => item.UserID === employeeID
-                && item.DualDate == 2
-                && item.StatusApprovedExpected != 0);
+        const personInChargeID = this.appUserService.employeeID;
 
-        if (filteredRows.length === 0 && !this.appUserService.isAdmin) {
-            this.notification.info('Thông báo',
-                'Không có dữ liệu hợp lệ để gia hạn. Bạn chỉ có thể gia hạn sản phẩm do bạn mượn và quá hạn!');
+        const groupSet = new Set(
+            this.productGroupWarehouse
+                .filter(x => x.EmployeeID === personInChargeID || this.appUserService.isAdmin == true)
+                .map(x => x.ProductGroupID)
+        );
+
+        const validRows: any[] = [];
+        const overExtendedRows: any[] = [];
+
+        selectedRows.forEach((item: any) => {
+            const isManagerOrAdmin = this.appUserService.isAdmin || groupSet.has(item.ProductGroupID);
+
+            if (isManagerOrAdmin) {
+                // Người quản lý kho / Admin: chỉ check điều kiện đồ quá hạn (DualDate == 2), bỏ qua các điều kiện khác
+                if (item.DualDate == 2 || item.DualDate == 1) {
+                    validRows.push(item);
+                }
+            } else {
+                // User thông thường: phải do chính mình mượn, quá hạn, chưa bị từ chối và chưa quá 3 lần gia hạn
+                const isOwnBorrow = item.UserID === employeeID;
+                const isOverdue = item.DualDate == 2 || item.DualDate == 1;
+                const isStatusValid = item.StatusApprovedExpected != 0;
+                const totalExtend = item.TotalExtend || 0;
+
+                if (isOwnBorrow && isOverdue && isStatusValid) {
+                    if (totalExtend >= 3) {
+                        overExtendedRows.push(item);
+                    } else {
+                        validRows.push(item);
+                    }
+                }
+            }
+        });
+
+        if (overExtendedRows.length > 0) {
+            const overExtendedCodes = overExtendedRows
+                .map((item: any) => item.BorrowCode || item.ProductCode || item.ProductNewCode)
+                .join(', ');
+            this.notification.warning(
+                'Cảnh báo',
+                `Phiếu mượn [${overExtendedCodes}] đã quá số lần gia hạn (tối đa 3 lần) nên bị bỏ qua. Vui lòng liên hệ với admin hoặc người quản lý kho để gia hạn thêm`
+            );
+        }
+
+        if (validRows.length === 0) {
+            this.notification.info(
+                'Thông báo',
+                'Không có sản phẩm hợp lệ nào đủ điều kiện để gia hạn! (Sản phẩm phải thuộc kho bạn quản lý hoặc do bạn mượn và đang quá hạn hoặc sắp tới hạn)'
+            );
             return;
         }
 
-        this._extendSelectedIds = !this.appUserService.isAdmin ?
-            filteredRows.map((item: any) => item.BorrowID) :
-            selectedRows.map((item: any) => item.BorrowID);
+        this._extendSelectedIds = validRows.map((item: any) => item.BorrowID);
         this.extendDate = new Date(new Date().setMonth(new Date().getMonth() + 1));
         this.extendModalVisible = true;
     }

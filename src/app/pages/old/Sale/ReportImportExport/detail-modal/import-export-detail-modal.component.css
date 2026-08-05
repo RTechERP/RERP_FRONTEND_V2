@@ -1,0 +1,17 @@
+.grid-container {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+.panel-container {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.panel-header {
+  font-weight: 600;
+  color: #333;
+}

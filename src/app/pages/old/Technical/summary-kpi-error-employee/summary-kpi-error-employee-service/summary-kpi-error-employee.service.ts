@@ -42,13 +42,14 @@ export class SummaryKpiErrorEmployeeService {
   }
 
   // Lấy dữ liệu tổng hợp (Tab 1 - 3 sub-tabs)
-  getDataTongHop(month: number, year: number, kpiErrorId: number, employeeId: number, departmentIDs: DepartmentIdInput, keywords: string = ''): Observable<any> {
+  getDataTongHop(month: number, year: number, kpiErrorId: number, employeeId: number, departmentIDs: DepartmentIdInput, keywords: string = '', userLoginDepartmentID: number = 0): Observable<any> {
     let params = new HttpParams()
       .set('month', month.toString())
       .set('year', year.toString())
       .set('kpiErrorId', kpiErrorId.toString())
       .set('employeeId', employeeId.toString())
-      .set('departmentIDs', this.normalizeDepartmentIDs(departmentIDs));
+      .set('departmentIDs', this.normalizeDepartmentIDs(departmentIDs))
+      .set('userLoginDepartmentID', (userLoginDepartmentID || 0).toString());
 
     if (keywords) {
       params = params.set('keywords', keywords);
@@ -58,14 +59,15 @@ export class SummaryKpiErrorEmployeeService {
   }
 
   // Lấy danh sách file
-  getDataFile(month: number, year: number, kpiErrorId: number, employeeId: number, departmentIDs: DepartmentIdInput, typeId: number, keywords: string = ''): Observable<any> {
+  getDataFile(month: number, year: number, kpiErrorId: number, employeeId: number, departmentIDs: DepartmentIdInput, typeId: number, keywords: string = '', userLoginDepartmentID: number = 0): Observable<any> {
     let params = new HttpParams()
       .set('month', month.toString())
       .set('year', year.toString())
       .set('kpiErrorId', kpiErrorId.toString())
       .set('employeeId', employeeId.toString())
       .set('departmentIDs', this.normalizeDepartmentIDs(departmentIDs))
-      .set('typeId', typeId.toString());
+      .set('typeId', typeId.toString())
+      .set('userLoginDepartmentID', (userLoginDepartmentID || 0).toString());
 
     if (keywords) {
       params = params.set('keywords', keywords);

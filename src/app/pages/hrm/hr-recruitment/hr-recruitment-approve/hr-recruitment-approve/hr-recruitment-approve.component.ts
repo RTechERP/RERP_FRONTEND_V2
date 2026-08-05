@@ -27,6 +27,8 @@ import { environment } from '../../../../../../environments/environment';
 import { ProjectService } from '../../../../project/project-service/project.service';
 import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 
+import { NzGridModule } from 'ng-zorro-antd/grid';
+
 @Component({
   selector: 'app-hr-recruitment-approve',
   standalone: true,
@@ -42,6 +44,7 @@ import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '
     NzSelectModule,
     NzDatePickerModule,
     NzTagModule,
+    NzGridModule,
     NgbModalModule,
     Menubar,
     CustomTable,
@@ -94,6 +97,12 @@ export class HrRecruitmentApproveComponent implements OnInit {
         label: 'Xem tờ trình',
         icon: 'fa-solid fa-file-lines fa-lg text-info',
         command: () => this.viewApproveForm(),
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-warning',
+        visible: this.permissionService.hasPermission('N1,N2'),
+        command: () => this.editApproveForm(),
       },
       {
         label: 'TBP Duyệt',
@@ -334,6 +343,29 @@ export class HrRecruitmentApproveComponent implements OnInit {
         });
         modalRef.componentInstance.HRRecruitmentCandidateID = res.data ?? 0;
         modalRef.componentInstance.Status = 7;
+        modalRef.componentInstance.isEdit = false;
+        modalRef.result.then(() => this.onSearch(), () => { });
+      },
+      error: () => this.isLoading = false
+    });
+  }
+
+  /** Gọi từ menu "Sửa" — phân quyền N1, N2 */
+  editApproveForm() {
+    if (!this.selectedRow) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 ứng viên để sửa tờ trình!');
+      return;
+    }
+    this.isLoading = true;
+    this.hrRecruitmentApproveService.getHRRecruitmentCandidateByIDForm(this.selectedRow.HRRecruitmentApplicationFormID).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        const modalRef = this.modalService.open(HrRecruitmentApproveFormComponent, {
+          backdrop: 'static', keyboard: false, centered: true, size: 'xl', scrollable: true
+        });
+        modalRef.componentInstance.HRRecruitmentCandidateID = res.data ?? 0;
+        modalRef.componentInstance.Status = 6;
+        modalRef.componentInstance.isEdit = true;
         modalRef.result.then(() => this.onSearch(), () => { });
       },
       error: () => this.isLoading = false

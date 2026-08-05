@@ -139,19 +139,30 @@
           <div class="table-title">
             <h6>Danh sách mục tiêu KPI</h6>
             <div class="table-actions">
+              <!-- Nút chuyển chế độ Thông số Team (xem / sửa thông số riêng cho Team) -->
+              <button nz-button nzSize="small"
+                [nzType]="isTeamWeightMode ? 'primary' : 'default'"
+                nz-tooltip
+                [nzTooltipTitle]="(!selectedPeriodId || !selectedTeamId)
+                  ? 'Vui lòng chọn Kỳ KPI và Team trước'
+                  : (isTeamWeightMode ? 'Đang hiển thị thông số Team — bấm để tắt' : 'Bấm để xem / sửa thông số riêng cho Team')"
+                (click)="toggleTeamWeightMode()">
+                <i nz-icon nzType="team"></i>
+                {{ isTeamWeightMode ? 'Thông số Team: Đang bật' : 'Thông số Team: Đang tắt' }}
+              </button>
               <!-- Nút Duyệt nhanh — Quarter Mode (chọn nhiều dòng) -->
               <button *ngIf="canApproveTargets && isQuarterMode()" nz-button nzType="primary" nzSize="small"
-                nz-tooltip nzTooltipTitle="Duyệt tất cả các dòng đã chọn (Quarter mode)"
+                nz-tooltip nzTooltipTitle="Sales Manager duyệt tất cả các dòng đã chọn (Quarter mode)"
                 [disabled]="selectedPivotTargetIds.size === 0"
                 (click)="approveSelectedPivot()">
-                <i nz-icon nzType="check-circle"></i> Duyệt ({{ selectedPivotTargetIds.size }})
+                <i nz-icon nzType="check-circle"></i> Sales Manager duyệt ({{ selectedPivotTargetIds.size }})
               </button>
               <!-- Nút Duyệt nhanh — Month Mode (chọn nhiều dòng) -->
               <button *ngIf="canApproveTargets && !isQuarterMode()" nz-button nzType="primary" nzSize="small"
-                nz-tooltip nzTooltipTitle="Duyệt tất cả các dòng đã chọn"
+                nz-tooltip nzTooltipTitle="Sales Manager duyệt tất cả các dòng đã chọn"
                 [disabled]="selectedTargetIds.size === 0"
                 (click)="approveSelected()">
-                <i nz-icon nzType="check-circle"></i> Duyệt ({{ selectedTargetIds.size }})
+                <i nz-icon nzType="check-circle"></i> Sales Manager duyệt ({{ selectedTargetIds.size }})
               </button>
               <!-- Nút Lưu inline -->
               <button nz-button nzType="default" nzSize="small"
@@ -177,11 +188,207 @@
                 (click)="autoAddMissingTargets()">
                 <i nz-icon nzType="appstore-add"></i> Tự động thêm chỉ tiêu theo mẫu
               </button>
+              <!-- Nút bật/tắt Trọng số Team đã chuyển lên thanh công cụ trên cùng (menuBars) -->
             </div>
           </div>
 
+          <!-- ===== TEAM WEIGHT OVERRIDE SECTION (chế độ xem/sửa trọng số riêng cho Team) ===== -->
+          <div *ngIf="isTeamWeightMode" class="team-weight-section">
+            <div class="team-weight-body">
+              <div class="team-weight-header">
+                <h6>
+                  <i nz-icon nzType="team"></i>
+                  Thông số Team:
+                  <span style="color:#1677ff;">
+                    {{ (selectedTeamId ? getTeamName(selectedTeamId) : '') }}
+                  </span>
+                </h6>
+                <small style="color:#94a3b8;">
+                  Mẫu KPI của Team:
+                  <strong style="color:#262626;">{{ teamWeightTemplateName || '(chưa gán template cho team ở kỳ này)' }}</strong>.
+                  Mỗi dòng tương ứng 1 chỉ tiêu KPI trong mẫu Team.
+                  <span *ngIf="!canEditTeamWeight" style="color:#faad14;">— Bạn chỉ có quyền xem.</span>
+                </small>
+                <!-- <div *ngIf="canEditTeamWeight && getCurrentSelectedPeriodType() !== 'MONTH'"
+                  style="margin-top:6px; padding:6px 10px; background:#fff7e6; border:1px solid #ffd591; border-radius:4px; color:#ad6800; font-size:12px;">
+                  <i nz-icon nzType="info-circle"></i>
+                  Bạn đang lưu cho kỳ <strong>QUARTER/YEAR</strong>
+                  ({{ getCurrentSelectedPeriodCode() }}). Hệ thống sẽ <strong>tự động đồng bộ trọng số</strong>
+                  này cho tất cả các tháng con. Nếu muốn chỉnh riêng từng tháng, hãy chuyển sang kỳ MONTH.
+                </div> -->
+                <div *ngIf="canEditTeamWeight && getCurrentSelectedPeriodType() === 'MONTH'"
+                  style="margin-top:6px; padding:6px 10px; background:#f6ffed; border:1px solid #b7eb8f; border-radius:4px; color:#389e0d; font-size:12px;">
+                  <i nz-icon nzType="info-circle"></i>
+                  Đang lưu cho kỳ <strong>MONTH</strong> ({{ getCurrentSelectedPeriodCode() }}).
+                  Trọng số sẽ chỉ áp dụng cho riêng tháng này, không ảnh hưởng các tháng khác.
+                </div>
+              </div>
+
+              <nz-table #teamWeightTable [nzData]="teamWeightItems" [nzFrontPagination]="false"
+                nzSize="small" nzBordered>
+                <thead>
+                  <tr>
+                    <th nzWidth="90px" nzAlign="center">STT</th>
+                    <th nzWidth="100px" nzAlign="center">Loại</th>
+                    <th>Chỉ tiêu KPI</th>
+                    <th nzWidth="110px" nzAlign="center">Trọng số (%)</th>
+                    <th nzWidth="150px" nzAlign="right">Mục tiêu</th>
+                    <th nzWidth="130px" nzAlign="right">Đề xuất</th>
+                    <th nzWidth="100px" nzAlign="center">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <ng-container *ngFor="let node of getFlatTeamWeightTree(); let i = index">
+                    <tr [class.row-group]="node.indexType === 'GROUP' && node.level === 0"
+                      [class.row-child]="!(node.indexType === 'GROUP' && node.level === 0)">
+                      <!-- Cột STT: chứa cả mũi tên expand/collapse và số thứ tự phân cấp -->
+                      <td nzAlign="center" style="white-space: nowrap;">
+                        <div style="display: inline-flex; align-items: center; gap: 6px;">
+                          <span *ngIf="node.children?.length"
+                            (click)="toggleTeamWeightNode(node)"
+                            nz-tooltip [nzTooltipTitle]="node.expanded ? 'Thu gọn' : 'Mở rộng'"
+                            style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 3px; transition: background 0.15s;"
+                            [style.background]="node.expanded ? '#e6f4ff' : 'transparent'">
+                            <i nz-icon [nzType]="node.expanded ? 'down' : 'right'" nzTheme="outline" style="font-size: 11px;"></i>
+                          </span>
+                          <span *ngIf="!node.children?.length" style="display: inline-block; width: 18px;"></span>
+                          <span [style.font-weight]="node.indexType === 'GROUP' ? 700 : 500"
+                            [style.color]="node.indexType === 'GROUP' ? '#0b3a66' : '#595959'">
+                            {{ getNodeDisplayPath(node) }}
+                          </span>
+                        </div>
+                      </td>
+                      <td nzAlign="center">
+                        <nz-tag [nzColor]="getTeamWeightIndexTypeColor(node.indexType)">
+                          {{ getTeamWeightIndexTypeLabel(node.indexType) }}
+                        </nz-tag>
+                      </td>
+                      <td class="mono">
+                        <span [style.padding-left.px]="0">
+                          {{ node.indexName }}
+                        </span>
+                      </td>
+                      <td nzAlign="center">
+                        <input nz-input nzSize="small" type="number"
+                          [disabled]="!canEditTeamWeight"
+                          [ngModel]="getTeamWeightValue(node.kpiIndexId)"
+                          (ngModelChange)="onTeamWeightChange(node.kpiIndexId, $event)"
+                          [min]="0" [max]="100" [step]="1"
+                          [style.width.px]="node.level === 0 ? 90 : 80"
+                          [style.font-weight]="node.level === 0 ? '600' : '400'"
+                          [style.background]="node.level === 0 ? '#f8fafc' : ''"
+                          nz-tooltip [nzTooltipTitle]="getTeamWeightValue(node.kpiIndexId) != null ? 'Đã ghi đè mặc định' : 'Chưa ghi đè'" />
+                      </td>
+                      <td nzAlign="right">
+                        <strong [style.color]="node.level === 0 ? '#1677ff' : ''">
+                          {{ formatMoney(node.teamGoalValue) }}
+                        </strong>
+                      </td>
+                      <td nzAlign="right" style="color:#d48806;">
+                        {{ formatMoney(node.teamProposedValue) }}
+                      </td>
+                      <td nzAlign="center">
+                        <nz-tag *ngIf="node.teamGoalValue > 0" nzColor="green" nzSize="small">
+                          <i nz-icon nzType="check-circle"></i>
+                        </nz-tag>
+                        <nz-tag *ngIf="node.teamGoalValue === 0" nzColor="default" nzSize="small">
+                          <i nz-icon nzType="minus-circle"></i>
+                        </nz-tag>
+                      </td>
+                    </tr>
+                  </ng-container>
+                  <tr *ngIf="teamWeightTreeData.length === 0">
+                    <td colspan="7" style="text-align:center; color:#94a3b8; padding:24px;">
+                      Team chưa được gán mẫu KPI cho kỳ này. Vui lòng bấm "Gán mẫu theo Team" trên thanh menu
+                      để gán template trước khi chỉnh trọng số.
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot *ngIf="teamWeightTreeData.length > 0">
+                  <tr>
+                    <td colspan="3" style="text-align:right; font-weight:600;">Tổng Weight:</td>
+                    <td nzAlign="center" style="font-weight:600;">
+                      {{ calculateTotalTeamWeight() | number:'1.0-2' }}%
+                      <nz-tag *ngIf="calculateTotalTeamWeight() !== 100" nzColor="red" nzSize="small">
+                        <i nz-icon nzType="warning"></i>
+                      </nz-tag>
+                    </td>
+                    <td nzAlign="right" style="font-weight:700; color:#1677ff;">
+                      {{ calculateTotalTeamGoal() | number:'1.0-0' }}
+                    </td>
+                    <td nzAlign="right" style="font-weight:600; color:#d48806;">
+                      {{ calculateTotalTeamProposed() | number:'1.0-0' }}
+                    </td>
+                    <td colspan="2"></td>
+                  </tr>
+                </tfoot>
+              </nz-table>
+            </div>
+
+            <div class="team-weight-footer">
+              <div class="footer-left">
+                <!-- Nút Sales Manager gửi mail yêu cầu BGĐ duyệt -->
+                <button *ngIf="canApproveTeamTargets" nz-button nzType="default" nzSize="small"
+                  [style.background]="canApproveTeamTargets ? '#fa8c16' : '#bfbfbf'"
+                  [style.border-color]="canApproveTeamTargets ? '#fa8c16' : '#bfbfbf'"
+                  [style.color]="canApproveTeamTargets ? '#fff' : '#fff'"
+                  [style.cursor]="canApproveTeamTargets ? 'pointer' : 'not-allowed'"
+                  [style.font-weight]="600"
+                  nz-tooltip [nzTooltipTitle]="canApproveTeamTargets
+                    ? 'Gửi email yêu cầu Ban Giám Đốc duyệt mục tiêu team'
+                    : canBoardApproveTeamTargets && (teamTargetData?.boardApprovedMembers ?? 0) > 0
+                      ? 'Ban Giám Đốc đã duyệt rồi, không cần gửi mail'
+                      : 'Sales Manager phải duyệt tất cả thành viên trong team trước thì mới gửi được mail'"
+                  [disabled]="!canApproveTeamTargets || sendingApprovalRequestEmail || (teamTargetData?.boardApprovedMembers ?? 0) > 0"
+                  [nzLoading]="sendingApprovalRequestEmail"
+                  (click)="sendApprovalRequestEmail()">
+                  <i nz-icon nzType="mail"></i> Sales Manager gửi mail yêu cầu BGĐ duyệt
+                </button>
+                <!-- Nút duyệt Ban GD cho Team (duyệt 1 phát 4 bản ghi: 3 tháng + quý) - Ẩn khi đã duyệt -->
+                <button *ngIf="canBoardApproveTeamTargets && (teamTargetData?.boardApprovedMembers ?? 0) === 0" nz-button nzType="primary" nzSize="small"
+                  [style.background]="'#722ed1'"
+                  [style.border-color]="'#722ed1'"
+                  [style.box-shadow]="'0 2px 4px rgba(114, 46, 209, 0.3)'"
+                  [style.cursor]="'pointer'"
+                  [style.font-weight]="600"
+                  nz-tooltip nzTooltipTitle="Duyệt Ban Giám Đốc sẽ duyệt toàn bộ mục tiêu của các thành viên trong team"
+                  (click)="boardApproveTeamTargets()">
+                  <i nz-icon nzType="bank"></i> Ban Giám Đốc Duyệt
+                </button>
+                <!-- Nút hủy duyệt Ban GD cho Team -->
+                <button *ngIf="canBoardApproveTeamTargets && teamTargetData && (teamTargetData.boardApprovedMembers ?? 0) > 0" nz-button nzType="default" nzDanger nzSize="small"
+                  nz-tooltip nzTooltipTitle="Hủy duyệt Ban Giám Đốc sẽ hủy duyệt toàn bộ mục tiêu đã được BGD duyệt của team"
+                  (click)="boardUnapproveTeamTargets()">
+                  <i nz-icon nzType="undo"></i> Hủy Ban Giám Đốc Duyệt
+                </button>
+                <!-- Thông tin Sales Manager duyệt -->
+                <nz-tag *ngIf="teamTargetData" [nzColor]="teamTargetData.approvedMembers === teamTargetData.totalMembers ? 'green' : 'orange'">
+                  {{ teamTargetData.approvedMembers }}/{{ teamTargetData.totalMembers }} Sales Manager duyệt
+                </nz-tag>
+                <!-- Thông tin BGD duyệt -->
+                <nz-tag *ngIf="teamTargetData && (teamTargetData.boardApprovedMembers ?? 0) > 0" nzColor="purple">
+                  <i nz-icon nzType="team"></i> {{ teamTargetData.boardApprovedMembers }}/{{ teamTargetData.totalMembers }} BGD duyệt
+                </nz-tag>
+              </div>
+              <div class="footer-right">
+                <button nz-button nzType="default" nzSize="small" (click)="toggleTeamWeightMode()">
+                  <i nz-icon nzType="close"></i> Đóng
+                </button>
+                <button nz-button nzType="primary" nzSize="small"
+                  *ngIf="canEditTeamWeight"
+                  [disabled]="!hasTeamWeightChanges() || isTeamWeightLoading"
+                  (click)="saveTeamWeightChanges()">
+                  <i nz-icon nzType="save"></i> Lưu Trọng số
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== TEAM TARGET SECTION (Đã gộp vào TEAM WEIGHT - xem bảng bên trên) ===== -->
+          <!-- Phần này đã được gộp vào bảng trọng số Team - không cần section riêng nữa -->
+
           <!-- ===== CHẾ ĐỘ QUÝ / NĂM: PIVOT TABLE ===== -->
-          <div *ngIf="isQuarterMode()" style="flex: 1; min-height: 0; overflow: hidden;" class="target-table-wrapper">
+          <div *ngIf="isQuarterMode() && !isTeamWeightMode && !isTeamTargetMode" style="flex: 1; min-height: 0; overflow: hidden;" class="target-table-wrapper">
             <nz-table #pivotTable [nzData]="quarterlyRows" [nzFrontPagination]="false"
               nzSize="small" nzBordered style="height: 100%;"
               [nzScroll]="{ x: '900px', y: 'calc(100vh - 340px)' }">
@@ -272,22 +479,6 @@
                                 (focus)="$any($event.target).select()"
                                 style="flex: 1; text-align: right; font-weight: 600;"
                                 [style.color]="getDisplayPivotProposed(row, cell.periodId) ? '#d48806' : 'inherit'" />
-                              <div style="display: flex; gap: 4px; flex-shrink: 0;">
-                                <ng-container *ngIf="canApprove(cell.target) && cell.approvalStatus === 'Pending' && cell.target.proposedGoalValue != null">
-                                  <i nz-icon nzType="check-circle" class="text-success pointer-cursor"
-                                    nz-tooltip nzTooltipTitle="Duyệt"
-                                    style="font-size: 13px;"
-                                    (click)="approveTargetById(cell.target!.id)"></i>
-                                  <i nz-icon nzType="close-circle" class="text-danger pointer-cursor"
-                                    nz-tooltip nzTooltipTitle="Hủy đề xuất"
-                                    nz-popconfirm
-                                    nzPopconfirmTitle="Hủy đề xuất này?"
-                                    nzOkText="Hủy"
-                                    nzCancelText="Đóng"
-                                    style="font-size: 13px;"
-                                    (nzOnConfirm)="rejectTargetById(cell.target!.id)"></i>
-                                </ng-container>
-                              </div>
                             </div>
                           </ng-container>
                           <ng-template #emptyProposed>
@@ -338,7 +529,7 @@
           </div>
 
           <!-- ===== CHẾ ĐỘ THÁNG: FLAT TABLE (giữ nguyên) ===== -->
-          <div *ngIf="!isQuarterMode()" style="flex: 1; min-height: 0; overflow: hidden;" class="target-table-wrapper">
+          <div *ngIf="!isQuarterMode() && !isTeamWeightMode && !isTeamTargetMode" style="flex: 1; min-height: 0; overflow: hidden;" class="target-table-wrapper">
             <nz-table #targetTable [nzData]="tableRows" [nzFrontPagination]="false"
               nzSize="small" nzBordered style="height: 100%;"
               [nzScroll]="{ y: 'calc(100vh - 340px)' }"
@@ -352,13 +543,13 @@
                       (nzCheckedChange)="toggleSelectAll()">
                     </label>
                   </th>
-                  <th>Nhân viên</th>
-                  <th>Kỳ KPI</th>
+                  <th nzWidth="100px">Nhân viên</th>
+                  <th nzWidth="80px" nzAlign="center">Kỳ KPI</th>
                   <th>Chỉ tiêu KPI</th>
                   <th nzWidth="90px" nzAlign="right">Trọng số (%)</th>
-                  <th nzWidth="140px" nzAlign="right">Giá trị đề xuất</th>
-                  <th nzWidth="130px" nzAlign="right">Mục tiêu (đã duyệt)</th>
-                  <th nzWidth="110px" nzAlign="center">Trạng thái</th>
+                  <th nzWidth="150px" nzAlign="right">Giá trị đề xuất</th>
+                  <th nzWidth="150px" nzAlign="right">Mục tiêu (đã duyệt)</th>
+                  <th nzWidth="110px" nzAlign="center">Trạng thái duyệt</th>
                   <th nzWidth="100px" nzAlign="center">Hành động</th>
                 </tr>
               </thead>
@@ -392,14 +583,14 @@
                     <td>{{ row.periodCode || getPeriodName(row.periodId) }}</td>
                     <!-- Chỉ tiêu KPI -->
                     <td>
-                      <span class="mono">
+                      <span>
                         <nz-tag *ngIf="isGroupIndex(row.kpiIndexId)" nzColor="green" style="margin-right:6px;">
                           <i nz-icon nzType="folder"></i> Nhóm
                         </nz-tag>
                         <nz-tag *ngIf="isDetailIndex(row.kpiIndexId)" nzColor="blue" style="margin-right:6px;">
                           <i nz-icon nzType="unordered-list"></i> Chi tiết
                         </nz-tag>
-                        {{ row.indexCode ? row.indexCode + ' - ' + (row.indexName || getIndexName(row.kpiIndexId)) : getIndexName(row.kpiIndexId) }}
+                        {{ row.indexName || getIndexName(row.kpiIndexId) }}
                       </span>
                     </td>
                     <!-- Trọng số -->
@@ -419,7 +610,7 @@
                         <div style="text-align: right; padding: 4px 8px; background: #f6ffed; border-radius: 4px; color: #389e0d; font-weight: 600;">
                           <i nz-icon nzType="calculator"></i>
                           {{ formatMoney(getDisplayProposedGoalValue(row)) }}
-                          <small style="display:block; font-weight:400; color:#8c8c8c;">Tự động sum từ chỉ tiêu con</small>
+                          <!-- <small style="display:block; font-weight:400; color:#8c8c8c;">Tự động sum từ chỉ tiêu con</small> -->
                         </div>
                       </ng-template>
                     </td>
@@ -438,15 +629,22 @@
                         <div style="text-align: right; padding: 4px 8px; background: #f6ffed; border-radius: 4px; color: #389e0d; font-weight: 600;">
                           <i nz-icon nzType="calculator"></i>
                           {{ formatMoney(getDisplayGoalValue(row)) }}
-                          <small style="display:block; font-weight:400; color:#8c8c8c;">Tự động sum từ chỉ tiêu con</small>
+                          <!-- <small style="display:block; font-weight:400; color:#8c8c8c;">Tự động sum từ chỉ tiêu con</small> -->
                         </div>
                       </ng-template>
                     </td>
                     <!-- Trạng thái -->
                     <td nzAlign="center">
-                      <nz-tag *ngIf="!isGroupIndex(row.kpiIndexId)" [nzColor]="getApprovalStatusColor(row.approvalStatus)">
-                        {{ getApprovalStatusLabel(row.approvalStatus) }}
-                      </nz-tag>
+                      <ng-container *ngIf="!isGroupIndex(row.kpiIndexId)">
+                        <!-- Sales Manager Duyệt -->
+                        <nz-tag [nzColor]="getApprovalStatusColor(row.approvalStatus)">
+                          <i nz-icon nzType="user"></i> SM
+                        </nz-tag>
+                        <!-- BGD Duyệt -->
+                        <nz-tag *ngIf="row.isBoardApproved" nzColor="purple" nz-tooltip nzTooltipTitle="Ban Giám Đốc đã duyệt">
+                          <i nz-icon nzType="bank"></i> BGD
+                        </nz-tag>
+                      </ng-container>
                       <nz-tag *ngIf="isGroupIndex(row.kpiIndexId)" nzColor="default">
                         <i nz-icon nzType="info-circle"></i> Tự tính
                       </nz-tag>
@@ -462,16 +660,16 @@
                         </a>
                         <a *ngIf="canApprove(row)"
                           class="action-btn text-success"
-                          nz-tooltip nzTooltipTitle="Duyệt giá trị đề xuất"
+                          nz-tooltip nzTooltipTitle="Sales Manager duyệt giá trị đề xuất"
                           (click)="approveTarget(row)">
-                          <i nz-icon nzType="check-circle"></i> Duyệt
+                          <i nz-icon nzType="check-circle"></i> Sales Manager duyệt
                         </a>
-                        <a *ngIf="canApprove(row)"
+                        <a *ngIf="canReject(row)"
                           class="action-btn text-danger"
-                          nz-tooltip nzTooltipTitle="Hủy giá trị đề xuất"
+                          nz-tooltip nzTooltipTitle="Hủy Sales Manager duyệt"
                           nz-popconfirm
-                          nzPopconfirmTitle="Hủy giá trị đề xuất của mục tiêu này?"
-                          nzOkText="Hủy đề xuất"
+                          nzPopconfirmTitle="Hủy Sales Manager duyệt của mục tiêu này?"
+                          nzOkText="Hủy Sales Manager duyệt"
                           nzCancelText="Đóng"
                           (nzOnConfirm)="rejectTarget(row)">
                           <i nz-icon nzType="close-circle"></i> Hủy
@@ -488,6 +686,22 @@
                 </tr>
               </tbody>
             </nz-table>
+          </div>
+
+          <!-- Footer BGD duyệt cho Quarter Mode -->
+          <div *ngIf="isQuarterMode() && boardApproveSummary.total > 0" class="board-approve-footer">
+            <nz-tag
+              [nzColor]="boardApproveSummary.approved === boardApproveSummary.total ? 'purple' : 'orange'"
+              nz-tooltip [nzTooltipTitle]="
+                boardApproveSummary.approved === boardApproveSummary.total
+                  ? 'Toàn bộ mục tiêu của nhân viên này đã được Ban Giám Đốc duyệt'
+                  : 'Một số mục tiêu chưa được Ban Giám Đốc duyệt'"
+              style="font-size: 14px; padding: 4px 12px; font-weight: 600; border-radius: 4px;">
+              <i nz-icon nzType="bank"></i>
+              {{ boardApproveSummary.approved === boardApproveSummary.total
+                  ? 'Đã được Ban Giám Đốc duyệt'
+                  : 'Ban Giám Đốc duyệt: ' + boardApproveSummary.approved + '/' + boardApproveSummary.total + ' mục tiêu' }}
+            </nz-tag>
           </div>
         </div>
       </div>
@@ -526,7 +740,7 @@
         [(ngModel)]="targetDraft.kpiIndexId" (ngModelChange)="onTargetDraftChange()" class="w-100"
         [nzDisabled]="!getAssignmentForEmployee(targetDraft.employeeId)">
         <nz-option *ngFor="let item of indexesForTemplate; trackBy: trackById" [nzValue]="item.id"
-          [nzLabel]="item.indexCode + ' - ' + item.indexName">
+          [nzLabel]="item.indexName">
         </nz-option>
       </nz-select>
       <small *ngIf="targetDraft.employeeId && !getAssignmentForEmployee(targetDraft.employeeId)" class="field-hint">

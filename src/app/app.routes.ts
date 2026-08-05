@@ -422,6 +422,14 @@ import { FoodOrderPersonalComponent } from './pages/hrm/food-order/food-order-pe
 import { EarlyLatePersonComponent } from './pages/hrm/early-late/early-late-person/early-late-person.component';
 import { InventoryNotExportComponent } from './pages/old/Sale/Inventory/inventory-not-export/inventory-not-export.component';
 import { ProjectTypeDepartmentComponent } from './pages/project/project-gate/project-type-department/project-type-department.component';
+import { TravelRegistrationComponent } from './pages/hrm/travel-registration/travel-registration.component';
+import { TravelRegistrationImportExcelComponent } from './pages/hrm/travel-registration/travel-registration-import-excel/travel-registration-import-excel.component';
+import { TravelRegistrationDetailComponent } from './pages/hrm/travel-registration/travel-registration-detail/travel-registration-detail.component';
+import { SalaryIncreaseComponent } from './pages/hrm/salary-increase/salary-increase.component';
+import { ProductSaleNewApprovedComponent } from './pages/old/Sale/ProductSale/product-sale-new-approved/product-sale-new-approved.component';
+import { ExpectedPayableComponent } from './pages/old/Sale/BillImport/expected-payable/expected-payable.component';
+import { HotelBookingManagementComponent } from './pages/hrm/hotel-booking-managament/hotel-booking-management.component';
+import { PersonalSignatureComponent } from './pages/personal-signature/personal-signature.component';
 export const routes: Routes = [
 
   {
@@ -1364,6 +1372,19 @@ export const routes: Routes = [
       { path: 'vehicle-rental-request', component: VehicleRentalRequestComponent, canActivate: [authGuard] },
       { path: 'business-visa-request', component: VisaRequestComponent, canActivate: [authGuard] },
       { path: 'inventory-not-export', component: InventoryNotExportComponent, canActivate: [authGuard] },
+      { path: 'contract-transfer-review-tbp-hr', component: ContractTransferReviewComponent, canActivate: [authGuard] },
+      { path: 'kpi-error-hr', component: KpiErrorComponent, canActivate: [authGuard] }, // danh sách lỗi kt
+      { path: 'kpi-error-employee-hr', component: KpiErrorEmployeeComponent, canActivate: [authGuard] },
+      { path: 'summary-kpi-error-employee-new-hr', component: SummaryKpiErrorEmployeePrimengComponent, canActivate: [authGuard] },
+      { path: 'travel-registration', component: TravelRegistrationComponent, canActivate: [authGuard] },
+      { path: 'travel-registration-import-excel', component: TravelRegistrationImportExcelComponent, canActivate: [authGuard] },
+      { path: 'travel-registration-detail', component: TravelRegistrationDetailComponent, canActivate: [authGuard] },
+      { path: 'summary-kpi-error-employee-new-hr', component: SummaryKpiErrorEmployeePrimengComponent, canActivate: [authGuard] },
+      { path: 'salary-increase', component: SalaryIncreaseComponent, canActivate: [authGuard] },
+      { path: 'product-sale-new-approved', component: ProductSaleNewApprovedComponent, canActivate: [authGuard] },
+      { path: 'expected-payable', component: ExpectedPayableComponent, canActivate: [authGuard] },
+      { path: 'hotel-booking', component: HotelBookingManagementComponent, canActivate: [authGuard] },
+      { path: 'signature-personal', component: PersonalSignatureComponent, canActivate: [authGuard] },
       { path: 'project-gate-step', component: ProjectGateStepManagementComponent, canActivate: [authGuard] },
       { path: 'project-gate', component: ProjectGateManagementComponent, canActivate: [authGuard] },
       { path: 'project-gate-checklist-type', component: ProjectGateCheckListTypeManagementComponent, canActivate: [authGuard] },

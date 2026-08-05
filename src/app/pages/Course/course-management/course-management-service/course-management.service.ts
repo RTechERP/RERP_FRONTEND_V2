@@ -2,6 +2,18 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
+import {
+  CopyCourseCatalogPreview,
+  CopyCourseCatalogRequest,
+  CopyCourseCatalogResult,
+  MoveCourseCatalogRequest,
+  CopyCoursePreview,
+  CopyCourseRequest,
+  CopyCourseResult,
+  CopyLessonPreview,
+  CopyLessonRequest,
+  CopyLessonResult,
+} from '../course-management.types';
 
 @Injectable({
   providedIn: 'root',
@@ -109,6 +121,118 @@ export class CourseManagementService {
   // Save data course catalog
   saveCourseCatalog(data: any): Observable<any> {
     return this.http.post<any>(this.apiUrl + 'save-data-category', data);
+  }
+
+  getCopyCourseCatalogPreview(sourceCatalogId: number): Observable<any> {
+    const params = new HttpParams().set(
+      'sourceCatalogId',
+      sourceCatalogId.toString(),
+    );
+    return this.http.get<{ data: CopyCourseCatalogPreview }>(
+      this.apiUrl + 'copy-course-catalog-preview',
+      { params },
+    );
+  }
+
+  copyCourseCatalogFull(data: CopyCourseCatalogRequest): Observable<any> {
+    return this.http.post<{ data: CopyCourseCatalogResult }>(
+      this.apiUrl + 'copy-course-catalog-full',
+      data,
+    );
+  }
+
+  getMoveCourseCatalogPreview(sourceCatalogId: number): Observable<any> {
+    const params = new HttpParams().set(
+      'sourceCatalogId',
+      sourceCatalogId.toString(),
+    );
+    return this.http.get<any>(
+      this.apiUrl + 'move-course-catalog-preview',
+      { params },
+    );
+  }
+
+  moveCourseCatalog(data: any): Observable<any> {
+    return this.http.post<any>(
+      this.apiUrl + 'move-course-catalog',
+      data,
+    );
+  }
+
+  // === COPY COURSE METHODS ===
+  getCopyCoursePreview(sourceCourseId: number): Observable<any> {
+    const params = new HttpParams().set(
+      'sourceCourseId',
+      sourceCourseId.toString(),
+    );
+    return this.http.get<{ data: CopyCoursePreview }>(
+      this.apiUrl + 'copy-course-preview',
+      { params },
+    );
+  }
+
+  copyCourse(data: CopyCourseRequest): Observable<any> {
+    return this.http.post<{ data: CopyCourseResult }>(
+      this.apiUrl + 'copy-course',
+      data,
+    );
+  }
+
+  // === MOVE COURSE METHODS ===
+  getMoveCoursePreview(sourceCourseId: number): Observable<any> {
+    const params = new HttpParams().set(
+      'sourceCourseId',
+      sourceCourseId.toString(),
+    );
+    return this.http.get<any>(
+      this.apiUrl + 'move-course-preview',
+      { params },
+    );
+  }
+
+  moveCourse(data: any): Observable<any> {
+    return this.http.post<any>(
+      this.apiUrl + 'move-course',
+      data,
+    );
+  }
+
+  // === MOVE LESSON METHODS ===
+  getMoveLessonPreview(sourceLessonId: number): Observable<any> {
+    const params = new HttpParams().set(
+      'sourceLessonId',
+      sourceLessonId.toString(),
+    );
+    return this.http.get<any>(
+      this.apiUrl + 'move-lesson-preview',
+      { params },
+    );
+  }
+
+  moveLesson(data: any): Observable<any> {
+    return this.http.post<any>(
+      this.apiUrl + 'move-lesson',
+      data,
+    );
+  }
+
+  // === COPY LESSON METHODS ===
+  getCopyLessonPreview(sourceLessonId: number): Observable<any> {
+    const params = new HttpParams().set(
+      'sourceLessonId',
+      sourceLessonId.toString(),
+    );
+    return this.http.get<{ data: CopyLessonPreview }>(
+      this.apiUrl + 'copy-lesson-preview',
+      { params },
+    );
+  }
+
+  copyLesson(data: CopyLessonRequest): Observable<any> {
+    return this.http.post<{ data: CopyLessonResult }>(
+      this.apiUrl + 'copy-lesson',
+      data,
+    );
   }
 
   // Save data course

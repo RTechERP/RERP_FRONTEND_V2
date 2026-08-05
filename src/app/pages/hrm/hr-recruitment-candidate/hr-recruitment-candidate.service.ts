@@ -139,10 +139,21 @@ export class HRRecruitmentCandidateService {
     de: any,
     keywords: string
   ): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl +
-      `summary-master?id=${id}&status=${status}&employeeRequestId=${employeeRequestId}&departmentId=${departmentId}&dateStart=${ds}&dateEnd=${de}&keyword=${keywords}`
-    );
+    let params = new HttpParams()
+      .set('id', id)
+      .set('status', status)
+      .set('employeeRequestId', employeeRequestId)
+      .set('departmentId', departmentId)
+      .set('keyword', keywords || '');
+
+    if (ds) {
+      params = params.set('dateStart', ds);
+    }
+    if (de) {
+      params = params.set('dateEnd', de);
+    }
+
+    return this.http.get<any>(this.apiUrl + 'summary-master', { params });
   }
 }
 

@@ -13,10 +13,16 @@
   background-color: #ffa940 !important;
 }
 
-/* Dòng có số lượng trả về > 0 → LightGreen background */
+/* Dòng có số lượng trả về đủ > 0 → LightGreen background */
 :host ::ng-deep .slick-row.row-return,
 :host ::ng-deep .slick-row .row-return {
   background-color: #90ee90 !important;
+}
+
+/* Dòng đã về hàng nhưng chưa đủ số lượng yêu cầu → Amber background */
+:host ::ng-deep .slick-row.row-return-partial,
+:host ::ng-deep .slick-row .row-return-partial {
+  background-color: #ffd666 !important;
 }
 
 /* Node cha (có children) → LightGray + Bold */

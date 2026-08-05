@@ -422,6 +422,27 @@ export class BillExportService {
         });
     }
 
+    // Bản batch của getInventoryProjectImportExport: dùng chung công thức tính SL giữ/tồn
+    // với logic auto-allocate lúc lưu phiếu (spGetInventoryProjectImportExportBatch), tránh
+    // lệch kết quả giữa validate phía client và lúc lưu ở server.
+    getInventoryProjectImportExportBatch(
+        warehouseID: number,
+        productID: number,
+        projectID: number,
+        pokhDetailID: number,
+        billExportDetailIds: string
+    ): Observable<any> {
+        return this.http.get(`${environment.host}api/billexport/get-inventory-project-import-export-batch`, {
+            params: {
+                warehouseId: warehouseID.toString(),
+                productId: productID.toString(),
+                projectId: projectID.toString(),
+                pokhDetailId: pokhDetailID.toString(),
+                billExportDetailIds: billExportDetailIds || ''
+            }
+        });
+    }
+
     exportExcelFile(billExportId: number): Observable<Blob> {
         const url = `${environment.host}api/billexport/export-excel-file?billExportId=${billExportId}`;
         return this.http.get(url, {
@@ -490,6 +511,20 @@ export class BillExportService {
             params,
             responseType: 'blob',
         });
+    }
+
+    updateStatusPreparing(data: any): Observable<any> {
+        return this.http.post(
+            environment.host + `api/BillExport/status-preparing`,
+            data
+        );
+    }
+
+    updateStatusReceive(data: any): Observable<any> {
+        return this.http.post(
+            environment.host + `api/BillExport/status-receive`,
+            data
+        );
     }
 }
 

@@ -59,24 +59,32 @@
           </nz-form-item>
         </div>
 
-        <div nz-col [nzSpan]="(validateForm.get('Status')?.value === 0 || validateForm.get('Status')?.value === 7) ? 3 : 5">
+        <div nz-col
+          [nzSpan]="(validateForm.get('Status')?.value === 0 || validateForm.get('Status')?.value === 7) ? 3 : 5">
           <nz-form-item>
             <nz-form-label class="fs-12">
-              <ng-container *ngIf="validateForm.get('Status')?.value === 0 || validateForm.get('Status')?.value === 7">Người mượn</ng-container>
-              <ng-container *ngIf="validateForm.get('Status')?.value !== 0 && validateForm.get('Status')?.value !== 7">Người nhận</ng-container>
+              <ng-container
+                *ngIf="validateForm.get('Status')?.value === 0 || validateForm.get('Status')?.value === 7">Người
+                mượn</ng-container>
+              <ng-container
+                *ngIf="validateForm.get('Status')?.value !== 0 && validateForm.get('Status')?.value !== 7">Người
+                nhận</ng-container>
               <span class="text-danger">*</span>
             </nz-form-label>
             <nz-form-control [nzErrorTip]="userIdError">
               <nz-select nzSize="default" formControlName="UserID" nzShowSearch [nzAllowClear]="false"
-                [nzPlaceHolder]="(validateForm.get('Status')?.value === 0 || validateForm.get('Status')?.value === 7) ? 'Chọn người mượn' : 'Chọn người nhận'" nzSize="small">
+                [nzPlaceHolder]="(validateForm.get('Status')?.value === 0 || validateForm.get('Status')?.value === 7) ? 'Chọn người mượn' : 'Chọn người nhận'"
+                nzSize="small">
                 <nz-option *ngFor="let id of dataCbbUser" [nzValue]="id.ID" [nzLabel]="id.FullName"></nz-option>
               </nz-select>
               <ng-template #userIdError let-control>
                 <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
-                  Vui lòng chọn {{ (validateForm.get('Status')?.value === 0 || validateForm.get('Status')?.value === 7) ? 'người mượn' : 'người nhận' }}!
+                  Vui lòng chọn {{ (validateForm.get('Status')?.value === 0 || validateForm.get('Status')?.value === 7)
+                  ? 'người mượn' : 'người nhận' }}!
                 </ng-container>
                 <ng-container *ngIf="control.hasError('min') && (control.dirty || control.touched)">
-                  {{ (validateForm.get('Status')?.value === 0 || validateForm.get('Status')?.value === 7) ? 'Người mượn' : 'Người nhận' }} không hợp lệ!
+                  {{ (validateForm.get('Status')?.value === 0 || validateForm.get('Status')?.value === 7) ? 'Người mượn'
+                  : 'Người nhận' }} không hợp lệ!
                 </ng-container>
               </ng-template>
             </nz-form-control>
@@ -105,7 +113,8 @@
           </div>
         </ng-container>
 
-        <div nz-col [nzSpan]="(validateForm.get('Status')?.value === 0 || validateForm.get('Status')?.value === 7) ? 4 : 5">
+        <div nz-col
+          [nzSpan]="(validateForm.get('Status')?.value === 0 || validateForm.get('Status')?.value === 7) ? 4 : 5">
           <nz-form-item>
             <nz-form-label class="fs-12">Người giao<span class="text-danger">*</span></nz-form-label>
             <nz-form-control [nzErrorTip]="senderIdError">
@@ -245,7 +254,7 @@
           </nz-form-item>
         </div>
 
-        <div nz-col nzSpan="9">
+        <div nz-col nzSpan="6">
           <nz-form-item>
             <nz-form-label class="fs-12">Địa chỉ khách hàng</nz-form-label>
             <nz-form-control>
@@ -268,6 +277,27 @@
               </nz-input-group>
               <ng-template #checkboxTransfer>
                 <label nz-checkbox formControlName="IsTransfer" nzSize="small"></label>
+              </ng-template>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col nzSpan="3">
+
+          <nz-form-item>
+            <nz-form-label class="fs-12">Chuyển kho nội bộ</nz-form-label>
+            <nz-form-control>
+              <nz-input-group nzSearch [nzAddOnBefore]="checkboxTransferInternal">
+                <nz-select formControlName="KhoTypeTransferID" nzShowSearch nzAllowClear
+                  nzPlaceHolder="Chọn loại kho đích" nzSize="small"
+                  [nzDisabled]="!validateForm.get('IsTransferInternal')?.value || isPOKH || isFromProjectPartList">
+                  <nz-option *ngFor="let id of dataCbbKhoTypeTransfer" [nzValue]="id.ID"
+                    [nzLabel]="id.ProductGroupName"></nz-option>
+                </nz-select>
+              </nz-input-group>
+              <ng-template #checkboxTransferInternal>
+                <label nz-checkbox formControlName="IsTransferInternal" nzSize="small"
+                  [nzDisabled]="isPOKH || isFromProjectPartList"></label>
               </ng-template>
             </nz-form-control>
           </nz-form-item>
@@ -346,7 +376,8 @@
           <nz-form-item>
             <nz-form-label class="fs-12">&nbsp;</nz-form-label>
             <nz-form-control>
-              <label nz-checkbox formControlName="IsAfterHours" nzSize="small" style="pointer-events: none;">Phát sinh (Ngoài 8h-16h sẽ được tính phát sinh) </label>
+              <label nz-checkbox formControlName="IsAfterHours" nzSize="small" style="pointer-events: none;">Phát sinh
+                (Ngoài 8h-16h hoặc thời gian nhận hàng < 4h tính theo thời gian tạo phiếu sẽ tính phát sinh)</label>
             </nz-form-control>
           </nz-form-item>
         </div>

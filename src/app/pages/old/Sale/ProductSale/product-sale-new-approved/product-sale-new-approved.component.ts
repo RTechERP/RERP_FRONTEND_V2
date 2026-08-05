@@ -31,8 +31,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 
-// ng-bootstrap
-import { NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { ActivatedRoute } from '@angular/router';
 
@@ -49,6 +48,7 @@ import { Menubar } from 'primeng/menubar';
 import { PermissionService } from '../../../../../services/permission.service';
 import { AppUserService } from '../../../../../services/app-user.service';
 import { ProductsaleServiceService } from '../product-sale-service/product-sale-service.service';
+import { ProductSaleDetailComponent } from '../product-sale-detail/product-sale-detail.component';
 
 @Component({
   selector: 'app-product-sale-new-approved',
@@ -70,8 +70,7 @@ import { ProductsaleServiceService } from '../product-sale-service/product-sale-
   styleUrl: './product-sale-new-approved.component.css',
 })
 export class ProductSaleNewApprovedComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   private elementRef = inject(ElementRef);
   tooltipEl: HTMLDivElement | null = null;
 
@@ -85,19 +84,43 @@ export class ProductSaleNewApprovedComponent
   dataset: any[] = [];
   excelExportService = new ExcelExportService();
 
+  newProductSale: any = {
+    ProductCode: '',
+    ProductName: '',
+    Maker: '',
+    Unit: '',
+    NumberInStoreDauky: 0,
+    NumberInStoreCuoiKy: 0,
+    ProductGroupID: 0,
+    LocationID: 0,
+    FirmID: 0,
+    Note: '',
+    IsFix: false,
+  };
+  isCheckmode: boolean = false;
+  selectedList: any[] = [];
+  idSale: number = 0;
+  listLocation: any[] = [];
+  listUnitCount: any[] = [];
+  listProductGroupcbb: any[] = [];
+
   constructor(
     private notification: NzNotificationService,
     private modal: NzModalService,
+    private modalService: NgbModal,
     private productsaleService: ProductsaleServiceService,
     private permissionService: PermissionService,
     private appUserService: AppUserService,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadMenu();
     this.initAngularGrid();
+    this.getdataUnit();
+    this.getDataProductGroupCBB();
+    
   }
 
   ngAfterViewInit(): void {
@@ -112,10 +135,45 @@ export class ProductSaleNewApprovedComponent
     }
   }
 
+  getdataUnit() {
+    this.productsaleService.getdataUnitCount().subscribe({
+      next: (res: any) => {
+        if (res?.data) {
+          this.listUnitCount = Array.isArray(res.data) ? res.data : [];
+        }
+      },
+      error: (err: any) => {
+        console.error('Lỗi khi lấy dữ liệu đơn vị tính:', err);
+      },
+    });
+  }
+
+  getDataProductGroupCBB() {
+    this.productsaleService.getDataProductGroupcbb().subscribe({
+      next: (res: any) => {
+        if (res?.data) {
+          this.listProductGroupcbb = Array.isArray(res.data) ? res.data : [];
+        }
+      },
+      error: (err: any) => {
+        console.error('Lỗi khi lấy dữ liệu nhóm sản phẩm:', err);
+      },
+    });
+  }
+
   loadMenu(): void {
     this.productSaleNewApprovedMenus = [
       {
+        label: 'Sửa sản phẩm',
+        visible: this.permissionService.hasPermission('N108'),
+        icon: 'fa fa-pen text-success',
+        command: () => {
+          this.updateProductSale();
+        },
+      },
+      {
         label: 'Duyệt sản phẩm',
+        visible: this.permissionService.hasPermission('N108'),
         icon: 'fa fa-check text-success',
         command: () => {
           this.projectApprovedIsfix(true);
@@ -151,6 +209,9 @@ export class ProductSaleNewApprovedComponent
       this.route.snapshot.queryParams['productIds'];
     const targetIds = this.decodeTokenIds(idsParam || '');
 
+    const idExistParam = this.route.snapshot.queryParams['idExist'];
+    const existIds = this.decodeTokenIds(idExistParam || '');
+
     this.isLoading = true;
     this.productsaleService
       .getdataProductSalebyID(0, this.keyWords || '', true)
@@ -167,10 +228,14 @@ export class ProductSaleNewApprovedComponent
                   : true;
               return isNotApproved && matchId;
             })
-            .map((x: any, i: number) => ({
-              ...x,
-              id: x.ID || x.Id || `product_${i}`,
-            }));
+            .map((x: any, i: number) => {
+              const rowId = Number(x.ID || x.Id);
+              return {
+                ...x,
+                id: x.ID || x.Id || `product_${i}`,
+                isExistInWarehouse: existIds.includes(rowId),
+              };
+            });
           this.isLoading = false;
           setTimeout(() => {
             this.applyDistinctFilters();
@@ -437,7 +502,13 @@ export class ProductSaleNewApprovedComponent
         filter: {
           model: Filters['compoundInputText'],
         },
-        formatter: (_r, _c, v) => v,
+        formatter: (_r, _c, v, _cd, dataContext) => {
+          if (!v) return '';
+          if (dataContext?.isExistInWarehouse) {
+            return `<div style="background-color: #d4edda; color: #155724; padding: 2px 6px; border-radius: 4px; display: inline-block; font-weight: 600;">${v}</div>`;
+          }
+          return v;
+        },
         exportCustomFormatter: (_r, _c, v) => this.cleanXml(v),
       },
       {
@@ -650,5 +721,103 @@ export class ProductSaleNewApprovedComponent
       if (related && tooltip.contains(related)) return;
       hideTooltip();
     });
+  }
+
+  updateProductSale() {
+    this.isCheckmode = true;
+    const selectedRows = this.getSelectedRowsData();
+    this.selectedList = selectedRows;
+    const ids = this.selectedList.filter((item) => item.IsApproved != true).map((item) => item.ID || item.Id);
+
+    if (ids.length === 0) {
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn ít nhất 1 sản phẩm chưa được duyệt để sửa!'
+      );
+      return;
+    }
+
+    if (ids.length > 1) {
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chỉ chọn 1 sản phẩm để sửa!'
+      );
+      return;
+    }
+
+    this.idSale = ids[0];
+    this.productsaleService.getDataProductSalebyID(this.idSale).subscribe({
+      next: (res: any) => {
+        if (res?.data) {
+          const data = Array.isArray(res.data) ? res.data[0] : res.data;
+          this.newProductSale = {
+            ProductCode: data.ProductCode,
+            ProductName: data.ProductName,
+            Maker: data.Maker,
+            Unit: data.Unit,
+            NumberInStoreDauky: data.NumberInStoreDauky,
+            NumberInStoreCuoiKy: data.NumberInStoreCuoiKy,
+            ProductGroupID: data.ProductGroupID,
+            LocationID: data.LocationID,
+            FirmID: data.FirmID,
+            Note: data.Note,
+            IsFix:
+              data.IsFix !== null && data.IsFix !== undefined
+                ? data.IsFix
+                : false,
+          };
+
+          this.productsaleService
+            .getDataLocation(this.newProductSale.ProductGroupID)
+            .subscribe({
+              next: (locationRes: any) => {
+                if (locationRes?.data) {
+                  this.listLocation = Array.isArray(locationRes.data)
+                    ? locationRes.data
+                    : [];
+                  this.openModalProductSale();
+                }
+              },
+              error: (err: any) => {
+                console.error('Lỗi khi tải dữ liệu location:', err);
+                this.openModalProductSale();
+              },
+            });
+        } else {
+          this.notification.warning(
+            'Thông báo',
+            res.message || 'Không thể lấy thông tin sản phẩm!'
+          );
+        }
+      },
+      error: (err: any) => {
+        this.notification.error(
+          'Thông báo',
+          'Có lỗi xảy ra khi lấy thông tin!'
+        );
+        console.error(err);
+      },
+    });
+  }
+
+  openModalProductSale() {
+    const modalRef = this.modalService.open(ProductSaleDetailComponent, {
+      centered: true,
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    modalRef.componentInstance.newProductSale = this.newProductSale;
+    modalRef.componentInstance.isCheckmode = this.isCheckmode;
+    modalRef.componentInstance.listLocation = this.listLocation;
+    modalRef.componentInstance.listUnitCount = this.listUnitCount;
+    modalRef.componentInstance.listProductGroupcbb = this.listProductGroupcbb;
+    modalRef.componentInstance.selectedList = this.selectedList;
+    modalRef.componentInstance.id = this.idSale;
+
+    modalRef.result.then(
+      () => this.onSearch(),
+      () => this.onSearch()
+    );
   }
 }

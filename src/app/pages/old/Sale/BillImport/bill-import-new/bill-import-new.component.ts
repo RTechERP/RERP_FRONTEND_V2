@@ -505,6 +505,13 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                     this.onPrintBillImport();
                 },
             },
+            {
+                label: 'Tạo mã QR/Vạch',
+                icon: 'fa-solid fa-qrcode fa-lg text-dark',
+                command: () => {
+                    this.openModalGenerateCode();
+                },
+            },
         ];
     }
 
@@ -636,7 +643,15 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 filterable: true,
                 minWidth: 150,
                 filter: {
-                    model: Filters['compoundInput'],
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: {
+                        addBlankEntry: true
+                    },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
             },
             {
@@ -2088,6 +2103,27 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         );
     }
 
+    openModalGenerateCode() {
+        if (!this.selectedRow || !this.selectedRow.BillImportCode) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                'Vui lòng chọn 1 phiếu nhập để tạo mã QR/Vạch'
+            );
+            return;
+        }
+
+        import('../../../../../shared/components/code-generator-modal/code-generator-modal.component').then(m => {
+            const modalRef = this.modalService.open(m.CodeGeneratorModalComponent, {
+                centered: true,
+                backdrop: 'static',
+                keyboard: false,
+            });
+            modalRef.componentInstance.title = 'Tạo mã QR / Mã vạch - Phiếu nhập';
+            modalRef.componentInstance.codeLabel = 'Số phiếu nhập';
+            modalRef.componentInstance.code = this.selectedRow.BillImportCode;
+        });
+    }
+
     openModalScanBill() {
         import('../Modal/scan-bill-import/scan-bill-import.component').then(m => {
             const modalRef = this.modalService.open(m.ScanBillImportComponent, {
@@ -2643,11 +2679,18 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
     }
 
     onPrintBillImport() {
-        const selectedRows = this.getSelectedRows();
-        if (!selectedRows || selectedRows.length === 0) {
+        if (this.isDetailLoad) return;
+
+        const rawSelectedRows = this.getSelectedRows();
+        if (!rawSelectedRows || rawSelectedRows.length === 0) {
             this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một phiếu để in!');
             return;
         }
+
+        const selectedRows = rawSelectedRows.filter((row, index, self) => {
+            const rowId = row.ID || row.Id || 0;
+            return index === self.findIndex(r => (r.ID || r.Id || 0) === rowId);
+        });
 
         this.isDetailLoad = true;
         this.tabs = [];
@@ -2665,10 +2708,13 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
 
         forkJoin(requests).subscribe({
             next: (results) => {
+                this.tabs = [];
                 results.forEach((res, index) => {
                     const row = selectedRows[index];
                     const billCode = row.BillImportCode || row.BillCode || 'PNK';
                     const id = row.ID || row.Id || 0;
+
+                    if (this.tabs.some(t => t.id === id)) return;
 
                     const details = res.detail?.data || [];
                     const billImport = res.master?.data || row;
@@ -2698,12 +2744,12 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                         isShowKkys: true,
                         id: id,
                         dataPrint: dataPrint,
-                        preparedMarginTopTab: -1,
-                        directorMarginTopTab: -1,
+                        preparedMarginTopTab: 0,
+                        directorMarginTopTab: 0,
                         preparedWidthTab: 150,
                         directorWidthTab: 150,
-                        preparedMarginLeftTab: 0,
-                        directorMarginLeftTab: 0.53,
+                        preparedMarginLeftTab: 1.5,
+                        directorMarginLeftTab: 1.5,
                         titleMarginTopTab: 0,
                     });
                 });
@@ -2824,31 +2870,25 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
             items.push(item);
         }
 
-        let cellDisplaySign = { text: '', style: '', margin: [0, 20, 0, 20] };
-
-        let picDeliver = signature.picDeliver || billImport.PicPrepared;
+        let picDeliver = signature.picDeliver || billImport.PicDeliver;
         let cellPicPrepared: any =
-            !picDeliver
-                ? cellDisplaySign
+            (!picDeliver || !isShowSign)
+                ? { text: '', margin: [0, 20, 0, 20] }
                 : {
                     image: 'data:image/png;base64,' + picDeliver,
                     width: this.preparedWidth,
-                    margin: [this.preparedMarginLeft, this.preparedMarginTop, 0, 0],
-                    alignment: 'center'
+                    margin: [this.preparedMarginLeft, this.preparedMarginTop, 0, 0]
                 };
-        if (!isShowSign) cellPicPrepared = cellDisplaySign;
 
         let picReciver = signature.picReciver || billImport.PicDirector;
         let cellPicDirector: any =
-            !picReciver
-                ? cellDisplaySign
+            (!picReciver || !isShowSeal)
+                ? { text: '', margin: [0, 20, 0, 20] }
                 : {
                     image: 'data:image/png;base64,' + picReciver,
                     width: this.directorWidth,
-                    margin: [this.directorMarginLeft, this.directorMarginTop, 0, 0],
-                    alignment: 'center'
+                    margin: [this.directorMarginLeft, this.directorMarginTop, 0, 0]
                 };
-        if (!isShowSeal) cellPicDirector = cellDisplaySign;
 
         const dateRequestImportStr = billImport.CreatedDate
             ? DateTime.fromISO(billImport.CreatedDate).toFormat('dd/MM/yyyy HH:mm:ss')
@@ -3007,29 +3047,46 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 },
                 // Chữ ký
                 {
-                    columns: [
-                        {
-                            stack: [
-                                { text: 'Bên giao', alignment: 'center', bold: true, fontSize: textFontSize },
-                                ...(isShowKkys ? [{ text: '(Ký, họ tên)', alignment: 'center', italics: true, fontSize: textFontSize }] : []),
-                                { text: '', margin: [0, 20, 0, 20] },
+                    style: 'tableExample',
+                    table: {
+                        widths: ['50%', '50%'],
+                        body: [
+                            [
+                                {
+                                    stack: [
+                                        { text: 'Bên giao', alignment: 'center', bold: true, fontSize: textFontSize },
+                                        ...(isShowKkys ? [{ text: '(Ký, họ tên)', alignment: 'center', italics: true, fontSize: textFontSize }] : [])
+                                    ]
+                                },
+                                {
+                                    stack: [
+                                        { text: 'Bên nhận', alignment: 'center', bold: true, fontSize: textFontSize },
+                                        ...(isShowKkys ? [{ text: '(Ký, họ tên)', alignment: 'center', italics: true, fontSize: textFontSize }] : [])
+                                    ]
+                                }
+                            ],
+                            [
                                 cellPicPrepared,
-                                { text: billImport.Deliver || '', alignment: 'center', bold: true, fontSize: textFontSize },
-                                { text: creatDateStr, alignment: 'center', fontSize: textFontSize }
+                                cellPicDirector
+                            ],
+                            [
+                                {
+                                    stack: [
+                                        { text: billImport.Deliver || '', alignment: 'center', bold: true, fontSize: textFontSize },
+                                        { text: creatDateStr, alignment: 'center', fontSize: textFontSize }
+                                    ]
+                                },
+                                {
+                                    stack: [
+                                        { text: billImport.Reciver || '', alignment: 'center', bold: true, fontSize: textFontSize },
+                                        { text: dateRequestImportStr, alignment: 'center', fontSize: textFontSize }
+                                    ]
+                                }
                             ]
-                        },
-                        {
-                            stack: [
-                                { text: 'Bên nhận', alignment: 'center', bold: true, fontSize: textFontSize },
-                                ...(isShowKkys ? [{ text: '(Ký, họ tên)', alignment: 'center', italics: true, fontSize: textFontSize }] : []),
-                                { text: '', margin: [0, 20, 0, 20] },
-                                cellPicDirector,
-                                { text: billImport.Reciver || '', alignment: 'center', bold: true, fontSize: textFontSize },
-                                { text: dateRequestImportStr, alignment: 'center', fontSize: textFontSize }
-                            ]
-                        }
-                    ],
-                    margin: [0, 10, 0, 0]
+                        ]
+                    },
+                    layout: 'noBorders',
+                    margin: [0, 10 + this.titleMarginTop, 0, 0]
                 }
             ],
             defaultStyle: {
@@ -3071,12 +3128,12 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
     }
 
     resetNumber(tab: any) {
-        tab.preparedMarginTopTab = -1;
-        tab.directorMarginTopTab = -1;
+        tab.preparedMarginTopTab = 0;
+        tab.directorMarginTopTab = 0;
         tab.preparedWidthTab = 150;
         tab.directorWidthTab = 150;
-        tab.preparedMarginLeftTab = 0;
-        tab.directorMarginLeftTab = 0.53;
+        tab.preparedMarginLeftTab = 1.5;
+        tab.directorMarginLeftTab = 1.5;
         tab.titleMarginTopTab = 0;
         this.toggleSeal(tab);
     }

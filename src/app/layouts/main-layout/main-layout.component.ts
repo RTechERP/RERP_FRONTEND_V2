@@ -57,6 +57,8 @@ import { take, filter, tap, catchError } from 'rxjs/operators';
 import { Subscription, forkJoin, of } from 'rxjs';
 import { TabServiceService, TabCompPayload } from '../tab-service.service';
 import { PersonalInfomationComponent } from '../../pages/general-category/infomation-personal/personal-infomation.component';
+import { ConfigNotificationKeyPersonalComponent } from '../../pages/systems/app-user/config-notification-key/config-notification-key-personal/config-notification-key-personal.component';
+import { PersonalSignatureComponent } from '../../pages/personal-signature/personal-signature.component';
 import { ConfigNotificationService } from '../../pages/systems/app-user/config-notification-key/config-notification-service/config-notification.service';
 import { AppUserService } from '../../services/app-user.service';
 
@@ -305,9 +307,15 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             this.newTab(payload.route, payload.title, payload.queryParams);
         });
 
-        // Handle direct navigation to personal information
+        // Handle direct navigation to personal pages
         if (this.router.url.includes('personal-information')) {
             this.newTabComp(PersonalInfomationComponent, 'Thông tin cá nhân', 'personal-information');
+        }
+        if (this.router.url.includes('config-notification-key-personal')) {
+            this.newTabComp(ConfigNotificationKeyPersonalComponent, 'Setting cá nhân', 'setting-personal');
+        }
+        if (this.router.url.includes('signature-personal')) {
+            this.newTabComp(PersonalSignatureComponent, 'Chữ ký cá nhân', 'signature-personal');
         }
     }
 
@@ -322,6 +330,14 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
                 const menu = this.findMenuByRouter(menus, router) as LeafItem;
                 if (menu) {
                     this.newTabComp(menu.comp, menu.title, (menu.router ?? ''), menu.data);
+                } else {
+                    if (router === 'personal-information') {
+                        this.newTabComp(PersonalInfomationComponent, 'Thông tin cá nhân', 'personal-information');
+                    } else if (router === 'config-notification-key-personal') {
+                        this.newTabComp(ConfigNotificationKeyPersonalComponent, 'Setting cá nhân', 'setting-personal');
+                    } else if (router === 'signature-personal') {
+                        this.newTabComp(PersonalSignatureComponent, 'Chữ ký cá nhân', 'signature-personal');
+                    }
                 }
             }),
             catchError(err => {

@@ -1,0 +1,17 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.card-header {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+nz-input-number {
+  width: 100%;
+}
+
+/* Icon X trắng trên nền đỏ */
+/* .modal-header .btn-close {
+  filter: invert(1) !important;
+} */

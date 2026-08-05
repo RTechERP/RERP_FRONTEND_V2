@@ -95,6 +95,8 @@ interface BillExport {
     RequestDate: Date | string | null;
     IsApproved?: boolean;
     IsTransfer: boolean;
+    IsTransferInternal?: boolean;
+    KhoTypeTransferID?: number | null;
     DeliveryTime?: Date | string | null;
     IsAfterHours?: boolean;
     ReceiverID?: number | null;
@@ -220,6 +222,8 @@ export class BillExportDetailNewComponent
         CreatDate: new Date(),
         RequestDate: new Date(),
         IsTransfer: false,
+        IsTransferInternal: false,
+        KhoTypeTransferID: null,
         DeliveryTime: new Date(),
         IsAfterHours: (new Date().getHours() < 8 || new Date().getHours() > 16 || (new Date().getHours() === 16 && new Date().getMinutes() > 0)),
     };
@@ -249,8 +253,7 @@ export class BillExportDetailNewComponent
     // ✅ Key = "ProductID-ProjectID-POKHDetailID"
     private productInventoryDetailMap: Map<string, {
         totalQuantityKeep: number;      // SL giữ
-        totalQuantityRemain: number;    // SL còn lại (Import - Export)
-        totalQuantityLast: number;      // Tồn CK
+        totalQuantityLast: number;      // Tồn CK (đã gồm cả Import - Export)
     }> = new Map();
     private originalInventoryRelatedData: Map<number, any> = new Map();
     private hasInventoryRelatedChange: boolean = false;
@@ -288,9 +291,11 @@ export class BillExportDetailNewComponent
             RequestDate: [new Date()],
             SupplierID: [0],
             IsTransfer: [false],
+            IsTransferInternal: [false],
             Reference: [''],
             WareHouseTranferID: [null],
-            DeliveryTime: [new Date(), [Validators.required]],
+            KhoTypeTransferID: [null],
+            DeliveryTime: [this.getDefaultDeliveryTime(), [Validators.required]],
             IsAfterHours: [new Date().getHours() < 8 || new Date().getHours() > 16 || (new Date().getHours() === 16 && new Date().getMinutes() > 0)],
             ReceiverID: [null]
         });
@@ -377,8 +382,22 @@ export class BillExportDetailNewComponent
             ?.valueChanges.pipe(takeUntil(this.destroy$))
             .subscribe((isTransfer: boolean) => {
                 if (!isTransfer) return;
+                // Chuyển kho và Chuyển kho nội bộ loại trừ lẫn nhau
+                this.validateForm.patchValue({ IsTransferInternal: false, KhoTypeTransferID: null }, { emitEvent: false });
                 const currentCustomerID = this.validateForm.get('CustomerID')?.value;
                 // Khi sửa: chỉ mặc định 2017 nếu bản ghi gốc chưa có khách hàng, còn lại giữ nguyên khách hàng gốc
+                if (!this.isCheckmode || !currentCustomerID || currentCustomerID <= 0) {
+                    this.validateForm.patchValue({ CustomerID: 2017 }, { emitEvent: false });
+                }
+            });
+        this.validateForm
+            .get('IsTransferInternal')
+            ?.valueChanges.pipe(takeUntil(this.destroy$))
+            .subscribe((isTransferInternal: boolean) => {
+                if (!isTransferInternal) return;
+                // Chuyển kho nội bộ và Chuyển kho loại trừ lẫn nhau
+                this.validateForm.patchValue({ IsTransfer: false, WareHouseTranferID: null }, { emitEvent: false });
+                const currentCustomerID = this.validateForm.get('CustomerID')?.value;
                 if (!this.isCheckmode || !currentCustomerID || currentCustomerID <= 0) {
                     this.validateForm.patchValue({ CustomerID: 2017 }, { emitEvent: false });
                 }
@@ -387,8 +406,8 @@ export class BillExportDetailNewComponent
             .get('DeliveryTime')
             ?.valueChanges.pipe(takeUntil(this.destroy$))
             .subscribe((value) => {
+                let dateVal: Date | null = null;
                 if (value) {
-                    let dateVal: Date | null = null;
                     if (value instanceof Date) {
                         dateVal = value;
                     } else if (typeof value === 'string') {
@@ -399,7 +418,54 @@ export class BillExportDetailNewComponent
                         this.validateForm.get('DeliveryTime')?.setValue(dateVal, { emitEvent: false });
                     }
                 }
+                this.checkIsAfterHours(dateVal);
             });
+    }
+
+    /** Lấy thời gian nhận hàng mặc định (giờ hiện tại + 4 giờ 15 phút) */
+    getDefaultDeliveryTime(): Date {
+        const d = new Date();
+        d.setMinutes(d.getMinutes() + 4 * 60);
+        d.setSeconds(0, 0);
+        return d;
+    }
+
+    /** Kiểm tra tính phát sinh:
+     * 1. Giờ hiện tại (tạo/thực hiện) nằm ngoài 8h-16h.
+     * 2. Thời gian nhận hàng (DeliveryTime) nhỏ hơn 4h so với giờ hiện tại.
+     */
+    checkIsAfterHours(deliveryTime?: Date | null): void {
+        const dTime = deliveryTime !== undefined ? deliveryTime : this.validateForm.get('DeliveryTime')?.value;
+        let isAfterHours = false;
+        const now = new Date();
+
+        // 1. Kiểm tra giờ hiện tại có ngoài khung 8h - 16h hay không
+        const currentHour = now.getHours();
+        const currentMin = now.getMinutes();
+        const isCurrentOutsideBusinessHours = currentHour < 8 || currentHour > 16 || (currentHour === 16 && currentMin > 0);
+
+        if (isCurrentOutsideBusinessHours) {
+            isAfterHours = true;
+        } else if (dTime) {
+            // 2. Kiểm tra thời gian nhận hàng có nhỏ hơn 4h so với giờ hiện tại hay không
+            let dateVal: Date | null = null;
+            if (dTime instanceof Date) {
+                dateVal = dTime;
+            } else if (typeof dTime === 'string') {
+                dateVal = this.parseDateTimeString(dTime) || new Date(dTime);
+            }
+
+            if (dateVal && !isNaN(dateVal.getTime())) {
+                const diffMs = dateVal.getTime() - now.getTime();
+                const isLessThan4Hours = diffMs < 4 * 60 * 60 * 1000;
+                if (isLessThan4Hours) {
+                    isAfterHours = true;
+                }
+            }
+        }
+
+        this.validateForm.patchValue({ IsAfterHours: isAfterHours }, { emitEvent: false });
+        this.newBillExport.IsAfterHours = isAfterHours;
     }
 
     /** Chuyển đổi chuỗi dd/MM/yyyy HH:mm hoặc dd-MM-yyyy nhập tay thành Date */
@@ -467,6 +533,7 @@ export class BillExportDetailNewComponent
             if (parsed) {
                 this.validateForm.get('DeliveryTime')?.setValue(parsed);
                 this.validateForm.get('DeliveryTime')?.markAsDirty();
+                this.checkIsAfterHours(parsed);
             }
         }
     }
@@ -483,6 +550,7 @@ export class BillExportDetailNewComponent
         ) {
             // Lấy employeeID từ người đăng nhập hiện tại cho Người Nhận
             const currentEmployeeId = this.appUserService.id || 0;
+            const defaultDeliveryTime = this.getDefaultDeliveryTime();
 
             this.newBillExport = {
                 TypeBill: false,
@@ -502,14 +570,14 @@ export class BillExportDetailNewComponent
                 CreatDate: new Date(),
                 RequestDate: new Date(),
                 IsTransfer: false,
-                DeliveryTime: new Date(),
-                IsAfterHours: (new Date().getHours() < 8 || new Date().getHours() > 16 || (new Date().getHours() === 16 && new Date().getMinutes() > 0)),
+                IsTransferInternal: false,
+                KhoTypeTransferID: null,
+                DeliveryTime: defaultDeliveryTime,
+                IsAfterHours: false,
                 ReceiverID: currentEmployeeId
             };
             this.validateForm.patchValue(this.newBillExport);
-            this.validateForm.patchValue({
-                IsAfterHours: this.newBillExport.IsAfterHours
-            });
+            this.checkIsAfterHours(defaultDeliveryTime);
         }
 
         if (this.lstBillImportID && this.lstBillImportID.length > 0) {
@@ -554,6 +622,11 @@ export class BillExportDetailNewComponent
 
     /** Xử lý các luồng đặc biệt: dự án, xuất kho, trả NCC, mượn */
     private handleSpecialFlows(): void {
+        // Phiếu tạo từ POKH/Partlist là phiếu xuất bán/xuất dự án thực, không cho chuyển kho nội bộ
+        if (this.isPOKH || this.isFromProjectPartList) {
+            this.validateForm.patchValue({ IsTransferInternal: false, KhoTypeTransferID: null }, { emitEvent: false });
+        }
+
         if (this.isFromProjectPartList) {
             this.handleProjectPartListFlow();
         } else if (this.isFromWarehouseRelease) {
@@ -1007,6 +1080,18 @@ export class BillExportDetailNewComponent
                                 container.style.bottom = 'auto';
                                 container.style.maxHeight = `${Math.min(spaceBelow - 8, dropdownHeight)}px`;
                             }
+
+                            // Cột "Mã sản phẩm" khá hẹp nên input rất nhỏ, mở rộng dropdown ra
+                            // để tên sản phẩm/mã nội bộ không bị bóp dòng như chiều rộng cột
+                            const desiredWidth = 420;
+                            const viewportWidth = window.innerWidth;
+                            const width = Math.min(desiredWidth, viewportWidth - 16);
+                            container.style.width = `${width}px`;
+                            let left = inputRect.left;
+                            if (left + width > viewportWidth - 8) {
+                                left = Math.max(8, viewportWidth - width - 8);
+                            }
+                            container.style.left = `${left}px`;
                         },
                         fetch: (searchTerm: string, callback: (items: false | any[]) => void) => {
                             const products = this.productGridCollection || [];
@@ -1937,6 +2022,8 @@ export class BillExportDetailNewComponent
                         RequestDate: new Date(data.RequestDate),
                         IsApproved: data.IsApproved || false,
                         IsTransfer: data.IsTransfer || false,
+                        IsTransferInternal: data.IsTransferInternal || false,
+                        KhoTypeTransferID: data.KhoTypeTransferID || null,
                         DeliveryTime: data.DeliveryTime ? new Date(data.DeliveryTime) : null,
                         IsAfterHours: data.IsAfterHours || false,
                         ReceiverID: data.ReceiverID || this.appUserService.id || null,
@@ -1945,6 +2032,8 @@ export class BillExportDetailNewComponent
                     this.validateForm.patchValue({
                         IsTransfer: data.IsTransfer || false,
                         WareHouseTranferID: data.WareHouseTranferID || null,
+                        IsTransferInternal: data.IsTransferInternal || false,
+                        KhoTypeTransferID: data.KhoTypeTransferID || null,
                         IsAfterHours: data.IsAfterHours || false,
                     });
                     this.updateDeliveryTimeValidator();
@@ -2421,17 +2510,21 @@ export class BillExportDetailNewComponent
         this.referenceLinks = [];
         const billExportID = this.newBillExport.Id || 0;
         const isTransfer = this.validateForm.get('IsTransfer')?.value || false;
+        const isTransferInternal = this.validateForm.get('IsTransferInternal')?.value || false;
 
-        if (billExportID <= 0 || !isTransfer) return;
+        if (billExportID <= 0 || (!isTransfer && !isTransferInternal)) return;
 
         this.billExportService.getBillImportByBillExportID(billExportID, 1).subscribe({
             next: (res: any) => {
                 if (res?.status === 1 && res?.data) {
                     const billImport = res.data;
                     if (billImport && billImport.ID > 0) {
-                        const warehouse = this.dataCbbWareHouseTransfer.find(
-                            (item: any) => item.ID === billImport.WarehouseID
-                        );
+                        // Chuyển kho nội bộ: phiếu nhập nằm ở CÙNG warehouse hiện tại, không nằm trong dataCbbWareHouseTransfer
+                        const warehouse = isTransferInternal
+                            ? { Code: this.wareHouseCode, Name: '' }
+                            : this.dataCbbWareHouseTransfer.find(
+                                (item: any) => item.ID === billImport.WarehouseID
+                            );
                         this.referenceLinks = [{
                             id: billImport.ID,
                             text: billImport.IsDeleted
@@ -2680,6 +2773,12 @@ export class BillExportDetailNewComponent
     getSupplierName(supplierId: number): string {
         const supplier = this.dataCbbSupplier.find((s) => s.ID === supplierId);
         return supplier ? supplier.NameNCC : '';
+    }
+
+    /** Danh sách loại kho đích cho "Chuyển kho nội bộ" (loại trừ loại kho nguồn đang chọn) */
+    get dataCbbKhoTypeTransfer(): any[] {
+        const currentKhoTypeID = this.validateForm.get('KhoTypeID')?.value;
+        return (this.dataCbbProductGroup || []).filter((x: any) => x.ID !== currentKhoTypeID);
     }
     //#endregion
 
@@ -2984,7 +3083,9 @@ export class BillExportDetailNewComponent
                 }
             } else {
                 // ✅ Trường hợp bình thường -> So sánh SL xuất với tổng tồn kho
-                const totalStock = invInfo.totalQuantityKeep + invInfo.totalQuantityRemain + invInfo.totalQuantityLast;
+                // (Tồn CK đã tính đủ Import - Export - Giữ - Yêu cầu xuất trong công thức của nó rồi,
+                // chỉ cần cộng thêm phần Giữ available riêng cho đúng key đang xuất)
+                const totalStock = invInfo.totalQuantityKeep + invInfo.totalQuantityLast;
 
                 if (group.totalQty > totalStock) {
                     const showKeepQty = invInfo.totalQuantityKeep > 0 || group.projectID > 0 || group.pokhDetailID > 0;
@@ -2996,7 +3097,7 @@ export class BillExportDetailNewComponent
                     insufficientMessages.push(
                         `[${productDisplay}]\n` +
                         `SL xuất: ${group.totalQty.toFixed(2)} > Tổng tồn: ${totalStock.toFixed(2)}\n` +
-                        `(${keepQtyText}SL còn lại: ${invInfo.totalQuantityRemain.toFixed(2)} + Tồn CK: ${invInfo.totalQuantityLast.toFixed(2)})`
+                        `(${keepQtyText}Tồn CK: ${invInfo.totalQuantityLast.toFixed(2)})`
                     );
                 }
             }
@@ -3137,7 +3238,6 @@ export class BillExportDetailNewComponent
             productID: number;
             projectID: number;
             pokhDetailID: number;
-            sampleRow: any;
         }>();
 
         tableData.forEach((row: any) => {
@@ -3155,13 +3255,13 @@ export class BillExportDetailNewComponent
                 groups.set(key, {
                     productID,
                     projectID: finalProjectID,
-                    pokhDetailID,
-                    sampleRow: row
+                    pokhDetailID
                 });
             }
         });
 
-        // ✅ Gọi API cho từng nhóm
+        // ✅ Gọi API batch cho từng nhóm — dùng chung công thức (spGetInventoryProjectImportExportBatch)
+        // với logic auto-allocate/validate phía server, tránh lệch kết quả giữa FE và BE.
         for (const [key, group] of groups) {
             try {
                 // ✅ Lấy tất cả detail IDs cùng ProductID (gộp từ mọi group cùng sản phẩm)
@@ -3169,7 +3269,7 @@ export class BillExportDetailNewComponent
                 const billExportDetailIDs = allDetailIDs.join(',');
 
                 const res: any = await firstValueFrom(
-                    this.billExportService.getInventoryProjectImportExport(
+                    this.billExportService.getInventoryProjectImportExportBatch(
                         warehouseID,
                         group.productID,
                         group.projectID,
@@ -3178,44 +3278,23 @@ export class BillExportDetailNewComponent
                     )
                 );
 
-                if (res && res.status === 1) {
-                    // ✅ Lấy 4 bảng từ API
-                    const inventoryProjects = res.inventoryProjects || []; // Bảng 0: Keep
-                    const dtImport = res.import || [];                     // Bảng 1: Import
-                    const dtExport = res.export || [];                     // Bảng 2: Export
-                    const dtStock = res.stock || [];                       // Bảng 3: Stock
-
-                    // ✅ Tính toán tồn kho giữ (tổng từ API hoặc dùng fallback sampleRow.TotalQuantityKeep nếu projectID = 0)
-                    const totalKeepFromAPI = inventoryProjects.reduce((sum: number, inv: any) => sum + Number(inv.TotalQuantity || 0), 0);
-                    const fallbackKeep = Number(group.sampleRow?.TotalQuantityKeep || 0);
-                    const totalQuantityKeep = totalKeepFromAPI > 0 ? totalKeepFromAPI : fallbackKeep;
-
-                    const totalImport = dtImport.length > 0
-                        ? Number(dtImport[0].TotalImport || 0)
-                        : 0;
-
-                    const totalExport = dtExport.length > 0
-                        ? Number(dtExport[0].TotalExport || 0)
-                        : 0;
-
-                    const totalQuantityLast = dtStock.length > 0
-                        ? Number(dtStock[0].TotalQuantityLast || 0)
-                        : 0;
-
-                    const totalQuantityRemain = Math.max(totalImport - totalExport, 0);
+                if (res && res.status === 1 && res.data) {
+                    const row = res.data;
+                    const totalQuantityKeep = Math.max(Number(row.TotalQuantityKeep || 0), 0);
+                    // ⚠️ Không cộng thêm (TotalImport - TotalExport) — phần này đã nằm sẵn trong
+                    // công thức tính TotalQuantityLast (Tồn CK) của SP rồi, cộng thêm sẽ bị trùng.
+                    const totalQuantityLast = Math.max(Number(row.TotalQuantityLast || 0), 0);
 
                     // ✅ Lưu vào Map với key là string
                     this.productInventoryDetailMap.set(key, {
-                        totalQuantityKeep: Math.max(totalQuantityKeep, 0),
-                        totalQuantityRemain,
-                        totalQuantityLast: Math.max(totalQuantityLast, 0)
+                        totalQuantityKeep,
+                        totalQuantityLast
                     });
 
                     console.log(`✅ Nạp tồn kho [${key}]:`, {
                         Giữ: totalQuantityKeep,
-                        'Còn lại': totalQuantityRemain,
                         'Tồn CK': totalQuantityLast,
-                        'Tổng': totalQuantityKeep + totalQuantityRemain + totalQuantityLast,
+                        'Tổng': totalQuantityKeep + totalQuantityLast,
                         'Detail IDs (theo ProductID)': billExportDetailIDs
                     });
                 }
@@ -3225,7 +3304,6 @@ export class BillExportDetailNewComponent
                 // ✅ Lưu giá trị 0 nếu lỗi
                 this.productInventoryDetailMap.set(key, {
                     totalQuantityKeep: 0,
-                    totalQuantityRemain: 0,
                     totalQuantityLast: 0
                 });
             }
@@ -3299,6 +3377,9 @@ export class BillExportDetailNewComponent
 
     /** Lưu phiếu xuất: kiểm tra serial, quyền, form, tồn kho, trùng mã phiếu rồi gửi API */
     async saveDataBillExport(): Promise<void> {
+        // Cập nhật lại IsAfterHours theo thời điểm thực tế bấm lưu
+        this.checkIsAfterHours();
+
         // --- 1. KIỂM TRA SERIAL ---
         const isSerialValid = await this.checkSerial();
         if (!isSerialValid) {
@@ -3492,6 +3573,8 @@ export class BillExportDetailNewComponent
                 IsApproved: this.newBillExport.IsApproved || false,
                 IsTransfer: formValues.IsTransfer,
                 WareHouseTranferID: formValues.WareHouseTranferID,
+                IsTransferInternal: formValues.IsTransferInternal,
+                KhoTypeTransferID: formValues.KhoTypeTransferID,
                 ReceiverID: ((this.newBillExport.Id || 0) === 0 && formValues.Status !== 0 && formValues.Status !== 7)
                     ? 0
                     : (formValues.ReceiverID || this.appUserService.id || 0),

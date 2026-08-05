@@ -357,8 +357,8 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                     }
                 },
                 formatter: Formatters.checkmarkMaterial,
-                minWidth: 120,
-                maxWidth: 120,
+                minWidth: 80,
+                cssClass: 'text-center',
             },
             {
                 id: 'IsAfterHours',
@@ -375,8 +375,44 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                     }
                 },
                 formatter: Formatters.checkmarkMaterial,
-                minWidth: 120,
-                maxWidth: 120,
+                minWidth: 80,
+                cssClass: 'text-center',
+            },
+            {
+                id: 'IsOrderPrepared',
+                name: 'Đã chuẩn bị hàng',
+                field: 'IsOrderPrepared',
+                sortable: true,
+                filterable: true,
+                type: FieldType.boolean,
+                filter: {
+                    model: Filters['singleSelect'],
+                    collection: [{ value: 'true', label: 'Có' }, { value: 'false', label: 'Không' }],
+                    collectionOptions: {
+                        addBlankEntry: true
+                    }
+                },
+                formatter: Formatters.checkmarkMaterial,
+                minWidth: 80,
+                cssClass: 'text-center',
+            },
+            {
+                id: 'IsOrderReceived',
+                name: 'Đã nhận hàng',
+                field: 'IsOrderReceived',
+                sortable: true,
+                filterable: true,
+                type: FieldType.boolean,
+                filter: {
+                    model: Filters['singleSelect'],
+                    collection: [{ value: 'true', label: 'Có' }, { value: 'false', label: 'Không' }],
+                    collectionOptions: {
+                        addBlankEntry: true
+                    }
+                },
+                formatter: Formatters.checkmarkMaterial,
+                minWidth: 80,
+                cssClass: 'text-center',
             },
             {
                 id: 'IsApproved',
@@ -393,8 +429,8 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                     }
                 },
                 formatter: Formatters.checkmarkMaterial,
-                minWidth: 120,
-                maxWidth: 120,
+                minWidth: 80,
+                cssClass: 'text-center',
             },
             {
                 id: 'DateStatus',
@@ -2580,6 +2616,40 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
             command: () => this.onPrintBillExport()
         });
 
+        // Tạo mã QR/Vạch
+        allItems.push({
+            label: 'Tạo mã QR/Vạch',
+            icon: 'fa-solid fa-qrcode fa-lg text-dark',
+            command: () => this.openModalGenerateCode()
+        });
+
+        allItems.push({
+            label: 'Trạng thái nhận hàng',
+            icon: 'fa-solid fa-user-check fa-lg text-primary',
+            items: [
+                {
+                    label: 'Đã chẩn bị hàng',
+                    icon: 'fa-solid fa-check fa-lg text-success',
+                    command: () => this.updateStatusPreparing(true),
+                },
+                {
+                    label: 'Hủy chẩn bị hàng',
+                    icon: 'fa-solid fa-xmark fa-lg text-danger',
+                    command: () => this.updateStatusPreparing(false),
+                },
+                {
+                    label: 'Đã nhận hàng',
+                    icon: 'fa-solid fa-check fa-lg text-success',
+                    command: () => this.updateStatusReceive(true),
+                },
+                {
+                    label: 'Hủy nhận hàng',
+                    icon: 'fa-solid fa-xmark fa-lg text-danger',
+                    command: () => this.updateStatusReceive(false),
+                }
+            ]
+        });
+
         //Filter visible items
         const visibleItems = allItems.filter(item => item.visible !== false);
 
@@ -2912,11 +2982,18 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
     // PRINT PREVIEW LOGIC
     // =================================================================
     onPrintBillExport() {
-        const selectedRows = this.getSelectedRows();
-        if (!selectedRows || selectedRows.length === 0) {
+        if (this.isDetailLoad) return;
+
+        const rawSelectedRows = this.getSelectedRows();
+        if (!rawSelectedRows || rawSelectedRows.length === 0) {
             this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một phiếu để in!');
             return;
         }
+
+        const selectedRows = rawSelectedRows.filter((row, index, self) => {
+            const rowId = row.ID || row.Id || 0;
+            return index === self.findIndex(r => (r.ID || r.Id || 0) === rowId);
+        });
 
         this.isDetailLoad = true;
         this.tabs = [];
@@ -2934,13 +3011,13 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
 
         forkJoin(requests).subscribe({
             next: (results) => {
+                this.tabs = [];
                 results.forEach((res, index) => {
-
-                    console.log("res: ", res);
-
                     const row = selectedRows[index];
                     const billCode = row.Code || 'PXK';
                     const id = row.ID || row.Id || 0;
+
+                    if (this.tabs.some(t => t.id === id)) return;
 
                     const details = res.detail?.data || [];
                     const billExport = res.master?.data || row;
@@ -2970,12 +3047,12 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                         isShowKkys: true,
                         id: id,
                         dataPrint: dataPrint,
-                        preparedMarginTopTab: -1,
-                        directorMarginTopTab: -1,
+                        preparedMarginTopTab: 0,
+                        directorMarginTopTab: 0,
                         preparedWidthTab: 150,
                         directorWidthTab: 150,
-                        preparedMarginLeftTab: 0,
-                        directorMarginLeftTab: 0.53,
+                        preparedMarginLeftTab: 1.5,
+                        directorMarginLeftTab: 1.5,
                         titleMarginTopTab: 0,
                     });
                 });
@@ -2995,6 +3072,28 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                     err.error?.message || 'Có lỗi xảy ra khi lấy dữ liệu in'
                 );
             }
+        });
+    }
+
+    openModalGenerateCode() {
+        const code = this.selectedRow?.Code;
+        if (!code) {
+            this.notification.warning(
+                'Thông báo',
+                'Vui lòng chọn 1 phiếu xuất để tạo mã QR/Vạch'
+            );
+            return;
+        }
+
+        import('../../../../../shared/components/code-generator-modal/code-generator-modal.component').then(m => {
+            const modalRef = this.modalService.open(m.CodeGeneratorModalComponent, {
+                centered: true,
+                backdrop: 'static',
+                keyboard: false,
+            });
+            modalRef.componentInstance.title = 'Tạo mã QR / Mã vạch - Phiếu xuất';
+            modalRef.componentInstance.codeLabel = 'Số phiếu xuất';
+            modalRef.componentInstance.code = code;
         });
     }
 
@@ -3092,31 +3191,25 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
             items.push(item);
         }
 
-        let cellDisplaySign = { text: '', style: '', margin: [0, 20, 0, 20] };
-
         let picDeliver = signature.picDeliver || billExport.PicPrepared;
         let cellPicPrepared: any =
-            !picDeliver
-                ? cellDisplaySign
+            (!picDeliver || !isShowSign)
+                ? { text: '', margin: [0, 20, 0, 20] }
                 : {
                     image: 'data:image/png;base64,' + picDeliver,
                     width: this.preparedWidth,
-                    margin: [this.preparedMarginLeft, this.preparedMarginTop, 0, 0],
-                    alignment: 'center'
+                    margin: [this.preparedMarginLeft, this.preparedMarginTop, 0, 0]
                 };
-        if (!isShowSign) cellPicPrepared = cellDisplaySign;
 
         let picReciver = signature.picReciver || billExport.PicDirector;
         let cellPicDirector: any =
-            !picReciver
-                ? cellDisplaySign
+            (!picReciver || !isShowSeal)
+                ? { text: '', margin: [0, 20, 0, 20] }
                 : {
                     image: 'data:image/png;base64,' + picReciver,
                     width: this.directorWidth,
-                    margin: [this.directorMarginLeft, this.directorMarginTop, 0, 0],
-                    alignment: 'center'
+                    margin: [this.directorMarginLeft, this.directorMarginTop, 0, 0]
                 };
-        if (!isShowSeal) cellPicDirector = cellDisplaySign;
 
         const dateRequestExportStr = billExport.CreatDate
             ? DateTime.fromISO(billExport.CreatDate).toFormat('dd/MM/yyyy HH:mm:ss')
@@ -3272,29 +3365,46 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                 },
                 // Chữ ký
                 {
-                    columns: [
-                        {
-                            stack: [
-                                { text: 'Bên giao', alignment: 'center', bold: true, fontSize: textFontSize },
-                                ...(isShowKkys ? [{ text: '(Ký, họ tên)', alignment: 'center', italics: true, fontSize: textFontSize }] : []),
-                                { text: '', margin: [0, 20, 0, 20] },
+                    style: 'tableExample',
+                    table: {
+                        widths: ['50%', '50%'],
+                        body: [
+                            [
+                                {
+                                    stack: [
+                                        { text: 'Bên giao', alignment: 'center', bold: true, fontSize: textFontSize },
+                                        ...(isShowKkys ? [{ text: '(Ký, họ tên)', alignment: 'center', italics: true, fontSize: textFontSize }] : [])
+                                    ]
+                                },
+                                {
+                                    stack: [
+                                        { text: 'Bên nhận', alignment: 'center', bold: true, fontSize: textFontSize },
+                                        ...(isShowKkys ? [{ text: '(Ký, họ tên)', alignment: 'center', italics: true, fontSize: textFontSize }] : [])
+                                    ]
+                                }
+                            ],
+                            [
                                 cellPicPrepared,
-                                { text: billExport.FullNameSender || '', alignment: 'center', bold: true, fontSize: textFontSize },
-                                { text: creatDateStr, alignment: 'center', fontSize: textFontSize }
+                                cellPicDirector
+                            ],
+                            [
+                                {
+                                    stack: [
+                                        { text: billExport.FullNameSender || '', alignment: 'center', bold: true, fontSize: textFontSize },
+                                        { text: creatDateStr, alignment: 'center', fontSize: textFontSize }
+                                    ]
+                                },
+                                {
+                                    stack: [
+                                        { text: billExport.FullName || '', alignment: 'center', bold: true, fontSize: textFontSize },
+                                        { text: dateRequestExportStr, alignment: 'center', fontSize: textFontSize }
+                                    ]
+                                }
                             ]
-                        },
-                        {
-                            stack: [
-                                { text: 'Bên nhận', alignment: 'center', bold: true, fontSize: textFontSize },
-                                ...(isShowKkys ? [{ text: '(Ký, họ tên)', alignment: 'center', italics: true, fontSize: textFontSize }] : []),
-                                { text: '', margin: [0, 20, 0, 20] },
-                                cellPicDirector,
-                                { text: billExport.FullName || '', alignment: 'center', bold: true, fontSize: textFontSize },
-                                { text: dateRequestExportStr, alignment: 'center', fontSize: textFontSize }
-                            ]
-                        }
-                    ],
-                    margin: [0, 10, 0, 0]
+                        ]
+                    },
+                    layout: 'noBorders',
+                    margin: [0, 10 + this.titleMarginTop, 0, 0]
                 }
             ],
             defaultStyle: {
@@ -3330,12 +3440,12 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     resetNumber(tab: any) {
-        tab.preparedMarginTopTab = -1;
-        tab.directorMarginTopTab = -1;
+        tab.preparedMarginTopTab = 0;
+        tab.directorMarginTopTab = 0;
         tab.preparedWidthTab = 150;
         tab.directorWidthTab = 150;
-        tab.preparedMarginLeftTab = 0;
-        tab.directorMarginLeftTab = 0.53;
+        tab.preparedMarginLeftTab = 1.5;
+        tab.directorMarginLeftTab = 1.5;
         tab.titleMarginTopTab = 0;
         this.toggleSeal(tab);
     }
@@ -3367,4 +3477,108 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
         if (!s) return '';
         return s.replace(/([-\._\/])/g, '$1\u200B').replace(/([^\s\u200B]{4})/g, '$1\u200B');
     }
+
+    //#region trạng thái nhận hàng
+    updateStatusPreparing(isPreparing: boolean) { // trạng thái chuẩn bị hàng
+        const selectedRows = this.getSelectedRows();
+        if (!selectedRows || selectedRows.length === 0) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn dòng cần thực hiện!');
+            return;
+        }
+
+        let msgStatus = "";
+        if (!isPreparing) {
+            msgStatus = "đã chuẩn bị hàng";
+        } else {
+            msgStatus = "chưa chuẩn bị hàng";
+        }
+
+        const userId = this.appUserService.id;
+        const isAdmin = this.appUserService.isAdmin || this.appUserService.id === 1110;
+
+        const targetRows = selectedRows.filter((row: any) =>
+            row.IsOrderPrepared !== isPreparing &&
+            (row.SenderID == userId || isAdmin));
+        if (targetRows.length === 0) {
+            this.notification.info(
+                'Thông báo',
+                `Không có phiếu hợp lệ nào để cập nhật! Yêu cầu: Chỉ người giao mới có quyền và các phiếu phải chưa ở trạng thái "${msgStatus}"`
+            );
+            return;
+        }
+
+        const payload = targetRows.map((row: any) => ({
+            ID: row.ID,
+            IsOrderPrepared: isPreparing
+        }));
+
+        this.billExportService.updateStatusPreparing(payload).subscribe({
+            next: (res: any) => {
+                if (res.status === 1) {
+                    this.notification.success(
+                        NOTIFICATION_TITLE.success,
+                        res.message || (isPreparing ? 'Cập nhật trạng thái chuẩn bị hàng thành công!' : 'Cập nhật trạng thái hủy chuẩn bị hàng thành công!')
+                    );
+                    this.onSearch();
+                } else {
+                    this.notification.error('Thông báo', res.message || 'Thực hiện thất bại!');
+                }
+            },
+            error: (err: any) => {
+                const errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra!';
+                this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+            }
+        });
+    }
+
+    updateStatusReceive(isReceive: boolean) { // trạng thái nhận hàng
+        const selectedRows = this.getSelectedRows();
+        if (!selectedRows || selectedRows.length === 0) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn dòng cần thực hiện!');
+            return;
+        }
+
+        const msgStatus = !isReceive ? 'đã nhận hàng' : 'chưa nhận hàng';
+        const userId = this.appUserService.id;
+        const isAdmin = this.appUserService.isAdmin || this.appUserService.id === 1110;
+
+        const targetRows = selectedRows.filter((row: any) =>
+            row.IsOrderReceived !== isReceive &&
+            (row.SenderID == userId || row.ReceiverID == userId || isAdmin) &&
+            row.IsOrderPrepared == true
+        );
+
+        if (targetRows.length === 0) {
+            this.notification.info(
+                'Thông báo',
+                `Không có phiếu hợp lệ nào để cập nhật! Yêu cầu: Đơn đã chuẩn bị hàng, người thao tác phải là Người giao/Người nhận, và các phiếu phải chưa ở trạng thái "${msgStatus}"`
+            );
+            return;
+        }
+
+        const payload = targetRows.map((row: any) => ({
+            ID: row.ID,
+            IsOrderReceived: isReceive
+        }));
+
+        this.billExportService.updateStatusReceive(payload).subscribe({
+            next: (res: any) => {
+                if (res.status === 1) {
+                    this.notification.success(
+                        NOTIFICATION_TITLE.success,
+                        res.message || (isReceive ? 'Cập nhật trạng thái nhận hàng thành công!' : 'Cập nhật trạng thái hủy nhận hàng thành công!')
+                    );
+                    this.onSearch();
+                } else {
+                    this.notification.error('Thông báo', res.message || 'Thực hiện thất bại!');
+                }
+            },
+            error: (err: any) => {
+                const errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra!';
+                this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+            }
+        });
+    }
+    //#endregion
+
 }

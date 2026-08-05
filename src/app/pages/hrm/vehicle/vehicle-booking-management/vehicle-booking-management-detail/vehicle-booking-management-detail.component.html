@@ -4,7 +4,9 @@
 </div>
 
 <div class="modal-body p-1" style="max-height: 700px; overflow: auto;">
-    <form>
+    <!-- NDNhat Update 30/07/2026: tắt autocomplete cho riêng form này — thử cả 2 cách:
+         (1) attribute chuẩn của trình duyệt, (2) directive appAutocompleteDirective sẵn có -->
+    <form autocomplete="off" appAutocompleteDirective [noAutocomplete]="true">
         <div class="row m-0">
             <input type="hidden" [(ngModel)]="id" name="id" />
             <input type="hidden" [(ngModel)]="employeeId" name="employeeId" />
@@ -32,6 +34,8 @@
             <!-- Hình thức đặt -->
             <div class="form-group mb-1 p-1 col-sm-4">
                 <label class="m-0">Hình thức đặt <span class="text-danger">(*)</span></label>
+                <!-- NDNhat Update 30/07/2026: "Chủ động phương tiện" (Category=4) chọn thẳng
+                     trong dropdown này — chỉ Sale mới thấy option đó (xem ngOnInit()) -->
                 <nz-select class="w-100" nzSize="small" [(ngModel)]="category" name="category"
                     (ngModelChange)="onCategoryChange()">
                     <nz-option-group *ngFor="let group of categoryGroups" [nzLabel]="group.label">

@@ -11,11 +11,13 @@ import { NzUploadModule, NzUploadFile } from 'ng-zorro-antd/upload';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { VehicleBookingManagementService } from '../vehicle-booking-management.service';
 import { AppUserService } from '../../../../../services/app-user.service';
+import { BusinessConfigService } from '../../../../../services/business-config.service';
 import { DateTime } from 'luxon';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import flatpickr from 'flatpickr';
 import { Vietnamese } from 'flatpickr/dist/l10n/vn.js';
+import { AutocompleteDirectiveDirective } from '../../../../../directives/autocomplete-directive.directive';
 
 interface Passenger {
   index: number;
@@ -55,6 +57,7 @@ interface AttachedGoods {
     NzUploadModule,
     NzIconModule,
     NzGridModule,
+    AutocompleteDirectiveDirective,
   ],
   templateUrl: './vehicle-booking-management-detail.component.html',
   styleUrl: './vehicle-booking-management-detail.component.css'
@@ -68,6 +71,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
   private vehicleBookingService = inject(VehicleBookingManagementService);
   private notification = inject(NzNotificationService);
   private appUserService = inject(AppUserService);
+  private businessConfigService = inject(BusinessConfigService);
 
   // Form data
   id: number = 0;
@@ -105,6 +109,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
     { value: 6, label: 'Đăng ký lấy hàng thương mại' },
     { value: 7, label: 'Đăng ký lấy hàng Demo/triển Lãm' },
     { value: 8, label: 'Đăng ký giao hàng Demo/triển lãm' },
+    { value: 4, label: 'Chủ động phương tiện' }, // NDNhat Update 30/07/2026: để tra label đúng khi Category=4
   ];
   categoryGroups: any[] = [
     {
@@ -112,6 +117,8 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
       options: [
         { value: 1, label: 'Đăng ký người đi' },
         { value: 5, label: 'Đăng ký người về' },
+        // NDNhat Update 30/07/2026: { value: 4, label: 'Chủ động phương tiện' } chỉ thêm vào
+        // đây cho Sale, xem ngOnInit() — không hardcode ở đây vì option này chỉ dành cho Sale.
       ]
     },
     {
@@ -153,6 +160,9 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
   showDepartureReturn: boolean = false;
   isProblem: boolean = false;
   isSaving: boolean = false;
+  // NDNhat Update 30/07/2026: chỉ Sale mới thấy option "Chủ động phương tiện" (Category = 4)
+  // trong dropdown "Hình thức đặt" — xem ngOnInit().
+  isSaleDepartment: boolean = false;
   currentUserPhoneNumber: string = ''; // SDT của người đang đăng nhập
   isSpecialEmployee: boolean = false; // NV ID 395 được chọn bất kỳ thời gian
   deletedFileIds: number[] = []; // Lưu lại ID file đã xóa để gọi API khi save
@@ -181,11 +191,38 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
   };
 
   ngOnInit(): void {
+    // NDNhat Update 30/07/2026: kiểm tra phòng Sale để hiện lựa chọn "Chủ động phương tiện"
+    // trong dropdown "Hình thức đặt" (trước đây làm bằng checkbox riêng, nay gộp thẳng
+    // vào Category — chỉ Sale mới thấy option này)
+    // NDNhat Update 30/07/2026: IsAdmin cũng được đăng ký "Chủ động phương tiện" như Sale
+    // NDNhat Update 03/08/2026: lấy danh sách DepartmentID Phòng Sale từ dbo.BusinessConfig
+    // (ConfigType = 1) thay vì hardcode mảng [3,28,29,30,12,13]
+    const isAdmin = this.appUserService.isAdmin;
+    const deptId = this.appUserService.departmentID || 0;
+    this.businessConfigService.getDepartmentIds(1).subscribe({
+      next: (res: any) => {
+        const saleDepartmentIds: number[] = res?.data || [];
+        this.isSaleDepartment = saleDepartmentIds.includes(deptId) || isAdmin;
+        this.applySaleCategoryOption();
+      },
+      error: () => {
+        this.isSaleDepartment = isAdmin;
+        this.applySaleCategoryOption();
+      }
+    });
     this.loadInitialData();
     if (this.dataInput) {
       this.loadEditData();
     } else {
       this.initializeNewForm();
+    }
+  }
+
+  private applySaleCategoryOption(): void {
+    if (!this.isSaleDepartment) return;
+    const personalGroup = this.categoryGroups.find(g => g.label === 'Cá nhân');
+    if (personalGroup && !personalGroup.options.some((o: any) => o.value === 4)) {
+      personalGroup.options.push({ value: 4, label: 'Chủ động phương tiện' });
     }
   }
 
@@ -545,6 +582,15 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
     this.fullName = data.FullName || '';
     this.bookerVehicles = data.BookerVehicles || data.FullName || '';
     this.category = data.Category || 1;
+    // NDNhat Update 30/07/2026: đảm bảo option "Chủ động phương tiện" hiện đúng khi sửa 1
+    // phiếu đã có Category=4, kể cả nếu người đang sửa không phải Sale (option này chỉ
+    // được thêm cho Sale ở ngOnInit, nếu không thêm ở đây dropdown sẽ hiện trống)
+    if (this.category === 4) {
+      const personalGroup = this.categoryGroups.find(g => g.label === 'Cá nhân');
+      if (personalGroup && !personalGroup.options.some((o: any) => o.value === 4)) {
+        personalGroup.options.push({ value: 4, label: 'Chủ động phương tiện' });
+      }
+    }
     this.companyNameArrives = data.CompanyNameArrives || '';
     this.province = data.Province || 0;
     this.specificDestinationAddress = data.SpecificDestinationAddress || '';
@@ -633,6 +679,14 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
     } else {
       this.showTimeReturn = false;
       this.showDepartureReturn = false;
+      // NDNhat Update 30/07/2026: field ẩn nhưng giá trị cũ (vd. đang sửa 1 phiếu Category=1
+      // đã có Thời gian cần về, rồi đổi sang Category khác/Chủ động PT) vẫn còn trong biến
+      // và save() vẫn gửi lên — khiến BE validate "Thời gian cần về phải lớn hơn thời gian
+      // cần đến" dù field đã ẩn trên UI. Phải clear luôn khi field không còn hiển thị.
+      this.timeReturn = null;
+      const timeReturnEl = document.getElementById('timeReturn') as HTMLInputElement | null;
+      if (timeReturnEl) timeReturnEl.value = '';
+      this.flatpickrInstances.get('timeReturn')?.clear();
     }
 
     // Handle passenger/attached goods visibility
@@ -888,6 +942,9 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
       this.errors.province = 'Vui lòng chọn tỉnh';
       isValid = false;
     }
+    // NDNhat Update 30/07/2026: bỏ rule "không được chủ động PT ở 2 tỉnh khác nhau" (copy từ
+    // RTCWeb cũ) — theo yêu cầu, Category=4 giờ chỉ dành riêng cho Sale nên không cần áp
+    // rule ràng buộc tỉnh này nữa.
 
     if (!this.specificDestinationAddress || this.specificDestinationAddress.trim() === '') {
       this.errors.specificDestinationAddress = 'Vui lòng nhập địa chỉ cụ thể';

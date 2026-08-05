@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzModalRef, NZ_MODAL_DATA } from 'ng-zorro-antd/modal';
@@ -51,7 +51,9 @@ interface Position {
     templateUrl: './add-related-people.component.html',
     styleUrls: ['./add-related-people.component.css']
 })
-export class AddRelatedPeopleComponent implements OnInit {
+export class AddRelatedPeopleComponent implements OnInit, AfterViewInit {
+    @ViewChild('searchInput') searchInputRef?: ElementRef<HTMLInputElement>;
+
     readonly nzModalData = inject<{
         mode?: 'assignee' | 'related',
         employees: Employee[],
@@ -134,6 +136,11 @@ export class AddRelatedPeopleComponent implements OnInit {
                 this.taskId = this.nzModalData.taskId;
             }
         }
+    }
+
+    ngAfterViewInit(): void {
+        // Delay to let the modal open animation finish before focusing
+        setTimeout(() => this.searchInputRef?.nativeElement.focus(), 150);
     }
 
     extractDepartmentsAndPositions(): void {

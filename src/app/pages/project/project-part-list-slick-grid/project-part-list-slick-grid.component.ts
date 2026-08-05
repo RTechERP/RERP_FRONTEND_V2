@@ -259,6 +259,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     filterNewCode: boolean = false;
     filterFix: boolean = false;
     filterReturn: boolean = false;
+    filterReturnPartial: boolean = false;
     filterProductSale: boolean = false;
     filterExpired: boolean = false;
     headerFilterFunction: any = null; // Lưu header filter function gốc
@@ -2303,6 +2304,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         const isDeleted = item.IsDeleted === true;
         const isProblem = item.IsProblem === true;
         const quantityReturn = Number(item.QuantityReturn) || 0;
+        const qtyFull = Number(item.QtyFull) || 0;
+        // Đã về nhưng chưa đủ số lượng yêu cầu → tô màu khác để không nhầm với "đã về đủ"
+        const isPartialReturn = quantityReturn > 0 && qtyFull > 0 && quantityReturn < qtyFull;
+        const isFullReturn = quantityReturn > 0 && !isPartialReturn;
         const isFix = item.IsFix === true;
         const isProductSale = item.IsProductSale && item.IsProductSale !== '';
         const isNewCode = item.IsNewCode === true;
@@ -2330,8 +2335,12 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         if (isDeleted) {
             rowCssClass = 'row-deleted';
         }
-        // 2. Số lượng trả về > 0 → LightGreen (Ưu tiên cao hơn màu cam)
-        else if (quantityReturn > 0) {
+        // 2a. Đã về nhưng chưa đủ số lượng → Amber (ưu tiên cao hơn "đã về đủ")
+        else if (isPartialReturn) {
+            rowCssClass = 'row-return-partial';
+        }
+        // 2b. Số lượng trả về đủ > 0 → LightGreen (Ưu tiên cao hơn màu cam)
+        else if (isFullReturn) {
             rowCssClass = 'row-return';
         }
         // 3. Dòng có vấn đề → Orange
@@ -2583,24 +2592,30 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         const isDeleted = item.IsDeleted === true;
         const isProblem = item.IsProblem === true;
         const quantityReturn = Number(item.QuantityReturn) || 0;
+        const qtyFull = Number(item.QtyFull) || 0;
+        const isPartialReturn = quantityReturn > 0 && qtyFull > 0 && quantityReturn < qtyFull;
 
         // 1. Ưu tiên cao nhất: Dòng bị xóa → Red
         if (isDeleted) {
             return 'row-deleted';
         }
-        // 2. Dòng có vấn đề → Orange
+        // 2. Đã về nhưng chưa đủ số lượng → Amber
+        if (isPartialReturn) {
+            return 'row-return-partial';
+        }
+        // 3. Dòng có vấn đề → Orange
         if (isProblem) {
             return 'row-problem';
         }
-        // 3. Số lượng trả về > 0 → LightGreen
+        // 4. Số lượng trả về đủ > 0 → LightGreen
         if (quantityReturn > 0) {
             return 'row-return';
         }
-        // 4. Node cha (có children) → LightGray + Bold
+        // 5. Node cha (có children) → LightGray + Bold
         if (hasChildren) {
             return 'row-parent';
         }
-        // 5. Node lá - không có class đặc biệt
+        // 6. Node lá - không có class đặc biệt
         return '';
     }
 
@@ -3958,6 +3973,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             New: this.filterNewCode,
             Fix: this.filterFix,
             Return: this.filterReturn,
+            ReturnPartial: this.filterReturnPartial,
             ProductSale: this.filterProductSale,
             Expired: this.filterExpired
         };
@@ -3986,13 +4002,16 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             const isNewCode = item.IsNewCode === true;
             const isProductSale = item.IsProductSale && item.IsProductSale !== '';
             const isOverQty = item.IsOverQty ?? false;
+            const qtyFull = Number(item.QtyFull) || 0;
+            const isPartialReturn = quantityReturn > 0 && qtyFull > 0 && quantityReturn < qtyFull;
 
             let isMatch = false;
             if (this.filterDeleted && isDeleted) isMatch = true;
             if (this.filterProblem && isProblem) isMatch = true;
             if (this.filterNewCode && isNewCode) isMatch = true;
             if (this.filterFix && isFix) isMatch = true;
-            if (this.filterReturn && quantityReturn > 0) isMatch = true;
+            if (this.filterReturn && quantityReturn > 0 && !isPartialReturn) isMatch = true;
+            if (this.filterReturnPartial && isPartialReturn) isMatch = true;
             if (this.filterProductSale && isProductSale) isMatch = true;
             if (this.filterOverQty && isOverQty) isMatch = true;
 
@@ -4051,6 +4070,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 break;
             case 'return':
                 this.filterReturn = !this.filterReturn;
+                break;
+            case 'returnPartial':
+                this.filterReturnPartial = !this.filterReturnPartial;
                 break;
             case 'productSale':
                 this.filterProductSale = !this.filterProductSale;
@@ -4327,6 +4349,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
                 // Map dữ liệu giống component cũ
                 modalRef.componentInstance.selectedData = [{
+                    ProjectID: partListData.ProjectID || 0,
                     ProductID: partListData.ProductID || 0,
                     ProductCode: partListData.ProductCode || '',
                     ProductName: partListData.GroupMaterial || '',
@@ -6395,6 +6418,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             const isProblem = row.IsProblem === true;
             // Parse QuantityReturn - giống logic trong rowFormatter
             const quantityReturn = Number(row.QuantityReturn) || 0;
+            const qtyFull = Number(row.QtyFull) || 0;
+            const isPartialReturn = quantityReturn > 0 && qtyFull > 0 && quantityReturn < qtyFull;
 
             // Xác định màu nền cho toàn bộ dòng (ưu tiên theo thứ tự)
             let rowFillColor: ExcelJS.Fill | null = null;
@@ -6406,15 +6431,19 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF0000' } } as ExcelJS.Fill; // Đỏ
                 rowFont = { name: 'Times New Roman', size: 11, color: { argb: 'FFFFFFFF' } }; // Trắng
             }
-            // 2. Dòng có vấn đề → Orange
+            // 2. Đã về nhưng chưa đủ số lượng → Amber
+            else if (isPartialReturn) {
+                rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFD666' } } as ExcelJS.Fill; // Vàng hổ phách
+            }
+            // 3. Dòng có vấn đề → Orange
             else if (isProblem) {
                 rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFA500' } } as ExcelJS.Fill; // Cam
             }
-            // 3. Số lượng trả về > 0 → LightGreen (hàng đã về)
+            // 4. Số lượng trả về đủ > 0 → LightGreen (hàng đã về)
             else if (quantityReturn > 0) {
                 rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF90EE90' } } as ExcelJS.Fill; // Xanh lá
             }
-            // 4. Node cha (đầu mục 1/2/3...) → Gray (yêu cầu: các đầu mục khi xuất màu xám)
+            // 5. Node cha (đầu mục 1/2/3...) → Gray (yêu cầu: các đầu mục khi xuất màu xám)
             else if (isParentRow) {
                 rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'BBBBBB' } } as ExcelJS.Fill; // Gray
                 rowFont = { name: 'Times New Roman', size: 11, bold: true };

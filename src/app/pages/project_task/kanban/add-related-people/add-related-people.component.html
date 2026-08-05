@@ -11,7 +11,7 @@
     <!-- Filters -->
     <div class="filters-row">
         <nz-input-group [nzPrefix]="prefixIconSearch" class="search-input">
-            <input type="text" nz-input placeholder="Tìm kiếm nhân viên" [(ngModel)]="searchText"
+            <input #searchInput type="text" nz-input placeholder="Tìm kiếm nhân viên" [(ngModel)]="searchText"
                 (ngModelChange)="onSearch()" />
         </nz-input-group>
         <ng-template #prefixIconSearch>

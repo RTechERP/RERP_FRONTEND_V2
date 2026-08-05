@@ -140,7 +140,7 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
   activeTab = signal<TabType>('assigned');
   selectedTasks = signal<ProjectTaskItem[]>([]);
   taskTypes = signal<{ ID: number; TypeName: string }[]>([]);
-  
+
   // Cache data per tab
   cachedTasks: Record<TabType, ProjectTaskItem[] | null> = {
     assigned: null,
@@ -157,12 +157,12 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
       all: -1
     };
   }
-  
+
   // Pagination & Lazy Load signals
   first = signal(0);
   rows = signal(50);
   lastLazyLoadEvent = signal<any>(null);
-  
+
   // Computed: total count of tasks after Tab filter AND Column filters
   totalRecords = computed(() => this.columnFilteredTasks().length);
 
@@ -560,7 +560,7 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
     this.projectTaskService.getProjectTasks(start, end, statusStr, this.filterIsApprove, viewNumber).subscribe({
       next: (response) => {
         const rawTasks = response.ProjectTask || [];
-        
+
         // 2. Identify "Parents" (tasks that have others pointing to them as ParentID)
         const parentIdSet = new Set<number>();
         rawTasks.forEach(t => {
@@ -602,7 +602,7 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
           this.initialTasks = [...finalTasks];
           this.isSorted = null;
           this.currentUserId.set(response.UserID || 0);
-          this.first.set(0); 
+          this.first.set(0);
           this.buildFilterOptions(finalTasks);
         }
         this.loading.set(false);
@@ -665,8 +665,8 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
     this.selectedTasks.set([]);
     this.isSorted = null;
     this.first.set(0); // Reset về trang đầu
-    
-    // Reset filter của table nếu cần 
+
+    // Reset filter của table nếu cần
     if (this.dt) {
       this.dt.reset();
       // Sau khi reset, đảm bảo giữ nguyên số lượng bản ghi/trang người dùng đã chọn
@@ -680,7 +680,7 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
       this.initialTasks = [...cached];
       this.buildFilterOptions(cached);
     } else {
-      // Not cached yet, fetch from server 
+      // Not cached yet, fetch from server
       if (this.dateStart && this.dateEnd) {
         this.fetchDataForTab(tab);
       }
@@ -1012,8 +1012,8 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
       { header: 'Phát sinh', field: 'IsAdditional', type: 'boolean' },
       { header: 'Phức tạp', field: 'TaskComplexity' },
       { header: 'Thời gian thực tế', field: 'TotalActualHours' },
-      { 
-        header: '% TG thực tế/KH', 
+      {
+        header: '% TG thực tế/KH',
         field: 'ActualPlannedRatioValue', // Use a separate field for raw value
         cellStyle: (item: any) => {
           if (item.ActualPlannedRatio > 100) {
@@ -1022,8 +1022,8 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
           return {};
         }
       },
-      { 
-        header: '% Quá hạn', 
+      {
+        header: '% Quá hạn',
         field: 'PercentOverTimeValue' // Use a separate field for raw value
       },
       { header: 'Ngày BĐ dự kiến', field: 'PlanStartDate', type: 'date' },
@@ -1199,7 +1199,7 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
       console.error('Task ID not found');
       return;
     }
-    
+
     const taskCode = task?.Code || `Task-${taskId}`;
     this.tabService.openTabComp({
       comp: ProjectTaskDetailComponent,
@@ -1232,13 +1232,13 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
     return tasks.filter(task => {
       const taskValue = task[field];
       const filterConstraint = this.filterService.filters[matchMode];
-      
+
       if (filterConstraint) {
         // PrimeNG filter constraints usually take (value, filter, locale)
         // If config.locale is not available, we pass undefined
         return filterConstraint(taskValue, value);
       }
-      
+
       return true;
     });
   }
@@ -1272,7 +1272,7 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
       const currentUserId = this.appUserService.employeeID;
       const isAssignee = task.AsigneeEmployeeID === currentUserId;
       const isAssigner = task.EmployeeIDRequest === currentUserId;
-      
+
       if (this.activeTab() === 'assigned' || this.activeTab() === 'myApproval') {
         if (isAssignee || isAssigner) {
           this.contextMenuItems.push({

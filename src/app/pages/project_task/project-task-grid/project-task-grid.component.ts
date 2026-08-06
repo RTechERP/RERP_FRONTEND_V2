@@ -26,8 +26,7 @@ import { MenuItem } from 'primeng/api';
 import { ProjectTaskGridService } from './project-task-grid.service';
 import { AppUserService } from '../../../services/app-user.service';
 import { TabServiceService } from '../../../layouts/tab-service.service';
-import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
-
+import { ProjectTaskDetailComponent } from '../kanban/project-task-detail/project-task-detail.component';
 export interface GridTaskItem {
   ID: number;
   ProjectID: number;
@@ -493,7 +492,7 @@ export class ProjectTaskGridComponent implements OnInit {
       if (usr !== null && usr !== undefined) {
         const numUsr = Number(usr);
         const userMatch = (node.UserIDs && node.UserIDs.map(Number).includes(numUsr)) ||
-                          (node.UserID != null && Number(node.UserID) === numUsr);
+          (node.UserID != null && Number(node.UserID) === numUsr);
         match = match && Boolean(userMatch);
       }
 
@@ -1014,6 +1013,19 @@ export class ProjectTaskGridComponent implements OnInit {
     this.saveAll(true);
   }
 
+  openDetail_old(item: GridTaskItem): void {
+    if (item.ID <= 0) {
+      this.notification.create('warning', 'Cảnh báo', 'Vui lòng lưu công việc trước khi mở chi tiết');
+      return;
+    }
+
+    this.tabService.openTabComp({
+      comp: ProjectTaskDetailComponent,
+      title: item.Code || `Task-${item.ID}`,
+      key: `project-task-detail-${item.ID}`,
+      data: { id: item.ID }
+    });
+  }
   openDetail(item: GridTaskItem): void {
     if (item.ID <= 0) {
       this.notification.create('warning', 'Cảnh báo', 'Vui lòng lưu công việc trước khi mở chi tiết');
@@ -1021,7 +1033,7 @@ export class ProjectTaskGridComponent implements OnInit {
     }
 
     this.tabService.openTabComp({
-      comp: TaskDetailComponent,
+      comp: ProjectTaskDetailComponent,
       title: item.Code || `Task-${item.ID}`,
       key: `project-task-detail-${item.ID}`,
       data: { id: item.ID }

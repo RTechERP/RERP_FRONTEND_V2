@@ -15,6 +15,8 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { NzPopoverModule } from 'ng-zorro-antd/popover';
@@ -56,9 +58,21 @@ interface IProjectTaskWork {
     _isNew?: boolean;
     _selected?: boolean;
 }
+export interface ParentTaskTreeNode {
+    ID: number;
+    Code: string;
+    Mission: string;
+    ParentID: number | null;
+    level: number;
+    expand: boolean;
+    hasChildren: boolean;
+    children: ParentTaskTreeNode[];
+    PlanEndDate?: string | Date | null;
+}
+
 @Component({
-  selector: 'app-project-task-detail',
-imports: [
+    selector: 'app-project-task-detail',
+    imports: [
         CommonModule,
         FormsModule,
         NzButtonModule,
@@ -85,19 +99,28 @@ imports: [
         NzDrawerModule,
         NzAlertModule,
         NzSpinModule,
+        NzNotificationModule,
         AddRelatedPeopleComponent,
         DragDropModule
     ],
-  templateUrl: './project-task-detail.component.html',
-  styleUrl: './project-task-detail.component.css'
+    templateUrl: './project-task-detail.component.html',
+    styleUrl: './project-task-detail.component.css'
 })
 export class ProjectTaskDetailComponent {
- private message = inject(NzMessageService);
+    private notification = inject(NzNotificationService);
+    private message = inject(NzMessageService);
     private workItemService: WorkItemServiceService = inject(WorkItemServiceService);
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private projectTaskService = inject(ProjectTaskService);
     private _tabKey: string | null = null;
+
+    isFromGateStep: boolean = false; // công việc sinh ra từ projectgatesteplink
+    isProjectLinkedToGateStep: boolean = false; // dự án đã liên kết quy trình Gate Step
+
+    get isParentTaskRequired(): boolean {
+        return this.isCreateMode && this.isProjectLinkedToGateStep;
+    }
 
     @Input() task: any;
     isFullPage: boolean = false;
@@ -293,6 +316,28 @@ export class ProjectTaskDetailComponent {
 
     validateDates(): void {
         this.dateValidationError = '';
+
+        // Ràng buộc với Công việc cha: Ngày KT dự kiến và Deadline không được vượt quá Ngày KT dự kiến CV cha
+        if (this.selectedParentTask && this.selectedParentTask.PlanEndDate) {
+            const parentPlanEnd = new Date(this.selectedParentTask.PlanEndDate);
+            parentPlanEnd.setHours(23, 59, 59, 999);
+
+            if (this.planEndDate) {
+                const e = new Date(this.planEndDate).setHours(0, 0, 0, 0);
+                if (e > parentPlanEnd.getTime()) {
+                    this.dateValidationError = `Ngày KT dự kiến không được vượt quá Ngày KT dự kiến công việc cha (${this.selectedParentTaskPlanEndDateDisplay})`;
+                    return;
+                }
+            }
+            if (this.deadline) {
+                const d = new Date(this.deadline).setHours(0, 0, 0, 0);
+                if (d > parentPlanEnd.getTime()) {
+                    this.dateValidationError = `Deadline không được vượt quá Ngày KT dự kiến công việc cha (${this.selectedParentTaskPlanEndDateDisplay})`;
+                    return;
+                }
+            }
+        }
+
         if (this.planStartDate && this.planEndDate) {
             const s = new Date(this.planStartDate).setHours(0, 0, 0, 0);
             const e = new Date(this.planEndDate).setHours(0, 0, 0, 0);
@@ -685,27 +730,161 @@ export class ProjectTaskDetailComponent {
     onProjectPopoverVisibleChange(visible: boolean): void {
         this.isProjectPopoverVisible = visible;
         if (visible) {
-            setTimeout(() => this.projectSearchInputRef?.nativeElement.focus(), 150);
+            this.projectSearchText = '';
+            setTimeout(() => {
+                this.projectSearchInputRef?.nativeElement.focus();
+                if (this.selectedProjectId) {
+                    const selectedEl = document.getElementById(`project-item-${this.selectedProjectId}`);
+                    if (selectedEl) {
+                        selectedEl.scrollIntoView({ block: 'center', behavior: 'instant' });
+                    }
+                }
+            }, 50);
         }
     }
 
     // Parent Task properties
     parentTaskList: any[] = [];
     parentTaskId?: number;
+    parentTaskTreeNodes: ParentTaskTreeNode[] = [];
     parentTaskSearchText: string = '';
     isParentTaskPopoverVisible: boolean = false;
 
     @ViewChild('parentTaskSearchInput') parentTaskSearchInputRef?: ElementRef<HTMLInputElement>;
 
     get selectedParentTask(): any {
+        if (!this.parentTaskId) return null;
         return this.parentTaskList.find(pt => pt.ID === this.parentTaskId);
     }
 
-    get filteredParentTasksForPopover(): any[] {
-        if (!this.parentTaskSearchText) return this.parentTaskList;
-        const s = this.parentTaskSearchText.toLowerCase();
-        return this.parentTaskList.filter(pt =>
-            (pt.Code || '').toLowerCase().includes(s) || (pt.Mission || '').toLowerCase().includes(s));
+    formatDateDisplay(dateVal: any): string {
+        if (!dateVal) return '';
+        const d = new Date(dateVal);
+        if (isNaN(d.getTime())) return '';
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+
+    get selectedParentTaskPlanEndDateDisplay(): string {
+        if (!this.selectedParentTask || !this.selectedParentTask.PlanEndDate) return '';
+        return this.formatDateDisplay(this.selectedParentTask.PlanEndDate);
+    }
+
+    get selectedParentTaskPlanEndDateInputMax(): string | null {
+        if (!this.selectedParentTask || !this.selectedParentTask.PlanEndDate) return null;
+        const d = new Date(this.selectedParentTask.PlanEndDate);
+        if (isNaN(d.getTime())) return null;
+        return this.toDateInputString(d);
+    }
+
+    onParentTaskPopoverVisibleChange(visible: boolean): void {
+        this.isParentTaskPopoverVisible = visible;
+        if (visible) {
+            this.parentTaskSearchText = '';
+            setTimeout(() => {
+                this.parentTaskSearchInputRef?.nativeElement.focus();
+                if (this.parentTaskId) {
+                    const selectedEl = document.getElementById(`parent-task-item-${this.parentTaskId}`);
+                    if (selectedEl) {
+                        selectedEl.scrollIntoView({ block: 'center', behavior: 'instant' });
+                    }
+                }
+            }, 50);
+        }
+    }
+
+    private buildParentTaskTree(tasks: any[]): ParentTaskTreeNode[] {
+        const map = new Map<number, ParentTaskTreeNode>();
+        const roots: ParentTaskTreeNode[] = [];
+
+        tasks.forEach(item => {
+            const rawParentId = item.ParentID;
+            const parentIdVal = (rawParentId != null && rawParentId !== '' && Number(rawParentId) > 0) ? Number(rawParentId) : null;
+            const node: ParentTaskTreeNode = {
+                ID: Number(item.ID),
+                Code: item.Code || '',
+                Mission: item.Mission || item.Title || '',
+                ParentID: parentIdVal,
+                level: 0,
+                expand: true,
+                hasChildren: false,
+                children: [],
+                PlanEndDate: item.PlanEndDate || null
+            };
+            map.set(node.ID, node);
+        });
+
+        map.forEach(node => {
+            if (node.ParentID && map.has(node.ParentID)) {
+                const parentNode = map.get(node.ParentID)!;
+                parentNode.children.push(node);
+                parentNode.hasChildren = true;
+            } else {
+                roots.push(node);
+            }
+        });
+
+        const setLevel = (nodes: ParentTaskTreeNode[], level: number) => {
+            nodes.forEach(n => {
+                n.level = level;
+                if (n.children && n.children.length > 0) {
+                    n.hasChildren = true;
+                    setLevel(n.children, level + 1);
+                }
+            });
+        };
+        setLevel(roots, 0);
+
+        return roots;
+    }
+
+    private flattenParentTaskTree(nodes: ParentTaskTreeNode[]): ParentTaskTreeNode[] {
+        const result: ParentTaskTreeNode[] = [];
+        const recurse = (list: ParentTaskTreeNode[]) => {
+            list.forEach(node => {
+                result.push(node);
+                if (node.expand && node.children && node.children.length > 0) {
+                    recurse(node.children);
+                }
+            });
+        };
+        recurse(nodes);
+        return result;
+    }
+
+    toggleParentTaskExpand(node: ParentTaskTreeNode, event: MouseEvent): void {
+        event.stopPropagation();
+        node.expand = !node.expand;
+    }
+
+    get filteredParentTasksForPopover(): ParentTaskTreeNode[] {
+        const kw = (this.parentTaskSearchText || '').trim().toLowerCase();
+        if (!kw) {
+            return this.flattenParentTaskTree(this.parentTaskTreeNodes);
+        }
+
+        const filterNodes = (nodes: ParentTaskTreeNode[]): ParentTaskTreeNode[] => {
+            const result: ParentTaskTreeNode[] = [];
+            nodes.forEach(node => {
+                const isMatch = (node.Code || '').toLowerCase().includes(kw) ||
+                    (node.Mission || '').toLowerCase().includes(kw);
+                const matchingChildren = filterNodes(node.children);
+
+                if (isMatch || matchingChildren.length > 0) {
+                    result.push({
+                        ...node,
+                        expand: true,
+                        children: matchingChildren
+                    });
+                }
+            });
+            return result;
+        };
+
+        const filteredTree = filterNodes(this.parentTaskTreeNodes);
+        return this.flattenParentTaskTree(filteredTree);
     }
 
     selectParentTask(pt: any): void {
@@ -715,11 +894,8 @@ export class ProjectTaskDetailComponent {
         this.cdr.detectChanges();
     }
 
-    onParentTaskPopoverVisibleChange(visible: boolean): void {
-        this.isParentTaskPopoverVisible = visible;
-        if (visible) {
-            setTimeout(() => this.parentTaskSearchInputRef?.nativeElement.focus(), 150);
-        }
+    clearParentTask(): void {
+        this.parentTaskId = undefined;
     }
 
     // Employee properties
@@ -1208,29 +1384,53 @@ export class ProjectTaskDetailComponent {
         return projectName.includes(input.toLowerCase());
     };
 
-    // Filter function for parent task select
-    filterParentTaskOption = (input: string, option: any): boolean => {
-        const label = option.nzLabel?.toLowerCase() || '';
-        return label.includes(input.toLowerCase());
-    };
+    checkProjectHasGateStep(projectId: number): void {
+        if (!projectId) {
+            this.isProjectLinkedToGateStep = false;
+            return;
+        }
+        this.kanbanService.checkProjectHasGateStep(projectId).subscribe({
+            next: (res: any) => {
+                if (res.status === 200 || res.status === 1) {
+                    this.isProjectLinkedToGateStep = Array.isArray(res.data) && res.data.length > 0;
+                } else {
+                    this.isProjectLinkedToGateStep = false;
+                }
+                this.cdr.detectChanges();
+            },
+            error: () => {
+                this.isProjectLinkedToGateStep = false;
+                this.cdr.detectChanges();
+            }
+        });
+    }
 
     loadParentTasks(): void {
         const activeTask = this.currentTaskData || this.task;
         const currentTaskId = activeTask?.ID || 0;
+
+        if (this.selectedProjectId) {
+            this.checkProjectHasGateStep(this.selectedProjectId);
+        } else {
+            this.isProjectLinkedToGateStep = false;
+        }
 
         this.kanbanService.getProjectTasksList(this.selectedProjectId || 0, this.isPersonalProject).subscribe({
             next: (res) => {
                 if (res.status === 200 || res.status === 1) {
                     // Loại trừ bản thân bản ghi hiện tại
                     this.parentTaskList = (res.data || []).filter((t: any) => t.ID !== currentTaskId);
+                    this.parentTaskTreeNodes = this.buildParentTaskTree(this.parentTaskList);
                 } else {
                     this.parentTaskList = [];
+                    this.parentTaskTreeNodes = [];
                 }
                 this.cdr.detectChanges();
             },
             error: (err) => {
                 console.error('Error loading parent tasks', err);
                 this.parentTaskList = [];
+                this.parentTaskTreeNodes = [];
             }
         });
     }
@@ -1815,14 +2015,24 @@ export class ProjectTaskDetailComponent {
         return s > e;
     };
 
-    // Không cho chọn ngày kết thúc dự kiến trước ngày bắt đầu dự kiến
+    // Không cho chọn ngày kết thúc dự kiến trước ngày bắt đầu dự kiến hoặc nếu sinh ra từ Gate Step
     disabledPlanEndDate = (endValue: Date): boolean => {
-        if (!endValue || !this.planStartDate) {
+        if (this.isFromGateStep) {
+            return true;
+        }
+        if (!endValue) {
             return false;
         }
         const e = new Date(endValue).setHours(0, 0, 0, 0);
-        const s = new Date(this.planStartDate).setHours(0, 0, 0, 0);
-        return e < s;
+        if (this.planStartDate) {
+            const s = new Date(this.planStartDate).setHours(0, 0, 0, 0);
+            if (e < s) return true;
+        }
+        if (this.selectedParentTask && this.selectedParentTask.PlanEndDate) {
+            const parentEnd = new Date(this.selectedParentTask.PlanEndDate).setHours(23, 59, 59, 999);
+            if (e > parentEnd) return true;
+        }
+        return false;
     };
 
     // Khi chọn ngày kết thúc mà chưa có ngày bắt đầu, mặc định là hôm nay
@@ -2323,7 +2533,7 @@ export class ProjectTaskDetailComponent {
 
     viewFileAttachment(attachment: IProjectTaskAttachment): void {
         if (!attachment.FilePath) {
-            this.message.error('Đường dẫn file không hợp lệ');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Đường dẫn file không hợp lệ');
             return;
         }
 
@@ -2470,15 +2680,37 @@ export class ProjectTaskDetailComponent {
                         taskData.ApprovalStatus = this.tabData.ApprovalStatus;
                     }
                     this.initializeWithTask(taskData);
+                    this.checkIsGateStep(id);
                 } else {
-                    this.message.error('Không thể tải chi tiết công việc');
+                    this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Không thể tải chi tiết công việc');
                 }
                 this.isLoading = false;
                 this.cdr.detectChanges();
             },
-            error: () => {
-                this.message.error('Lỗi khi tải chi tiết công việc');
+            error: (err: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.message || err?.error?.message || 'Lỗi khi tải chi tiết công việc');
                 this.isLoading = false;
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    private checkIsGateStep(taskId: number): void {
+        if (!taskId) {
+            this.isFromGateStep = false;
+            return;
+        }
+        this.kanbanService.checkIsGateStep(taskId).subscribe({
+            next: (res: any) => {
+                if (res.status === 200 || res.status === 1) {
+                    this.isFromGateStep = res.data != null;
+                } else {
+                    this.isFromGateStep = false;
+                }
+                this.cdr.detectChanges();
+            },
+            error: () => {
+                this.isFromGateStep = false;
                 this.cdr.detectChanges();
             }
         });
@@ -2489,6 +2721,12 @@ export class ProjectTaskDetailComponent {
         // Detect mode based on task ID
         this.isCreateMode = !activeTask?.ID;
         this.isUpdateMode = !!activeTask?.ID;
+
+        if (!activeTask) {
+            this.isFromGateStep = false;
+        } else if (activeTask.ID) {
+            this.checkIsGateStep(activeTask.ID);
+        }
 
         if (activeTask) {
             this.title = activeTask.Mission || '';
@@ -3209,7 +3447,7 @@ export class ProjectTaskDetailComponent {
     save() {
         if (this.isSaving) return;
         if (this.isReadOnly) {
-            this.message.error('Bạn không có quyền sửa công việc này.');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Bạn không có quyền sửa công việc này.');
             return;
         }
         const activeTask = this.currentTaskData || this.task;
@@ -3220,22 +3458,27 @@ export class ProjectTaskDetailComponent {
         const mission = (this.title || '').trim();
         if (!mission) {
             this.invalidFields.add('title');
-            this.message.error('Vui lòng nhập tên công việc');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập tên công việc');
             return;
         }
         if (!this.isPersonalProject && !this.selectedProjectId) {
             this.invalidFields.add('project');
-            this.message.error('Vui lòng chọn dự án');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn dự án');
+            return;
+        }
+        if (this.isParentTaskRequired && !this.parentTaskId) {
+            this.invalidFields.add('parentTaskId');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Dự án đã có quy trình Gate Step. Bắt buộc phải chọn Công việc cha!');
             return;
         }
         if (this.selectedProjectId && !this.selectedTypeProjectItemId) {
             this.invalidFields.add('typeProjectItem');
-            this.message.error('Vui lòng chọn loại hạng mục công việc khi đã chọn dự án');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn loại hạng mục công việc khi đã chọn dự án');
             return;
         }
         if (!this.assignerId) {
             this.invalidFields.add('assigner');
-            this.message.error('Vui l\u00f2ng ch\u1ecdn ng\u01b0\u1eddi giao vi\u1ec7c');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn người giao việc');
             return;
         }
         if (!this.planStartDate) {
@@ -3243,42 +3486,42 @@ export class ProjectTaskDetailComponent {
         }
         if (this.taskStatus !== 0 && this.taskStatus !== 3 && !this.planEndDate) {
             this.invalidFields.add('planEndDate');
-            this.message.error('Vui lòng chọn ngày kết thúc dự kiến');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn ngày kết thúc dự kiến');
             return;
         }
         if ((this.taskStatus === 1 || this.taskStatus === 2) && !this.startDate) {
             this.invalidFields.add('startDate');
-            this.message.error('Vui lòng chọn ngày bắt đầu thực tế');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn ngày bắt đầu thực tế');
             return;
         }
         if ((this.taskStatus === 1 || this.taskStatus === 2) && !this.deadline) {
             this.invalidFields.add('deadline');
-            this.message.error('Vui lòng chọn Deadline khi công việc Đang làm hoặc Hoàn thành');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn Deadline khi công việc Đang làm hoặc Hoàn thành');
             return;
         }
         if (this.taskStatus === 2 && !this.endDate) {
             this.invalidFields.add('endDate');
-            this.message.error('Vui lòng chọn ngày kết thúc thực tế khi công việc Hoàn thành');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn ngày kết thúc thực tế khi công việc Hoàn thành');
             return;
         }
         if (this.assigneeIds.length === 0) {
             this.invalidFields.add('assignees');
-            this.message.error('Vui l\u00f2ng ch\u1ecdn ng\u01b0\u1eddi th\u1ef1c hi\u1ec7n');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn người thực hiện');
             return;
         }
         if (this.dateValidationError) {
-            this.message.error(this.dateValidationError);
+            this.notification.error(NOTIFICATION_TITLE.error, this.dateValidationError);
             return;
         }
         if (this.estimatedTimeHours && this.estimatedTimeHours > 10000) {
             this.invalidFields.add('estimatedTime');
-            this.message.error('Thời gian dự kiến không được quá 10000 giờ');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Thời gian dự kiến không được quá 10000 giờ');
             return;
         }
 
         // Bắt buộc hoàn thành checklist (Status = 2)
         if (this.taskStatus === 2 && this.checklists.length > 0 && this.completedChecklists < this.checklists.length) {
-            this.message.error('Vui lòng hoàn thành tất cả checklist trước khi đặt trạng thái Hoàn thành');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng hoàn thành tất cả checklist trước khi đặt trạng thái Hoàn thành');
             this.activeMainTabIndex = (this.selectedTaskTypeId == 2) ? 3 : 2;
             return;
         }
@@ -3288,7 +3531,7 @@ export class ProjectTaskDetailComponent {
             const cleaned = (this.descriptionSolution || '').replace(/\s/g, '');
             if (cleaned.length < 10) {
                 this.invalidFields.add('descriptionSolution');
-                this.message.error('Vui lòng nhập nguyên nhân và phương án xử lý (tối thiểu 10 ký tự)');
+                this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập nguyên nhân và phương án xử lý (tối thiểu 10 ký tự)');
                 this.activeMainTabIndex = 1; // Tab Solution
                 return;
             }
@@ -3297,7 +3540,7 @@ export class ProjectTaskDetailComponent {
         // Validate Child Tasks edited in table
         const childTaskError = this.validateChildTasks();
         if (childTaskError) {
-            this.message.error(childTaskError);
+            this.notification.error(NOTIFICATION_TITLE.error, childTaskError);
             // Switch to Child Tasks tab: Index 2 if Bug (type 2), else 1
             this.activeMainTabIndex = (this.selectedTaskTypeId === 2) ? 2 : 1;
             return;
@@ -3306,7 +3549,7 @@ export class ProjectTaskDetailComponent {
         // Validate Task Work (Lịch làm việc)
         const taskWorkError = this.validateTaskWork();
         if (taskWorkError) {
-            this.message.error(taskWorkError);
+            this.notification.error(NOTIFICATION_TITLE.error, taskWorkError);
             return;
         }
 
@@ -3316,7 +3559,7 @@ export class ProjectTaskDetailComponent {
 
         if (!this.selectedTaskTypeId) {
             this.invalidFields.add('taskType');
-            this.message.error('Vui lòng chọn loại công việc');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn loại công việc');
             return;
         }
 
@@ -3386,7 +3629,7 @@ export class ProjectTaskDetailComponent {
         ).subscribe({
             next: (res) => {
                 if (res.status === 200 || res.status === 1) {
-                    this.message.success('Lưu thành công');
+                    this.notification.success(NOTIFICATION_TITLE.success, res.message || 'Lưu thành công');
                     this.tabService.notifyDataSaved('project-task');
                     if (this.isFullPage) {
                         setTimeout(() => {
@@ -3398,12 +3641,12 @@ export class ProjectTaskDetailComponent {
                     }
                 } else {
                     this.isSaving = false;
-                    this.message.error(res.message || 'Lưu thất bại');
+                    this.notification.error(NOTIFICATION_TITLE.error, res.message || res.error?.message || 'Lưu thất bại');
                 }
             },
             error: (err) => {
                 this.isSaving = false;
-                this.message.error('Lưu thất bại. Vui lòng thử lại.');
+                this.notification.error(NOTIFICATION_TITLE.error, err.message || err.error?.message || 'Lưu thất bại. Vui lòng thử lại.');
                 console.error('Error saving task', err);
             }
         });
@@ -3434,7 +3677,7 @@ export class ProjectTaskDetailComponent {
         if (!this.showTaskWorkTab) return true;
 
         if (this.isLoadingTaskWork) {
-            this.message.warning('Đang tải dữ liệu Lịch làm việc, vui lòng thử lại sau giây lát!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Đang tải dữ liệu Lịch làm việc, vui lòng thử lại sau giây lát!');
             return false;
         }
 
@@ -3494,7 +3737,7 @@ export class ProjectTaskDetailComponent {
     saveNewTask(stayOpen: boolean = false): void {
         if (this.isSaving) return;
         if (this.isReadOnly) {
-            this.message.error('Bạn không có quyền thêm công việc mới.');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Bạn không có quyền thêm công việc mới.');
             return;
         }
         this.invalidFields.clear();
@@ -3502,27 +3745,27 @@ export class ProjectTaskDetailComponent {
         // Validation
         if (!this.title || !this.title.trim()) {
             this.invalidFields.add('title');
-            this.message.error('Vui lòng nhập tên công việc');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập tên công việc');
             return;
         }
         if (!this.isPersonalProject && !this.selectedProjectId) {
             this.invalidFields.add('project');
-            this.message.error('Vui lòng chọn dự án');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn dự án');
             return;
         }
         if (!this.assignerId) {
             this.invalidFields.add('assigner');
-            this.message.error('Vui lòng chọn người giao việc');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn người giao việc');
             return;
         }
         if (!this.selectedTaskTypeId) {
             this.invalidFields.add('taskType');
-            this.message.error('Vui lòng chọn loại công việc');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn loại công việc');
             return;
         }
         if (this.selectedProjectId && !this.selectedTypeProjectItemId) {
             this.invalidFields.add('typeProjectItem');
-            this.message.error('Vui lòng chọn loại hạng mục công việc khi đã chọn dự án');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn loại hạng mục công việc khi đã chọn dự án');
             return;
         }
 
@@ -3531,27 +3774,27 @@ export class ProjectTaskDetailComponent {
         }
         if (this.taskStatus !== 0 && this.taskStatus !== 3 && !this.planEndDate) {
             this.invalidFields.add('planEndDate');
-            this.message.error('Vui lòng chọn ngày kết thúc dự kiến');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn ngày kết thúc dự kiến');
             return;
         }
         if (this.assigneeIds.length === 0) {
             this.invalidFields.add('assignees');
-            this.message.error('Vui lòng chọn người thực hiện');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn người thực hiện');
             return;
         }
         if (this.dateValidationError) {
-            this.message.error(this.dateValidationError);
+            this.notification.error(NOTIFICATION_TITLE.error, this.dateValidationError);
             return;
         }
         if (this.estimatedTimeHours && this.estimatedTimeHours > 10000) {
             this.invalidFields.add('estimatedTime');
-            this.message.error('Thời gian dự kiến không được quá 10000 giờ');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Thời gian dự kiến không được quá 10000 giờ');
             return;
         }
 
         // Bắt buộc hoàn thành checklist (Status = 2)
         if (this.taskStatus === 2 && this.checklists.length > 0 && this.completedChecklists < this.checklists.length) {
-            this.message.error('Vui lòng hoàn thành tất cả checklist trước khi đặt trạng thái Hoàn thành');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng hoàn thành tất cả checklist trước khi đặt trạng thái Hoàn thành');
             this.activeMainTabIndex = (this.selectedTaskTypeId == 2) ? 3 : 2;
             return;
         }
@@ -3561,7 +3804,7 @@ export class ProjectTaskDetailComponent {
             const cleaned = (this.descriptionSolution || '').replace(/\s/g, '');
             if (cleaned.length < 10) {
                 this.invalidFields.add('descriptionSolution');
-                this.message.error('Vui lòng nhập nguyên nhân và phương án xử lý (tối thiểu 10 ký tự)');
+                this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập nguyên nhân và phương án xử lý (tối thiểu 10 ký tự)');
                 this.activeMainTabIndex = 1; // Tab Solution
                 return;
             }
@@ -3570,17 +3813,17 @@ export class ProjectTaskDetailComponent {
         // Bắt buộc chọn ngày bắt đầu nếu là Đang làm/Hoàn thành
         if ((this.taskStatus === 1 || this.taskStatus === 2) && !this.startDate) {
             this.invalidFields.add('startDate');
-            this.message.error('Vui lòng chọn ngày bắt đầu thực tế');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn ngày bắt đầu thực tế');
             return;
         }
         if ((this.taskStatus === 1 || this.taskStatus === 2) && !this.deadline) {
             this.invalidFields.add('deadline');
-            this.message.error('Vui lòng chọn Deadline khi công việc Đang làm hoặc Hoàn thành');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn Deadline khi công việc Đang làm hoặc Hoàn thành');
             return;
         }
         if (this.taskStatus === 2 && !this.endDate) {
             this.invalidFields.add('endDate');
-            this.message.error('Vui lòng chọn ngày kết thúc thực tế khi công việc Hoàn thành');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn ngày kết thúc thực tế khi công việc Hoàn thành');
             return;
         }
 
@@ -3591,7 +3834,7 @@ export class ProjectTaskDetailComponent {
         // Validate Task Work (Lịch làm việc)
         const taskWorkError = this.validateTaskWork();
         if (taskWorkError) {
-            this.message.error(taskWorkError);
+            this.notification.error(NOTIFICATION_TITLE.error, taskWorkError);
             return;
         }
 
@@ -3605,7 +3848,7 @@ export class ProjectTaskDetailComponent {
         this.uploadPendingFiles().pipe(
             switchMap((newFileIds) => {
                 if (this.assigneeIds.length === 0) {
-                    this.message.warning('Vui lòng chọn ít nhất một người thực hiện');
+                    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một người thực hiện');
                     this.isSaving = false;
                     return of(null);
                 }
@@ -3667,12 +3910,12 @@ export class ProjectTaskDetailComponent {
                 }
                 if (res.status === 200 || res.status === 1) {
                     if (stayOpen) {
-                        this.message.success('Đã lưu và sẵn sàng thêm công việc mới');
+                        this.notification.success(NOTIFICATION_TITLE.success, res.message || 'Đã lưu và sẵn sàng thêm công việc mới');
                         this.resetFormAfterSave();
                         this.isSaving = false;
                     } else {
                         if (this.isFullPage) {
-                            this.message.success('Tạo công việc thành công');
+                            this.notification.success(NOTIFICATION_TITLE.success, res.message || 'Tạo công việc thành công');
                             this.tabService.notifyDataSaved('project-task');
                             setTimeout(() => {
                                 this.close();
@@ -3684,12 +3927,12 @@ export class ProjectTaskDetailComponent {
                     }
                 } else {
                     this.isSaving = false;
-                    this.message.error(res.message || 'Lỗi khi tạo công việc');
+                    this.notification.error(NOTIFICATION_TITLE.error, res.message || res.error?.message || 'Lỗi khi tạo công việc');
                 }
             },
             error: (err: any) => {
                 this.isSaving = false;
-                this.message.error('Lỗi khi tạo công việc');
+                this.notification.error(NOTIFICATION_TITLE.error, err.message || err.error?.message || 'Lỗi khi tạo công việc');
                 console.error('Error creating task', err);
             }
         });
@@ -3711,7 +3954,7 @@ export class ProjectTaskDetailComponent {
         this.pendingLinkDeletes = [];
         this.parentTaskId = undefined;
         this.loadParentTasks();
-        
+
         // Reset Child Tasks
         this.childTasks = [];
         this.pendingChildTaskOps = [];
@@ -3798,12 +4041,12 @@ export class ProjectTaskDetailComponent {
                 if (res.status === 200 || res.status === 1) {
                     // Success - no toast to avoid spam
                 } else {
-                    this.message.error('Lưu thất bại');
+                    this.notification.error(NOTIFICATION_TITLE.error, res.message || 'Lưu thất bại');
                 }
             },
             error: (err) => {
                 this.isSaving = false;
-                this.message.error('Lưu thất bại. Vui lòng thử lại.');
+                this.notification.error(NOTIFICATION_TITLE.error, err.message || err.error?.message || 'Lưu thất bại. Vui lòng thử lại.');
                 console.error('Auto-save failed', err);
             }
         });

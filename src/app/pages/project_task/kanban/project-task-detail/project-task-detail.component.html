@@ -63,7 +63,7 @@
                                                         <input nz-input [(ngModel)]="title"
                                                             placeholder="Nhập tên công việc..." class="rd-title-input"
                                                             [class.has-error]="invalidFields.has('title')"
-                                                            [disabled]="isReadOnly">
+                                                            [disabled]="isFromGateStep || isReadOnly">
                                                     </div>
                                                     <div class="rd-header-right col-6 col-xs-12 col-md-6">
                                                         <nz-select [(ngModel)]="taskStatus"
@@ -122,8 +122,9 @@
                                                             <nz-list nzSize="small">
                                                                 @for (project of filteredProjectsForPopover; track
                                                                 project.ID) {
-                                                                <nz-list-item class="employee-item"
+                                                                <nz-list-item [id]="'project-item-' + project.ID" class="employee-item"
                                                                     (click)="selectProject(project)"
+                                                                    [class.selected-project]="selectedProjectId === project.ID"
                                                                     style="cursor: pointer; padding: 8px 12px;">
                                                                     <div class="fw-500">{{ project.ProjectCode }} -
                                                                         {{
@@ -137,26 +138,89 @@
 
                                                 <!-- Parent Task Select Popover Template -->
                                                 <ng-template #parentTaskSelectContent>
-                                                    <div class="employee-select-popover" style="width: 320px;">
-                                                        <div class="popover-header p-2 border-bottom">
-                                                            <h6 class="fw-bold mb-2">Chọn công việc cha</h6>
+                                                    <div class="employee-select-popover" style="width: 440px;">
+                                                        <div
+                                                            class="popover-header p-2 border-bottom d-flex align-items-center justify-content-between">
+                                                            <h6 class="fw-bold mb-0" style="font-size: 13px;">Chọn công
+                                                                việc cha</h6>
+                                                            <button *ngIf="parentTaskId"
+                                                                class="btn btn-sm btn-link text-danger p-0"
+                                                                (click)="clearParentTask()"
+                                                                style="font-size: 12px; text-decoration: none;">Bỏ
+                                                                chọn</button>
+                                                        </div>
+                                                        <div class="p-2 border-bottom">
                                                             <input #parentTaskSearchInput nz-input
                                                                 placeholder="Tìm kiếm công việc..."
                                                                 [(ngModel)]="parentTaskSearchText" nzSize="small">
                                                         </div>
                                                         <div class="popover-body"
-                                                            style="max-height: 300px; overflow-y: auto;">
+                                                            style="max-height: 340px; overflow-y: auto;">
                                                             <nz-list nzSize="small">
-                                                                @for (pt of filteredParentTasksForPopover; track
-                                                                pt.ID)
+                                                                @for (pt of filteredParentTasksForPopover; track pt.ID)
                                                                 {
-                                                                <nz-list-item class="employee-item"
-                                                                    (click)="selectParentTask(pt)"
-                                                                    style="cursor: pointer; padding: 8px 12px;">
-                                                                    <div class="fw-500">{{ (pt.Code || '').trim() }}
-                                                                        -
-                                                                        {{ pt.Mission || '' }}</div>
+                                                                <nz-list-item [id]="'parent-task-item-' + pt.ID"
+                                                                    class="employee-item" (click)="selectParentTask(pt)"
+                                                                    [class.selected-parent-task]="parentTaskId === pt.ID"
+                                                                    style="cursor: pointer; padding: 8px 10px;"
+                                                                    [style.padding-left.px]="10 + (pt.level || 0) * 18">
+                                                                    <div class="d-flex align-items-start w-100 gap-1.5">
+                                                                        <!-- Expand / Collapse chevron icon -->
+                                                                        <span *ngIf="pt.hasChildren"
+                                                                            (click)="toggleParentTaskExpand(pt, $event)"
+                                                                            class="text-secondary d-inline-flex align-items-center justify-content-center flex-shrink-0 mt-0.5"
+                                                                            style="width: 18px; height: 18px; cursor: pointer; transition: transform 0.15s ease;">
+                                                                            <i class="fa-solid"
+                                                                                [ngClass]="pt.expand ? 'fa-chevron-down' : 'fa-chevron-right'"
+                                                                                style="font-size: 10px;"></i>
+                                                                        </span>
+                                                                        <span *ngIf="!pt.hasChildren"
+                                                                            style="width: 18px;"
+                                                                            class="flex-shrink-0"></span>
+
+                                                                        <!-- Node type icon -->
+                                                                        <i class="fa-regular fa-folder-open text-warning flex-shrink-0 mt-0.5 me-1"
+                                                                            *ngIf="pt.hasChildren"
+                                                                            style="font-size: 12px;"></i>
+                                                                        <div
+                                                                            class="d-flex align-items-center flex-grow-1 min-w-0 justify-content-between">
+                                                                            <div
+                                                                                class="d-flex align-items-center flex-grow-1 min-w-0 me-2">
+                                                                                <!-- Icon phân biệt Công việc gốc (Parent) và Công việc con (Subtask) -->
+                                                                                <i *ngIf="!pt.ParentID"
+                                                                                    class="fa-regular fa-folder-open text-primary me-2 flex-shrink-0"
+                                                                                    style="font-size: 13px;"
+                                                                                    title="Công việc gốc"></i>
+                                                                                <i *ngIf="pt.ParentID"
+                                                                                    class="fa-regular fa-circle-dot text-muted me-2 flex-shrink-0"
+                                                                                    style="font-size: 11px;"
+                                                                                    title="Công việc con"></i>
+
+                                                                                <span class="employee-name"
+                                                                                    style="font-size: 13px; line-height: 1.4;">
+                                                                                    <strong *ngIf="pt.Code"
+                                                                                        class="text-secondary me-1">[{{
+                                                                                        (pt.Code || '').trim()
+                                                                                        }}]</strong>
+                                                                                    {{ pt.Mission }}
+                                                                                </span>
+                                                                            </div>
+                                                                            <!-- Hiển thị Tag Ngày kết thúc dự kiến nếu có -->
+                                                                            <nz-tag *ngIf="pt.PlanEndDate"
+                                                                                nzColor="cyan"
+                                                                                class="me-0 flex-shrink-0"
+                                                                                style="font-size: 11px;">
+                                                                                KT: {{ formatDateDisplay(pt.PlanEndDate)
+                                                                                }}
+                                                                            </nz-tag>
+                                                                        </div>
+                                                                    </div>
                                                                 </nz-list-item>
+                                                                }
+                                                                @if (filteredParentTasksForPopover.length === 0) {
+                                                                <div class="p-3 text-center text-muted"
+                                                                    style="font-size: 12px;">Không tìm thấy công việc
+                                                                    cha</div>
                                                                 }
                                                             </nz-list>
                                                         </div>
@@ -185,10 +249,13 @@
                                                         </div>
                                                     </div>
                                                     <div class="rd-form-group">
-                                                        <label class="rd-label">Công việc cha</label>
+                                                        <label class="rd-label">Công việc cha <span
+                                                                *ngIf="isParentTaskRequired" class="required"
+                                                                style="color: #ef4444">*</span></label>
                                                         <div class="info-box info-box-compact people-info-box"
-                                                            [class.readonly]="isReadOnly" nz-popover
-                                                            nzPopoverTrigger="click"
+                                                            [class.readonly]="isReadOnly"
+                                                            [class.has-error]="invalidFields.has('parentTaskId')"
+                                                            nz-popover nzPopoverTrigger="click"
                                                             [nzPopoverContent]="isReadOnly ? '' : parentTaskSelectContent"
                                                             nzPopoverPlacement="bottomLeft"
                                                             [nzPopoverVisible]="isParentTaskPopoverVisible"
@@ -200,6 +267,15 @@
                                                             } @else {
                                                             <span class="placeholder-text">Chọn công việc cha</span>
                                                             }
+                                                        </div>
+                                                        <!-- Hiển thị Tag Ngày kết thúc dự kiến của công việc cha khi được chọn -->
+                                                        <div *ngIf="selectedParentTask && selectedParentTaskPlanEndDateDisplay"
+                                                            class="mt-1">
+                                                            <nz-tag nzColor="processing" style="font-size: 11px;">
+                                                                <i class="fa-regular fa-calendar-check me-1"></i>Ngày KT
+                                                                dự
+                                                                kiến CV cha: {{ selectedParentTaskPlanEndDateDisplay }}
+                                                            </nz-tag>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -322,7 +398,8 @@
                                                                 *ngIf="taskStatus !== 0 && taskStatus !== 3">*</span>
                                                         </label>
                                                         <input type="date" [(ngModel)]="planEndDateStr" class="rd-input"
-                                                            [disabled]="isReadOnly"
+                                                            [disabled]="isFromGateStep || isReadOnly"
+                                                            [max]="selectedParentTaskPlanEndDateInputMax || null"
                                                             [class.has-error]="(dateValidationError && dateValidationError.includes('du kien')) || invalidFields.has('planEndDate')" />
                                                     </div>
                                                     <div class="rd-form-group">
@@ -332,6 +409,7 @@
                                                         </label>
                                                         <input type="date" [(ngModel)]="deadlineStr"
                                                             [disabled]="!canEditDeadline || isReadOnly" class="rd-input"
+                                                            [max]="selectedParentTaskPlanEndDateInputMax || null"
                                                             [class.has-error]="invalidFields.has('deadline')" />
                                                     </div>
                                                     <div class="rd-form-group">

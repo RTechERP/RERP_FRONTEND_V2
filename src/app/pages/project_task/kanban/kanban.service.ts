@@ -266,5 +266,9 @@ export class KanbanService {
     checkIsGateStep(projectTaskID: number): Observable<any> {
         return this.http.get<any>(`${this.apiUrl}/check-is-gate-step?projectTaskID=${projectTaskID}`);
     }
+
+    checkProjectHasGateStep(projectId: number): Observable<any> {
+        return this.http.get<any>(`${environment.host}api/ProjectGateStepLink/GetByProject/${projectId}`);
+    }
 }
 

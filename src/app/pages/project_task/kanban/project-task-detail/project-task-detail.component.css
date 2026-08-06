@@ -3423,3 +3423,19 @@ nz-date-picker ::ng-deep .ant-picker-input>input {
 .task-work-row-selected td:first-child {
     padding-left: 5px;
 }
+
+/* Selected Parent Task Highlight in Popover - Xanh lá sáng */
+.employee-item.selected-parent-task {
+    background-color: #dcfce7 !important;
+    border-left: 3px solid #22c55e !important;
+}
+
+.employee-item.selected-parent-task .text-primary {
+    color: #15803d !important;
+}
+
+/* Selected Project Highlight in Popover - Xanh dương sáng */
+.employee-item.selected-project {
+    background-color: #e6f7ff !important;
+    border-left: 3px solid #1890ff !important;
+}

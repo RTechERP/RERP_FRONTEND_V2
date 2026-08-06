@@ -224,7 +224,7 @@ export class BillExportDetailNewComponent
         IsTransfer: false,
         IsTransferInternal: false,
         KhoTypeTransferID: null,
-        DeliveryTime: new Date(),
+        DeliveryTime: new Date(new Date().getTime() + (4 * 60 + 30) * 60 * 1000),
         IsAfterHours: (new Date().getHours() < 8 || new Date().getHours() > 16 || (new Date().getHours() === 16 && new Date().getMinutes() > 0)),
     };
 
@@ -422,10 +422,10 @@ export class BillExportDetailNewComponent
             });
     }
 
-    /** Lấy thời gian nhận hàng mặc định (giờ hiện tại + 4 giờ 15 phút) */
+    /** Lấy thời gian nhận hàng mặc định (giờ hiện tại + 4 giờ 30 phút) */
     getDefaultDeliveryTime(): Date {
         const d = new Date();
-        d.setMinutes(d.getMinutes() + 4 * 60);
+        d.setMinutes(d.getMinutes() + 4 * 60 + 30);
         d.setSeconds(0, 0);
         return d;
     }

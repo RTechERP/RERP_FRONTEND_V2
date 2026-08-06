@@ -2968,23 +2968,37 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       0
     );
 
+    const productTableWidths = [20, 120, 30, 45, '*', '*', 35, '*'];
+    const productColumnWidths = this.resolvePdfColumnWidths(productTableWidths);
+    // STT canh giữa, cột chữ canh trái, cột số canh phải
+    const productColumnAlignments = [
+      'center',
+      'left',
+      'left',
+      'right',
+      'right',
+      'right',
+      'right',
+      'right',
+    ];
+
     let items: any = [];
 
     for (let i = 0; i < poDetails.length; i++) {
-      let item = [
-        { text: poDetails[i].STT, alignment: 'center' },
-        { text: poDetails[i].ProductCodeOfSupplier, alignment: '' },
-
-        { text: (poDetails[i].UnitName || poDetails[i].Unit), alignment: '' },
-        {
-          text: this.formatNumber(poDetails[i].QtyRequest),
-          alignment: 'right',
-        },
-        { text: this.formatNumber(poDetails[i].UnitPrice), alignment: 'right' },
-        { text: this.formatNumber(poDetails[i].ThanhTien), alignment: 'right' },
-        { text: this.formatNumber(poDetails[i].VAT), alignment: 'right' },
-        { text: this.formatNumber(poDetails[i].VATMoney), alignment: 'right' },
-      ];
+      let item = this.buildPdfTableRow(
+        [
+          poDetails[i].STT,
+          poDetails[i].ProductCodeOfSupplier,
+          poDetails[i].UnitName || poDetails[i].Unit,
+          this.formatNumber(poDetails[i].QtyRequest),
+          this.formatNumber(poDetails[i].UnitPrice),
+          this.formatNumber(poDetails[i].ThanhTien),
+          this.formatNumber(poDetails[i].VAT),
+          this.formatNumber(poDetails[i].VATMoney),
+        ],
+        productColumnWidths,
+        productColumnAlignments
+      );
       items.push(item);
     }
 
@@ -3093,19 +3107,25 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         //Bảng chi tiết sản phẩm
         {
           table: {
-            widths: [20, 120, 30, 45, '*', '*', 35, '*'],
+            widths: productTableWidths,
             body: [
               //Header table
-              [
-                { text: 'STT', alignment: 'center', bold: true },
-                { text: 'Diễn giải', alignment: 'center', bold: true },
-                { text: 'Đơn vị', alignment: 'center', bold: true },
-                { text: 'Số lượng', alignment: 'center', bold: true },
-                { text: 'Đơn giá', alignment: 'center', bold: true },
-                { text: 'Thành tiền', alignment: 'center', bold: true },
-                { text: '% VAT', alignment: 'center', bold: true },
-                { text: 'Tổng tiền VAT', alignment: 'center', bold: true },
-              ],
+              this.buildPdfTableRow(
+                [
+                  'STT',
+                  'Diễn giải',
+                  'Đơn vị',
+                  'Số lượng',
+                  'Đơn giá',
+                  'Thành tiền',
+                  '% VAT',
+                  'Tổng tiền VAT',
+                ],
+                productColumnWidths,
+                productColumnWidths.map(() => 'center'),
+                10,
+                true
+              ),
 
               //list item
               ...items,
@@ -3350,23 +3370,37 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       0
     );
 
+    const productTableWidths = [20, 130, 30, 46, '*', '*', 30, '*'];
+    const productColumnWidths = this.resolvePdfColumnWidths(productTableWidths);
+    // STT canh giữa, cột chữ canh trái, cột số canh phải
+    const productColumnAlignments = [
+      'center',
+      'left',
+      'left',
+      'right',
+      'right',
+      'right',
+      'right',
+      'right',
+    ];
+
     let items: any = [];
 
     for (let i = 0; i < poDetails.length; i++) {
-      let item = [
-        { text: poDetails[i].STT, alignment: 'center' },
-        { text: poDetails[i].ProductCodeOfSupplier, alignment: '' },
-
-        { text: poDetails[i].UnitName, alignment: '' },
-        {
-          text: this.formatNumber(poDetails[i].QtyRequest),
-          alignment: 'right',
-        },
-        { text: this.formatNumber(poDetails[i].UnitPrice), alignment: 'right' },
-        { text: this.formatNumber(poDetails[i].ThanhTien), alignment: 'right' },
-        { text: this.formatNumber(poDetails[i].VAT), alignment: 'right' },
-        { text: this.formatNumber(poDetails[i].VATMoney), alignment: 'right' },
-      ];
+      let item = this.buildPdfTableRow(
+        [
+          poDetails[i].STT,
+          poDetails[i].ProductCodeOfSupplier,
+          poDetails[i].UnitName,
+          this.formatNumber(poDetails[i].QtyRequest),
+          this.formatNumber(poDetails[i].UnitPrice),
+          this.formatNumber(poDetails[i].ThanhTien),
+          this.formatNumber(poDetails[i].VAT),
+          this.formatNumber(poDetails[i].VATMoney),
+        ],
+        productColumnWidths,
+        productColumnAlignments
+      );
       items.push(item);
     }
 
@@ -3491,19 +3525,25 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         {
           style: 'tableExample',
           table: {
-            widths: [20, 130, 30, 46, '*', '*', 30, '*'],
+            widths: productTableWidths,
             body: [
               //Header table
-              [
-                { text: 'No', alignment: 'center', bold: true },
-                { text: 'Description', alignment: 'center', bold: true },
-                { text: 'Unit', alignment: 'center', bold: true },
-                { text: 'Quantity', alignment: 'center', bold: true },
-                { text: 'Unit price', alignment: 'center', bold: true },
-                { text: 'Amount', alignment: 'center', bold: true },
-                { text: 'VAT', alignment: 'center', bold: true },
-                { text: 'VATMoney', alignment: 'center', bold: true },
-              ],
+              this.buildPdfTableRow(
+                [
+                  'No',
+                  'Description',
+                  'Unit',
+                  'Quantity',
+                  'Unit price',
+                  'Amount',
+                  'VAT',
+                  'VATMoney',
+                ],
+                productColumnWidths,
+                productColumnWidths.map(() => 'center'),
+                10,
+                true
+              ),
 
               //list item
               ...items,
@@ -3675,6 +3715,92 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     return docDefinition;
   }
+  //#region Canh giữa ô theo chiều dọc cho bảng PDF
+  // pdfMake 0.2.x không hỗ trợ verticalAlign, nên phải tự đo số dòng bị xuống dòng
+  // của từng ô rồi bù margin-top để nội dung nằm giữa ô thay vì dính lên trên.
+
+  /** Bề rộng vùng nội dung của trang A4 với pageMargins [40, 20, 40, 10] */
+  private readonly PDF_CONTENT_WIDTH = 595.28 - 40 - 40;
+  /** paddingLeft + paddingRight mặc định của một ô trong pdfMake */
+  private readonly PDF_CELL_PADDING = 8;
+
+  private pdfTextMeasureCtx: CanvasRenderingContext2D | null = null;
+
+  /** Quy đổi mảng widths của pdfMake (số hoặc '*') sang bề rộng thật của từng cột */
+  private resolvePdfColumnWidths(widths: any[], availableWidth = this.PDF_CONTENT_WIDTH) {
+    const starCount = widths.filter((w) => w === '*').length;
+    const fixedTotal = widths
+      .filter((w) => typeof w === 'number')
+      .reduce((sum: number, w: number) => sum + w, 0);
+
+    const remain =
+      availableWidth - fixedTotal - widths.length * this.PDF_CELL_PADDING;
+    const starWidth = starCount > 0 ? Math.max(remain / starCount, 1) : 0;
+
+    return widths.map((w) => (typeof w === 'number' ? w : starWidth));
+  }
+
+  /** Đếm số dòng mà text sẽ bị wrap khi render trong cột rộng columnWidth */
+  private countPdfWrappedLines(
+    text: any,
+    columnWidth: number,
+    fontSize: number,
+    bold: boolean
+  ) {
+    const value = text === null || text === undefined ? '' : String(text);
+    if (!value.trim()) return 1;
+
+    if (!this.pdfTextMeasureCtx) {
+      this.pdfTextMeasureCtx = document
+        .createElement('canvas')
+        .getContext('2d');
+    }
+    const ctx = this.pdfTextMeasureCtx;
+    if (!ctx || columnWidth <= 0) return 1;
+
+    ctx.font = `${bold ? 'bold ' : ''}${fontSize}px "Times New Roman", Times, serif`;
+
+    let lines = 1;
+    let current = '';
+    for (const word of value.split(/\s+/).filter((w) => w !== '')) {
+      const candidate = current ? `${current} ${word}` : word;
+      if (!current || ctx.measureText(candidate).width <= columnWidth) {
+        current = candidate;
+      } else {
+        lines++;
+        current = word;
+      }
+    }
+    return lines;
+  }
+
+  /**
+   * Tạo một hàng bảng PDF luôn canh giữa theo chiều dọc, còn chiều ngang thì
+   * theo alignment riêng của từng cột (chữ canh trái, số canh phải).
+   * Ô nào ít dòng hơn ô cao nhất sẽ được đẩy xuống đúng nửa phần chênh lệch.
+   */
+  private buildPdfTableRow(
+    texts: any[],
+    columnWidths: number[],
+    alignments: string[],
+    fontSize = 10,
+    bold = false
+  ) {
+    const lineHeight = fontSize * 1.15; // xấp xỉ line height của font Times
+    const lineCounts = texts.map((t, i) =>
+      this.countPdfWrappedLines(t, columnWidths[i], fontSize, bold)
+    );
+    const maxLines = Math.max(...lineCounts);
+
+    return texts.map((t, i) => ({
+      text: t ?? '',
+      alignment: alignments[i] ?? 'left',
+      bold,
+      margin: [0, ((maxLines - lineCounts[i]) * lineHeight) / 2, 0, 0],
+    }));
+  }
+  //#endregion
+
   formatNumber(num: number, digits: number = 2) {
     num = num || 0;
     return num.toLocaleString('vi-VN', {

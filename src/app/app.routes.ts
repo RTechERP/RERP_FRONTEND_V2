@@ -418,6 +418,7 @@ import { ProductSaleNewApprovedComponent } from './pages/old/Sale/ProductSale/pr
 import { ExpectedPayableComponent } from './pages/old/Sale/BillImport/expected-payable/expected-payable.component';
 import { HotelBookingManagementComponent } from './pages/hrm/hotel-booking-managament/hotel-booking-management.component';
 import { PersonalSignatureComponent } from './pages/personal-signature/personal-signature.component';
+import { InventoryStockComponent } from './pages/warehouse/inventory-stock/inventory-stock.component';
 export const routes: Routes = [
 
   {
@@ -1371,6 +1372,7 @@ export const routes: Routes = [
       { path: 'expected-payable', component: ExpectedPayableComponent, canActivate: [authGuard] },
       { path: 'hotel-booking', component: HotelBookingManagementComponent, canActivate: [authGuard] },
       { path: 'signature-personal', component: PersonalSignatureComponent, canActivate: [authGuard] },
+      { path: 'inventory-stock', component: InventoryStockComponent, canActivate: [authGuard] },
 
     ],
   },

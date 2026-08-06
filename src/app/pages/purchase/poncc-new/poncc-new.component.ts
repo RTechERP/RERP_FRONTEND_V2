@@ -360,6 +360,38 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         },
       },
       {
+        id: 'ProjectCodes',
+        name: 'Mã dự án',
+        field: 'ProjectCodes',
+        width: 240,
+        sortable: false,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
+
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
+              <span
+                title="${dataContext.ProjectCodes}"
+                style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              >
+                ${value}
+              </span>
+            `;
+        },
+
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
+      },
+      {
         id: 'RequestDate',
         name: 'Ngày PO',
         field: 'RequestDate',

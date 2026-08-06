@@ -8,6 +8,7 @@ export interface TimelineByTeamItem {
     ID: number; // EmployeeID
     FullName: string;
     DepartmentID: number;
+    TeamName?: string;
     Code: string; // Employee Code
     ProjectID: number;
     ProjectCode: string;

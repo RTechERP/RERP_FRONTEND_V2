@@ -1246,7 +1246,13 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
     const selectedKeys = new Set(this.selectedDetailRows.map((row) => row.__rowKey));
     this.selectedDetailRows = this.details.filter((row) => selectedKeys.has(row.__rowKey));
   }
+  getTotalQuantity(): number {
+    return (this.details || []).reduce((sum: number, row: any) => sum + (Number(row?.Quantity) || 0), 0);
+  }
 
+  getProductCodeCount(): number {
+    return (this.details || []).filter((row: any) => this.getProductCode(row)).length;
+  }
   addNewRow(): void {
     const newProduct = {
       __rowKey: this.createDetailRowKey(null),

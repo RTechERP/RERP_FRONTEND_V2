@@ -25,7 +25,7 @@ import { AppUserService } from '../../../services/app-user.service';
 import { ProjectService } from '../../project/project-service/project.service';
 import { Router } from '@angular/router';
 import { TabServiceService } from '../../../layouts/tab-service.service';
-import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
+import { ProjectTaskDetailComponent } from '../kanban/project-task-detail/project-task-detail.component';
 import { ProjectTaskTimeLineAllProjectComponent } from '../project-task-time-line-all-project/project-task-time-line-all-project.component';
 
 @Component({
@@ -896,7 +896,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     const taskCode = task?.ProjectTaskCode || task?.Code || `Task-${taskId}`;
     const approvalStatus = task?.IsApproved !== undefined && task?.IsApproved !== null ? task.IsApproved : undefined;
     this.tabService.openTabComp({
-      comp: TaskDetailComponent,
+      comp: ProjectTaskDetailComponent,
       title: taskCode,
       key: `project-task-detail-${taskId}`,
       data: { id: taskId, ApprovalStatus: approvalStatus }

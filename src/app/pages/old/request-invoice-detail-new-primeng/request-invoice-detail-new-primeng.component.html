@@ -15,9 +15,8 @@
                                 <div class="input-group input-group-sm">
                                     <input type="text" class="form-control form-control-sm fs-12"
                                         [(ngModel)]="formData.Code" name="Code" disabled>
-                                    <button *ngIf="!isHeaderReadOnly" class="btn btn-outline-secondary" type="button" 
-                                        (click)="generateBillNumber(selectedId)" 
-                                        title="Làm mới số phiếu">
+                                    <button *ngIf="!isHeaderReadOnly" class="btn btn-outline-secondary" type="button"
+                                        (click)="generateBillNumber(selectedId)" title="Làm mới số phiếu">
                                         <i class="fas fa-sync-alt"></i>
                                     </button>
                                 </div>
@@ -35,8 +34,7 @@
                                 <label class="mb-0 fs-12">Khách hàng <span class="text-danger">*</span></label>
                                 <nz-select nzShowSearch name="customerId" nzPlaceHolder="Chọn khách hàng" nzAllowClear
                                     nzSize="default" class="w-100" [(ngModel)]="formData.customerId"
-                                    [nzDisabled]="isHeaderReadOnly"
-                                    (ngModelChange)="onCustomerChange($event)">
+                                    [nzDisabled]="isHeaderReadOnly" (ngModelChange)="onCustomerChange($event)">
                                     <nz-option *ngFor="let customer of customers" [nzValue]="customer.ID"
                                         [nzLabel]="customer.CustomerName"></nz-option>
                                 </nz-select>
@@ -69,8 +67,7 @@
                             <div class="col-md-12 mb-2">
                                 <label class="mb-0 fs-12">Ngày yêu cầu <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control form-control-sm fs-12"
-                                    [(ngModel)]="formData.requestDate" name="requestDate"
-                                    [disabled]="isHeaderReadOnly">
+                                    [(ngModel)]="formData.requestDate" name="requestDate" [disabled]="isHeaderReadOnly">
                             </div>
                             <!-- [TODO] Ngày xuất - tạm thời bỏ, chưa có trường ExportDate bên BE
                             <div class="col-md-12 mb-2">
@@ -83,7 +80,8 @@
                             <div class="col-md-12 mb-2">
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <label class="mb-0 fs-12">Loại hợp đồng <span class="text-danger">*</span></label>
+                                        <label class="mb-0 fs-12">Loại hợp đồng <span
+                                                class="text-danger">*</span></label>
                                         <nz-select nzShowSearch name="accountingContractType"
                                             nzPlaceHolder="Chọn loại hợp đồng" nzAllowClear nzSize="default"
                                             class="w-100" [(ngModel)]="formData.accountingContractType"
@@ -147,8 +145,8 @@
 
                         <p-table [value]="files" dataKey="__fileKey" selectionMode="single"
                             [(selection)]="selectedInvoiceFile"
-                            styleClass="p-datatable-gridlines p-datatable-sm invoice-file-table mb-3" [scrollable]="true"
-                            scrollHeight="16vh" [showGridlines]="true" [rowHover]="true">
+                            styleClass="p-datatable-gridlines p-datatable-sm invoice-file-table mb-3"
+                            [scrollable]="true" scrollHeight="16vh" [showGridlines]="true" [rowHover]="true">
                             <ng-template pTemplate="header">
                                 <tr>
                                     <th style="width: 42px;"></th>
@@ -160,7 +158,8 @@
                                 <tr [pSelectableRow]="file"
                                     (dblclick)="selectedInvoiceFile = file; downloadInvoiceFile(file)">
                                     <td class="text-center">
-                                        <button *ngIf="!file.IsDeleted && canDelete" pButton type="button" icon="pi pi-trash"
+                                        <button *ngIf="!file.IsDeleted && canDelete" pButton type="button"
+                                            icon="pi pi-trash"
                                             class="p-button-text p-button-danger p-button-sm table-icon-btn"
                                             (click)="deleteInvoiceFile(file); $event.stopPropagation()">
                                         </button>
@@ -199,7 +198,8 @@
                                 <tr [pSelectableRow]="file"
                                     (dblclick)="selectedContractFile = file; downloadContractFile(file)">
                                     <td class="text-center">
-                                        <button *ngIf="!file.IsDeleted && canDelete" pButton type="button" icon="pi pi-trash"
+                                        <button *ngIf="!file.IsDeleted && canDelete" pButton type="button"
+                                            icon="pi pi-trash"
                                             class="p-button-text p-button-danger p-button-sm table-icon-btn"
                                             (click)="deleteContractFile(file); $event.stopPropagation()">
                                         </button>
@@ -331,7 +331,8 @@
                                             </td>
                                             <td class="text-center stt-column">{{ rowData.STT }}</td>
                                             <td>{{ rowData.ProductNewCode }}</td>
-                                            <td [pEditableColumn]="rowData" pEditableColumnField="ProductSaleID" [pEditableColumnDisabled]="isReadOnlyMode">
+                                            <td [pEditableColumn]="rowData" pEditableColumnField="ProductSaleID"
+                                                [pEditableColumnDisabled]="isReadOnlyMode">
                                                 <p-cellEditor>
                                                     <ng-template pTemplate="input">
                                                         <p-select [options]="productEditorOptions" optionLabel="label"
@@ -371,7 +372,8 @@
                                                 </p-cellEditor>
                                             </td>
                                             <td>{{ rowData.ProjectCode }}</td>
-                                            <td [pEditableColumn]="rowData" pEditableColumnField="ProjectID" [pEditableColumnDisabled]="isReadOnlyMode">
+                                            <td [pEditableColumn]="rowData" pEditableColumnField="ProjectID"
+                                                [pEditableColumnDisabled]="isReadOnlyMode">
                                                 <p-cellEditor>
                                                     <ng-template pTemplate="input">
                                                         <p-select [options]="projectOptions" optionLabel="label"
@@ -386,7 +388,8 @@
                                                         }}</ng-template>
                                                 </p-cellEditor>
                                             </td>
-                                            <td [pEditableColumn]="rowData" pEditableColumnField="Note" [pEditableColumnDisabled]="isReadOnlyMode">
+                                            <td [pEditableColumn]="rowData" pEditableColumnField="Note"
+                                                [pEditableColumnDisabled]="isReadOnlyMode">
                                                 <p-cellEditor>
                                                     <ng-template pTemplate="input">
                                                         <input pInputText class="table-cell-input"
@@ -398,7 +401,8 @@
                                                 </p-cellEditor>
                                             </td>
                                             <td>{{ rowData.PONumber }}</td>
-                                            <td [pEditableColumn]="rowData" pEditableColumnField="InvoiceNumber" [pEditableColumnDisabled]="isReadOnlyMode">
+                                            <td [pEditableColumn]="rowData" pEditableColumnField="InvoiceNumber"
+                                                [pEditableColumnDisabled]="isReadOnlyMode">
                                                 <p-cellEditor>
                                                     <ng-template pTemplate="input">
                                                         <input pInputText class="table-cell-input"
@@ -410,7 +414,8 @@
                                                         }}</ng-template>
                                                 </p-cellEditor>
                                             </td>
-                                            <td [pEditableColumn]="rowData" pEditableColumnField="InvoiceDate" [pEditableColumnDisabled]="isReadOnlyMode">
+                                            <td [pEditableColumn]="rowData" pEditableColumnField="InvoiceDate"
+                                                [pEditableColumnDisabled]="isReadOnlyMode">
                                                 <p-cellEditor>
                                                     <ng-template pTemplate="input">
                                                         <input type="date" class="table-cell-input"
@@ -442,6 +447,20 @@
                                     <ng-template pTemplate="emptymessage">
                                         <tr>
                                             <td colspan="23">Không có dữ liệu.</td>
+                                        </tr>
+                                    </ng-template>
+
+                                    <ng-template pTemplate="footer">
+                                        <tr>
+                                            <td colspan="2"></td>
+                                            <td class="text-center"></td>
+                                            <td></td>
+                                            <td class="text-end"><b>{{ getProductCodeCount() }}</b></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td class="text-end"><b>{{ getTotalQuantity() }}</b></td>
+                                            <td colspan="14"></td>
                                         </tr>
                                     </ng-template>
                                 </p-table>

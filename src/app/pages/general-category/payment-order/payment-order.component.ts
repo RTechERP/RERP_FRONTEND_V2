@@ -3415,6 +3415,9 @@ export class PaymentOrderComponent implements OnInit {
 
       this.filterTimeout = setTimeout(() => {
         this.applyDistinctFilters(this.angularGrid);
+        // applyDistinctFilters gọi setColumns() làm SlickGrid dựng lại DOM footer row,
+        // nên phải set lại tổng tiền sau khi nó chạy xong.
+        this.updateTotal(this.angularGrid);
       }, 2000);
 
       this.updateTotal(this.angularGrid);
@@ -3486,6 +3489,22 @@ export class PaymentOrderComponent implements OnInit {
       // columnElement.textContent = `${this.formatNumber(this.dataset.length, 0)}`;
       columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getLength(), 0)}`;
     }
+
+    // Tổng các cột tiền theo dữ liệu đang hiển thị (đã lọc), chỉ set textContent
+    // để tránh gọi invalidate()/render() làm mất focus/vị trí con trỏ ở ô lọc.
+    const moneyFields = [
+      PaymentOrderField.TotalMoneyAdvance.field,
+      PaymentOrderField.TotalPayment.field,
+      PaymentOrderField.TotalPaymentActual.field,
+      PaymentOrderField.TotalPaymentWithInvoice.field,
+    ];
+    const filteredItems = (angularGrid.dataView?.getFilteredItems?.() as any[]) || [];
+    moneyFields.forEach(field => {
+      const footerCell = angularGrid.slickGrid?.getFooterRowColumn(field);
+      if (!footerCell) return;
+      const sum = filteredItems.reduce((acc: number, item: any) => acc + (Number(item?.[field]) || 0), 0);
+      footerCell.textContent = this.formatNumber(sum, Number.isInteger(sum) ? 0 : 2);
+    });
   }
 
   initModal(paymentOrder: any = new PaymentOrder(), isCopy: boolean = false) {

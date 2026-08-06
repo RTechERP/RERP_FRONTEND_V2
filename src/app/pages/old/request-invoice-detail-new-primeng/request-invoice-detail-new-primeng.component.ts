@@ -1463,6 +1463,14 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
     return product?.ProductCode || rowData?.ProductCode || rowData?.ProductSaleCode || rowData?.ProductSaleID || '';
   }
 
+  getTotalQuantity(): number {
+    return (this.details || []).reduce((sum: number, row: any) => sum + (Number(row?.Quantity) || 0), 0);
+  }
+
+  getProductCodeCount(): number {
+    return (this.details || []).filter((row: any) => this.getProductCode(row)).length;
+  }
+
   getProjectName(rowData: any): string {
     const project = this.projects.find((p) => p.ID == rowData?.ProjectID);
     return project?.ProjectName || rowData?.ProjectName || rowData?.ProjectID || '';

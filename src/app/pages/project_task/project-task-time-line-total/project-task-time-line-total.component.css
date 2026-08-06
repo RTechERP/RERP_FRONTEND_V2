@@ -164,6 +164,12 @@ thead tr:nth-child(2) th {
     max-width: 100px;
 }
 
+.col-team {
+    width: 90px;
+    min-width: 90px;
+    max-width: 90px;
+}
+
 .col-proj {
     width: 120px;
     min-width: 120px;
@@ -218,24 +224,28 @@ thead .sticky-col {
     left: 30px;
 }
 
-.col-proj.sticky-col {
+.col-team.sticky-col {
     left: 130px;
 }
 
+.col-proj.sticky-col {
+    left: 220px;
+}
+
 .col-job.sticky-col {
-    left: 250px;
+    left: 340px;
 }
 
 .col-status.sticky-col {
-    left: 430px;
+    left: 520px;
 }
 
 .col-time.sticky-col {
-    left: 540px;
+    left: 630px;
 }
 
 .col-type.sticky-col {
-    left: 620px;
+    left: 710px;
 }
 
 /* ===== DATE COLUMNS ===== */

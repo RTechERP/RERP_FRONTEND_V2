@@ -169,6 +169,15 @@
                                 selectedItemsLabel="{0} người" appendTo="body" />
                         </th>
 
+                        <th rowspan="2" class="sticky-col col-team">
+                            Team
+                            <p-multiSelect [options]="teamColumnOptions" [(ngModel)]="filterTeamColumn"
+                                placeholder="Tất cả" [filter]="true" filterPlaceHolder="Tìm..."
+                                (onChange)="onColumnFilter()"
+                                styleClass="timeline-status-multi" panelStyleClass="timeline-status-panel-global" [maxSelectedLabels]="1"
+                                selectedItemsLabel="{0} team" appendTo="body" />
+                        </th>
+
                         <th rowspan="2" class="sticky-col col-proj">
                             Dự án
                             <input type="text" class="filter-input" [(ngModel)]="filterProjectKeyword"
@@ -222,6 +231,13 @@
                                             [attr.rowspan]="group._rowspan"
                                             class="sticky-col col-name cell-group cell-name-text cell-group-end">
                                             {{ group.FullName }}
+                                        </td>
+
+                                        <!-- Team: chỉ ở dòng đầu tiên của nhóm nhân viên -->
+                                        <td *ngIf="pi === 0 && ti === 0 && ri === 0"
+                                            [attr.rowspan]="group._rowspan"
+                                            class="sticky-col col-team cell-group cell-group-end">
+                                            {{ group.TeamName }}
                                         </td>
 
                                         <!-- Dự án: chỉ ở dòng đầu tiên của dự án trong nhóm nhân viên -->

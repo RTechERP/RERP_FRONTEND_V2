@@ -132,6 +132,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
   quantityBorrow: any = {};
   quantityBorrowExpried: any = {};
   quantityBorrowSale: any = {};
+  quantityOverdue3Months: any = {};
   quantityBorrowExpriedSale: any = {};
   quantityOverdueProjectTask: number = 0;
   hasBorrowSale: boolean = true;
@@ -306,7 +307,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
       tap((res: any) => {
         this.quantityBorrow = res.data.QuantitySemiExpired;
         this.quantityBorrowExpried = res.data.QuantityExpired;
-        if (this.quantityBorrow > 0 || this.quantityBorrowExpried > 0) {
+        this.quantityOverdue3Months = res.data.QuantityOverdue3Months;
+        if (this.quantityBorrow > 0 || this.quantityBorrowExpried > 0 || this.quantityOverdue3Months > 0) {
           this.hasBorrowDemo = false;
         }
         if (this.quantityBorrow > 0) {
@@ -327,6 +329,18 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             time: new Date().toISOString(),
             title: 'Vật tư quá hạn kho demo',
             text: `Bạn đang có ${this.quantityBorrowExpried} vật tư mượn quá hạn`,
+            group: 'today',
+            icon: 'warning',
+            route: 'summary-asset-persional',
+            queryParams: { activeTab: 2 }
+          });
+        }
+        if (this.quantityOverdue3Months > 0) {
+          this.notifService.addItem({
+            id: 3,
+            time: new Date().toISOString(),
+            title: 'Vật tư mượn quá hạn trên 3 tháng kho demo',
+            text: `Bạn đang có ${this.quantityOverdue3Months} vật tư mượn quá hạn trên 3 tháng`,
             group: 'today',
             icon: 'warning',
             route: 'summary-asset-persional',

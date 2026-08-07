@@ -15,7 +15,6 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { finalize, firstValueFrom } from 'rxjs';
 import { Menubar } from 'primeng/menubar';
@@ -70,11 +69,8 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
   isLoading = false;
   isDeleting = false;
 
-  // raw blob URL cache (id -> blob:http://...)
+  // raw blob URL cache (id -> blob:http://...), dùng lại khi mở tab mới
   private blobUrlCache = new Map<number, string>();
-  // trusted SafeResourceUrl cache (id -> SafeResourceUrl)
-  private previewUrlCache = new Map<number, SafeResourceUrl>();
-  private blobLoadingIds = new Set<number>();
 
   // thumbnail blob URL cache - cần fetch có Bearer token vì endpoint [Authorize]
   private thumbnailBlobCache = new Map<number, string>();
@@ -90,7 +86,6 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
     private modalService: NgbModal,
     private notification: NzNotificationService,
     private message: NzMessageService,
-    private sanitizer: DomSanitizer,
     public permissionService: PermissionService,
   ) { }
 
@@ -108,19 +103,16 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
     // Giải phóng blob URLs để tránh memory leak
     this.blobUrlCache.forEach(url => URL.revokeObjectURL(url));
     this.blobUrlCache.clear();
-    this.previewUrlCache.clear();
     this.thumbnailBlobCache.forEach(url => URL.revokeObjectURL(url));
     this.thumbnailBlobCache.clear();
   }
 
   /**
-   * Xóa toàn bộ cache preview và thumbnail. Dùng khi dataset thay đổi hoàn toàn.
+   * Xóa toàn bộ cache blob và thumbnail. Dùng khi dataset thay đổi hoàn toàn.
    */
   private clearAllPreviewCache(): void {
     this.blobUrlCache.forEach(url => URL.revokeObjectURL(url));
     this.blobUrlCache.clear();
-    this.previewUrlCache.clear();
-    this.blobLoadingIds.clear();
     this.thumbnailBlobCache.forEach(url => URL.revokeObjectURL(url));
     this.thumbnailBlobCache.clear();
     this.thumbnailLoadingIds.clear();
@@ -213,20 +205,7 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Bấm nút preview trên card: load iframe preview ngay lập tức, đè lên thumbnail.
-   */
-  onCardPreview(event: Event, item: any): void {
-    event.stopPropagation();
-    if (!item || !item.ID || !item.FilePath) return;
-    if (!this.isHtmlFile(item.FilePath)) return;
-    
-    // Force load preview blob ngay cả khi đã có thumbnail
-    this.loadPreviewBlob(item.ID);
-  }
-
-  /**
    * Mở file HTML ra tab mới để xem toàn màn hình.
-   * Không set previewUrlCache để tránh side effect hiển thị iframe trong card.
    */
   openInNewTab(event: Event, item: any): void {
     event.stopPropagation();
@@ -260,7 +239,6 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
       next: (blob) => {
         const url = URL.createObjectURL(blob);
         this.blobUrlCache.set(item.ID, url);
-        // KHÔNG set previewUrlCache ở đây để tránh hiển thị iframe trong card
         newTab.location.href = url;
       },
       error: () => {
@@ -288,11 +266,6 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
     if (!filePath) return '';
     const ext = filePath.split('.').pop()?.toUpperCase();
     return ext || '';
-  }
-
-  getSafeUrl(id: number): SafeResourceUrl {
-    const cached = this.previewUrlCache.get(id);
-    return cached ?? this.sanitizer.bypassSecurityTrustResourceUrl('about:blank');
   }
 
   getThumbnailBlobUrl(id: number): string {
@@ -323,56 +296,11 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Load preview iframe khi cần (lazy load). Được gọi khi:
-   * - User click vào card (onCardClick)
-   * - Thumbnail lỗi và cần fallback (onThumbnailError)
+   * Khi thumbnail load lỗi (204 hoặc file không tồn tại), xóa ThumbnailPath
+   * để template không còn cố render <img> mà chuyển sang placeholder.
    */
   onThumbnailError(event: Event, item: any): void {
-    // Khi thumbnail load lỗi (204 hoặc file không tồn tại), xóa ThumbnailPath
-    // để template không còn cố render <img>, sau đó tự động fallback sang iframe
     item.ThumbnailPath = null;
-  }
-
-  private loadPreviewBlob(id: number): void {
-    if (this.blobLoadingIds.has(id) || this.previewUrlCache.has(id)) return;
-
-    // Đã có blob (vd: từ openInNewTab) nhưng chưa set trusted URL cho card → dùng lại blob, khỏi fetch lại
-    const existingBlobUrl = this.blobUrlCache.get(id);
-    if (existingBlobUrl) {
-      this.previewUrlCache.set(id, this.sanitizer.bypassSecurityTrustResourceUrl(existingBlobUrl));
-      return;
-    }
-
-    this.blobLoadingIds.add(id);
-
-    this.mechanicalDrawingService.previewFile(id).subscribe({
-      next: async (blob) => {
-        try {
-          const cloned = blob.slice(0, 1024);
-          const text = await cloned.text();
-          const trimmed = text.trim().toLowerCase();
-          const isHtml = trimmed.startsWith('<!doctype') || trimmed.startsWith('<html');
-          if (isHtml) {
-            const url = URL.createObjectURL(blob);
-            this.blobUrlCache.set(id, url);
-            this.previewUrlCache.set(id, this.sanitizer.bypassSecurityTrustResourceUrl(url));
-          } else {
-            console.warn(`File ${id} không phải HTML, bỏ qua preview.`);
-          }
-        } catch {
-          console.warn(`Không đọc được content file ${id}.`);
-        }
-        this.blobLoadingIds.delete(id);
-      },
-      error: (err) => {
-        console.error(`Preview file ${id} failed:`, err);
-        this.blobLoadingIds.delete(id);
-      },
-    });
-  }
-
-  isPreviewLoaded(id: number): boolean {
-    return this.previewUrlCache.has(id);
   }
 
   formatDate(date: any): string {
@@ -421,11 +349,6 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
           // Load thumbnail blob nếu có ThumbnailPath
           if (newRecord.ThumbnailPath && newRecord.ID) {
             this.loadThumbnailBlob(newRecord.ID);
-          }
-          
-          // Load preview blob cho bản ghi mới (nếu là HTML và chưa có thumbnail)
-          if (newRecord.FilePath && this.isHtmlFile(newRecord.FilePath) && !newRecord.ThumbnailPath) {
-            this.loadPreviewBlob(newRecord.ID);
           }
         } else {
           this.loadData();
@@ -538,7 +461,6 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
             if (blobUrl) {
               URL.revokeObjectURL(blobUrl);
               this.blobUrlCache.delete(this.selectedId);
-              this.previewUrlCache.delete(this.selectedId);
             }
             const thumbUrl = this.thumbnailBlobCache.get(this.selectedId);
             if (thumbUrl) {

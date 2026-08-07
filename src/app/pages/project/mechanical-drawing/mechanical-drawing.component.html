@@ -66,9 +66,7 @@
                             [class.selected-card]="selectedId === item.ID" 
                             (click)="onCardClick(item)">
                             <div class="card-preview">
-                                @if (isPreviewLoaded(item.ID)) {
-                                    <iframe [src]="getSafeUrl(item.ID)" class="preview-iframe"></iframe>
-                                } @else if (item.ThumbnailPath && getThumbnailBlobUrl(item.ID)) {
+                                @if (item.ThumbnailPath && getThumbnailBlobUrl(item.ID)) {
                                     <img [src]="getThumbnailBlobUrl(item.ID)"
                                          class="preview-image"
                                          [alt]="item.Name" />
@@ -106,11 +104,7 @@
                             </div>
                             <div class="card-actions" (click)="$event.stopPropagation()">
                                 @if (item.FilePath && isHtmlFile(item.FilePath)) {
-                                    <button pButton type="button" icon="pi pi-play" 
-                                        class="p-button-rounded p-button-text p-button-sm"
-                                        (click)="onCardPreview($event, item)" 
-                                        pTooltip="Xem preview"></button>
-                                    <button pButton type="button" 
+                                    <button pButton type="button"
                                         [icon]="isOpeningTab(item.ID) ? 'pi pi-spin pi-spinner' : 'pi pi-external-link'" 
                                         class="p-button-rounded p-button-text p-button-sm"
                                         [disabled]="isOpeningTab(item.ID)"

@@ -80,8 +80,8 @@
             <nz-form-item>
                 <nz-form-label class="fs-12">Trạng thái</nz-form-label>
                 <nz-form-control>
-                    <nz-select [(ngModel)]="step" name="step" nzPlaceHolder="-- Tất cả --" nzAllowClear nzShowSearch>
-                        <nz-option [nzValue]="-1"></nz-option>
+                    <nz-select [(ngModel)]="step" name="step" nzPlaceHolder="-- Tất cả --" nzAllowClear nzShowSearch style="min-width: 175px;">
+                        <nz-option [nzValue]="-1" nzLabel="-- Tất cả --"></nz-option>
                         <nz-option *ngFor="let s of stepOptions" [nzValue]="s.value" [nzLabel]="s.label"></nz-option>
                     </nz-select>
                 </nz-form-control>

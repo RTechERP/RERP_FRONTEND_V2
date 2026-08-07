@@ -966,29 +966,29 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
             const row = cell.getRow();
             const rowData = row.getData();
 
-            // Lưu OfficeSupplyID đã bị xóa
             const officeSupplyId = rowData['OfficeSupplyID'];
-            const detailId = rowData['DetailID'] || 0;
+            const detailId = rowData['DetailID'] || rowData['ID'] || 0;
+            const empId = this.selectedEmployee ? (this.selectedEmployee.EmployeeID || this.selectedEmployee.ID) : 0;
 
-            // Nếu đang edit và có DetailID, đánh dấu detail này là deleted
-            if (this.requestId > 0 && detailId > 0) {
-              // Tìm detail trong originalDetailData
+            let finalDetailId = detailId;
+            if (finalDetailId <= 0 && empId > 0 && officeSupplyId > 0) {
+              const mapKey = `${empId}_${officeSupplyId}`;
+              finalDetailId = this.detailIdMap.get(mapKey) || 0;
+            }
+
+            if (this.requestId > 0 && finalDetailId > 0) {
               const originalDetail = this.originalDetailData.find((detail: any) =>
-                detail.ID === detailId && detail.OfficeSupplyID === officeSupplyId
+                detail.ID === finalDetailId
               );
 
               if (originalDetail) {
-                // Kiểm tra xem detail này đã được thêm vào deletedDetails chưa
-                const alreadyDeleted = this.deletedDetails.some((del: any) =>
-                  del.ID === detailId && del.OfficeSupplyID === officeSupplyId
-                );
-
+                const alreadyDeleted = this.deletedDetails.some((del: any) => del.ID === finalDetailId);
                 if (!alreadyDeleted) {
                   const deletedDetail: any = {
-                    ID: detailId,
+                    ID: finalDetailId,
                     OfficeSupplyRequestsID: this.requestId,
                     EmployeeID: originalDetail.EmployeeID,
-                    OfficeSupplyID: officeSupplyId,
+                    OfficeSupplyID: originalDetail.OfficeSupplyID,
                     Quantity: originalDetail.Quantity || 0,
                     QuantityReceived: originalDetail.QuantityReceived || 0,
                     ExceedsLimit: originalDetail.ExceedsLimit || false,
@@ -996,7 +996,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
                     IsDeleted: true
                   };
                   this.deletedDetails.push(deletedDetail);
-                  console.log(`Marked VPP detail as deleted: DetailID=${detailId}, OfficeSupplyID=${officeSupplyId}`);
+                  console.log(`Marked VPP detail as deleted: DetailID=${finalDetailId}`);
                 }
               }
             }
@@ -1006,6 +1006,12 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
             }
 
             row.delete();
+
+            // Cập nhật lại employeeVPPData của nhân viên đang chọn sau khi xóa row
+            if (empId > 0 && this.tbRequestDetail) {
+              const remainingVPPData = this.tbRequestDetail.getData();
+              this.employeeVPPData.set(empId, remainingVPPData.map((item: any) => ({ ...item })));
+            }
           }
         },
         {
@@ -1634,9 +1640,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
         const detailId = originalDetail.ID;
 
         // Nếu detail này có ID > 0 (đã tồn tại) và EmployeeID không còn trong danh sách hiện tại
-        // (bao gồm cả nhân viên đã bị xóa hoặc không còn trong employeesToProcess)
         if (detailId > 0 && !currentEmployeeIds.has(detailEmployeeId)) {
-          // Kiểm tra xem detail này đã được thêm vào deletedDetails chưa
           const alreadyDeleted = this.deletedDetails.some((del: any) =>
             del.ID === detailId && del.EmployeeID === detailEmployeeId && del.OfficeSupplyID === originalDetail.OfficeSupplyID
           );
@@ -1660,9 +1664,46 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       });
     }
 
-    // Thêm các detail đã bị xóa vào danh sách
-    if (this.deletedDetails.length > 0) {
-      officeSupplyRequestsDetails.push(...this.deletedDetails);
+    // Tự động phát hiện bất kỳ chi tiết ban đầu nào (ID > 0) không còn nằm trong danh sách active
+    if (this.requestId > 0 && this.originalDetailData && this.originalDetailData.length > 0) {
+      const activeDetailIds = new Set(
+        officeSupplyRequestsDetails
+          .filter((d: any) => d.ID > 0 && !d.IsDeleted)
+          .map((d: any) => d.ID)
+      );
+
+      this.originalDetailData.forEach((orig: any) => {
+        if (orig.ID > 0 && !activeDetailIds.has(orig.ID)) {
+          const alreadyDeleted = this.deletedDetails.some((del: any) => del.ID === orig.ID);
+          if (!alreadyDeleted) {
+            this.deletedDetails.push({
+              ID: orig.ID,
+              OfficeSupplyRequestsID: this.requestId,
+              EmployeeID: orig.EmployeeID,
+              OfficeSupplyID: orig.OfficeSupplyID,
+              Quantity: orig.Quantity || 0,
+              QuantityReceived: orig.QuantityReceived || 0,
+              ExceedsLimit: orig.ExceedsLimit || false,
+              Reason: orig.Reason || null,
+              IsDeleted: true
+            });
+            console.log(`Auto-detected deleted detail: ID=${orig.ID}, EmployeeID=${orig.EmployeeID}, OfficeSupplyID=${orig.OfficeSupplyID}`);
+          }
+        }
+      });
+    }
+
+    // Đưa tất cả các chi tiết bị xóa vào danh sách gửi lên backend với IsDeleted = true
+    if (this.deletedDetails && this.deletedDetails.length > 0) {
+      this.deletedDetails.forEach((delItem: any) => {
+        delItem.IsDeleted = true;
+        const idx = officeSupplyRequestsDetails.findIndex((d: any) => d.ID === delItem.ID && d.ID > 0);
+        if (idx >= 0) {
+          officeSupplyRequestsDetails[idx].IsDeleted = true;
+        } else {
+          officeSupplyRequestsDetails.push(delItem);
+        }
+      });
     }
 
     if (officeSupplyRequestsDetails.length === 0) {

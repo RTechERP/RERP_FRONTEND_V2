@@ -89,6 +89,7 @@ export class ContractTransferReviewPersonalComponent implements OnInit {
     { label: 'NV đánh giá', value: 1 },
     { label: 'TBP đánh giá', value: 2 },
     { label: 'HR xác nhận', value: 3 },
+    { label: 'BGĐ chưa phê duyệt', value: 5 },
     { label: 'BGĐ Phê duyệt', value: 4 },
   ];
 
@@ -941,14 +942,29 @@ export class ContractTransferReviewPersonalComponent implements OnInit {
       EmployeeID: this.employeeRequestId,
       DateFrom: this.toLocalISO(this.dateStart),
       DateTo: this.toLocalISO(this.dateEnd),
-      Step: this.step ?? -1,
+      Step: (this.step === 5 || this.step === 4) ? 4 : (this.step ?? -1),
       Role: this.checkRole(),
       Keyword: this.keyword
     };
     this.service.getData(params).subscribe({
       next: (res: any) => {
         this.isLoading = false;
-        const sortedData = [...(res.data || [])].sort((a: any, b: any) => {
+        let data = res.data || [];
+        if (this.step === 5) {
+          data = data.filter((r: any) =>
+            (Number(r.Step) === 4 || r.StepName?.includes('BGĐ')) &&
+            r.StatusApprove !== 1 &&
+            !r.BGDDateApproved &&
+            !r.StepName?.includes('BGĐ: Phê duyệt')
+          );
+        } else if (this.step === 4) {
+          data = data.filter((r: any) =>
+            r.StatusApprove === 1 ||
+            !!r.BGDDateApproved ||
+            r.StepName?.includes('BGĐ: Phê duyệt')
+          );
+        }
+        const sortedData = [...data].sort((a: any, b: any) => {
           const deptA = String(a?.DepartmentName || '').trim().toLowerCase();
           const deptB = String(b?.DepartmentName || '').trim().toLowerCase();
           if (deptA !== deptB) return deptA.localeCompare(deptB, 'vi');

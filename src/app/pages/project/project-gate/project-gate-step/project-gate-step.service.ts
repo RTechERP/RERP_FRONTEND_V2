@@ -46,6 +46,14 @@ export class ProjectGateStepService {
         return this.http.get<any>(`${environment.host}api/ProjectGateStepLink/GetByProject/${projectId}`);
     }
 
+    getGateDepartmentReport(projectId: number, gateCode?: string): Observable<any> {
+        let url = `${environment.host}api/ProjectGateStepLink/GetGateDepartmentReport/${projectId}`;
+        if (gateCode) {
+            url += `?gateCode=${encodeURIComponent(gateCode)}`;
+        }
+        return this.http.get<any>(url);
+    }
+
     getDeletedByProject(projectId: number): Observable<any> {
         return this.http.get<any>(`${environment.host}api/ProjectGateStepLink/GetDeletedByProject/${projectId}`);
     }

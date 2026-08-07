@@ -66,4 +66,8 @@ export class ProjectTaskGridService {
   getProjects(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}project/get-project-modal`);
   }
+
+  checkProjectHasGateStep(projectId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}ProjectGateStepLink/GetByProject/${projectId}`);
+  }
 }

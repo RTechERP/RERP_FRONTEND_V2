@@ -28,6 +28,9 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ProjectService } from '../../project-service/project.service';
+import { ProjectGateStepService } from '../project-gate-step/project-gate-step.service';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
+import { ProjectGateStepByProjectComponent } from '../project-gate-step/project-gate-step-by-project/project-gate-step-by-project.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { AuthService } from '../../../../auth/auth.service';
 import { PermissionService } from '../../../../services/permission.service';
@@ -116,6 +119,8 @@ export class ProjectProgressReportComponent implements OnInit, AfterViewInit, On
 
     constructor(
         private projectService: ProjectService,
+        private projectGateStepService: ProjectGateStepService,
+        private tabService: TabServiceService,
         private notification: NzNotificationService,
         private modal: NzModalService,
         private router: Router,
@@ -138,8 +143,8 @@ export class ProjectProgressReportComponent implements OnInit, AfterViewInit, On
     //#region Khai báo biến
     isHide: boolean = false;
     sizeSearch: string = '0';
-    sizeTbMaster: string = '70%';
-    sizeTbDetail: any = '30%';
+    sizeTbMaster: string = '35%';
+    sizeTbDetail: any = '65%';
     showDetailPanel: boolean = true;
     project: any[] = [];
     projectTypes: any[] = [];
@@ -165,6 +170,13 @@ export class ProjectProgressReportComponent implements OnInit, AfterViewInit, On
     projecStatusIds: string[] = [];
     activeTab: string = 'gateprogress';
     detailGridsReady: boolean = false;
+
+    // Gate Step & Department Delay properties
+    savedGateSteps: any[] = [];
+    isLoadingGateSteps: boolean = false;
+    selectedGateCode: string | null = null;
+    selectedGateData: any = null;
+    selectedGateDepartments: any[] = [];
     userId: any;
     pmId: any;
     businessFieldId: any;
@@ -242,6 +254,203 @@ export class ProjectProgressReportComponent implements OnInit, AfterViewInit, On
         }
 
         return 'gate-pending';
+    }
+
+    isGateDelayedInProject(gateCode: string): boolean {
+        if (!gateCode || !this.savedGateSteps || !this.savedGateSteps.length) return false;
+        return this.savedGateSteps.some((link: any) => {
+            const cCode = (link.GateCode || `G${link.ProjectGateID}` || '').trim().toUpperCase();
+            if (cCode !== gateCode.trim().toUpperCase()) return false;
+            return link.IsDelayed === 1 || link.IsDelayed === true;
+        });
+    }
+
+    loadProjectGateSteps(projectId: number): void {
+        if (!projectId) {
+            this.savedGateSteps = [];
+            this.selectedGateCode = null;
+            this.selectedGateData = null;
+            this.selectedGateDepartments = [];
+            return;
+        }
+        this.isLoadingGateSteps = true;
+        this.projectGateStepService.getGateDepartmentReport(projectId).subscribe({
+            next: (res: any) => {
+                this.isLoadingGateSteps = false;
+                const data = res?.data || res || [];
+                this.savedGateSteps = Array.isArray(data) ? data : [];
+
+                const projectGates = this.getProjectGates(this.selectedRow);
+                const currentGateCode = this.selectedRow?.CurrentGate;
+                if (currentGateCode && projectGates.some((g: any) => g.code === currentGateCode)) {
+                    const activeGate = projectGates.find((g: any) => g.code === currentGateCode);
+                    this.selectGate(activeGate);
+                } else if (projectGates.length > 0) {
+                    this.selectGate(projectGates[0]);
+                } else {
+                    this.selectedGateCode = null;
+                    this.selectedGateData = null;
+                    this.selectedGateDepartments = [];
+                }
+            },
+            error: (err: any) => {
+                this.isLoadingGateSteps = false;
+                console.error('Error loading project gate steps:', err);
+                this.savedGateSteps = [];
+                this.selectedGateCode = null;
+                this.selectedGateData = null;
+                this.selectedGateDepartments = [];
+            }
+        });
+    }
+
+    selectGate(gate: any): void {
+        if (!gate) return;
+        this.selectedGateCode = gate.code;
+        this.selectedGateData = gate;
+        this.buildDepartmentsForGate(gate);
+    }
+
+    openProjectGateStepByProjectModal(): void {
+        if (!this.selectedRow || !this.selectedRow.ID) {
+            this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+            return;
+        }
+
+        const projectId = this.selectedRow.ID;
+        const projectCode = this.selectedRow.ProjectCode || '';
+        const projectName = this.selectedRow.ProjectName || '';
+        const projectStatusName = this.selectedRow.ProjectStatusName || this.selectedRow.ProjectStatusText || this.selectedRow.ProjectStatus || '';
+        const key = `project-gate-step-by-project/${projectId}`;
+
+        this.tabService.openTabComp({
+            comp: ProjectGateStepByProjectComponent,
+            title: `Chi tiết dự án - ${projectCode}`,
+            key: key,
+            data: {
+                projectId: projectId,
+                projectCode: projectCode,
+                projectName: projectName,
+                projectStatusName: projectStatusName,
+                _tabKey: key
+            }
+        });
+    }
+
+    formatDateDisplay(val: any): string {
+        if (!val) return '';
+        const raw = String(val).substring(0, 10);
+        const dt = DateTime.fromISO(raw);
+        return dt.isValid ? dt.toFormat('dd/MM/yyyy') : raw;
+    }
+
+    buildDepartmentsForGate(gate: any): void {
+        if (!gate || !this.savedGateSteps) {
+            this.selectedGateDepartments = [];
+            return;
+        }
+
+        const gateCode = gate.code.trim().toUpperCase();
+        const gateSteps = this.savedGateSteps.filter((x: any) => {
+            const cCode = (x.GateCode || `G${x.ProjectGateID}` || '').trim().toUpperCase();
+            return cCode === gateCode || x.ProjectGateID === gate.stt;
+        });
+
+        const deptMap: { [deptId: number]: any } = {};
+
+        gateSteps.forEach((link: any) => {
+            const deptId = link.DepartmentID ?? 0;
+            const deptName = link.DepartmentName || (deptId === 0 ? 'Mẫu chung' : `Phòng ban ID ${deptId}`);
+
+            if (!deptMap[deptId]) {
+                deptMap[deptId] = {
+                    deptId: deptId,
+                    deptName: deptName,
+                    steps: [],
+                    isDelayed: false
+                };
+            }
+
+            const startDateStr = link.StartDate ? this.formatDateDisplay(link.StartDate) : null;
+            const planEndDateStr = link.PlanEndDate ? this.formatDateDisplay(link.PlanEndDate) : null;
+            const dayCount = Number(link.DayCount) || 1;
+            const isStepDelayed = link.IsDelayed === 1 || link.IsDelayed === true;
+            const isCompleted = link.IsCompleted === 1 || link.IsCompleted === true;
+            const isApproved = link.IsApproved === 1 || link.IsApproved === true;
+
+            const parentID = link.ParentID ?? null;
+
+            deptMap[deptId].steps.push({
+                stepLinkId: link.ProjectGateStepLinkID || link.ID,
+                projectGateStepID: link.ProjectGateStepID,
+                parentID: parentID,
+                content: link.Content || 'Công đoạn',
+                startDate: startDateStr,
+                dayCount: dayCount,
+                planEndDate: planEndDateStr,
+                isApproved: isApproved,
+                isCompleted: isCompleted,
+                isDelayed: isStepDelayed
+            });
+
+            if (isStepDelayed) {
+                deptMap[deptId].isDelayed = true;
+            }
+        });
+
+        const deptsArray = Object.values(deptMap).map((d: any) => {
+            const rawSteps = d.steps;
+            const stepByIdMap = new Map<number, any>();
+            rawSteps.forEach((s: any) => {
+                s.children = [];
+                s.level = 0;
+                s.isParent = false;
+                stepByIdMap.set(s.stepLinkId, s);
+            });
+
+            const rootSteps: any[] = [];
+            rawSteps.forEach((s: any) => {
+                if (s.parentID && stepByIdMap.has(s.parentID) && s.parentID !== s.stepLinkId) {
+                    const parent = stepByIdMap.get(s.parentID);
+                    parent.children.push(s);
+                    parent.isParent = true;
+                } else {
+                    rootSteps.push(s);
+                }
+            });
+
+            const orderedSteps: any[] = [];
+            const flattenTree = (nodeList: any[], level: number) => {
+                nodeList.forEach((node: any) => {
+                    node.level = level;
+                    orderedSteps.push(node);
+                    if (node.children && node.children.length > 0) {
+                        node.isParent = true;
+                        flattenTree(node.children, level + 1);
+                    }
+                });
+            };
+            flattenTree(rootSteps, 0);
+
+            const totalSteps = orderedSteps.length;
+            const approvedSteps = orderedSteps.filter((s: any) => s.isApproved).length;
+            const completedSteps = orderedSteps.filter((s: any) => s.isCompleted).length;
+            return {
+                ...d,
+                steps: orderedSteps,
+                totalSteps,
+                approvedSteps,
+                completedSteps,
+                isApproved: totalSteps > 0 && totalSteps === approvedSteps
+            };
+        });
+
+        deptsArray.sort((a: any, b: any) => {
+            if (a.isDelayed !== b.isDelayed) return a.isDelayed ? -1 : 1;
+            return a.deptName.localeCompare(b.deptName);
+        });
+
+        this.selectedGateDepartments = deptsArray;
     }
 
     projectId: any = 0;
@@ -333,6 +542,11 @@ export class ProjectProgressReportComponent implements OnInit, AfterViewInit, On
                     ? 'fa-solid fa-eye fa-lg text-info'
                     : 'fa-solid fa-eye-slash fa-lg text-primary',
                 command: () => this.toggleDetailPanel(),
+            },
+            {
+                label: 'Chi tiết dự án',
+                icon: 'fa-solid fa-people-group fa-lg text-info',
+                command: () => this.openProjectGateStepByProjectModal(),
             },
         ];
     }
@@ -496,6 +710,10 @@ export class ProjectProgressReportComponent implements OnInit, AfterViewInit, On
             this.getWorkReports();
         } else if (tab === 'typelink') {
             this.getProjectTypeLinks();
+        } else if (tab === 'gateprogress') {
+            if (this.projectId && (!this.savedGateSteps || !this.savedGateSteps.length)) {
+                this.loadProjectGateSteps(this.projectId);
+            }
         }
     }
 
@@ -505,10 +723,13 @@ export class ProjectProgressReportComponent implements OnInit, AfterViewInit, On
         this.projectId = rowData.ID;
         this.projectCode = rowData.ProjectCode;
         this.getProjectTypeLinks();
+        this.loadProjectGateSteps(rowData.ID);
 
         if (this.showDetailPanel) {
-            this.sizeTbMaster = '60%';
-            this.sizeTbDetail = '40%';
+            if (this.sizeTbMaster === '100%' || !this.sizeTbMaster) {
+                this.sizeTbMaster = '35%';
+                this.sizeTbDetail = '65%';
+            }
             this.detailGridsReady = true;
             this.getWorkReports();
             if (this.activeTab === 'typelink') {
@@ -521,8 +742,8 @@ export class ProjectProgressReportComponent implements OnInit, AfterViewInit, On
         this.showDetailPanel = !this.showDetailPanel;
         if (this.showDetailPanel) {
             if (this.projectId) {
-                this.sizeTbMaster = '70%';
-                this.sizeTbDetail = '30%';
+                this.sizeTbMaster = '35%';
+                this.sizeTbDetail = '65%';
                 this.detailGridsReady = true;
                 if (this.activeTab === 'workreport') {
                     this.getWorkReports();

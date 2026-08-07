@@ -104,6 +104,7 @@ export class ProjectTaskGridComponent implements OnInit {
 
   // Filters
   projectId: number = 0;
+  isProjectLinkedToGateStep: boolean = false;
   dateStart: string = '';
   dateEnd: string = '';
   filterKeyword: string = '';
@@ -137,7 +138,7 @@ export class ProjectTaskGridComponent implements OnInit {
       {
         label: 'Thêm CV cha',
         icon: 'fa-solid fa-plus fa-lg text-success',
-        disabled: !this.projectId || isSaving,
+        disabled: !this.projectId || isSaving || this.isProjectLinkedToGateStep,
         command: () => this.addRootTask(),
       },
       {
@@ -210,6 +211,7 @@ export class ProjectTaskGridComponent implements OnInit {
     this.loadDropdowns();
 
     if (this.projectId > 0) {
+      this.checkProjectHasGateStep(this.projectId);
       this.loadTasks();
     }
   }
@@ -295,11 +297,32 @@ export class ProjectTaskGridComponent implements OnInit {
     });
   }
 
+  checkProjectHasGateStep(projectId: number): void {
+    if (!projectId) {
+      this.isProjectLinkedToGateStep = false;
+      this.initMenuItems();
+      return;
+    }
+    this.gridService.checkProjectHasGateStep(projectId).subscribe({
+      next: (res: any) => {
+        this.isProjectLinkedToGateStep = Boolean(res && res.data && Array.isArray(res.data) && res.data.length > 0);
+        this.initMenuItems();
+      },
+      error: (err: any) => {
+        console.error('Error checking project gate step:', err);
+        this.isProjectLinkedToGateStep = false;
+        this.initMenuItems();
+      }
+    });
+  }
+
   onProjectChange(): void {
     this.initMenuItems();
     if (this.projectId > 0) {
+      this.checkProjectHasGateStep(this.projectId);
       this.loadTasks();
     } else {
+      this.isProjectLinkedToGateStep = false;
       this.rawTasks = [];
       this.treeNodes = [];
       this.flatVisibleData = [];
@@ -600,6 +623,11 @@ export class ProjectTaskGridComponent implements OnInit {
       return;
     }
 
+    if (this.isProjectLinkedToGateStep) {
+      this.notification.create('warning', 'Cảnh báo', 'Dự án đã có quy trình Gate Step. Bắt buộc phải chọn Công việc cha!');
+      return;
+    }
+
     this.loading.set(true);
     this.gridService.getRootCode(this.projectId).subscribe({
       next: (res: any) => {
@@ -890,6 +918,11 @@ export class ProjectTaskGridComponent implements OnInit {
           errors.push(`Công việc ${codeStr}: Deadline (${item.Deadline}) không được vượt quá Ngày KT dự kiến của công việc cha '${parent.Code}' (${parent.PlanEndDate})`);
         }
       }
+    }
+
+    // 5. Validate dự án có Gate Step bắt buộc phải chọn Công việc cha khi tạo task mới
+    if (this.isProjectLinkedToGateStep && (item._isNew || item.ID <= 0) && (!item.ParentID || item.ParentID <= 0)) {
+      errors.push(`Công việc ${codeStr}: Dự án đã chọn có quy trình Gate Step. Bắt buộc phải chọn Công việc cha!`);
     }
 
     return errors;

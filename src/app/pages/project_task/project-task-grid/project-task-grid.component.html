@@ -110,7 +110,26 @@
     <div class="table-scroll-wrapper">
       <p-table [value]="flatVisibleData" dataKey="Code" [scrollable]="true" scrollHeight="flex"
         [resizableColumns]="true" [loading]="loading()" [filterDelay]="300" columnResizeMode="expand"
+        [style]="{'table-layout': 'fixed'}"
         styleClass="p-datatable-sm p-datatable-gridlines tree-grid-p-table">
+        <ng-template pTemplate="colgroup">
+          <colgroup>
+            <col style="width: 60px;">
+            <col style="width: 160px;">
+            <col style="width: 260px;">
+            <col style="width: 160px;">
+            <col style="width: 160px;">
+            <col style="width: 200px;">
+            <col style="width: 200px;">
+            <col style="width: 120px;">
+            <col style="width: 120px;">
+            <col style="width: 120px;">
+            <col style="width: 120px;">
+            <col style="width: 120px;">
+            <col style="width: 100px;">
+            <col style="width: 50px;">
+          </colgroup>
+        </ng-template>
         <ng-template pTemplate="header">
           <!-- Hàng nhóm: gom 2 cột Dự kiến và 2 cột Thực tế -->
           <tr>

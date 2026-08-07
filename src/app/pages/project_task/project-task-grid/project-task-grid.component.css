@@ -45,6 +45,10 @@ nz-spin,
   min-height: 0;
 }
 
+:host ::ng-deep .tree-grid-p-table .p-datatable-table {
+  table-layout: fixed !important;
+}
+
 .tree-grid-table {
   width: 100%;
   border-collapse: separate;
@@ -52,14 +56,26 @@ nz-spin,
   font-size: 12px;
 }
 
-.tree-grid-p-table .p-datatable-thead>tr>th {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+:host ::ng-deep .tree-grid-p-table .p-datatable-thead > tr > th {
   background-color: #f8fafc !important;
   color: #334155;
   font-weight: 600;
   white-space: nowrap;
+  position: relative !important;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-column-resizer {
+  position: absolute !important;
+  top: 0;
+  right: 0;
+  width: 8px !important;
+  height: 100% !important;
+  cursor: col-resize !important;
+  z-index: 100 !important;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-column-resizer:hover {
+  background-color: #3b82f6 !important;
 }
 
 /* Group Headers */

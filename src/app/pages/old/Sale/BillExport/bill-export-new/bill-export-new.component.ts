@@ -2628,12 +2628,12 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
             icon: 'fa-solid fa-user-check fa-lg text-primary',
             items: [
                 {
-                    label: 'Đã chẩn bị hàng',
+                    label: 'Đã chuẩn bị hàng',
                     icon: 'fa-solid fa-check fa-lg text-success',
                     command: () => this.updateStatusPreparing(true),
                 },
                 {
-                    label: 'Hủy chẩn bị hàng',
+                    label: 'Hủy chuẩn bị hàng',
                     icon: 'fa-solid fa-xmark fa-lg text-danger',
                     command: () => this.updateStatusPreparing(false),
                 },
@@ -3145,10 +3145,113 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
             console.error('Chưa có PDF cho tab này');
             return;
         }
-        let defaultTitle = 'PhieuXuatReportVietnamese';
+        let defaultTitle = tab.title || 'PhieuXuatReportVietnamese';
         let title = tab.docDefinition?.info?.title || defaultTitle;
 
         pdfMake.createPdf(tab.docDefinition).download(title + '.pdf');
+    }
+
+    downloadAllPDF() {
+        if (!this.tabs || this.tabs.length === 0) return;
+        this.tabs.forEach((tab, index) => {
+            if (!tab.docDefinition) return;
+            let defaultTitle = tab.title || `PhieuXuatReport_${index + 1}`;
+            let title = tab.docDefinition?.info?.title || defaultTitle;
+            setTimeout(() => {
+                pdfMake.createPdf(tab.docDefinition).download(title + '.pdf');
+            }, index * 300);
+        });
+    }
+
+    downloadCombinedPDF() {
+        if (!this.tabs || this.tabs.length === 0) return;
+
+        let combinedContent: any[] = [];
+        let firstTabDoc: any = null;
+
+        this.tabs.forEach((tab, index) => {
+            if (!tab.dataPrint) return;
+            let docDef = this.onCreatePDFLanguageVi(tab.dataPrint, tab.isShowSign, tab.isShowSeal, tab.isShowKkys);
+            if (docDef && docDef.content) {
+                if (!firstTabDoc) {
+                    firstTabDoc = docDef;
+                }
+                if (index > 0) {
+                    combinedContent.push({ text: '', pageBreak: 'before' });
+                }
+                combinedContent.push(...docDef.content);
+            }
+        });
+
+        if (!firstTabDoc || combinedContent.length === 0) return;
+
+        let combinedDocDef = {
+            ...firstTabDoc,
+            content: combinedContent
+        };
+
+        let dateStr = DateTime.now().toFormat('yyyyMMdd_HHmmss');
+        pdfMake.createPdf(combinedDocDef).download(`PhieuXuat_Gop_TatCa_${dateStr}.pdf`);
+    }
+
+    async downloadAllPDFToFolder() {
+        if (!this.tabs || this.tabs.length === 0) return;
+
+        if (!('showDirectoryPicker' in window)) {
+            this.downloadAllPDF();
+            return;
+        }
+
+        try {
+            const dirHandle = await (window as any).showDirectoryPicker();
+
+            const modalRef = this.modal.info({
+                nzTitle: 'Đang tải file PDF',
+                nzContent: `Đang xuất 0/${this.tabs.length} file PDF...`,
+                nzClosable: false,
+                nzMaskClosable: false,
+                nzKeyboard: false,
+                nzOkText: null,
+                nzCancelText: null,
+                nzMask: false
+            });
+
+            for (let i = 0; i < this.tabs.length; i++) {
+                const tab = this.tabs[i];
+                if (!tab.dataPrint) continue;
+
+                modalRef.updateConfig({
+                    nzContent: `Đang xuất file (${i + 1}/${this.tabs.length}): ${tab.title}.pdf...`
+                });
+
+                let docDefinition: any = this.onCreatePDFLanguageVi(tab.dataPrint, tab.isShowSign, tab.isShowSeal, tab.isShowKkys);
+                const blob = await new Promise<Blob>((resolve) => {
+                    pdfMake.createPdf(docDefinition).getBlob((b: Blob) => resolve(b));
+                });
+
+                const fileName = `${tab.title || `PhieuXuat_${i + 1}`}.pdf`;
+                const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
+                const writable = await fileHandle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+            }
+
+            modalRef.close();
+            this.notification.success(
+                NOTIFICATION_TITLE.success,
+                `Đã tải thành công ${this.tabs.length} file PDF vào thư mục!`
+            );
+
+        } catch (err: any) {
+            if (err.name === 'AbortError') {
+                this.notification.info('Thông báo', 'Bạn đã hủy chọn thư mục!');
+            } else {
+                this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    `Lỗi: ${err.message || 'Có lỗi xảy ra khi tải file PDF'}`
+                );
+            }
+        }
     }
 
     onCreatePDFLanguageVi(data: any, isShowSign: boolean, isShowSeal: boolean, isShowKkys: boolean = true) {

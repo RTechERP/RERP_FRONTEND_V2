@@ -262,6 +262,30 @@
                                     Tải PDF
                                 </button>
 
+                                <button
+                                    *ngIf="tabs.length > 1"
+                                    class="me-2"
+                                    nz-button
+                                    nzType="primary"
+                                    nzSize="small"
+                                    (click)="downloadAllPDFToFolder()"
+                                    title="Chọn thư mục 1 lần duy nhất để lưu tất cả {{ tabs.length }} file PDF riêng biệt vào thư mục đó"
+                                >
+                                    <span nz-icon nzType="folder-open"></span> Tải tất cả PDF
+                                </button>
+
+                                <button
+                                    *ngIf="tabs.length > 1"
+                                    class="me-2"
+                                    nz-button
+                                    nzType="default"
+                                    nzSize="small"
+                                    (click)="downloadCombinedPDF()"
+                                    title="Gộp tất cả {{ tabs.length }} phiếu thành 1 file PDF duy nhất"
+                                >
+                                    Tải 1 file PDF gộp
+                                </button>
+
                                 <!-- <nz-switch
                                     class="mx-1"
                                     [(ngModel)]="t.isMerge"

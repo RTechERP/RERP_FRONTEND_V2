@@ -1,9 +1,11 @@
 <!-- <div *ngIf="showHeader || activeModal"
     style="display: flex; flex-direction: column; height: 99.6vh; position: relative;"> -->
 <ng-container>
-    <div *ngIf="showHeader || listRequestBuySelect" class="modal-header p-1 fs-12" style="background-color: #3469f7; border-radius: 0;">
+    <div *ngIf="showHeader || listRequestBuySelect" class="modal-header p-1 fs-12"
+        style="background-color: #3469f7; border-radius: 0;">
         <h4 class="modal-title text-white uppercase">{{ headerText }}</h4>
-        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close" style="margin-right: 15px;"></button>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"
+            style="margin-right: 15px;"></button>
     </div>
 
     <div class="card border-0 rounded-0">
@@ -13,12 +15,9 @@
                 <ng-template pTemplate="end">
                     <div class="flex items-center gap-2">
                         <!-- Mobile: Search button with dropdown -->
-                        <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile()"
-                            nz-dropdown [nzDropdownMenu]="mobileSearchMenu"
-                            nzTrigger="click"
-                            nzPlacement="bottomRight"
-                            type="button"
-                            aria-label="Tìm kiếm">
+                        <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile()" nz-dropdown
+                            [nzDropdownMenu]="mobileSearchMenu" nzTrigger="click" nzPlacement="bottomRight"
+                            type="button" aria-label="Tìm kiếm">
                             <nz-icon nzType="search" />
                         </button>
 
@@ -54,7 +53,8 @@
                     justifyContent: 'center'
                     }"></nz-spin>
             </div>
-            <nz-tabset class="ms-2 h-100" [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="onTabChange($event)">
+            <nz-tabset class="ms-2 h-100" [nzSelectedIndex]="activeTabIndex"
+                (nzSelectedIndexChange)="onTabChange($event)">
                 <nz-tab class="purchase-tab h-100" *ngFor="let tab of filteredTabs; let i = index"
                     [nzTitle]="tab.title">
                     <div class="table-container mt-1 grid-container h-100" [class]="'grid-container-' + tab.id"
@@ -84,10 +84,8 @@
                 <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
                 <nz-form-control>
                     <input type="date" class="form-control form-control-sm date-input-sm"
-                        [ngModel]="dateStart | date:'yyyy-MM-dd'"
-                        (ngModelChange)="onDateChange('dateStart', $event)"
-                        name="dateStart"
-                        title="Từ ngày" />
+                        [ngModel]="dateStart | date:'yyyy-MM-dd'" (ngModelChange)="onDateChange('dateStart', $event)"
+                        name="dateStart" title="Từ ngày" />
                 </nz-form-control>
             </nz-form-item>
 
@@ -95,10 +93,8 @@
                 <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
                 <nz-form-control>
                     <input type="date" class="form-control form-control-sm date-input-sm"
-                        [ngModel]="dateEnd | date:'yyyy-MM-dd'"
-                        (ngModelChange)="onDateChange('dateEnd', $event)"
-                        name="dateEnd"
-                        title="Đến ngày" />
+                        [ngModel]="dateEnd | date:'yyyy-MM-dd'" (ngModelChange)="onDateChange('dateEnd', $event)"
+                        name="dateEnd" title="Đến ngày" />
                 </nz-form-control>
             </nz-form-item>
 
@@ -107,8 +103,7 @@
                 <nz-form-control>
                     <nz-select style="width: 180px; font-size: 12px;" [(ngModel)]="statusRequestFilter" nzShowSearch
                         nzAllowClear nzSize="small" name="statusRequest" nzPlaceHolder="--Tất cả--">
-                        <nz-option *ngFor="let s of statusOptions" [nzValue]="s.value"
-                            [nzLabel]="s.label"></nz-option>
+                        <nz-option *ngFor="let s of statusOptions" [nzValue]="s.value" [nzLabel]="s.label"></nz-option>
                     </nz-select>
                 </nz-form-control>
             </nz-form-item>
@@ -116,8 +111,8 @@
             <nz-form-item class="mb-0" nzFlex="1 1 auto">
                 <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
                 <nz-form-control>
-                    <input nz-input placeholder="Mã SP, ghi chú..." nzSize="small" [(ngModel)]="keyword"
-                        name="keyword" style="width: 150px; font-size: 12px;" (keyup.enter)="onSearch()" />
+                    <input nz-input placeholder="Mã SP, ghi chú..." nzSize="small" [(ngModel)]="keyword" name="keyword"
+                        style="width: 150px; font-size: 12px;" (keyup.enter)="onSearch()" />
                 </nz-form-control>
             </nz-form-item>
 
@@ -134,8 +129,8 @@
                         <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
                             Tìm kiếm
                         </button>
-                        <button nz-button nzType="primary" nzSize="small" nz-dropdown [nzDropdownMenu]="advancedSearchMenu"
-                            nzTrigger="click" nzPlacement="bottomRight"
+                        <button nz-button nzType="primary" nzSize="small" nz-dropdown
+                            [nzDropdownMenu]="advancedSearchMenu" nzTrigger="click" nzPlacement="bottomRight"
                             style="padding-left: 8px; padding-right: 8px;">
                             <i nz-icon nzType="down"></i>
                         </button>
@@ -194,10 +189,22 @@
                 <nz-form-label class="fs-12">Trạng thái BGĐ</nz-form-label>
                 <nz-form-control>
                     <nz-select style="width: 100%" nzShowSearch nzAllowClear name="approvedBGD"
-                        [(ngModel)]="isApprovedBGDFilter" >
+                        [(ngModel)]="isApprovedBGDFilter">
                         <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
                         <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
                         <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
+                    </nz-select>
+                </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item class="mt-1">
+                <nz-form-label class="fs-12">Trạng thái xin duyệt</nz-form-label>
+                <nz-form-control>
+                    <nz-select style="width: 100%" nzShowSearch nzAllowClear name="requestApproved"
+                        [(ngModel)]="isRequestApprovedFilter">
+                        <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
+                        <nz-option [nzValue]="0" nzLabel="Chưa xin duyệt"></nz-option>
+                        <nz-option [nzValue]="1" nzLabel="Đã xin duyệt"></nz-option>
                     </nz-select>
                 </nz-form-control>
             </nz-form-item>
@@ -226,9 +233,8 @@
         <nz-form-item class="mt-2">
             <nz-form-label class="fs-12" [nzSpan]="24">Số lượng tách sang nhà cung cấp khác</nz-form-label>
             <nz-form-control [nzSpan]="24">
-                <nz-input-number style="width: 100%" name="duplicateSplitQuantity"
-                    [(ngModel)]="duplicateSplitQuantity" [nzMin]="0" [nzMax]="duplicateSourceQuantity" [nzStep]="1"
-                    nzPlaceHolder="Nhập số lượng tách...">
+                <nz-input-number style="width: 100%" name="duplicateSplitQuantity" [(ngModel)]="duplicateSplitQuantity"
+                    [nzMin]="0" [nzMax]="duplicateSourceQuantity" [nzStep]="1" nzPlaceHolder="Nhập số lượng tách...">
                 </nz-input-number>
             </nz-form-control>
         </nz-form-item>

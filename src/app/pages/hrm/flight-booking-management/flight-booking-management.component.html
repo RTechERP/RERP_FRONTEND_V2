@@ -191,7 +191,7 @@
                   <th pSortableColumn="ProjectName" style="width: 180px;">Dự án <p-sortIcon
                       field="ProjectName"></p-sortIcon>
                   </th>
-                  <th pSortableColumn="IsRoundTrip" style="width: 90px; text-align: center;">Khứ hồi <p-sortIcon
+                  <th pSortableColumn="IsRoundTrip" style="width: 100px; text-align: center;">Loại bay <p-sortIcon
                       field="IsRoundTrip"></p-sortIcon></th>
                   <th pSortableColumn="DepartureAddress" style="width: 140px;">Điểm đi <p-sortIcon
                       field="DepartureAddress"></p-sortIcon></th>
@@ -233,9 +233,7 @@
                     <div style="white-space: pre-line;">{{ item.PassengerName ? item.PassengerName.split(', ').join('\n') : '' }}</div>
                   </td>
                   <td>{{ item.ProjectName }}</td>
-                  <td style="text-align: center;">
-                    <label nz-checkbox [ngModel]="item.IsRoundTrip" nzDisabled></label>
-                  </td>
+                  <td style="text-align: center;">{{ item.IsRoundTrip ? 'Khứ hồi' : 'Một chiều' }}</td>
                   <td>{{ item.DepartureAddress }}</td>
                   <td>{{ item.ArrivesAddress }}</td>
                   <td>{{ item.Reason }}</td>

@@ -1402,12 +1402,23 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         }
       },
       frozenColumn: 6,
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 30,
+
     };
   }
 
   onAngularGridCreated(angularGrid: AngularGridInstance): void {
     this.angularGrid = angularGrid;
-
+	    if (this.angularGrid.dataView) {
+      this.angularGrid.dataView.onRowCountChanged.subscribe(() => {
+        this.updateFooterRow();
+      });
+    }
+    setTimeout(() => {
+      this.updateFooterRow();
+    }, 100);
     // Xử lý sự kiện khi selected rows thay đổi
     this.angularGrid.slickGrid?.onSelectedRowsChanged.subscribe((e: any, args: any) => {
       // Bỏ qua nếu đang restore selection sau khi tìm kiếm/filter
@@ -1518,9 +1529,39 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         if (index !== -1) {
           this.selectedRowsAll[index] = { ...rowData };
         }
+        this.updateFooterRow(); 
+      }
+    });
+
+  }
+
+updateFooterRow(): void {
+    if (!this.angularGrid || !this.angularGrid.slickGrid || !this.angularGrid.dataView) return;
+
+    const items = (this.angularGrid.dataView.getFilteredItems?.() as any[]) || this.angularGrid.dataView.getItems();
+    const quantityFields = ['Qty', 'QuantityRequestExport', 'QuantityExport', 'QuantityRemain'];
+    const sums: Record<string, number> = {};
+    quantityFields.forEach(field => {
+      sums[field] = items.reduce((sum: number, item: any) => sum + (Number(item?.[field]) || 0), 0);
+    });
+
+    this.angularGrid.slickGrid.setFooterRowVisibility(true);
+
+    const columns = this.angularGrid.slickGrid.getColumns();
+    columns.forEach((col: any) => {
+      const footerCell = this.angularGrid.slickGrid.getFooterRowColumn(col.id);
+      if (!footerCell) return;
+
+      if (quantityFields.includes(col.id)) {
+        footerCell.innerHTML = `<b>${sums[col.id].toLocaleString('en-US')}</b>`;
+      } else {
+        footerCell.innerHTML = '';
       }
     });
   }
+
+
+
   //#endregion
 
   /**
@@ -1618,5 +1659,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
     this.angularGrid.slickGrid.setColumns(this.angularGrid.slickGrid.getColumns());
     this.angularGrid.slickGrid.invalidate();
     this.angularGrid.slickGrid.render();
+      // setColumns() dựng lại DOM footer row nên phải set lại tổng số lượng sau khi nó chạy xong.
+    this.updateFooterRow();
   }
 }

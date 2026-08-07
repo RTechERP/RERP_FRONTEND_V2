@@ -314,6 +314,13 @@ export class PriceHistoryPartlistComponent implements OnInit, AfterViewInit{
           formatter: 'textarea',
         },
         {
+          title: 'Sale phụ trách',
+          field: 'SalesInCharge',
+          width: 200,
+          headerHozAlign: 'center',
+          formatter: 'textarea',
+        },
+        {
           title: 'LeadTime',
           field: 'LeadTime',
           width: 200,

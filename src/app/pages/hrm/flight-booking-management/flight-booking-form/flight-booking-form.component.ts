@@ -76,7 +76,7 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
     Reason: this.fb.control('', [Validators.required]),
     Note: this.fb.control(''),
     ApproveID: this.fb.control<number | null>(null, [Validators.required]),
-    IsRoundTrip: this.fb.control(false),
+    IsRoundTrip: this.fb.control(true),
     Passengers: this.fb.array([]),
     Proposals: this.fb.array([])
   });
@@ -121,7 +121,7 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
     this.loadHistoricalSuggestions();
 
     this.validateForm.get('IsRoundTrip')?.valueChanges.subscribe(val => {
-      this.updateRoundTripValidators(val || false);
+      this.updateRoundTripValidators(val ?? true);
     });
 
     if (this.id) {
@@ -176,7 +176,7 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
       ArrivesAddress: master.ArrivesAddress ?? '',
       Reason: master.Reason ?? '',
       Note: master.Note ?? '',
-      IsRoundTrip: master.IsRoundTrip ?? false,
+      IsRoundTrip: master.IsRoundTrip ?? true,
       ApproveID: (proposals && proposals.length > 0) ? proposals[0].ApproveID : null
     });
 
@@ -210,12 +210,12 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
       this.addPassenger();
     }
 
-    this.updateRoundTripValidators(master.IsRoundTrip ?? false);
+    this.updateRoundTripValidators(master.IsRoundTrip ?? true);
     this.cdr.detectChanges();
   }
 
   addProposal(data?: any): void {
-    const isRoundTrip = this.validateForm.get('IsRoundTrip')?.value ?? false;
+    const isRoundTrip = this.validateForm.get('IsRoundTrip')?.value ?? true;
     const proposalGroup = this.fb.group({
       ID: this.fb.control(data?.ID ?? data?.id ?? 0),
       DepartureDate: this.fb.control(this.formatDateForInput(data?.DepartureDate ?? data?.departureDate ?? new Date()), [Validators.required]),

@@ -25,7 +25,7 @@ import { AppUserService } from '../../../services/app-user.service';
 import { ProjectService } from '../../project/project-service/project.service';
 import { Router } from '@angular/router';
 import { TabServiceService } from '../../../layouts/tab-service.service';
-import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
+import { ProjectTaskDetailComponent } from '../kanban/project-task-detail/project-task-detail.component';
 import { ProjectTaskTimeLineAllProjectComponent } from '../project-task-time-line-all-project/project-task-time-line-all-project.component';
 
 @Component({
@@ -100,6 +100,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
 
   // ===== Bộ lọc cột =====
   filterEmployeeColumn: number[] = [];
+  filterTeamColumn: string[] = [];
   filterTaskKeyword = '';
   filterProjectKeyword = '';
   selectedStatuses: string[] = ['1_0', '1_1'];
@@ -110,6 +111,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   statusType2Options: any[] = [];
   columnStatusOptions: any[] = [];
   employeeColumnOptions: any[] = [];
+  teamColumnOptions: any[] = [];
 
   // Infinite Scroll state
   visibleData = signal<any[]>([]);
@@ -308,6 +310,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     this.projectId = 0;
     this.selectedStatuses = ['1_0', '1_1'];
     this.filterEmployeeColumn = [];
+    this.filterTeamColumn = [];
     this.filterTaskKeyword = '';
     this.filterProjectKeyword = '';
     this.filterStatusColumn = [];
@@ -440,6 +443,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
         employeeMap.set(empId, {
           employeeId: empId,
           FullName: item.FullName || '',
+          TeamName: item.TeamName || '',
           projectsMap: new Map<string, any>()
         });
       }
@@ -481,10 +485,22 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       else if (item.TypeDate === 2) taskEntry.actual = item;
     });
 
-    this.groupedData = Array.from(employeeMap.values()).map(emp => ({
-      employeeId: emp.employeeId,
-      FullName: emp.FullName,
-      projects: Array.from(emp.projectsMap.values()).map((p: any) => ({
+    this.groupedData = Array.from(employeeMap.values())
+      .sort((a, b) => {
+        // Gộp người cùng team lại cạnh nhau (không có team xếp cuối), rồi sắp theo tên trong team
+        const teamA = a.TeamName || '';
+        const teamB = b.TeamName || '';
+        if (!teamA && teamB) return 1;
+        if (teamA && !teamB) return -1;
+        const teamCompare = teamA.localeCompare(teamB, 'vi');
+        if (teamCompare !== 0) return teamCompare;
+        return (a.FullName || '').localeCompare(b.FullName || '', 'vi');
+      })
+      .map(emp => ({
+        employeeId: emp.employeeId,
+        FullName: emp.FullName,
+        TeamName: emp.TeamName,
+        projects: Array.from(emp.projectsMap.values()).map((p: any) => ({
         ProjectID: p.ProjectID,
         ProjectCode: p.ProjectCode,
         ProjectName: p.ProjectName,
@@ -509,6 +525,11 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       value: g.employeeId,
       label: g.FullName
     }));
+
+    const teamNames = Array.from(new Set(
+      this.groupedData.map(g => g.TeamName).filter((t: string) => !!t)
+    )).sort((a, b) => a.localeCompare(b, 'vi'));
+    this.teamColumnOptions = teamNames.map(t => ({ value: t, label: t }));
   }
 
   private preComputeCellData(): void {
@@ -580,6 +601,10 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
 
     if (this.filterEmployeeColumn && this.filterEmployeeColumn.length > 0) {
       groups = groups.filter(g => this.filterEmployeeColumn.includes(g.employeeId));
+    }
+
+    if (this.filterTeamColumn && this.filterTeamColumn.length > 0) {
+      groups = groups.filter(g => this.filterTeamColumn.includes(g.TeamName));
     }
 
     if (this.filterProjectKeyword) {
@@ -871,7 +896,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     const taskCode = task?.ProjectTaskCode || task?.Code || `Task-${taskId}`;
     const approvalStatus = task?.IsApproved !== undefined && task?.IsApproved !== null ? task.IsApproved : undefined;
     this.tabService.openTabComp({
-      comp: TaskDetailComponent,
+      comp: ProjectTaskDetailComponent,
       title: taskCode,
       key: `project-task-detail-${taskId}`,
       data: { id: taskId, ApprovalStatus: approvalStatus }

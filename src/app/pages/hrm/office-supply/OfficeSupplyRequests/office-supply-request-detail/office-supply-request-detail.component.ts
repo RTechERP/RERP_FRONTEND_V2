@@ -117,8 +117,29 @@ export class OfficeSupplyRequestDetailComponent implements OnInit {
         this.items.push(this.createItemFormGroup());
     }
 
+    deletedItems: any[] = [];
+    originalItems: any[] = [];
+
     removeItem(index: number): void {
         if (this.items.length > 1) {
+            const itemGroup = this.items.at(index);
+            const itemVal = itemGroup.value;
+            const itemId = itemVal?.ID || 0;
+            if (itemId > 0) {
+                const orig = this.originalItems.find((x: any) => x.ID === itemId);
+                this.deletedItems.push({
+                    ID: itemId,
+                    OfficeSupplyRequestsID: this.mainForm.get('ID')?.value || 0,
+                    EmployeeID: this.currentUser?.EmployeeID,
+                    OfficeSupplyID: itemVal.OfficeSupplyID || orig?.OfficeSupplyID,
+                    Quantity: itemVal.Quantity || orig?.Quantity || 0,
+                    QuantityReceived: itemVal.QuantityReceived || orig?.QuantityReceived || 0,
+                    ExceedsLimit: itemVal.ExceedsLimit || orig?.ExceedsLimit || false,
+                    Reason: itemVal.Reason || orig?.Reason || '',
+                    Note: itemVal.Note || orig?.Note || '',
+                    IsDeleted: true
+                });
+            }
             this.items.removeAt(index);
         } else {
             this.notification.warning(NOTIFICATION_TITLE.warning, 'Cần ít nhất một văn phòng phẩm trong danh sách');
@@ -152,12 +173,15 @@ export class OfficeSupplyRequestDetailComponent implements OnInit {
     private patchEditData(): void {
         if (!this.editData) return;
 
+        this.deletedItems = [];
+        this.originalItems = [];
         this.mainForm.patchValue({
             ID: this.editData.ID,
             DateRequest: this.editData.DateRequest ? new Date(this.editData.DateRequest) : new Date(),
         });
 
         if (this.editData.items && Array.isArray(this.editData.items)) {
+            this.originalItems = [...this.editData.items];
             this.items.clear();
             this.editData.items.forEach((item: any) => {
                 // Map OfficeSupplyUnitID if it's named 'UnitID' or similar in the detail data
@@ -309,14 +333,51 @@ export class OfficeSupplyRequestDetailComponent implements OnInit {
         const officeSupplyRequestsDetails = formValue.items.map((item: any) => ({
             ID: item.ID || 0,
             OfficeSupplyRequestsID: formValue.ID || 0,
-            EmployeeID: this.currentUser.EmployeeID,
+            EmployeeID: this.currentUser?.EmployeeID,
             OfficeSupplyID: item.OfficeSupplyID,
             Quantity: item.Quantity,
             QuantityReceived: 0,
             ExceedsLimit: item.ExceedsLimit,
             Reason: item.Reason,
-            Note: item.Note
+            Note: item.Note,
+            IsDeleted: false
         }));
+
+        // Phát hiện bất kỳ item cũ nào (ID > 0) không còn nằm trong formValue.items
+        const activeIds = new Set(officeSupplyRequestsDetails.filter((d: any) => d.ID > 0).map((d: any) => d.ID));
+        if (this.originalItems && this.originalItems.length > 0) {
+            this.originalItems.forEach((orig: any) => {
+                if (orig.ID > 0 && !activeIds.has(orig.ID)) {
+                    const alreadyDeleted = this.deletedItems.some((del: any) => del.ID === orig.ID);
+                    if (!alreadyDeleted) {
+                        this.deletedItems.push({
+                            ID: orig.ID,
+                            OfficeSupplyRequestsID: formValue.ID || 0,
+                            EmployeeID: this.currentUser?.EmployeeID,
+                            OfficeSupplyID: orig.OfficeSupplyID,
+                            Quantity: orig.Quantity || 0,
+                            QuantityReceived: orig.QuantityReceived || 0,
+                            ExceedsLimit: orig.ExceedsLimit || false,
+                            Reason: orig.Reason || '',
+                            Note: orig.Note || '',
+                            IsDeleted: true
+                        });
+                    }
+                }
+            });
+        }
+
+        if (this.deletedItems && this.deletedItems.length > 0) {
+            this.deletedItems.forEach((del: any) => {
+                del.IsDeleted = true;
+                const idx = officeSupplyRequestsDetails.findIndex((d: any) => d.ID === del.ID && d.ID > 0);
+                if (idx >= 0) {
+                    officeSupplyRequestsDetails[idx].IsDeleted = true;
+                } else {
+                    officeSupplyRequestsDetails.push(del);
+                }
+            });
+        }
 
         const dto = {
             officeSupplyRequest,

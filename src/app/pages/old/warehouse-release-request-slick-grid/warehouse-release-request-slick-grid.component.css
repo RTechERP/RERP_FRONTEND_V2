@@ -168,3 +168,8 @@
 ::ng-deep .slick-cell.cell-selection {
   text-align: center;
 }
+
+::ng-deep .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
+  align-items: var(--slick-grid-footer-align-items, left) !important;
+  justify-content: var(--slick-grid-footer-justify-content, flex-end) !important;
+}

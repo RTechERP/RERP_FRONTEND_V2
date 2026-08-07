@@ -54,7 +54,7 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
   dataset: any[] = [];
 
   menuBars: any[] = [];
-  private readonly actionPermissionCodes = 'N114';
+  private readonly actionPermissionCodes = 'N114,N1';
 
   keyword: string = '';
   projectId: number | null = null;

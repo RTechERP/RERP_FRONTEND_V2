@@ -419,6 +419,7 @@ import { ExpectedPayableComponent } from './pages/old/Sale/BillImport/expected-p
 import { HotelBookingManagementComponent } from './pages/hrm/hotel-booking-managament/hotel-booking-management.component';
 import { PersonalSignatureComponent } from './pages/personal-signature/personal-signature.component';
 import { InventoryStockComponent } from './pages/warehouse/inventory-stock/inventory-stock.component';
+import { MechanicalDrawingComponent } from './pages/project/mechanical-drawing/mechanical-drawing.component';
 export const routes: Routes = [
 
   {
@@ -1373,6 +1374,7 @@ export const routes: Routes = [
       { path: 'hotel-booking', component: HotelBookingManagementComponent, canActivate: [authGuard] },
       { path: 'signature-personal', component: PersonalSignatureComponent, canActivate: [authGuard] },
       { path: 'inventory-stock', component: InventoryStockComponent, canActivate: [authGuard] },
+      { path: 'mechanical-drawing', component: MechanicalDrawingComponent, canActivate: [authGuard] },
 
     ],
   },

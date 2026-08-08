@@ -1,0 +1,17 @@
+.detail-container {
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 140px);
+}
+
+.detail-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.detail-footer {
+    flex-shrink: 0;
+    border-top: 1px solid #e8e8e8;
+}

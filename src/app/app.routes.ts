@@ -431,6 +431,7 @@ import { ExpectedPayableComponent } from './pages/old/Sale/BillImport/expected-p
 import { HotelBookingManagementComponent } from './pages/hrm/hotel-booking-managament/hotel-booking-management.component';
 import { PersonalSignatureComponent } from './pages/personal-signature/personal-signature.component';
 import { InventoryStockComponent } from './pages/warehouse/inventory-stock/inventory-stock.component';
+import { MechanicalDrawingComponent } from './pages/project/mechanical-drawing/mechanical-drawing.component';
 export const routes: Routes = [
 
   {
@@ -1392,6 +1393,8 @@ export const routes: Routes = [
       { path: 'project-gate-checklist-type', component: ProjectGateCheckListTypeManagementComponent, canActivate: [authGuard] },
       { path: 'file-format', component: FileFormatManagementComponent, canActivate: [authGuard] },
       { path: 'project-type-department', component: ProjectTypeDepartmentComponent, canActivate: [authGuard] },
+      { path: 'mechanical-drawing', component: MechanicalDrawingComponent, canActivate: [authGuard] },
+
     ],
   },
 ];

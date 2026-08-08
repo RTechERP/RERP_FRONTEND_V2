@@ -197,24 +197,17 @@
                           [nzStatus]="(isSubmitted && (!item.Content || !item.Content.trim())) ? 'error' : ''"></textarea>
                       </td>
 
-                      <!-- Checklist & Biểu mẫu Column -->
-                      <td style="width: 320px;" class="p-1">
+                      <!-- Checklist Column -->
+                      <td style="width: 250px;" class="p-1">
                         <div class="d-flex align-items-center justify-content-between gap-1">
                           <span style="font-size: 12px; white-space: pre-wrap;" class="text-truncate flex-grow-1">
                             {{ item.CheckListNames || 'Chưa có checklist' }}
                           </span>
-                          <div class="d-flex gap-1">
-                            <button nz-button nzType="default" nzSize="small" type="button"
-                              (click)="openChecklistForRow(item)" title="Cấu hình Quy tắc Checklist"
-                              style="font-size: 12px; height: 26px; border-color: #1890ff; color: #1890ff;">
-                              <i class="fa-solid fa-list-check me-1"></i>Checklist
-                            </button>
-                            <button nz-button nzType="default" nzSize="small" type="button"
-                              (click)="openFormAttachForRow(item)" title="Đính kèm biểu mẫu dùng chung"
-                              style="font-size: 12px; height: 26px; border-color: #fa8c16; color: #fa8c16;">
-                              <i class="fa-solid fa-file-signature me-1"></i>Biểu mẫu
-                            </button>
-                          </div>
+                          <button nz-button nzType="default" nzSize="small" type="button"
+                            (click)="openChecklistForRow(item)" title="Cấu hình Quy tắc Checklist"
+                            style="font-size: 12px; height: 26px; border-color: #1890ff; color: #1890ff;">
+                            <i class="fa-solid fa-list-check me-1"></i>Checklist
+                          </button>
                         </div>
                       </td>
 

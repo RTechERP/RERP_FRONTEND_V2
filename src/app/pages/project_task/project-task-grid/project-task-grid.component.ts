@@ -482,13 +482,11 @@ export class ProjectTaskGridComponent implements OnInit {
     const kw = this.filterKeyword ? this.filterKeyword.toLowerCase() : '';
     const st = this.filterStatus;
     const usr = this.filterUser;
-    const dStart = this.dateStart;
-    const dEnd = this.dateEnd;
 
-    const isAnyFilterActive = Boolean(kw || st !== null || usr !== null || dStart || dEnd || this.filterTag !== null);
+    const isAnyFilterActive = Boolean(kw || st !== null || usr !== null || this.filterTag !== null);
 
     const filtered = isAnyFilterActive ? this.filterTreeNodes(this.treeNodes) : this.treeNodes;
-    this.flatVisibleData = this.flattenTree(filtered, isAnyFilterActive);
+    this.flatVisibleData = this.flattenTree(filtered);
     this.initMenuItems();
   }
 
@@ -496,8 +494,6 @@ export class ProjectTaskGridComponent implements OnInit {
     const kw = this.filterKeyword ? this.filterKeyword.toLowerCase() : '';
     const st = this.filterStatus;
     const usr = this.filterUser;
-    const dStart = this.dateStart;
-    const dEnd = this.dateEnd;
 
     return nodes.filter(node => {
       let match = true;
@@ -519,18 +515,6 @@ export class ProjectTaskGridComponent implements OnInit {
         match = match && Boolean(userMatch);
       }
 
-      if (dStart && dEnd) {
-        const pStart = node.PlanStartDate || node.ActualStartDate || node.Deadline;
-        const pEnd = node.PlanEndDate || node.ActualEndDate || node.Deadline;
-        if (pStart || pEnd) {
-          const startVal = pStart || pEnd!;
-          const endVal = pEnd || pStart!;
-          if (endVal < dStart || startVal > dEnd) {
-            match = false;
-          }
-        }
-      }
-
       if (this.filterTag !== null) {
         if (this.filterTag === 'parent') {
           match = match && Boolean(node.hasChildren);
@@ -542,20 +526,21 @@ export class ProjectTaskGridComponent implements OnInit {
 
       const filteredChildren = node.children && node.children.length > 0 ? this.filterTreeNodes(node.children) : [];
 
-      if (match || filteredChildren.length > 0) {
+      if (filteredChildren.length > 0) {
+        node.expand = true;
         return true;
       }
-      return false;
+
+      return match;
     });
   }
 
-  private flattenTree(nodes: GridTaskItem[], isAnyFilterActive: boolean = false): GridTaskItem[] {
+  private flattenTree(nodes: GridTaskItem[]): GridTaskItem[] {
     const result: GridTaskItem[] = [];
     for (const node of nodes) {
       result.push(node);
-      const shouldExpand = isAnyFilterActive ? true : node.expand;
-      if (shouldExpand && node.children && node.children.length > 0) {
-        result.push(...this.flattenTree(node.children, isAnyFilterActive));
+      if (node.expand && node.children && node.children.length > 0) {
+        result.push(...this.flattenTree(node.children));
       }
     }
     return result;

@@ -213,7 +213,8 @@ export class ProjectGateStepManagementComponent implements OnInit {
         label: 'Biểu mẫu',
         icon: 'fa-solid fa-file-signature text-warning',
         command: () => this.onOpenFormAttach(),
-        disabled: this.selectedItems.length !== 1
+        disabled: this.selectedItems.length !== 1,
+        visible: this.permissionService.hasPermission("N1,109"),
       },
       {
         label: 'Xuất excel',
@@ -244,7 +245,7 @@ export class ProjectGateStepManagementComponent implements OnInit {
   updateMenuState(): void {
     this.menuBars = this.menuBars.map(item => {
       if (item.label === 'Xóa') return { ...item, disabled: this.selectedItems.length === 0 };
-      if (item.label === 'CheckList') return { ...item, disabled: this.selectedItems.length !== 1 };
+      if (item.label === 'CheckList' || item.label === 'Biểu mẫu') return { ...item, disabled: this.selectedItems.length !== 1 };
       if (item.label === 'Copy từ template khác') return { ...item, disabled: !this.selectedMasterTemplate && !this.templateId };
       return item;
     });
@@ -301,7 +302,9 @@ export class ProjectGateStepManagementComponent implements OnInit {
         this.selectedMasterTemplate = match;
         this.templateName = match.Name || '';
         this.templateCode = match.Code || '';
+        this.selectedItems = [];
         this.onFilterChange();
+        this.updateMenuState();
         return;
       }
     }
@@ -323,7 +326,9 @@ export class ProjectGateStepManagementComponent implements OnInit {
       this.templateName = '';
       this.templateCode = '';
     }
+    this.selectedItems = [];
     this.onFilterChange();
+    this.updateMenuState();
   }
 
   openAddTemplateModal(): void {

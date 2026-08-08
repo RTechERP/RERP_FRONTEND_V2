@@ -173,40 +173,40 @@ export class ProjectGateStepManagementComponent implements OnInit {
         label: 'Thêm template',
         icon: 'fa-solid fa-square-plus text-warning',
         command: () => this.openAddTemplateModal(),
-        visible: this.permissionService.hasPermission("N1,109"),
+        visible: this.permissionService.hasPermission("N1,N109"),
       },
       {
         label: 'Thêm dòng',
         icon: 'fa-solid fa-plus text-primary',
         command: () => this.onAddRow(),
-        visible: this.permissionService.hasPermission("N1,109"),
+        visible: this.permissionService.hasPermission("N1,N109"),
       },
       {
         label: 'Copy từ template khác',
         icon: 'fa-solid fa-copy text-info',
         command: () => this.openCopyTemplateModal(),
         disabled: !this.selectedMasterTemplate && !this.templateId,
-        visible: this.permissionService.hasPermission("N1,109"),
+        visible: this.permissionService.hasPermission("N1,N109"),
       },
       {
         label: 'Lưu',
         icon: 'fa-solid fa-floppy-disk text-success',
         command: () => this.onSave(),
-        visible: this.permissionService.hasPermission("N1,109"),
+        visible: this.permissionService.hasPermission("N1,N109"),
       },
       {
         label: 'Xóa',
         icon: 'fa-solid fa-trash text-danger',
         command: () => this.onDelete(),
         disabled: this.selectedItems.length === 0,
-        visible: this.permissionService.hasPermission("N1,109"),
+        visible: this.permissionService.hasPermission("N1,N109"),
       },
       {
         label: 'CheckList',
         icon: 'fa-solid fa-list-check text-info',
         command: () => this.onOpenChecklist(),
         disabled: this.selectedItems.length !== 1,
-        visible: this.permissionService.hasPermission("N1,109"),
+        visible: this.permissionService.hasPermission("N1,N109"),
       },
 
       {
@@ -214,19 +214,19 @@ export class ProjectGateStepManagementComponent implements OnInit {
         icon: 'fa-solid fa-file-signature text-warning',
         command: () => this.onOpenFormAttach(),
         disabled: this.selectedItems.length !== 1,
-        visible: this.permissionService.hasPermission("N1,109"),
+        visible: this.permissionService.hasPermission("N1,N109"),
       },
       {
         label: 'Xuất excel',
         icon: 'fa-solid fa-file-excel text-success',
         command: () => this.onExportExcel(),
-        visible: this.permissionService.hasPermission("N1,109"),
+        visible: this.permissionService.hasPermission("N1,N109"),
       },
       {
         label: 'Tải lại',
         icon: 'fa-solid fa-arrows-rotate text-secondary',
         command: () => this.loadData(),
-        visible: this.permissionService.hasPermission("N1,109"),
+        visible: this.permissionService.hasPermission("N1,N109"),
       }
     ];
   }

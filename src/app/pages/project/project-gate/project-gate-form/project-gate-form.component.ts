@@ -218,9 +218,11 @@ export class ProjectGateFormComponent implements OnInit {
             this.activeModal.close('save');
           } else {
             if (!this.isEdit) {
+              const currentSTT = Number(this.form.get('STT')?.value) || 0;
+              const nextSTT = currentSTT > 0 ? currentSTT + 1 : 1;
               this.form.reset({
                 ID: 0,
-                STT: null,
+                STT: nextSTT,
                 GateCode: '',
                 GateName: '',
                 StepName: '',
@@ -232,6 +234,7 @@ export class ProjectGateFormComponent implements OnInit {
                 Optional: false,
                 ParentID: null
               });
+              this.loadAllGates();
             }
           }
         },

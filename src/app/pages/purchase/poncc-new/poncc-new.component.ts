@@ -9,6 +9,7 @@ import {
   ChangeDetectorRef,
   Optional,
   Inject,
+  ViewChild,
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
@@ -126,7 +127,6 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
   pageNumber = 1;
   pageSize = 10000000;
   sizeSearch: string = '0';
-  sizeTbDetail: any = '0';
   suppliers: any[] = [];
   employees: any[] = [];
   isLoading: boolean = false;
@@ -151,6 +151,13 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
   angularGridPoThuongMai!: AngularGridInstance;
   angularGridPoMuon!: AngularGridInstance;
   angularGridDetail!: AngularGridInstance;
+
+  @ViewChild('masterPanelRef', { read: ElementRef })
+  masterPanelRef?: ElementRef<HTMLElement>;
+  @ViewChild('detailPanelRef', { read: ElementRef })
+  detailPanelRef?: ElementRef<HTMLElement>;
+  private masterResizeObserver?: ResizeObserver;
+  private detailResizeObserver?: ResizeObserver;
 
   // Maps for filtering
   datasetsAllMapMaster: Map<string, any[]> = new Map(); // key: 'master-0' or 'master-1'
@@ -238,6 +245,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       this.filterPatchObserver.disconnect();
       this.filterPatchObserver = null;
     }
+    this.masterResizeObserver?.disconnect();
+    this.detailResizeObserver?.disconnect();
   }
 
   ngAfterViewInit(): void {
@@ -250,6 +259,30 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       }, 100);
     }, 200);
     setTimeout(() => this.patchSlickGridFilterInputs(), 600);
+    setTimeout(() => this.initResizeObservers(), 300);
+  }
+
+  /**
+   * Kéo splitter không kích hoạt autoResize của SlickGrid, nên tự quan sát
+   * wrapper nội dung của từng panel và gọi resizeCanvas() khi kích thước đổi.
+   */
+  private initResizeObservers(): void {
+    const masterEl = this.masterPanelRef?.nativeElement;
+    if (masterEl) {
+      this.masterResizeObserver = new ResizeObserver(() => {
+        this.angularGridPoThuongMai?.slickGrid?.resizeCanvas();
+        this.angularGridPoMuon?.slickGrid?.resizeCanvas();
+      });
+      this.masterResizeObserver.observe(masterEl);
+    }
+
+    const detailEl = this.detailPanelRef?.nativeElement;
+    if (detailEl) {
+      this.detailResizeObserver = new ResizeObserver(() => {
+        this.angularGridDetail?.slickGrid?.resizeCanvas();
+      });
+      this.detailResizeObserver.observe(detailEl);
+    }
   }
 
   /**
@@ -1367,12 +1400,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private initGridOptions(): void {
     this.gridOptionsMaster = {
-      enableAutoResize: true,
-      autoResize: {
-        container: '.grid-container-master',
-        calculateAvailableSizeBy: 'container',
-        resizeDetection: 'container',
-      },
+      enableAutoResize: false,
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
       enableRowSelection: true,
@@ -1430,12 +1458,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     };
 
     this.gridOptionsDetail = {
-      enableAutoResize: true,
-      autoResize: {
-        container: '.grid-container-detail',
-        calculateAvailableSizeBy: 'container',
-        resizeDetection: 'container',
-      },
+      enableAutoResize: false,
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
       enableRowSelection: true,
@@ -1639,7 +1662,6 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
               // Master không còn tồn tại, clear detail
               this.lastMasterId = null;
               this.datasetDetail = [];
-              this.sizeTbDetail = '0';
               this.masterDetailsMap.clear();
               this.masterSelectedDetailIdsMap.clear();
               this.cdr.detectChanges();
@@ -1691,12 +1713,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       // Không clear masterSelectedDetailIdsMap: giữ selection đã save để restore khi user re-select masters
       this.lastMasterId = null;
       this.datasetDetail = [];
-      this.sizeTbDetail = '0';
       this.cdr.detectChanges();
       return;
     }
-
-    this.sizeTbDetail = '38%';
 
     // Ưu tiên row đang được focus (active cell) nếu nằm trong selection
     const currentGrid = this.activeTabIndex === 0

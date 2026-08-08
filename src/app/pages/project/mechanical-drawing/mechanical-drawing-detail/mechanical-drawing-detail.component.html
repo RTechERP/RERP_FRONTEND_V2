@@ -30,14 +30,11 @@
           <nz-form-label>Tệp đính kèm (Bản vẽ)</nz-form-label>
           <nz-form-control>
             <div class="d-flex align-items-center gap-2">
-              <input nz-input placeholder="Chưa có tệp nào được tải lên..." [ngModel]="getFileName(model.FilePath)" name="filePath" readonly style="flex-grow: 1;" />
+              <input nz-input placeholder="Chưa có tệp nào được tải lên..." [ngModel]="selectedFile ? selectedFile.name : getFileName(model.FilePath)" name="filePath" readonly style="flex-grow: 1;" />
               <button nz-button nzType="default" (click)="fileInput.click(); $event.preventDefault()">
                 <i class="fa-solid fa-file-arrow-up me-1"></i>Chọn file HTML
               </button>
               <input #fileInput type="file" accept=".html,.htm" style="display: none;" (change)="onFileSelected($event)" />
-            </div>
-            <div *ngIf="selectedFile" class="text-success" style="font-size: 12px; margin-top: 4px;">
-              <i class="fa-solid fa-check me-1"></i>Đã chọn file: {{ selectedFile.name }} (Sẽ tải lên khi Lưu)
             </div>
           </nz-form-control>
         </nz-form-item>
@@ -121,9 +118,25 @@
               <span *ngIf="!thumbnailSaved && !isCapturingThumbnail && previewUrl" class="text-muted" style="font-size: 12px;">
                 Bấm "Lấy thumbnail" để lưu ảnh xem trước cho danh sách
               </span>
-              <span *ngIf="model.ThumbnailPath && !thumbnailSaved && !isCapturingThumbnail" class="text-muted" style="font-size: 12px;">
-                <i class="fa-solid fa-image me-1"></i>Thumbnail hiện tại: Có
-              </span>
+            </div>
+            <!-- Thumbnail đã lưu / vừa chụp: hiển thị độc lập với khung xem trước (khung trên luôn ưu tiên hiện iframe file) -->
+            <div *ngIf="!isCapturingThumbnail && (capturedThumbnailPreview || model.ThumbnailPath)" class="mt-2">
+              <div class="text-muted mb-1" style="font-size: 12px;">
+                <i class="fa-solid fa-image me-1"></i>{{ capturedThumbnailPreview ? 'Ảnh thumbnail vừa chụp:' : 'Thumbnail hiện tại:' }}
+              </div>
+              <img *ngIf="capturedThumbnailPreview"
+                   [src]="capturedThumbnailPreview"
+                   style="max-width: 200px; max-height: 150px; border: 1px solid #d9d9d9; border-radius: 6px; object-fit: contain; background: #fff;"
+                   alt="Thumbnail vừa chụp" />
+              <img *ngIf="!capturedThumbnailPreview && thumbnailBlobUrl"
+                   [src]="thumbnailBlobUrl"
+                   style="max-width: 200px; max-height: 150px; border: 1px solid #d9d9d9; border-radius: 6px; object-fit: contain; background: #fff;"
+                   alt="Thumbnail hiện tại" />
+              <div *ngIf="!capturedThumbnailPreview && !thumbnailBlobUrl"
+                   class="d-flex align-items-center justify-content-center text-muted"
+                   style="width: 200px; height: 150px; border: 1px solid #d9d9d9; border-radius: 6px; background: #fff;">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+              </div>
             </div>
           </nz-form-control>
         </nz-form-item>

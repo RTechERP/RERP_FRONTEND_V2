@@ -216,33 +216,29 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
     }
     if (this.openingTabIds.has(item.ID)) return;
 
-    // Nếu đã có blob URL trong cache, dùng luôn
+    // Nếu đã có blob URL trong cache, dùng luôn (mở ngay, không cần chờ)
     const cachedUrl = this.blobUrlCache.get(item.ID);
     if (cachedUrl) {
       window.open(cachedUrl, '_blank');
       return;
     }
 
-    // Mở tab placeholder trước để tránh popup blocker
-    const newTab = window.open('about:blank', '_blank');
-    if (!newTab) {
-      this.notification.error('Lỗi', 'Popup bị chặn. Vui lòng cho phép popup trên trình duyệt.');
-      return;
-    }
-
+    // Chưa có cache: hiện spinner ở nút, chờ tải xong file rồi mới mở tab mới
+    // (không mở tab "about:blank" trước để tránh nháy trắng vài giây trước khi có nội dung).
     this.openingTabIds.add(item.ID);
 
-    // Fetch blob và cập nhật tab đã mở
     this.mechanicalDrawingService.previewFile(item.ID).pipe(
       finalize(() => this.openingTabIds.delete(item.ID))
     ).subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
         this.blobUrlCache.set(item.ID, url);
-        newTab.location.href = url;
+        const newTab = window.open(url, '_blank');
+        if (!newTab) {
+          this.notification.error('Lỗi', 'Popup bị chặn. Vui lòng cho phép popup trên trình duyệt.');
+        }
       },
       error: () => {
-        newTab.close();
         this.notification.error('Lỗi', 'Không thể mở file');
       }
     });

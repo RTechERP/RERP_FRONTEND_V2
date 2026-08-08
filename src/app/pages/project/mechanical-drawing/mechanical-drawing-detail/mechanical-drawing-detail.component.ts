@@ -68,6 +68,9 @@ export class MechanicalDrawingDetailComponent implements OnInit, OnDestroy {
     thumbnailSaved = false;
     // Base64 thumbnail đã chụp nhưng chưa gửi lên server (dùng khi bản ghi chưa có ID)
     pendingThumbnailBase64: string | null = null;
+    // Ảnh thumbnail vừa chụp (base64) - giữ lại để hiển thị cho người dùng xem lại,
+    // không bị xóa sau khi lưu thành công (khác với pendingThumbnailBase64)
+    capturedThumbnailPreview: string | null = null;
     isPreviewLoading = false;
 
     private previewBlobUrl: string | null = null;
@@ -167,6 +170,13 @@ export class MechanicalDrawingDetailComponent implements OnInit, OnDestroy {
         return path.split('\\').pop()?.split('/').pop() || '';
     }
 
+    /** Lấy tên file bỏ đuôi mở rộng, dùng để auto-fill tên bản vẽ khi thêm mới. */
+    private getFileNameWithoutExtension(fileName: string): string {
+        if (!fileName) return '';
+        const lastDot = fileName.lastIndexOf('.');
+        return lastDot > 0 ? fileName.substring(0, lastDot) : fileName;
+    }
+
     private isHtmlFile(fileName: string): boolean {
         const ext = fileName.split('.').pop()?.toLowerCase();
         return ext === 'html' || ext === 'htm';
@@ -204,6 +214,14 @@ export class MechanicalDrawingDetailComponent implements OnInit, OnDestroy {
         this.selectedFile = file;
         this.thumbnailSaved = false;
         this.pendingThumbnailBase64 = null;
+        this.capturedThumbnailPreview = null;
+
+        // Khi thêm mới (không phải sửa): tự động điền tên bản vẽ theo tên file (bỏ đuôi mở rộng).
+        // Người dùng vẫn có thể sửa lại sau đó tùy ý.
+        if (!this.isEditMode) {
+            this.model.Name = this.getFileNameWithoutExtension(file.name);
+        }
+
         this.previewSelectedFile(file);
     }
 
@@ -429,6 +447,7 @@ export class MechanicalDrawingDetailComponent implements OnInit, OnDestroy {
         ctx.fillRect(0, 0, destW, destH);
         ctx.drawImage(canvas, 0, 0, srcW, srcH, 0, 0, destW, destH);
         const base64 = thumb.toDataURL('image/png', 0.85);
+        this.capturedThumbnailPreview = base64;
 
         if (this.model?.ID) {
             this.saveThumbnailToServer(this.model.ID, base64);

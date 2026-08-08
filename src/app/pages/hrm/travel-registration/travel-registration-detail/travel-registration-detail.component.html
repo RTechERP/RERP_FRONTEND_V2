@@ -157,6 +157,37 @@
             <!-- Row 6 -->
             <nz-row [nzGutter]="16">
                 <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>HLKG chiều đi</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="DangKyHLKGChieuDi" placeholder="Đăng ký HLKG chiều đi" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>HLKG chiều về</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="DangKyHLKGChieuVe" placeholder="Đăng ký HLKG chiều về" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Đăng ký VinWonders</nz-form-label>
+                        <nz-form-control>
+                            <nz-select formControlName="DangKyVinwonders" nzSize="small" style="width: 100%;" nzAllowClear nzPlaceholder="-- Chọn --">
+                                <nz-option [nzValue]="true" nzLabel="Có"></nz-option>
+                                <nz-option [nzValue]="false" nzLabel="Không"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <!-- Row 7 -->
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="8">
                     <nz-form-item class="mb-0">
                         <nz-form-label>Trạng thái xác nhận</nz-form-label>
                         <nz-form-control>

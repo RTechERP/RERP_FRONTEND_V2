@@ -241,7 +241,7 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
       { title: 'Ngày cấp', field: 'CCCDIssueDate', hozAlign: 'center', headerHozAlign: 'center', width: 100 },
       { title: 'Nơi cấp', field: 'CCCDIssuePlace', hozAlign: 'left', headerHozAlign: 'center', width: 120 },
       { title: 'SĐT', field: 'PhoneNumber', hozAlign: 'left', headerHozAlign: 'center', width: 100 },
-      { title: 'Nơi xuất phát', field: 'DepartureLocation', hozAlign: 'left', headerHozAlign: 'center', width: 150 },
+      { title: 'Khởi hành/Về', field: 'DepartureLocation', hozAlign: 'left', headerHozAlign: 'center', width: 150 },
       { title: 'HLKG chiều đi', field: 'DangKyHLKGChieuDi', hozAlign: 'left', headerHozAlign: 'center', width: 120 },
       { title: 'HLKG chiều về', field: 'DangKyHLKGChieuVe', hozAlign: 'left', headerHozAlign: 'center', width: 120 },
       {

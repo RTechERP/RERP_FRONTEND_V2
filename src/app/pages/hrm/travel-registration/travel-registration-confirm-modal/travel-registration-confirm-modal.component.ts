@@ -8,6 +8,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { TravelRegistrationServiceService } from '../travel-registration-service/travel-registration-service.service';
 import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../../app.config';
 import { forkJoin } from 'rxjs';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   standalone: true,
@@ -28,20 +29,33 @@ export class TravelRegistrationConfirmModalComponent implements OnInit {
   isConfirming = false;
   travelRegistrations: any[] = [];
   unconfirmedList: any[] = [];
+  bgImageUrl: string = '';
 
   constructor(
     public activeModal: NgbActiveModal,
     private travelRegistrationService: TravelRegistrationServiceService,
     private notification: NzNotificationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
+    this.bgImageUrl = this.getSeverImageUrl('\\\\192.168.1.190\\Software\\Image\\Upload\\bgconfirm2.jpg');
     if (this.dataInput && this.dataInput.length > 0) {
       this.travelRegistrations = this.dataInput;
       this.unconfirmedList = this.travelRegistrations.filter((x: any) => x.ConfirmStatus !== 1);
     } else {
       this.loadData();
     }
+  }
+
+  getSeverImageUrl(serverPath: string): string {
+    if (!serverPath) return '/assets/images/bgconfirm2.jpg';
+    let path = serverPath.replace(/\\/g, '/').replace(/^\/\/192\.168\.1\.190\//i, '');
+    const host = environment.host ? environment.host.replace(/\/+$/, '') : '';
+    if (path.startsWith('/')) path = path.substring(1);
+    if (!path.toLowerCase().startsWith('api/')) {
+      path = `api/share/${path}`;
+    }
+    return host ? `${host}/${path}` : `/${path}`;
   }
 
   loadData(): void {

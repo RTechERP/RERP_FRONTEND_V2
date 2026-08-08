@@ -1,23 +1,77 @@
-.travel-hero-banner {
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 60%, #003a8c 100%);
-  border-radius: 10px;
-  padding: 16px 20px;
-  margin-bottom: 16px;
-  color: #ffffff;
-  box-shadow: 0 4px 14px rgba(24, 144, 255, 0.25);
+::ng-deep .modal-content {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.summer-modal-bg {
+  background: url('/assets/images/bgconfirm2.jpg') no-repeat center center / cover;
+  border-radius: 8px;
   position: relative;
   overflow: hidden;
 }
 
-.travel-hero-banner::after {
+/* Lớp phủ làm nhạt background hình ảnh 1 chút */
+.summer-modal-bg::before {
   content: '';
   position: absolute;
-  top: -30px;
-  right: -30px;
-  width: 140px;
-  height: 140px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 50%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.summer-modal-overlay {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(1px);
+  padding: 0;
+}
+
+.modal-header {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.6) !important;
+  padding: 12px 20px !important;
+}
+
+.modal-title {
+  color: #0284c7 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Hero Banner Container - Bo ít (8px) & mờ nhẹ */
+.travel-hero-banner {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.4) 0%, rgba(2, 132, 199, 0.45) 60%, rgba(3, 105, 161, 0.5) 100%);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.15);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+}
+
+.travel-hero-banner::after {
+  content: '🏖️';
+  position: absolute;
+  top: -15px;
+  right: 10px;
+  font-size: 70px;
+  opacity: 0.25;
   pointer-events: none;
 }
 
@@ -29,79 +83,104 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 }
 
 .travel-hero-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(4px);
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(6px);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+  font-size: 18px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
   flex-shrink: 0;
 }
 
 .travel-hero-stat-badge {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
   color: #ffffff;
   font-size: 12px;
-  font-weight: 600;
-  padding: 6px 14px;
-  border-radius: 20px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 14px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
+/* Alert Box - Bo 6px */
 .travel-alert-box {
-  background: rgba(255, 255, 255, 0.96);
-  border-left: 4px solid #fa8c16;
+  background: rgba(255, 255, 255, 0.78);
+  border-left: 4px solid #f59e0b;
   border-radius: 6px;
   padding: 10px 14px;
   font-size: 12px;
-  color: #1f2937;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  color: #0f172a;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
 }
 
+/* Table Wrapper & Table - Bo 8px */
 .travel-table-wrapper {
   border-radius: 8px;
-  border: 1px solid #e8e8e8;
+  border: 1px solid rgba(255, 255, 255, 0.75);
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
 }
 
 .travel-table {
   font-size: 12px !important;
   margin-bottom: 0;
   width: 100%;
+  --bs-table-bg: transparent !important;
+  --bs-table-accent-bg: transparent !important;
+  background-color: transparent !important;
 }
 
 .travel-table th {
-  background-color: #f0f5ff !important;
-  color: #1d39c4 !important;
+  background: rgba(224, 242, 254, 0.8) !important;
+  color: #0284c7 !important;
   font-weight: 700 !important;
   font-size: 12px !important;
   padding: 10px 12px !important;
-  border-bottom: 2px solid #adc6ff !important;
+  border-bottom: 2px solid rgba(125, 211, 252, 0.85) !important;
   vertical-align: middle !important;
+  backdrop-filter: blur(6px);
 }
 
 .travel-table td {
   font-size: 12px !important;
   padding: 8px 12px !important;
   vertical-align: middle !important;
-  border-color: #f0f0f0 !important;
+  border-color: rgba(226, 232, 240, 0.65) !important;
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.travel-table tbody tr {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(6px);
+  transition: background-color 0.15s ease;
+}
+
+.travel-table tbody tr:nth-of-type(even) {
+  background-color: rgba(248, 250, 252, 0.6) !important;
 }
 
 .travel-table tbody tr:hover {
-  background-color: #f6f9ff !important;
+  background-color: rgba(224, 242, 254, 0.9) !important;
 }
 
 .stt-badge {
@@ -111,44 +190,53 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background-color: #e6f7ff;
-  color: #1890ff;
-  font-weight: 600;
+  background-color: rgba(224, 242, 254, 0.95);
+  color: #0284c7;
+  font-weight: 700;
   font-size: 11px;
 }
 
 .rel-badge {
   display: inline-block;
   padding: 2px 8px;
-  border-radius: 12px;
+  border-radius: 10px;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .rel-badge-self {
-  background-color: #e6f7ff;
-  color: #096dd9;
-  border: 1px solid #91d5ff;
+  background-color: rgba(224, 242, 254, 0.95);
+  color: #0284c7;
+  border: 1px solid rgba(125, 211, 252, 0.85);
 }
 
 .rel-badge-other {
-  background-color: #f9f0ff;
-  color: #531dab;
-  border: 1px solid #d3ade6;
+  background-color: rgba(254, 243, 199, 0.95);
+  color: #b45309;
+  border: 1px solid rgba(253, 230, 138, 0.85);
 }
 
 .gender-badge-nam {
-  background-color: #e6f7ff;
-  color: #1890ff;
+  background-color: rgba(224, 242, 254, 0.95);
+  color: #0284c7;
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 11px;
+  font-weight: 600;
 }
 
 .gender-badge-nu {
-  background-color: #fff0f6;
-  color: #eb2f96;
+  background-color: rgba(252, 231, 243, 0.95);
+  color: #db2777;
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 11px;
+  font-weight: 600;
+}
+
+.modal-footer {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.6) !important;
+  padding: 10px 20px !important;
 }

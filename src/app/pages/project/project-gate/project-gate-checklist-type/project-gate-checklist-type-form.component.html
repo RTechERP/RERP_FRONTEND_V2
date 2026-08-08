@@ -1,0 +1,52 @@
+<div class="modal-header bg-primary py-2">
+  <h6 class="modal-title text-uppercase text-white" style="font-size: 12px;">
+    {{ isEdit ? 'CẬP NHẬT LOẠI CHECKLIST PROJECT GATE' : 'THÊM MỚI LOẠI CHECKLIST PROJECT GATE' }}
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+
+<div class="modal-body fs-12" style="font-size: 12px;">
+  <form nz-form [formGroup]="form" nzLayout="vertical">
+    <nz-row [nzGutter]="[16, 8]">
+      <!-- STT -->
+      <nz-col [nzSpan]="8">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">STT <span class="text-danger ps-1">*</span></nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập số thứ tự">
+            <nz-input-number formControlName="STT" [nzMin]="1" [nzStep]="1" class="w-100" style="font-size: 12px;"></nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <!-- TypeCode -->
+      <nz-col [nzSpan]="16">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">Mã loại checklist <span class="text-danger ps-1">*</span></nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã loại checklist (Tối đa 100 ký tự)">
+            <input nz-input formControlName="TypeCode" placeholder="Nhập mã loại checklist" style="font-size: 12px;" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+
+    <!-- Description -->
+    <nz-form-item class="mb-2">
+      <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">Mô tả</nz-form-label>
+      <nz-form-control [nzSpan]="24" nzErrorTip="Mô tả tối đa 550 ký tự">
+        <textarea nz-input formControlName="Description" placeholder="Nhập mô tả loại checklist" rows="3" style="font-size: 12px;"></textarea>
+      </nz-form-control>
+    </nz-form-item>
+  </form>
+</div>
+
+<div class="modal-footer fs-12 py-2" style="font-size: 12px;">
+  <button nz-button nzType="default" nzDanger nzSize="small" (click)="onCancel()" style="font-size: 12px;">
+    <i class="fa-solid fa-xmark me-1"></i> Đóng
+  </button>
+  <button nz-button nzType="primary" nzSize="small" [nzLoading]="loading" (click)="onSubmit(false)" *ngIf="!isEdit" style="font-size: 12px;">
+    <i class="fa-solid fa-floppy-disk me-1"></i> Lưu
+  </button>
+  <button nz-button nzType="primary" nzSize="small" [nzLoading]="loading" (click)="onSubmit(true)" style="font-size: 12px;">
+    <i class="fa-solid fa-floppy-disk me-1"></i> Lưu và đóng
+  </button>
+</div>

@@ -1,0 +1,20 @@
+.word-break-all {
+  word-break: break-all;
+}
+
+.file-name-link {
+  cursor: pointer;
+  text-decoration: none;
+  white-space: normal;
+  word-break: break-all;
+  font-weight: 500;
+}
+
+.file-name-link:hover {
+  text-decoration: underline;
+  color: #096dd9 !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}

@@ -75,19 +75,17 @@
                 <div class="project-icon parent-task-icon">
                     <i nz-icon nzType="cluster" nzTheme="outline"></i>
                 </div>
-                <nz-select [(ngModel)]="parentTaskId" nzAllowClear nzBorderless nzSize="small"
-                    class="project-select flex-grow-1 w-100" nzShowSearch nzPlaceHolder="Chọn công việc cha"
-                    [nzFilterOption]="filterParentTaskOption" [nzCustomTemplate]="parentTaskSelectedTpl"
-                    nzDropdownClassName="project-parent-dropdown">
-                    @for (pt of parentTaskList; track pt.ID) {
-                    <nz-option [nzValue]="pt.ID" [nzLabel]="(pt.Code || '').trim() + ' - ' + (pt.Mission || '')"
-                        nzCustomContent>
-                        <div class="dropdown-wrap-text">
-                            {{ (pt.Code || '').trim() }} - {{ pt.Mission || '' }}
-                        </div>
-                    </nz-option>
-                    }
-                </nz-select>
+                <nz-tree-select [(ngModel)]="parentTaskId" [nzNodes]="parentTaskTreeNodes" nzAllowClear
+                    nzShowSearch nzPlaceHolder="Chọn công việc cha" [nzDefaultExpandAll]="true" nzSize="small"
+                    class="project-select flex-grow-1 w-100" [nzDropdownStyle]="{ 'max-height': '350px' }">
+                </nz-tree-select>
+            </div>
+            <!-- Dòng hiển thị Ngày kết thúc dự kiến công việc cha -->
+            <div class="mt-1 d-flex align-items-center gap-1">
+                <span class="text-muted small text-nowrap" style="font-size: 11px;">KT dự kiến CV cha:</span>
+                <input type="date" disabled [value]="selectedParentTaskPlanEndDateStr"
+                    class="form-control form-control-sm py-0 px-1 fs-12 text-muted"
+                    style="height: 24px; background-color: #f5f5f5;" />
             </div>
         </div>
 
@@ -380,6 +378,8 @@
                                             </label>
                                             <input type="date" [(ngModel)]="planEndDateStr"
                                                 class="rd-input"
+                                                [disabled]="isFromGateStep"
+                                                [max]="selectedParentTaskPlanEndDateStr || null"
                                                 [class.has-error]="dateValidationError && dateValidationError.includes('du kien')" />
                                         </div>
                                     </div>
@@ -403,6 +403,7 @@
                                                 <span class="required" *ngIf="taskStatus === 1 || taskStatus === 2">*</span>
                                             </label>
                                             <input type="date" [(ngModel)]="deadlineStr" [disabled]="!canEditDeadline"
+                                                [max]="selectedParentTaskPlanEndDateStr || null"
                                                 class="rd-input" />
                                         </div>
                                     </div>
@@ -1298,18 +1299,16 @@
 
                 <div class="mb-3">
                     <label class="sidebar-label">Công việc cha</label>
-                    <nz-select [(ngModel)]="parentTaskId" nzAllowClear nzSize="small"
-                        class="project-select w-100" nzShowSearch nzPlaceHolder="Chọn công việc cha"
-                        [nzFilterOption]="filterParentTaskOption" [nzCustomTemplate]="parentTaskSelectedTpl"
-                        nzDropdownClassName="project-parent-dropdown">
-                        @for (pt of parentTaskList; track pt.ID) {
-                        <nz-option [nzValue]="pt.ID" [nzLabel]="(pt.Code || '').trim() + ' - ' + (pt.Mission || '')" nzCustomContent>
-                            <div class="dropdown-wrap-text">
-                                {{ (pt.Code || '').trim() }} - {{ pt.Mission || '' }}
-                            </div>
-                        </nz-option>
-                        }
-                    </nz-select>
+                    <nz-tree-select [(ngModel)]="parentTaskId" [nzNodes]="parentTaskTreeNodes" nzAllowClear
+                        nzShowSearch nzPlaceHolder="Chọn công việc cha" [nzDefaultExpandAll]="true" nzSize="small"
+                        class="project-select w-100" [nzDropdownStyle]="{ 'max-height': '350px' }">
+                    </nz-tree-select>
+                    <div class="mt-1 d-flex align-items-center gap-1">
+                        <span class="text-muted small text-nowrap" style="font-size: 11px;">KT dự kiến CV cha:</span>
+                        <input type="date" disabled [value]="selectedParentTaskPlanEndDateStr"
+                            class="form-control form-control-sm py-0 px-1 fs-12 text-muted"
+                            style="height: 24px; background-color: #f5f5f5;" />
+                    </div>
                 </div>
 
                 <div class="mb-3 d-flex flex-wrap gap-3">
@@ -1476,18 +1475,16 @@
                     <div class="mb-3">
                         <label class="drawer-label">Công việc cha</label>
                         <div class="project-badge p-2 bg-light border rounded">
-                            <nz-select [(ngModel)]="parentTaskId" nzAllowClear nzBorderless
-                                nzSize="small" class="w-100" nzShowSearch nzPlaceHolder="Chọn công việc cha"
-                                [nzFilterOption]="filterParentTaskOption" [nzCustomTemplate]="parentTaskSelectedTpl"
-                                nzDropdownClassName="project-parent-dropdown">
-                                @for (pt of parentTaskList; track pt.ID) {
-                                <nz-option [nzValue]="pt.ID"
-                                    [nzLabel]="(pt.Code || '').trim() + ' - ' + (pt.Mission || '')" nzCustomContent>
-                                    <div class="dropdown-wrap-text">{{ (pt.Code || '').trim() }} - {{ pt.Mission || ''
-                                        }}</div>
-                                </nz-option>
-                                }
-                            </nz-select>
+                            <nz-tree-select [(ngModel)]="parentTaskId" [nzNodes]="parentTaskTreeNodes" nzAllowClear
+                                nzShowSearch nzPlaceHolder="Chọn công việc cha" [nzDefaultExpandAll]="true" nzSize="small"
+                                class="w-100" [nzDropdownStyle]="{ 'max-height': '350px' }">
+                            </nz-tree-select>
+                        </div>
+                        <div class="mt-1 d-flex align-items-center gap-1">
+                            <span class="text-muted small text-nowrap" style="font-size: 11px;">KT dự kiến CV cha:</span>
+                            <input type="date" disabled [value]="selectedParentTaskPlanEndDateStr"
+                                class="form-control form-control-sm py-0 px-1 fs-12 text-muted"
+                                style="height: 24px; background-color: #f5f5f5;" />
                         </div>
                     </div>
                 </div>

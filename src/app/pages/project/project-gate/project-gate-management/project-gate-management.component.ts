@@ -28,6 +28,7 @@ import { DateTime } from 'luxon';
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
 import { ProjectGateService } from '../project-gate.service';
 import { ProjectGateFormComponent } from '../project-gate-form/project-gate-form.component';
+import { PermissionService } from '../../../../services/permission.service';
 
 export interface ColDef {
   field: string; header: string; width: string; type?: string;
@@ -99,7 +100,8 @@ export class ProjectGateManagementComponent implements OnInit {
     private service: ProjectGateService,
     private notification: NzNotificationService,
     private modal: NzModalService,
-    private ngbModal: NgbModal
+    private ngbModal: NgbModal,
+    private permissionService: PermissionService
   ) { }
 
   ngOnInit(): void {
@@ -112,29 +114,34 @@ export class ProjectGateManagementComponent implements OnInit {
       {
         label: 'Thêm mới',
         icon: 'fa-solid fa-circle-plus text-primary',
-        command: () => this.onAdd()
+        command: () => this.onAdd(),
+        visible: this.permissionService.hasPermission("N1,N109"),
       },
       {
         label: 'Sửa',
         icon: 'fa-solid fa-file-pen text-warning',
         command: () => this.onEdit(),
-        disabled: this.selectedItems.length !== 1
+        disabled: this.selectedItems.length !== 1,
+        visible: this.permissionService.hasPermission("N1,N109"),
       },
       {
         label: 'Xóa',
         icon: 'fa-solid fa-trash text-danger',
         command: () => this.onDelete(),
-        disabled: this.selectedItems.length === 0
+        disabled: this.selectedItems.length === 0,
+        visible: this.permissionService.hasPermission("N1,N109"),
       },
       {
         label: 'Xuất excel',
         icon: 'fa-solid fa-file-excel text-success',
-        command: () => this.onExportExcel()
+        command: () => this.onExportExcel(),
+        visible: this.permissionService.hasPermission("N1,N109"),
       },
       {
         label: 'Tải lại',
         icon: 'fa-solid fa-arrows-rotate text-secondary',
-        command: () => this.loadData()
+        command: () => this.loadData(),
+        visible: this.permissionService.hasPermission("N1,N109"),
       }
     ];
   }
@@ -176,9 +183,9 @@ export class ProjectGateManagementComponent implements OnInit {
       const keyword = this.searchKeyword.toLowerCase().trim();
       this.filteredDataset = this.filteredDataset.filter(row => {
         return (row.GateCode && row.GateCode.toLowerCase().includes(keyword)) ||
-               (row.GateName && row.GateName.toLowerCase().includes(keyword)) ||
-               (row.StepName && row.StepName.toLowerCase().includes(keyword)) ||
-               (row.Target && row.Target.toLowerCase().includes(keyword));
+          (row.GateName && row.GateName.toLowerCase().includes(keyword)) ||
+          (row.StepName && row.StepName.toLowerCase().includes(keyword)) ||
+          (row.Target && row.Target.toLowerCase().includes(keyword));
       });
     }
   }
@@ -215,6 +222,10 @@ export class ProjectGateManagementComponent implements OnInit {
       centered: true
     });
     modalRef.componentInstance.dataInput = null;
+    modalRef.componentInstance.saveCallback = () => this.loadData();
+    if (modalRef.componentInstance.saveSuccess) {
+      modalRef.componentInstance.saveSuccess.subscribe(() => this.loadData());
+    }
 
     modalRef.result.then(
       (result) => {
@@ -229,7 +240,7 @@ export class ProjectGateManagementComponent implements OnInit {
   onEdit(): void {
     if (this.selectedItems.length !== 1) return;
     const selected = this.selectedItems[0];
-    
+
     const modalRef = this.ngbModal.open(ProjectGateFormComponent, {
       size: 'lg',
       backdrop: 'static',
@@ -237,6 +248,10 @@ export class ProjectGateManagementComponent implements OnInit {
       centered: true
     });
     modalRef.componentInstance.dataInput = { ...selected };
+    modalRef.componentInstance.saveCallback = () => this.loadData();
+    if (modalRef.componentInstance.saveSuccess) {
+      modalRef.componentInstance.saveSuccess.subscribe(() => this.loadData());
+    }
 
     modalRef.result.then(
       (result) => {

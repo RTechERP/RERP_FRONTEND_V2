@@ -1,0 +1,198 @@
+<div class="checklist-container h-100 d-flex flex-column bg-white">
+  <!-- ══ Header ════════════════════════════════════════════ -->
+  <div class="step-info-bar d-flex align-items-center gap-3 px-3 py-2 border-bottom bg-light">
+    <div class="d-flex align-items-center gap-2">
+      <i class="fa-solid fa-list-check text-primary" style="font-size: 18px;"></i>
+      <div>
+        <div class="fw-bold text-primary" style="font-size: 13px;">
+          Cấu hình Quy tắc Checklist — Công đoạn:
+          <span class="text-dark ms-1">{{ stepCode ? '[' + stepCode + '] ' : '' }}{{ stepName }}</span>
+        </div>
+        <div class="text-muted" style="font-size: 11px;">
+          Quản lý các dòng quy chuẩn file và quy tắc kiểm tra của công đoạn mẫu này
+        </div>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <button nz-button nzType="default" nzDanger nzSize="small" *ngIf="hasSelectedDetails()"
+        (click)="removeSelectedDetails()" style="font-size: 12px; height: 28px;">
+        <i class="fa-solid fa-trash-can me-1"></i>Xóa dòng chọn
+      </button>
+      <button nz-button nzType="default" nzSize="small" (click)="addDetail()"
+        style="font-size: 12px; height: 28px; border-color: #1890ff; color: #1890ff;">
+        <i class="fa-solid fa-plus me-1"></i>Thêm dòng quy tắc
+      </button>
+      <button nz-button nzType="primary" nzSize="small" (click)="onSaveDetails()" [nzLoading]="isSavingDetail"
+        style="font-size: 12px; height: 28px; background:#1890ff; border-color:#1890ff;">
+        <i class="fa-solid fa-floppy-disk me-1"></i>Lưu cấu hình
+      </button>
+      <button nz-button nzType="default" nzSize="small" (click)="loadData()" [disabled]="isLoading"
+        style="font-size: 12px; height: 28px;">
+        <i class="fa-solid fa-arrows-rotate me-1"></i>Tải lại
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ Main Body ════════════════════════════════════════ -->
+  <nz-spin [nzSpinning]="isLoading" class="flex-grow-1 overflow-hidden" style="display:flex; flex-direction:column;">
+    <div class="flex-grow-1 overflow-hidden p-3" style="background: #f0f2f5;">
+      <div class="h-100 d-flex flex-column border rounded bg-white"
+        style="box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;">
+        <div class="flex-grow-1 overflow-hidden p-2">
+          <p-table [value]="details" dataKey="_tempId" styleClass="p-datatable-sm p-datatable-gridlines"
+            [scrollable]="true" scrollHeight="flex" [resizableColumns]="true" columnResizeMode="expand">
+
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width:42px; text-align:center; font-size:12px;" pResizableColumn>#</th>
+                <th style="width:42px; text-align:center; font-size:12px;" pResizableColumn>
+                  <label nz-checkbox [ngModel]="isAllDetailsSelected()"
+                    (ngModelChange)="toggleSelectAllDetails($event)"></label>
+                </th>
+                <th style="width:70px; text-align:center; font-size:12px;" pResizableColumn [pSortableColumn]="'STT'">
+                  STT <p-sortIcon field="STT"></p-sortIcon>
+                </th>
+                <th style="width:200px; font-size:12px;" pResizableColumn [pSortableColumn]="'FileName'">
+                  Tên file quy chuẩn <p-sortIcon field="FileName"></p-sortIcon>
+                </th>
+                <th style="width:300px; font-size:12px;" pResizableColumn [pSortableColumn]="'FileRule'">
+                  Quy tắc/Yêu cầu file <p-sortIcon field="FileRule"></p-sortIcon>
+                </th>
+                <th style="width:200px; font-size:12px;" pResizableColumn [pSortableColumn]="'FileFormat'">
+                  Định dạng cho phép <p-sortIcon field="FileFormat"></p-sortIcon>
+                </th>
+                <th style="width:80px; text-align:center; font-size:12px;" pResizableColumn
+                  [pSortableColumn]="'FileQuantity'">
+                  Số lượng <p-sortIcon field="FileQuantity"></p-sortIcon>
+                </th>
+                <th style="width:100px; text-align:center; font-size:12px;" pResizableColumn
+                  [pSortableColumn]="'IsFile'">
+                  Cần tải file <p-sortIcon field="IsFile"></p-sortIcon>
+                </th>
+                <th style="width:90px; text-align:center; font-size:12px;" pResizableColumn
+                  [pSortableColumn]="'IsCheck'">
+                  Bắt buộc <p-sortIcon field="IsCheck"></p-sortIcon>
+                </th>
+                <th style="width:52px; text-align:center; font-size:12px;" pResizableColumn>Xóa</th>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-row let-rowIndex="rowIndex">
+              <tr [class.detail-new]="row._isNew">
+                <!-- Index -->
+                <td class="text-center text-muted" style="font-size:12px; padding:8px 8px; vertical-align: middle;">
+                  {{ rowIndex + 1 }}
+                </td>
+
+                <!-- Bulk Select -->
+                <td style="padding:8px 8px; text-align:center; vertical-align: middle;">
+                  <label nz-checkbox [(ngModel)]="row._selected"></label>
+                </td>
+
+                <!-- STT (Order number) -->
+                <td style="padding:8px 8px; text-align:center; vertical-align: middle;">
+                  <nz-input-number [(ngModel)]="row.STT" (ngModelChange)="markDetailDirty(row)"
+                    (keydown)="onKeyDown(rowIndex, 'STT', $event)" [attr.data-row]="rowIndex" [attr.data-col]="'STT'"
+                    [nzMin]="1" [nzMax]="999" nzSize="small" class="w-100" style="font-size:12px;" />
+                </td>
+
+                <!-- FileName (Standard File Name) -->
+                <td style="padding:8px 8px; vertical-align: middle;">
+                  <input nz-input nzSize="small" [(ngModel)]="row.FileName" (ngModelChange)="markDetailDirty(row)"
+                    (keydown)="onKeyDown(rowIndex, 'FileName', $event)" [attr.data-row]="rowIndex"
+                    [attr.data-col]="'FileName'" placeholder="VD: ban_ve_2d.dwg" class="w-100"
+                    style="font-size:12px;" />
+                </td>
+
+                <!-- FileRule (Description) -->
+                <td style="padding:8px 8px; vertical-align: middle;">
+                  <textarea nz-input nzSize="small" [(ngModel)]="row.FileRule" (ngModelChange)="markDetailDirty(row)"
+                    (keydown)="onKeyDown(rowIndex, 'FileRule', $event)" [attr.data-row]="rowIndex"
+                    [attr.data-col]="'FileRule'"
+                    [nzStatus]="(isSubmitted && (!row.FileRule || !row.FileRule.trim())) ? 'error' : ''"
+                    [nzAutosize]="{ minRows: 2, maxRows: 4 }"
+                    placeholder="VD: Bản vẽ thiết kế 2D mặt bằng được phê duyệt..." class="w-100"
+                    style="font-size:12px; resize: none;"></textarea>
+                  <div *ngIf="isSubmitted && (!row.FileRule || !row.FileRule.trim())" class="text-danger"
+                    style="font-size: 10px; margin-top: 2px; text-align: left;">
+                    Không được bỏ trống!
+                  </div>
+                </td>
+
+                <!-- FileFormat (Allowed Extensions) -->
+                <td style="padding:8px 8px; vertical-align: middle;">
+                  <div class="d-flex align-items-center gap-1">
+                    <nz-select [(ngModel)]="row._selectedFormats" (ngModelChange)="markDetailDirty(row)"
+                      (keydown)="onKeyDown(rowIndex, 'FileFormat', $event)" [attr.data-row]="rowIndex"
+                      [attr.data-col]="'FileFormat'" nzMode="multiple" nzPlaceHolder="Chọn định dạng..." nzSize="small"
+                      nzShowSearch nzAllowClear class="flex-grow-1" style="font-size:12px;" [nzDisabled]="!row.IsFile">
+                      <nz-option *ngFor="let opt of getFormatOptions(row._selectedFormats)" [nzValue]="opt.value"
+                        [nzLabel]="opt.label"></nz-option>
+                    </nz-select>
+                    <button nz-button nzType="default" nzSize="small" type="button" (click)="openAddFileFormatModal()"
+                      [disabled]="!row.IsFile" title="Khai báo thêm định dạng file" style="padding: 0 6px; height: 24px;">
+                      <i class="fa-solid fa-plus text-primary"></i>
+                    </button>
+                  </div>
+                </td>
+
+                <!-- FileQuantity (Quantity) -->
+                <td style="padding:8px 8px; text-align:center; vertical-align: middle;">
+                  <nz-input-number [(ngModel)]="row.FileQuantity" (ngModelChange)="markDetailDirty(row)"
+                    (keydown)="onKeyDown(rowIndex, 'FileQuantity', $event)" [attr.data-row]="rowIndex"
+                    [attr.data-col]="'FileQuantity'" [nzMin]="0" [nzMax]="99" nzSize="small" class="w-100"
+                    style="font-size:12px;" [nzDisabled]="!row.IsFile" />
+                </td>
+
+                <!-- IsFile (Upload required vs Checkbox only) -->
+                <td style="padding:8px 8px; text-align:center; vertical-align: middle;">
+                  <label nz-checkbox [(ngModel)]="row.IsFile" (ngModelChange)="onIsFileChange(row)"
+                    (keydown)="onKeyDown(rowIndex, 'IsFile', $event)" [attr.data-row]="rowIndex"
+                    [attr.data-col]="'IsFile'">
+                  </label>
+                </td>
+
+                <!-- IsCheck (Required) -->
+                <td style="padding:8px 8px; text-align:center; vertical-align: middle;">
+                  <label nz-checkbox [(ngModel)]="row.IsCheck" (ngModelChange)="markDetailDirty(row)"
+                    (keydown)="onKeyDown(rowIndex, 'IsCheck', $event)" [attr.data-row]="rowIndex"
+                    [attr.data-col]="'IsCheck'">
+                  </label>
+                </td>
+                <!-- Delete Action -->
+                <td style="padding:8px 8px; text-align:center; vertical-align: middle;">
+                  <button nz-button nzType="text" nzDanger nzSize="small" (click)="removeDetail(row)"
+                    style="height:26px; width:26px; padding:0; font-size:12px;">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </td>
+              </tr>
+            </ng-template>
+
+            <!-- Empty Message -->
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="10" class="text-center py-5 text-muted" style="font-size:12px;">
+                  <i class="fa-solid fa-file-circle-plus mb-2" style="font-size:32px; opacity:0.3; display:block;"></i>
+                  Chưa có quy tắc nào cho công đoạn này — nhấn "Thêm dòng quy tắc" để bắt đầu cấu hình
+                </td>
+              </tr>
+            </ng-template>
+
+            <!-- Table Footer -->
+            <ng-template pTemplate="footer">
+              <tr>
+                <td colspan="10" style="padding:8px 12px; background:#fafafa; font-size:11px; color:#888;">
+                  Tổng số quy tắc: <strong>{{ details.length }}</strong> &nbsp;|&nbsp;
+                  Bắt buộc hoàn thành: <strong>{{ countChecked() }}</strong>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </div>
+  </nz-spin>
+</div>

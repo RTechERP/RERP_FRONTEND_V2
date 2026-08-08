@@ -1,0 +1,18 @@
+.modal-header {
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+
+:host ::ng-deep .ant-form-item-label > label {
+  font-size: 13px !important;
+  color: #333;
+}
+
+:host ::ng-deep input.ant-input,
+:host ::ng-deep .ant-input-number-input {
+  font-size: 13px !important;
+}
+
+:host ::ng-deep .ant-btn {
+  font-size: 13px !important;
+}

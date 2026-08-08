@@ -68,7 +68,7 @@ import { TabServiceService } from '../../../layouts/tab-service.service';
 import { ProjectHistoryProblemNewComponent } from '../project-history-problem-new/project-history-problem-new.component';
 import { ProjectHistoryProblemSyntheticComponent } from '../project-history-problem-new/project-history-problem-synthetic/project-history-problem-synthetic.component';
 import { DrawingProjectComponent } from '../drawing-project/drawing-project.component';
-import { ProjectGateStepByProjectComponent } from '../project-gate-step/project-gate-step-by-project/project-gate-step-by-project.component';
+import { ProjectGateStepByProjectComponent } from '../project-gate/project-gate-step/project-gate-step-by-project/project-gate-step-by-project.component';
 
 @Component({
     selector: 'app-project-prime-ng2',
@@ -321,6 +321,12 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 command: () => this.deletedProjects(),
             },
             {
+                label: 'Tạo demo',
+                icon: 'fa-solid fa-copy fa-lg text-primary',
+                visible: hasPermission,
+                command: () => this.createDemoProject(),
+            },
+            {
                 label: 'Online',
                 icon: 'fa-solid fa-sitemap fa-lg text-success',
                 command: () => this.openFolder('online'),
@@ -345,11 +351,11 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 icon: 'fa-solid fa-users fa-lg text-primary',
                 command: () => this.openProjectWorkerModal(),
             },
-            // {
-            //     label: 'Chi tiết nhân công',
-            //     icon: 'fa-solid fa-people-group fa-lg text-info',
-            //     command: () => this.openProjectGateStepByProjectModal(),
-            // },
+            {
+                label: 'Chi tiết dự án',
+                icon: 'fa-solid fa-people-group fa-lg text-info',
+                command: () => this.openProjectGateStepByProjectModal(),
+            },
             {
                 label: 'Danh mục vật tư',
                 icon: 'fa-solid fa-box fa-lg text-warning',
@@ -533,6 +539,12 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 icon: 'pi pi-refresh',
                 visible: this.permissionService.hasAnyPermission(['N1', 'N13', 'N27']),
                 command: () => this.openUpdateCurrentSituation()
+            },
+            {
+                label: 'Tạo dự án demo',
+                icon: 'pi pi-copy',
+                visible: this.permissionService.hasAnyPermission(['N1', 'N13', 'N27']),
+                command: () => this.createDemoProject()
             },
             {
                 label: 'Cập nhật trạng thái',
@@ -1363,6 +1375,40 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
             },
         });
     }
+
+    createDemoProject() {
+        const project = this.selectedRow;
+        if (!project || !project.ID) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn một dự án để tạo demo!');
+            return;
+        }
+
+        this.modal.confirm({
+            nzTitle: 'Xác nhận tạo dự án demo',
+            nzContent: `Bạn có chắc chắn muốn tạo dự án demo từ dự án: <b>${project.ProjectCode} - ${project.ProjectName}</b> không?`,
+            nzOkText: 'Đồng ý',
+            nzCancelText: 'Hủy',
+            nzOnOk: () => {
+                this.isLoading = true;
+                this.projectService.createDemoProject(project.ID).subscribe({
+                    next: (res: any) => {
+                        this.isLoading = false;
+                        if (res.status === 1) {
+                            this.notification.success('Thành công', `Đã tạo dự án demo thành công! Mã dự án mới: ${res.data.ProjectCode}`);
+                            this.searchProjects();
+                        } else {
+                            this.notification.error('Thất bại', res.message || 'Tạo dự án demo không thành công.');
+                        }
+                    },
+                    error: (err: any) => {
+                        this.isLoading = false;
+                        const msg = err.error?.message || err.message || 'Lỗi hệ thống';
+                        this.notification.error('Lỗi', msg);
+                    }
+                });
+            }
+        });
+    }
     //#endregion
 
     //#endregion
@@ -1711,16 +1757,18 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         const projectId = selectedIDs[0];
         const projectCode = selectedRows[0]?.ProjectCode;
         const projectName = selectedRows[0]?.ProjectName;
+        const projectStatusName = selectedRows[0]?.ProjectStatusName || selectedRows[0]?.ProjectStatusText || selectedRows[0]?.ProjectStatus || '';
         const key = `project-gate-step-by-project/${projectId}`;
 
         this.tabService.openTabComp({
             comp: ProjectGateStepByProjectComponent,
-            title: `Chi tiết nhân công - ${projectCode}`,
+            title: `Chi tiết dự án - ${projectCode}`,
             key: key,
             data: {
                 projectId: projectId,
                 projectCode: projectCode,
                 projectName: projectName,
+                projectStatusName: projectStatusName,
                 _tabKey: key
             }
         });

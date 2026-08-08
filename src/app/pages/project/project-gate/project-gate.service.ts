@@ -15,6 +15,10 @@ export class ProjectGateService {
         return this.http.get<any>(`${this.url}/get-all`);
     }
 
+    getByID(id: number): Observable<any> {
+        return this.http.get<any>(`${this.url}/get-by-id?id=${id}`);
+    }
+
     save(items: any[]): Observable<any> {
         return this.http.post<any>(`${this.url}/save-data`, items);
     }

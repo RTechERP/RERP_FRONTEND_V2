@@ -1,0 +1,521 @@
+.task-grid-page {
+  height: calc(100vh - 90px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 8px;
+  background-color: #fff;
+  box-sizing: border-box;
+}
+
+.filter-card {
+  flex-shrink: 0;
+}
+
+nz-spin,
+:host ::ng-deep .ant-spin-nested-loading,
+:host ::ng-deep .ant-spin-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.table-scroll-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+:host ::ng-deep .tree-grid-p-table {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-datatable-wrapper {
+  flex: 1;
+  min-height: 0;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-datatable-table {
+  table-layout: fixed !important;
+}
+
+.tree-grid-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-datatable-thead > tr > th {
+  background-color: #f8fafc !important;
+  color: #334155;
+  font-weight: 600;
+  white-space: nowrap;
+  position: relative !important;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-column-resizer {
+  position: absolute !important;
+  top: 0;
+  right: 0;
+  width: 8px !important;
+  height: 100% !important;
+  cursor: col-resize !important;
+  z-index: 100 !important;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-column-resizer:hover {
+  background-color: #3b82f6 !important;
+}
+
+/* Group Headers */
+.header-group {
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.group-planned {
+  background-color: #e0f2fe !important;
+  color: #0369a1 !important;
+}
+
+/* Cột Dự kiến — xanh lam nhạt, ghi đè PrimeNG */
+.group-planned-sub {
+  background-color: #dbeafe !important;
+  color: #1d4ed8 !important;
+  border-bottom: 2px solid #3b82f6 !important;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-datatable-thead > tr > th.group-planned-sub {
+  background-color: #dbeafe !important;
+  color: #1d4ed8 !important;
+  border-bottom: 2px solid #3b82f6 !important;
+}
+
+.group-actual {
+  background-color: #fce7f3 !important;
+  color: #be185d !important;
+}
+
+/* Cột Thực tế — xanh lá nhạt, ghi đè PrimeNG */
+.group-actual-sub {
+  background-color: #dcfce7 !important;
+  color: #15803d !important;
+  border-bottom: 2px solid #22c55e !important;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-datatable-thead > tr > th.group-actual-sub {
+  background-color: #dcfce7 !important;
+  color: #15803d !important;
+  border-bottom: 2px solid #22c55e !important;
+}
+
+
+.tree-grid-table td {
+  padding: 4px 6px;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: middle;
+  background-color: #fff;
+}
+
+.row-dirty td {
+  background-color: #fffbe6 !important;
+}
+
+.row-new td {
+  background-color: #f6ffed !important;
+}
+
+/* 1. Quá hạn / Fail (Đỏ) - Ưu tiên cao nhất */
+:host ::ng-deep .tree-grid-p-table .p-datatable-tbody>tr.row-late-red,
+:host ::ng-deep .tree-grid-p-table .p-datatable-tbody>tr.row-late-red>td,
+.tree-grid-p-table .p-datatable-tbody>tr.row-late-red,
+.tree-grid-p-table .p-datatable-tbody>tr.row-late-red>td,
+.row-late-red,
+.row-late-red td {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+}
+
+/* 2. Trễ hạn hoàn thành (Cam) */
+:host ::ng-deep .tree-grid-p-table .p-datatable-tbody>tr.row-late-orange,
+:host ::ng-deep .tree-grid-p-table .p-datatable-tbody>tr.row-late-orange>td,
+.tree-grid-p-table .p-datatable-tbody>tr.row-late-orange,
+.tree-grid-p-table .p-datatable-tbody>tr.row-late-orange>td,
+.row-late-orange,
+.row-late-orange td {
+  background-color: #ffedd5 !important;
+  color: #9a3412 !important;
+}
+
+/* 3. Dòng cha (Xám nhạt) khi không bị trễ */
+:host ::ng-deep .tree-grid-p-table .p-datatable-tbody>tr.row-parent,
+:host ::ng-deep .tree-grid-p-table .p-datatable-tbody>tr.row-parent>td,
+.tree-grid-p-table .p-datatable-tbody>tr.row-parent,
+.tree-grid-p-table .p-datatable-tbody>tr.row-parent>td,
+.row-parent,
+.row-parent td {
+  font-weight: 600;
+  background-color: #f1f5f9;
+}
+
+/* 4. Sắp hết hạn <= 3 ngày (Vàng) - Ưu tiên thấp nhất */
+:host ::ng-deep .tree-grid-p-table .p-datatable-tbody>tr.row-expiring-soon,
+:host ::ng-deep .tree-grid-p-table .p-datatable-tbody>tr.row-expiring-soon>td,
+.tree-grid-p-table .p-datatable-tbody>tr.row-expiring-soon,
+.tree-grid-p-table .p-datatable-tbody>tr.row-expiring-soon>td,
+.row-expiring-soon,
+.row-expiring-soon td {
+  background-color: #fef9c3 !important;
+  color: #854d0e !important;
+}
+
+.tree-indent {
+  display: inline-block;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 4px;
+  color: #64748b;
+}
+
+.input-cell {
+  width: 100%;
+  padding: 3px 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+
+.textarea-cell {
+  resize: vertical;
+  min-height: 28px;
+  font-family: inherit;
+  line-height: 1.35;
+  field-sizing: content;
+  overflow: hidden;
+}
+
+.input-cell:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.input-invalid {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.status-0 {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+.status-1 {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+.status-2 {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.status-3 {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.status-4 {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.action-btn {
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.action-btn:hover {
+  background: #f1f5f9;
+}
+
+/* Ô tra cứu (lookup cell) */
+.table-lookup-cell {
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.table-lookup-cell:hover {
+  border-color: #3b82f6;
+  background-color: #f8fafc;
+}
+
+.table-lookup-value {
+  color: #212529;
+  font-size: 12px;
+}
+
+.table-lookup-value.text-400 {
+  color: #94a3b8;
+}
+
+/* Dòng tra cứu (lookup row) */
+.lookup-row:hover {
+  background-color: #f1f5f9 !important;
+}
+
+.lookup-row-selected {
+  background-color: #e0f2fe !important;
+}
+
+
+
+/* ===== Custom PrimeNG Table & Filter Row Styling (Tham khảo project-slick-grid2) ===== */
+:host ::ng-deep .p-datatable-sm .p-datatable-thead>tr>th {
+  padding: 6px 8px !important;
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+}
+
+/* Style cho dòng Filter: ăn theo 100% độ rộng của cột & font chữ nhỏ (11px) */
+:host ::ng-deep .p-datatable-thead>tr.filter-row>th {
+  padding: 3px 4px !important;
+  background-color: #f8fafc !important;
+}
+
+:host ::ng-deep p-columnfilter,
+:host ::ng-deep .p-column-filter,
+:host ::ng-deep .p-column-filter-element {
+  width: 100% !important;
+  min-width: 0 !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
+
+:host ::ng-deep .p-datatable .p-column-filter input,
+:host ::ng-deep .p-datatable .p-column-filter .p-inputtext,
+:host ::ng-deep p-columnfilter input,
+:host ::ng-deep p-columnfilter .p-inputtext {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  font-size: 11px !important;
+  padding: 2px 6px !important;
+  height: 24px !important;
+  line-height: 1.2 !important;
+  border-radius: 4px !important;
+}
+
+:host ::ng-deep .filter-row .ant-select,
+:host ::ng-deep .filter-row .ant-select-single,
+:host ::ng-deep .filter-row .ant-select-selector {
+  width: 100% !important;
+  min-width: 0 !important;
+  font-size: 11px !important;
+  height: 24px !important;
+  line-height: 22px !important;
+  border-radius: 4px !important;
+}
+
+:host ::ng-deep .filter-row .ant-select-selection-item,
+:host ::ng-deep .filter-row .ant-select-selection-placeholder {
+  font-size: 11px !important;
+  line-height: 22px !important;
+}
+
+/* Dữ liệu trong ô tự động xuống dòng khi dài quá (Word-wrap) */
+:host ::ng-deep .p-datatable-sm .p-datatable-tbody>tr>td {
+  padding: 6px 8px !important;
+  font-size: 12px !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  line-height: 1.4 !important;
+}
+
+.progress {
+  background-color: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+:host ::ng-deep .p-column-filter {
+  width: 100%;
+  min-width: 0;
+}
+
+:host ::ng-deep .p-column-filter-element {
+  width: 100%;
+  min-width: 0;
+}
+
+:host ::ng-deep .p-column-filter input,
+:host ::ng-deep .p-column-filter select,
+:host ::ng-deep .p-column-filter .p-inputtext,
+:host ::ng-deep .p-column-filter .p-select,
+:host ::ng-deep .p-column-filter .p-select-label,
+:host ::ng-deep .p-column-filter .p-multiselect,
+:host ::ng-deep .p-column-filter .p-multiselect-label,
+:host ::ng-deep .p-column-filter .p-datepicker-input,
+:host ::ng-deep .p-column-filter-element input,
+:host ::ng-deep .p-column-filter-element select,
+:host ::ng-deep .p-column-filter-element .p-inputtext,
+:host ::ng-deep .p-column-filter-element .p-select,
+:host ::ng-deep .p-column-filter-element .p-select-label,
+:host ::ng-deep .p-column-filter-element .p-multiselect,
+:host ::ng-deep .p-column-filter-element .p-multiselect-label,
+:host ::ng-deep .p-datatable th input,
+:host ::ng-deep .p-datatable th select,
+:host ::ng-deep .p-datatable th .p-inputtext,
+:host ::ng-deep .p-datatable th .p-select,
+:host ::ng-deep .p-datatable th .p-select-label,
+:host ::ng-deep .p-datatable th .p-multiselect,
+:host ::ng-deep .p-datatable th .p-multiselect-label,
+:host ::ng-deep .p-datatable th .p-multiselect-label-container,
+:host ::ng-deep .p-datatable th .p-datepicker-input {
+  font-size: 12px !important;
+}
+
+/* Ensure the filter row header cells have minimal padding and take full width */
+:host ::ng-deep .p-datatable-thead>tr:nth-child(2)>th {
+  padding: 3px 4px !important;
+}
+
+/* Force all column filter elements to span 100% width of the header cell */
+:host ::ng-deep .p-datatable th p-columnfilter,
+:host ::ng-deep .p-datatable th .p-column-filter,
+:host ::ng-deep .p-datatable th .p-column-filter-element,
+:host ::ng-deep .p-datatable th .p-column-filter-element>*,
+:host ::ng-deep .p-datatable th input,
+:host ::ng-deep .p-datatable th select,
+:host ::ng-deep .p-datatable th .p-inputtext,
+:host ::ng-deep .p-datatable th .p-select,
+:host ::ng-deep .p-datatable th .p-multiselect,
+:host ::ng-deep .p-datatable th .status-filter-select {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+:host ::ng-deep .p-datatable-inline-filter {
+  justify-content: space-between !important;
+}
+
+:host ::ng-deep .p-component .p-inputtext .ng-star-inserted {
+  width: 100% !important;
+}
+
+:host ::ng-deep .p-fluid {
+  width: 100% !important;
+}
+
+:host::ng-deep .p-component .p-inputtext {
+  width: 100% !important;
+}
+
+/* ===== Custom Toolbar & Legend Badges ===== */
+.task-grid-toolbar {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.legend-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: #475569;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  user-select: none;
+  border: 1px solid transparent;
+}
+
+.legend-item:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.legend-item.active {
+  background-color: #e2e8f0;
+  border-color: #0284c7;
+  font-weight: 600;
+  color: #0369a1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.legend-color {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.legend-parent {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.legend-orange {
+  background-color: #ffedd5;
+  border-color: #fdba74;
+}
+
+.legend-red {
+  background-color: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.legend-yellow {
+  background-color: #fef9c3;
+  border-color: #fde047;
+}

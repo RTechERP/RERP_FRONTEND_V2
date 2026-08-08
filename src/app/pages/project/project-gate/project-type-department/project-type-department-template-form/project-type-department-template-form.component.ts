@@ -7,7 +7,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { ProjectTypeDepartmentService } from '../project-type-department.service';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 
 @Component({
   selector: 'app-project-type-department-template-form',
@@ -25,10 +25,12 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
 export class ProjectTypeDepartmentTemplateFormComponent implements OnInit {
   @Input() projectTypeDepartmentId!: number;
   @Input() projectTypeName!: string;
+  @Input() templateData?: any;
 
   loading = false;
   code = '';
   name = '';
+  templateId = 0;
 
   constructor(
     public activeModal: NgbActiveModal,
@@ -37,6 +39,11 @@ export class ProjectTypeDepartmentTemplateFormComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    if (this.templateData) {
+      this.templateId = this.templateData.ID || 0;
+      this.code = this.templateData.Code || '';
+      this.name = this.templateData.Name || '';
+    }
   }
 
   onSubmit(): void {
@@ -47,6 +54,7 @@ export class ProjectTypeDepartmentTemplateFormComponent implements OnInit {
 
     this.loading = true;
     const payload = [{
+      ID: this.templateId,
       Code: this.code.trim(),
       Name: this.name.trim(),
       ProjectTypeDepartmentID: this.projectTypeDepartmentId
@@ -64,9 +72,16 @@ export class ProjectTypeDepartmentTemplateFormComponent implements OnInit {
           this.notification.error(NOTIFICATION_TITLE.error, res.message || 'Lưu dữ liệu thất bại');
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         this.loading = false;
-        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message || 'Có lỗi xảy ra');
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }

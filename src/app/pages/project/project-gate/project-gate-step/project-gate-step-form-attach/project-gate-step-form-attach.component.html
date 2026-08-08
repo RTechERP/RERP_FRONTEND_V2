@@ -1,0 +1,201 @@
+<div class="form-attach-container h-100 d-flex flex-column bg-white">
+  <!-- ══ Header ════════════════════════════════════════════ -->
+  <div class="step-info-bar d-flex align-items-center gap-3 px-3 py-2 border-bottom bg-light">
+    <div class="d-flex align-items-center gap-2">
+      <i class="fa-solid fa-file-signature text-primary" style="font-size: 18px;"></i>
+      <div>
+        <div class="fw-bold text-primary" style="font-size: 13px;">
+          Biểu mẫu mẫu — Công đoạn:
+          <span class="text-dark ms-1">{{ stepCode ? '[' + stepCode + '] ' : '' }}{{ stepName }}</span>
+        </div>
+        <div class="text-muted" style="font-size: 11px;">
+          Danh sách biểu mẫu mẫu đính kèm dùng chung của công đoạn
+        </div>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <ng-container *ngIf="!isReadOnly">
+        <button nz-button nzType="default" nzDanger nzSize="small" *ngIf="hasSelectedForms()"
+          (click)="removeSelectedForms()" style="font-size: 12px; height: 28px;">
+          <i class="fa-solid fa-trash-can me-1"></i>Xóa dòng chọn
+        </button>
+        <button nz-button nzType="default" nzSize="small" (click)="addDetailRow()"
+          style="font-size: 12px; height: 28px; border-color: #1890ff; color: #1890ff;">
+          <i class="fa-solid fa-plus me-1"></i>Thêm biểu mẫu
+        </button>
+        <button nz-button nzType="primary" nzSize="small" (click)="onSubmit()" [nzLoading]="isSaving"
+          style="font-size: 12px; height: 28px; background:#1890ff; border-color:#1890ff;">
+          <i class="fa-solid fa-floppy-disk me-1"></i>Lưu cấu hình
+        </button>
+      </ng-container>
+
+      <button nz-button nzType="default" nzSize="small" (click)="loadData()" [disabled]="isLoading"
+        style="font-size: 12px; height: 28px;">
+        <i class="fa-solid fa-arrows-rotate me-1"></i>Tải lại
+      </button>
+
+      <!-- Nút Đóng (X) -->
+      <button nz-button nzType="text" nzSize="small" (click)="onCancel()" title="Đóng cửa sổ"
+        style="font-size: 14px; height: 28px; width: 28px; padding: 0;" class="text-secondary">
+        <i class="fa-solid fa-xmark fs-14"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ Main Body ════════════════════════════════════════ -->
+  <nz-spin [nzSpinning]="isLoading" class="flex-grow-1 overflow-hidden" style="display:flex; flex-direction:column;">
+    <div class="flex-grow-1 overflow-hidden p-3" style="background: #f0f2f5;">
+      <div class="h-100 d-flex flex-column border rounded bg-white"
+        style="box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;">
+        <div class="flex-grow-1 overflow-hidden p-2">
+          <p-table [value]="forms" dataKey="_tempId" styleClass="p-datatable-sm p-datatable-gridlines"
+            [scrollable]="true" scrollHeight="flex" [resizableColumns]="true" columnResizeMode="expand">
+
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width:42px; text-align:center; font-size:12px;" pResizableColumn>#</th>
+                <th *ngIf="!isReadOnly" style="width:42px; text-align:center; font-size:12px;" pResizableColumn>
+                  <label nz-checkbox [ngModel]="isAllFormsSelected()"
+                    (ngModelChange)="toggleSelectAllForms($event)"></label>
+                </th>
+                <th style="width:60px; text-align:center; font-size:12px;" pResizableColumn [pSortableColumn]="'STT'">
+                  STT <p-sortIcon field="STT"></p-sortIcon>
+                </th>
+                <th style="width:260px; font-size:12px;" pResizableColumn [pSortableColumn]="'FormName'">
+                  Tên biểu mẫu <span class="text-danger" *ngIf="!isReadOnly">*</span> <p-sortIcon field="FormName"></p-sortIcon>
+                </th>
+                <th style="font-size:12px;" pResizableColumn [pSortableColumn]="'Description'">
+                  Mô tả biểu mẫu <p-sortIcon field="Description"></p-sortIcon>
+                </th>
+                <th style="width:280px; font-size:12px;" pResizableColumn [pSortableColumn]="'FileName'">
+                  File biểu mẫu đính kèm <p-sortIcon field="FileName"></p-sortIcon>
+                </th>
+                <th *ngIf="!isReadOnly" style="width:52px; text-align:center; font-size:12px;" pResizableColumn>Xóa</th>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-row let-rowIndex="rowIndex">
+              <tr [class.detail-new]="row._isNew">
+                <!-- Index -->
+                <td class="text-center text-muted" style="font-size:12px; padding:8px 8px; vertical-align: middle;">
+                  {{ rowIndex + 1 }}
+                </td>
+
+                <!-- Bulk Select -->
+                <td *ngIf="!isReadOnly" style="padding:8px 8px; text-align:center; vertical-align: middle;">
+                  <label nz-checkbox [(ngModel)]="row._selected"></label>
+                </td>
+
+                <!-- STT -->
+                <td style="padding:8px 8px; text-align:center; vertical-align: middle;">
+                  <ng-container *ngIf="!isReadOnly; else readonlyStt">
+                    <nz-input-number [(ngModel)]="row.STT" (ngModelChange)="markRowDirty(row)"
+                      (keydown)="onKeyDown(rowIndex, 'STT', $event)" [nzMin]="1" [nzMax]="999" nzSize="small"
+                      class="w-100" style="font-size:12px;" />
+                  </ng-container>
+                  <ng-template #readonlyStt>
+                    <span class="fw-semibold text-secondary">{{ row.STT }}</span>
+                  </ng-template>
+                </td>
+
+                <!-- FormName -->
+                <td style="padding:8px 8px; vertical-align: middle;">
+                  <ng-container *ngIf="!isReadOnly; else readonlyFormName">
+                    <textarea nz-input nzSize="small" [(ngModel)]="row.FormName" (ngModelChange)="markRowDirty(row)"
+                      (keydown)="onKeyDown(rowIndex, 'FormName', $event)" placeholder="Nhập tên biểu mẫu..."
+                      [nzStatus]="(isSubmitted && (!row.FormName || !row.FormName.trim())) ? 'error' : ''"
+                      [nzAutosize]="{ minRows: 2, maxRows: 4 }" class="w-100"
+                      style="font-size:12px; resize: none;"></textarea>
+                    <div *ngIf="isSubmitted && (!row.FormName || !row.FormName.trim())" class="text-danger"
+                      style="font-size: 10px; margin-top: 2px; text-align: left;">
+                      Không được bỏ trống!
+                    </div>
+                  </ng-container>
+                  <ng-template #readonlyFormName>
+                    <div class="fw-semibold text-dark" style="font-size:12px; white-space: pre-wrap;">{{ row.FormName }}</div>
+                  </ng-template>
+                </td>
+
+                <!-- Description -->
+                <td style="padding:8px 8px; vertical-align: middle;">
+                  <ng-container *ngIf="!isReadOnly; else readonlyDesc">
+                    <textarea nz-input nzSize="small" [(ngModel)]="row.Description" (ngModelChange)="markRowDirty(row)"
+                      (keydown)="onKeyDown(rowIndex, 'Description', $event)" placeholder="Nhập ghi chú / mô tả..."
+                      [nzAutosize]="{ minRows: 2, maxRows: 4 }" class="w-100"
+                      style="font-size:12px; resize: none;"></textarea>
+                  </ng-container>
+                  <ng-template #readonlyDesc>
+                    <div class="text-secondary" style="font-size:12px; white-space: pre-wrap;">{{ row.Description || '---' }}</div>
+                  </ng-template>
+                </td>
+
+                <!-- File Attachment (FileName / Upload / Download) -->
+                <td style="padding:8px 8px; vertical-align: middle;">
+                  <div class="d-flex align-items-center gap-1">
+                    <ng-container *ngIf="row.FileName; else noFileTpl">
+                      <a class="text-primary text-truncate flex-grow-1 fw-semibold" (click)="downloadFile(row)"
+                        [title]="'Tải: ' + row.FileName" style="cursor: pointer; font-size: 12px;">
+                        <i class="fa-solid fa-paperclip me-1"></i> {{ row.FileName }}
+                      </a>
+                      <button nz-button nzType="primary" nzSize="small" type="button" (click)="downloadFile(row)"
+                        title="Tải tệp tin về" style="font-size: 11px; padding: 0 8px; height: 24px;">
+                        <i class="fa-solid fa-download me-1"></i> Tải về
+                      </button>
+                      <button *ngIf="!isReadOnly" nz-button nzType="text" nzDanger nzSize="small" type="button" (click)="removeFile(row)"
+                        title="Gỡ file đính kèm" style="padding:0; height:22px; width:22px;">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                    </ng-container>
+                    <ng-template #noFileTpl>
+                      <ng-container *ngIf="!isReadOnly; else readonlyNoFile">
+                        <button nz-button nzType="default" nzSize="small" type="button" (click)="triggerUploadFile(row)"
+                          class="w-100" style="font-size: 12px; height: 26px;">
+                          <i class="fa-solid fa-upload me-1 text-primary"></i> Tải file đính kèm
+                        </button>
+                      </ng-container>
+                      <ng-template #readonlyNoFile>
+                        <span class="text-muted fst-italic" style="font-size: 11px;">Chưa đính kèm file mẫu</span>
+                      </ng-template>
+                    </ng-template>
+                  </div>
+                </td>
+
+                <!-- Delete Action -->
+                <td *ngIf="!isReadOnly" style="padding:8px 8px; text-align:center; vertical-align: middle;">
+                  <button nz-button nzType="text" nzDanger nzSize="small" (click)="removeDetailRow(row)"
+                    style="height:26px; width:26px; padding:0; font-size:12px;">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </td>
+              </tr>
+            </ng-template>
+
+            <!-- Empty Message -->
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td [attr.colspan]="isReadOnly ? 5 : 7" class="text-center py-5 text-muted" style="font-size:12px;">
+                  <i class="fa-solid fa-file-circle-plus mb-2" style="font-size:32px; opacity:0.3; display:block;"></i>
+                  Chưa có biểu mẫu nào cho công đoạn này.
+                </td>
+              </tr>
+            </ng-template>
+
+            <!-- Table Footer -->
+            <ng-template pTemplate="footer">
+              <tr>
+                <td [attr.colspan]="isReadOnly ? 5 : 7" style="padding:8px 12px; background:#fafafa; font-size:11px; color:#888;">
+                  Tổng số biểu mẫu: <strong>{{ forms.length }}</strong>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </div>
+  </nz-spin>
+</div>
+
+<!-- Hidden File Input for uploading form files -->
+<input type="file" #fileInputUpload style="display: none;" (change)="onFileSelected($event)">

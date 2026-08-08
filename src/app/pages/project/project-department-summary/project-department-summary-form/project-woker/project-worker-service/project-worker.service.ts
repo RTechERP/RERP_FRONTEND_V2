@@ -74,7 +74,7 @@ export class ProjectWorkerService {
     return this.http.get<any>(this._urlProjectWorker + `get-worker-by-id/${id}`);
   }
   //ham upload file
-  uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
+  uploadMultipleFiles(files: File[], subPath?: string, projectCode?: string): Observable<any> {
     const formData = new FormData();
     files.forEach((file) => {
       formData.append('files', file);
@@ -82,6 +82,9 @@ export class ProjectWorkerService {
     formData.append('key', 'Projects'); //192.168.1.190/duan/projects
     if (subPath && subPath.trim()) {
       formData.append('subPath', subPath.trim());
+    }
+    if (projectCode && projectCode.trim()) {
+      formData.append('projectCode', projectCode.trim());
     }
     return this.http.post<any>(this._url + `home/upload-multiple`, formData);
   }

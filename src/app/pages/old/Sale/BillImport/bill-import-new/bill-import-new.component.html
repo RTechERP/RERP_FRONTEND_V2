@@ -207,32 +207,45 @@
             justifyContent: 'center'
           }"></nz-spin>
             </div>
-            <div [id]="'grid-container-master-' + componentId" [ngClass]="'grid-container-master-' + componentId">
-                <angular-slickgrid [gridId]="'gridMaster-' + componentId" [columns]="columnDefinitionsMaster"
-                    [options]="gridOptionsMaster" [dataset]="datasetMaster"
-                    (onAngularGridCreated)="angularGridMasterReady($event.detail)"
-                    (onSelectedRowsChanged)="onMasterRowSelectionChanged($event.detail.eventData,$event.detail.args)"
-                    (onDblClick)="openModalBillImportDetail(true)">
-                </angular-slickgrid>
-            </div>
-            <!-- Detail Grid -->
-            <div class="mt-2 bill-import-new-mt-2">
-                <fieldset class="detail-fieldset bill-import-new-detail-fieldset">
-                    <legend class="detail-legend bill-import-new-detail-legend">
-                        {{ tabDetailTitle }}
-                    </legend>
-
-                    <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
-                        <div [ngClass]="'grid-container-detail-' + componentId" class="w-100 bill-import-new-w-100">
-                            <angular-slickgrid [gridId]="'gridDetail-' + componentId"
-                                [columns]="columnDefinitionsDetail" [options]="gridOptionsDetail"
-                                [dataset]="datasetDetail"
-                                (onAngularGridCreated)="angularGridDetailReady($event.detail)">
+            <nz-splitter nzLayout="vertical" class="master-detail-splitter">
+                <!-- Panel trên: bảng master -->
+                <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" nzDefaultSize="60%">
+                    <div #masterPaneRef class="splitter-pane-content">
+                        <div [id]="'grid-container-master-' + componentId"
+                            [ngClass]="'grid-container-master-' + componentId" class="grid-pane">
+                            <angular-slickgrid [gridId]="'gridMaster-' + componentId"
+                                [columns]="columnDefinitionsMaster" [options]="gridOptionsMaster"
+                                [dataset]="datasetMaster"
+                                (onAngularGridCreated)="angularGridMasterReady($event.detail)"
+                                (onSelectedRowsChanged)="onMasterRowSelectionChanged($event.detail.eventData,$event.detail.args)"
+                                (onDblClick)="openModalBillImportDetail(true)">
                             </angular-slickgrid>
                         </div>
-                    </nz-spin>
-                </fieldset>
-            </div>
+                    </div>
+                </nz-splitter-panel>
+
+                <!-- Panel dưới: bảng chi tiết -->
+                <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+                    <div #detailPaneRef class="splitter-pane-content">
+                        <fieldset class="detail-fieldset bill-import-new-detail-fieldset">
+                            <legend class="detail-legend bill-import-new-detail-legend">
+                                {{ tabDetailTitle }}
+                            </legend>
+
+                            <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
+                                <div [ngClass]="'grid-container-detail-' + componentId"
+                                    class="w-100 bill-import-new-w-100 grid-pane">
+                                    <angular-slickgrid [gridId]="'gridDetail-' + componentId"
+                                        [columns]="columnDefinitionsDetail" [options]="gridOptionsDetail"
+                                        [dataset]="datasetDetail"
+                                        (onAngularGridCreated)="angularGridDetailReady($event.detail)">
+                                    </angular-slickgrid>
+                                </div>
+                            </nz-spin>
+                        </fieldset>
+                    </div>
+                </nz-splitter-panel>
+            </nz-splitter>
         </div>
     </div>
 

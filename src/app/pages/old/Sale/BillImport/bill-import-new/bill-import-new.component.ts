@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, OnDestroy, AfterViewInit, Optional, ElementRef, NgZone, HostListener } from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy, AfterViewInit, Optional, ElementRef, NgZone, HostListener, ViewChild } from '@angular/core';
 import * as ExcelJS from 'exceljs';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
@@ -9,6 +9,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { SplitterModule } from 'primeng/splitter';
+import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzProgressModule } from 'ng-zorro-antd/progress';
@@ -87,6 +88,7 @@ interface BillImport {
         NzModalModule,
         NzSelectModule,
         SplitterModule,
+        NzSplitterModule,
         NzIconModule,
         NzButtonModule,
         NzProgressModule,
@@ -121,6 +123,15 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
     // ResizeObserver để detect khi tab được hiển thị lại
     private resizeObserver: ResizeObserver | null = null;
     private filterPatchObserver: MutationObserver | null = null;
+
+    // Splitter panes: kéo splitter không kích hoạt autoResize của SlickGrid
+    // nên phải tự quan sát wrapper nội dung của từng panel.
+    @ViewChild('masterPaneRef', { read: ElementRef })
+    masterPaneRef?: ElementRef<HTMLElement>;
+    @ViewChild('detailPaneRef', { read: ElementRef })
+    detailPaneRef?: ElementRef<HTMLElement>;
+    private masterPaneObserver?: ResizeObserver;
+    private detailPaneObserver?: ResizeObserver;
     private lastVisibleWidth: number = 0;
     private tooltipEl: HTMLElement | null = null;
 
@@ -278,9 +289,34 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         this.setupResizeObserver();
         // Fix: Ctrl+X / Delete / Backspace khi bôi đen không trigger filter trong SlickGrid
         setTimeout(() => this.patchSlickGridFilterInputs(), 600);
+        setTimeout(() => this.setupSplitterPaneObservers(), 300);
+    }
+
+    /**
+     * Kéo splitter không kích hoạt autoResize của SlickGrid, nên tự quan sát
+     * wrapper nội dung của từng panel và gọi resizeCanvas() khi kích thước đổi.
+     */
+    private setupSplitterPaneObservers(): void {
+        const masterEl = this.masterPaneRef?.nativeElement;
+        if (masterEl) {
+            this.masterPaneObserver = new ResizeObserver(() => {
+                this.angularGridMaster?.slickGrid?.resizeCanvas();
+            });
+            this.masterPaneObserver.observe(masterEl);
+        }
+
+        const detailEl = this.detailPaneRef?.nativeElement;
+        if (detailEl) {
+            this.detailPaneObserver = new ResizeObserver(() => {
+                this.angularGridDetail?.slickGrid?.resizeCanvas();
+            });
+            this.detailPaneObserver.observe(detailEl);
+        }
     }
 
     ngOnDestroy(): void {
+        this.masterPaneObserver?.disconnect();
+        this.detailPaneObserver?.disconnect();
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
             this.resizeObserver = null;
@@ -873,17 +909,9 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         ];
 
         this.gridOptionsMaster = {
-            enableAutoResize: true,
-            // autoResize: {
-            //     container: '.grid-container-master-' + this.componentId,
-            //     calculateAvailableSizeBy: 'container',
-            //     resizeDetection: 'container',
-            // },
-            autoResize: {
-                container: '.grid-container-master-' + this.componentId,
-                calculateAvailableSizeBy: 'container',
-                resizeDetection: 'container',
-            },
+            // Chiều cao do nz-splitter quản lý; resize được xử lý bằng
+            // ResizeObserver trong setupSplitterPaneObservers().
+            enableAutoResize: false,
             rowHeight: 55,
             enableFiltering: true,
             enableCellNavigation: true,
@@ -1160,12 +1188,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         ];
 
         this.gridOptionsDetail = {
-            enableAutoResize: true,
-            autoResize: {
-                container: '.grid-container-detail-' + this.componentId,
-                calculateAvailableSizeBy: 'container',
-                resizeDetection: 'container',
-            },
+            enableAutoResize: false,
             enableFiltering: true,
             enableCellNavigation: true,
             enableRowSelection: true,

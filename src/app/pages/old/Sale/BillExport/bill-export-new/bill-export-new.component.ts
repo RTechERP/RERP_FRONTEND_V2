@@ -1,6 +1,6 @@
 
 
-import { Component, OnInit, AfterViewInit, OnDestroy, Inject, Optional, HostListener, ElementRef, NgZone } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, Inject, Optional, HostListener, ElementRef, NgZone, ViewChild } from '@angular/core';
 import {
     AngularGridInstance,
     AngularSlickgridModule,
@@ -48,6 +48,7 @@ import { BillExportDetailFileComponent } from '../bill-export-detail-file/bill-e
 import { ClipboardService } from '../../../../../services/clipboard.service';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { SafeUrlPipe } from '../../../../../../safeUrl.pipe';
 import pdfMake from 'pdfmake/build/pdfmake';
 import vfs from '../../../../../shared/pdf/vfs_fonts_custom.js';
@@ -86,6 +87,7 @@ import { LOGO_RTC_BASE64 } from '../../../../../shared/pdf/logo-base64';
         NzSpinModule,
         NzModalModule,
         NzSwitchModule,
+        NzSplitterModule,
         HasPermissionDirective,
         MenubarModule,
         SafeUrlPipe
@@ -172,6 +174,15 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
     private isInitialized = false;
     private resizeObserver: ResizeObserver | null = null;
     private lastVisibleWidth: number = 0;
+
+    // Splitter panes: kéo splitter không kích hoạt autoResize của SlickGrid
+    // nên phải tự quan sát wrapper nội dung của từng panel.
+    @ViewChild('masterPaneRef', { read: ElementRef })
+    masterPaneRef?: ElementRef<HTMLElement>;
+    @ViewChild('detailPaneRef', { read: ElementRef })
+    detailPaneRef?: ElementRef<HTMLElement>;
+    private masterPaneObserver?: ResizeObserver;
+    private detailPaneObserver?: ResizeObserver;
 
     isMobile: boolean = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
     isShowModal: boolean = false;
@@ -261,12 +272,37 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
 
     ngAfterViewInit() {
         this.setupResizeObserver();
+        setTimeout(() => this.setupSplitterPaneObservers(), 300);
+    }
+
+    /**
+     * Kéo splitter không kích hoạt autoResize của SlickGrid, nên tự quan sát
+     * wrapper nội dung của từng panel và gọi resizeCanvas() khi kích thước đổi.
+     */
+    private setupSplitterPaneObservers(): void {
+        const masterEl = this.masterPaneRef?.nativeElement;
+        if (masterEl) {
+            this.masterPaneObserver = new ResizeObserver(() => {
+                this.angularGridMaster?.slickGrid?.resizeCanvas();
+            });
+            this.masterPaneObserver.observe(masterEl);
+        }
+
+        const detailEl = this.detailPaneRef?.nativeElement;
+        if (detailEl) {
+            this.detailPaneObserver = new ResizeObserver(() => {
+                this.angularGridDetail?.slickGrid?.resizeCanvas();
+            });
+            this.detailPaneObserver.observe(detailEl);
+        }
     }
 
     ngOnDestroy() {
         this.destroy$.next();
         this.destroy$.complete();
         this.destroyGrids();
+        this.masterPaneObserver?.disconnect();
+        this.detailPaneObserver?.disconnect();
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
             this.resizeObserver = null;
@@ -720,13 +756,10 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
         ];
 
         this.gridOptionsMaster = {
-            autoResize: {
-                container: '.grid-container-master-' + this.componentId,
-                calculateAvailableSizeBy: 'container',
-                resizeDetection: 'container',
-            },
             gridWidth: '100%',
-            enableAutoResize: true,
+            // Chiều cao do nz-splitter quản lý; resize được xử lý bằng
+            // ResizeObserver trong setupSplitterPaneObservers().
+            enableAutoResize: false,
             enableSorting: true,
             enableFiltering: true,
             enablePagination: false,
@@ -977,13 +1010,8 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
         ];
 
         this.gridOptionsDetail = {
-            autoResize: {
-                container: '.grid-container-detail-' + this.componentId,
-                calculateAvailableSizeBy: 'container',
-                resizeDetection: 'container',
-            },
             gridWidth: '100%',
-            enableAutoResize: true,
+            enableAutoResize: false,
             enableSorting: true,
             enableFiltering: true,
             enablePagination: false,

@@ -39,6 +39,9 @@ export interface TravelFlatRow {
   CCCDIssuePlace: string;
   PhoneNumber: string;
   DepartureLocation: string;
+  DangKyHLKGChieuDi: string;
+  DangKyHLKGChieuVe: string;
+  DangKyVinwonders: boolean | null;
   ConfirmStatus: string;
   ConfirmDate: string;
   ConfirmBy: string;
@@ -69,6 +72,16 @@ function parseNumberSmart(raw: string | number | null | undefined): number | nul
   return val;
 }
 
+function parseBoolSmart(raw: any): boolean | null {
+  if (raw == null) return null;
+  if (typeof raw === 'boolean') return raw;
+  const s = norm(raw);
+  if (!s) return null;
+  if (['co', 'x', '1', 'true', 'yes', 'dang ky', 'co dang ky'].includes(s)) return true;
+  if (['khong', 'k', '0', 'false', 'no'].includes(s)) return false;
+  return null;
+}
+
 /* ================ Header tolerant mapping ================ */
 function stripDiacritics(s: string): string {
   return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
@@ -94,7 +107,10 @@ const COL_ALIASES = {
   CCCDIssueDate: ['ngay cap', 'issue date'],
   CCCDIssuePlace: ['noi cap', 'issue place'],
   PhoneNumber: ['so dien thoai', 'sdt', 'dien thoai', 'phone'],
-  DepartureLocation: ['noi xuat phat', 'xuat phat', 'departure', 'khoi hanh', 've'],
+  DepartureLocation: ['noi xuat phat', 'xuat phat', 'departure', 'khoi hanh'],
+  DangKyHLKGChieuDi: ['dang ky hlkg chieu di', 'hlkg chieu di', 'hanh ly chieu di', 'hlkg di', 'hlkg chieu đi', 'hanh ly ky gui chieu di'],
+  DangKyHLKGChieuVe: ['dang ky hlkg chieu ve', 'hlkg chieu ve', 'hanh ly chieu ve', 'hlkg ve', 'hlkg chieu ve', 'hanh ly ky gui chieu ve'],
+  DangKyVinwonders: ['dang ky vinwonders', 'vinwonders', 'dk vinwonders', 'vin wonders', 'vinwoder'],
   ConfirmStatus: ['trang thai', 'status'],
   ConfirmDate: ['ngay xn', 'ngay xac nhan', 'confirm date'],
   ConfirmBy: ['nguoi xn', 'nguoi xac nhan', 'confirm by']
@@ -225,7 +241,18 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
       { title: 'Ngày cấp', field: 'CCCDIssueDate', hozAlign: 'center', headerHozAlign: 'center', width: 100 },
       { title: 'Nơi cấp', field: 'CCCDIssuePlace', hozAlign: 'left', headerHozAlign: 'center', width: 120 },
       { title: 'SĐT', field: 'PhoneNumber', hozAlign: 'left', headerHozAlign: 'center', width: 100 },
-      { title: 'Nơi xuất phát', field: 'DepartureLocation', hozAlign: 'left', headerHozAlign: 'center', width: 150 },
+      { title: 'Khởi hành/Về', field: 'DepartureLocation', hozAlign: 'left', headerHozAlign: 'center', width: 150 },
+      { title: 'HLKG chiều đi', field: 'DangKyHLKGChieuDi', hozAlign: 'left', headerHozAlign: 'center', width: 120 },
+      { title: 'HLKG chiều về', field: 'DangKyHLKGChieuVe', hozAlign: 'left', headerHozAlign: 'center', width: 120 },
+      {
+        title: 'VinWonders', field: 'DangKyVinwonders', hozAlign: 'center', headerHozAlign: 'center', width: 100,
+        formatter: (cell: any) => {
+          const val = cell.getValue();
+          if (val === true || val === 'true' || val === 1) return 'Có';
+          if (val === false || val === 'false' || val === 0) return 'Không';
+          return '';
+        }
+      },
     ];
   }
 
@@ -356,6 +383,10 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
       const CCCDIssuePlace = getCellSafe(row, col.CCCDIssuePlace);
       const PhoneNumber = getCellSafe(row, col.PhoneNumber);
       const DepartureLocation = getCellSafe(row, col.DepartureLocation);
+      const DangKyHLKGChieuDi = getCellSafe(row, col.DangKyHLKGChieuDi);
+      const DangKyHLKGChieuVe = getCellSafe(row, col.DangKyHLKGChieuVe);
+      const DangKyVinwondersRaw = getCellSafe(row, col.DangKyVinwonders);
+      const DangKyVinwonders = parseBoolSmart(DangKyVinwondersRaw);
       const ConfirmStatus = getCellSafe(row, col.ConfirmStatus) || '0';
       const ConfirmDate = getCellSafe(row, col.ConfirmDate);
       const ConfirmBy = getCellSafe(row, col.ConfirmBy);
@@ -377,6 +408,9 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
         CCCDIssuePlace,
         PhoneNumber,
         DepartureLocation,
+        DangKyHLKGChieuDi: DangKyHLKGChieuDi ? String(DangKyHLKGChieuDi).trim() : '',
+        DangKyHLKGChieuVe: DangKyHLKGChieuVe ? String(DangKyHLKGChieuVe).trim() : '',
+        DangKyVinwonders,
         ConfirmStatus,
         ConfirmDate,
         ConfirmBy
@@ -503,6 +537,9 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
         CCCDIssuePlace: r.CCCDIssuePlace || '',
         PhoneNumber: r.PhoneNumber || '',
         DepartureLocation: r.DepartureLocation || '',
+        DangKyHLKGChieuDi: r.DangKyHLKGChieuDi || '',
+        DangKyHLKGChieuVe: r.DangKyHLKGChieuVe || '',
+        DangKyVinwonders: r.DangKyVinwonders,
         ConfirmStatus: r.ConfirmStatus === '0' ? 0 : r.ConfirmStatus === '1' ? 1 : Number(r.ConfirmStatus) || 0,
         ConfirmDate: this.parseDateString(r.ConfirmDate),
         ConfirmBy: r.ConfirmBy || '',

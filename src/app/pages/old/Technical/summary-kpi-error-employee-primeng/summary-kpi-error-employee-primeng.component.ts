@@ -471,7 +471,7 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
         const ws = wb.addWorksheet('TongHop');
 
         const sortedData = [...this.datasetTH1].sort((a, b) => (a.FullName || '').localeCompare(b.FullName || ''));
-        this.writeSheet(ws, this.colDefTH1, sortedData);
+        this.writeSheet(ws, this.colDefTH1, sortedData, true);
 
         const buffer = await wb.xlsx.writeBuffer();
         this.saveFile(buffer, `TongHopLoi_${this.month}_${this.year}.xlsx`);
@@ -496,7 +496,7 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
                 const ws = wb.addWorksheet('TongHopTatCa');
 
                 datasetAll.sort((a: any, b: any) => (a.FullName || '').localeCompare(b.FullName || ''));
-                this.writeSheet(ws, this.colDefTH1, datasetAll);
+                this.writeSheet(ws, this.colDefTH1, datasetAll, true);
 
                 const buffer = await wb.xlsx.writeBuffer();
                 this.saveFile(buffer, `TongHopLoi_ToanBoPhongBan_${this.month}_${this.year}.xlsx`);
@@ -511,7 +511,7 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
         const wb = new ExcelJS.Workbook();
         const ws = wb.addWorksheet('ThongKe');
 
-        this.writeSheet(ws, this.colDefTK, this.datasetTK);
+        this.writeSheet(ws, this.colDefTK, this.datasetTK, false);
 
         const buffer = await wb.xlsx.writeBuffer();
         this.saveFile(buffer, `ThongKeLoi_${this.month}_${this.year}.xlsx`);
@@ -616,7 +616,7 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
         if (key === 'employee') this.loadingEmployee = isLoading;
     }
 
-    private writeSheet(ws: ExcelJS.Worksheet, cols: KpiTableColumn[], data: any[]): void {
+    private writeSheet(ws: ExcelJS.Worksheet, cols: KpiTableColumn[], data: any[], hasTotalRow: boolean = false): void {
         const visibleCols = cols.filter(c => !c.hidden);
         const headers = visibleCols.map(c => c.name || '');
         const headerRow = ws.addRow(headers);
@@ -637,62 +637,126 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
             };
         });
 
-        let previousFullName = data.length > 0 ? (data[0].FullName || '') : '';
-        let startRowForMerge = 2;
-        const fullNameColIndex = visibleCols.findIndex(c => c.field === 'FullName') + 1;
+        // Nhóm dữ liệu theo FullName và tính tổng tiền cho mỗi nhân viên (chỉ khi hasTotalRow = true)
+        const groupedData: { fullName: string; rows: any[]; totalMoney: number }[] = [];
+        if (hasTotalRow) {
+            let currentGroup: any[] = [];
+            let currentFullName = '';
+            let currentTotalMoney = 0;
 
-        data.forEach((item, index) => {
-            const rowData = visibleCols.map(c => {
-                const val = item[c.field];
-                return val !== undefined && val !== null ? val : '';
+            data.forEach((item) => {
+                const itemFullName = item.FullName || '';
+                if (currentFullName === '') {
+                    currentFullName = itemFullName;
+                    currentGroup = [];
+                    currentTotalMoney = 0;
+                }
+                if (itemFullName === currentFullName) {
+                    currentGroup.push(item);
+                    currentTotalMoney += Number(item.TotalMoney) || 0;
+                } else {
+                    groupedData.push({ fullName: currentFullName, rows: currentGroup, totalMoney: currentTotalMoney });
+                    currentFullName = itemFullName;
+                    currentGroup = [item];
+                    currentTotalMoney = Number(item.TotalMoney) || 0;
+                }
             });
-            const row = ws.addRow(rowData);
-            const currentRowIndex = index + 2;
+            if (currentGroup.length > 0) {
+                groupedData.push({ fullName: currentFullName, rows: currentGroup, totalMoney: currentTotalMoney });
+            }
+        } else {
+            // Không cần nhóm, ghi trực tiếp
+            groupedData.push({ fullName: '', rows: data, totalMoney: 0 });
+        }
 
-            visibleCols.forEach((col, colIndex) => {
-                const cell = row.getCell(colIndex + 1);
-                cell.alignment = { wrapText: true, vertical: 'middle' };
-                cell.border = {
-                    top: { style: 'thin' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thin' },
-                    right: { style: 'thin' }
-                };
+        // Ghi dữ liệu với dòng tổng cho mỗi nhân viên (nếu hasTotalRow = true)
+        let currentRowIndex = 2;
 
-                if ((col.field === 'TotalMoney' || col.field === 'Monney') && item[col.field]) {
-                    const num = Number(item[col.field]);
-                    if (!isNaN(num)) {
-                        cell.value = num;
+        groupedData.forEach((group) => {
+            // Ghi các dòng chi tiết của nhân viên
+            group.rows.forEach((item) => {
+                const rowData = visibleCols.map(c => {
+                    const val = item[c.field];
+                    return val !== undefined && val !== null ? val : '';
+                });
+                const row = ws.addRow(rowData);
+
+                visibleCols.forEach((col, colIndex) => {
+                    const cell = row.getCell(colIndex + 1);
+                    cell.alignment = { wrapText: true, vertical: 'middle' };
+                    cell.border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' }
+                    };
+
+                    if ((col.field === 'TotalMoney' || col.field === 'Monney') && item[col.field]) {
+                        const num = Number(item[col.field]);
+                        if (!isNaN(num)) {
+                            cell.value = num;
+                            cell.numFmt = '#,##0';
+                            cell.alignment = { wrapText: true, vertical: 'middle', horizontal: 'right' };
+                        }
+                    }
+                });
+                currentRowIndex++;
+            });
+
+            // Ghi dòng TỔNG CỘNG cho nhân viên (chỉ khi hasTotalRow = true và có nhiều hơn 1 dòng chi tiết)
+            if (hasTotalRow && group.rows.length > 0) {
+                const departmentName = group.rows[0]?.DepartmentName || '';
+                const totalRowData = visibleCols.map((col) => {
+                    if (col.field === 'FullName') {
+                        return `${group.fullName}`;
+                    }
+                    if (col.field === 'DepartmentName') {
+                        return departmentName;
+                    }
+                    if (col.field === 'TotalMoney') {
+                        return group.totalMoney;
+                    }
+                    return '';
+                });
+                const totalRow = ws.addRow(totalRowData);
+
+                visibleCols.forEach((col, colIndex) => {
+                    const cell = totalRow.getCell(colIndex + 1);
+                    cell.font = { bold: true, color: { argb: 'FF000000' } };
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFFFEB9C' } // Màu vàng nhạt cho dòng tổng
+                    };
+                    cell.alignment = { wrapText: true, vertical: 'middle', horizontal: colIndex === 0 ? 'left' : 'right' };
+                    cell.border = {
+                        top: { style: 'medium' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'medium' },
+                        right: { style: 'thin' }
+                    };
+
+                    if (col.field === 'TotalMoney') {
+                        cell.value = group.totalMoney;
                         cell.numFmt = '#,##0';
-                        cell.alignment = { wrapText: true, vertical: 'middle', horizontal: 'right' };
                     }
-                }
-            });
-
-            if (fullNameColIndex > 0) {
-                const currentFullName = item.FullName || '';
-                if (currentFullName !== previousFullName) {
-                    if (currentRowIndex - 1 > startRowForMerge) {
-                        ws.mergeCells(startRowForMerge, fullNameColIndex, currentRowIndex - 1, fullNameColIndex);
-                    }
-                    previousFullName = currentFullName;
-                    startRowForMerge = currentRowIndex;
-                }
+                });
+                currentRowIndex++;
             }
         });
 
-        if (fullNameColIndex > 0 && data.length + 1 > startRowForMerge) {
-            ws.mergeCells(startRowForMerge, fullNameColIndex, data.length + 1, fullNameColIndex);
-        }
+        // Chỉ ghi dòng Grand Total khi hasTotalRow = true và cần tổng cộng toàn bộ
 
         ws.columns.forEach((c, i) => {
             const field = visibleCols[i]?.field;
             if (field === 'Content' || field === 'Note' || field === 'ErrorContent') {
                 c.width = 45;
             } else if (field === 'FullName' || field === 'EmployeeName') {
-                c.width = 30;
+                c.width = 35;
             } else if (field === 'DepartmentName') {
                 c.width = 35;
+            } else if (field === 'TotalMoney' || field === 'Monney') {
+                c.width = 20;
             } else {
                 c.width = 18;
             }

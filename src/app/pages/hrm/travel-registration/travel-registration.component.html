@@ -57,7 +57,10 @@
                                 <th style="width: 120px; text-align: center">Ngày cấp</th>
                                 <th style="width: 200px;">Nơi cấp</th>
                                 <th style="width: 120px;">SĐT</th>
-                                <th style="width: 200px;">Nơi xuất phát</th>
+                                <th style="width: 200px;">Khởi hành/Về</th>
+                                <th style="width: 160px;" pSortableColumn="DangKyHLKGChieuDi">HLKG chiều đi <p-sortIcon field="DangKyHLKGChieuDi"></p-sortIcon></th>
+                                <th style="width: 160px;" pSortableColumn="DangKyHLKGChieuVe">HLKG chiều về <p-sortIcon field="DangKyHLKGChieuVe"></p-sortIcon></th>
+                                <th style="width: 150px; text-align: center" pSortableColumn="DangKyVinwonders">VinWonders <p-sortIcon field="DangKyVinwonders"></p-sortIcon></th>
                                 <th style="width: 120px; text-align: center">Ngày xác nhận</th>
                                 <th style="width: 150px;">Người xác nhận</th>
                             </tr>
@@ -108,6 +111,21 @@
                                 <th><input type="text" class="form-control form-control-sm"
                                         (input)="dt.filter($any($event.target).value, 'DepartureLocation', 'contains')"
                                         placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm"
+                                        (input)="dt.filter($any($event.target).value, 'DangKyHLKGChieuDi', 'contains')"
+                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm"
+                                        (input)="dt.filter($any($event.target).value, 'DangKyHLKGChieuVe', 'contains')"
+                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th>
+                                    <select class="form-control form-control-sm"
+                                        (change)="dt.filter($any($event.target).value, 'DangKyVinwonders', 'equals')"
+                                        style="padding: 2px 4px; font-size: 11px;">
+                                        <option value="">Tất cả</option>
+                                        <option value="true">Có</option>
+                                        <option value="false">Không</option>
+                                    </select>
+                                </th>
                                 <th></th>
                                 <th><input type="text" class="form-control form-control-sm"
                                         (input)="dt.filter($any($event.target).value, 'ConfirmBy', 'contains')"
@@ -152,6 +170,12 @@
                                 </td>
                                 <td>{{ item.PhoneNumber }}</td>
                                 <td>{{ item.DepartureLocation }}</td>
+                                <td>{{ item.DangKyHLKGChieuDi }}</td>
+                                <td>{{ item.DangKyHLKGChieuVe }}</td>
+                                <td style="text-align: center">
+                                    <span *ngIf="item.DangKyVinwonders === true || item.DangKyVinwonders === 1" class="badge bg-success">Có</span>
+                                    <span *ngIf="item.DangKyVinwonders === false || item.DangKyVinwonders === 0" class="badge bg-secondary">Không</span>
+                                </td>
 
                                 <td style="text-align: center">{{ formatDate(item.ConfirmDate) }}</td>
                                 <td>{{ item.ConfirmBy }}</td>
@@ -159,7 +183,7 @@
                         </ng-template>
                         <ng-template pTemplate="emptymessage">
                             <tr>
-                                <td colspan="20"
+                                <td colspan="23"
                                     style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
                                     Không có dữ liệu.
                                 </td>

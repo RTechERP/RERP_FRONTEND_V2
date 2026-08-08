@@ -285,7 +285,8 @@
           </div>
           <nz-splitter nzLayout="vertical" style="height: 99% !important">
             <!-- Panel trên: chứa 2 tab -->
-            <nz-splitter-panel [nzSize]="">
+            <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" nzDefaultSize="70%">
+              <div #masterPanelRef class="splitter-pane-content">
               <nz-tabset
                 [nzSelectedIndex]="activeTabIndex"
                 (nzSelectedIndexChange)="onTabChange($event)"
@@ -348,10 +349,12 @@
                   </div>
                 </nz-tab>
               </nz-tabset>
+              </div>
             </nz-splitter-panel>
 
             <!-- Panel dưới: chi tiết -->
-            <nz-splitter-panel [nzSize]="sizeTbDetail" nzResizable="false">
+            <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+              <div #detailPanelRef class="splitter-pane-content">
               <div
                 style="padding: 4px 2px; background: #f5f5f5; color: #377ced"
               >
@@ -372,6 +375,7 @@
                   "
                 >
                 </angular-slickgrid>
+              </div>
               </div>
             </nz-splitter-panel>
           </nz-splitter>

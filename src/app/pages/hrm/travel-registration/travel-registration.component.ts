@@ -301,51 +301,11 @@ export class TravelRegistrationComponent implements OnInit {
   }
 
   onConfirm() {
-    if (!this.selectedRows || this.selectedRows.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 bản ghi để xác nhận');
-      return;
-    }
-
-    const isAllConfirmed = this.selectedRows.every((item: any) => item.ConfirmStatus === 1);
-
-    this.nzModal.confirm({
-      nzTitle: 'Xác nhận thông tin đăng ký du lịch',
-      nzContent: isAllConfirmed
-        ? `Tất cả ${this.selectedRows.length} bản ghi đã chọn ĐÃ ĐƯỢC XÁC NHẬN trước đó.`
-        : `Bạn có chắc chắn muốn xác nhận ${this.selectedRows.length} bản ghi đã chọn không?`,
-      nzOkText: isAllConfirmed ? 'Đã xác nhận' : 'Xác nhận',
-      nzOkType: 'primary',
-      nzOkDisabled: isAllConfirmed,
-      nzCancelText: 'Đóng',
-      nzOnOk: isAllConfirmed ? undefined : () => {
-        const confirmRequests = this.selectedRows.map(row =>
-          this.travelRegistrationService.confirm(row.EmployeeID || row.OwnerEmployeeID, 1)
-        );
-
-        this.isLoading = true;
-        forkJoin(confirmRequests).subscribe({
-          next: (responses: any[]) => {
-            this.isLoading = false;
-            const successCount = responses.filter(r => r?.status === 1).length;
-            if (successCount === responses.length) {
-              this.notification.success(NOTIFICATION_TITLE.success, 'Xác nhận thành công');
-            } else {
-              this.notification.warning(NOTIFICATION_TITLE.warning, `Đã xác nhận ${successCount}/${responses.length} bản ghi`);
-            }
-            this.loadData();
-          },
-          error: (err: any) => {
-            this.isLoading = false;
-            this.notification.create(
-              NOTIFICATION_TYPE_MAP[err.status] || 'error',
-              NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-              err?.error?.message || `${err.error}\n${err.message}`,
-              { nzStyle: { whiteSpace: 'pre-line' } }
-            );
-          }
-        });
-      }
-    });
+    const modalRef = this.ngbModal.open(TravelRegistrationConfirmModalComponent, { size: 'xl', backdrop: 'static', centered: true });
+    modalRef.componentInstance.dataInput = this.selectedRows.length > 0 ? this.selectedRows : null;
+    modalRef.result.then((res) => {
+      if (res === 'confirm_success') this.loadData();
+    }, () => { });
   }
 
   onImportExcel() {

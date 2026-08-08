@@ -1,3 +1,9 @@
+:host {
+  height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+}
+
 .fs-12 {
   font-size: 0.75rem;
 }
@@ -14,8 +20,40 @@
   font-size: 0.75rem;
 }
 
-.ant-splitter {
-  height: 93vh !important;
+:host ::ng-deep nz-splitter,
+:host ::ng-deep .ant-splitter {
+  height: 100% !important;
+  flex: 1;
+  min-height: 0;
+}
+
+:host ::ng-deep .ant-splitter-panel {
+  overflow: hidden;
+  height: 100% !important;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Nội dung panel: nz-splitter-panel không render DOM thật, nội dung được
+   chuyển vào .ant-splitter-panel nên cần wrapper này để bám chiều cao panel. */
+.splitter-pane-content {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+:host ::ng-deep .ant-splitter-panel .card {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+:host ::ng-deep .ant-splitter-panel .card-body {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 /* .modal-header {
@@ -62,7 +100,9 @@
 .grid-container-detail {
   font-size: 0.75rem !important;
   width: 100% !important;
-  height: 90% !important;
+  height: 100% !important;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -73,7 +113,7 @@
 .grid-container-detail ::ng-deep angular-slickgrid {
   display: block !important;
   width: 100% !important;
-  height: 90% !important;
+  height: 100% !important;
   flex: 1;
   min-height: 0;
 }
@@ -91,10 +131,14 @@
 }
 
 /* Đảm bảo tabset và tab content có chiều cao đầy đủ */
+:host ::ng-deep nz-tabset,
 :host ::ng-deep .ant-tabs {
+  flex: 1;
+  min-height: 0;
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 :host ::ng-deep .ant-tabs-content-holder {
@@ -104,14 +148,6 @@
 
 :host ::ng-deep .ant-tabs-tabpane {
   height: 100%;
-  overflow: hidden;
-}
-
-:host ::ng-deep .ant-splitter {
-  height: 100% !important;
-}
-
-:host ::ng-deep .ant-splitter-panel {
   overflow: hidden;
 }
 

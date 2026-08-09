@@ -119,7 +119,7 @@ export class ProjectTaskDetailComponent {
     isProjectLinkedToGateStep: boolean = false; // dự án đã liên kết quy trình Gate Step
 
     get isParentTaskRequired(): boolean {
-        return this.isCreateMode && this.isProjectLinkedToGateStep;
+        return this.isProjectLinkedToGateStep;
     }
 
     @Input() task: any;
@@ -3751,6 +3751,11 @@ export class ProjectTaskDetailComponent {
         if (!this.isPersonalProject && !this.selectedProjectId) {
             this.invalidFields.add('project');
             this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn dự án');
+            return;
+        }
+        if (this.isParentTaskRequired && !this.parentTaskId) {
+            this.invalidFields.add('parentTaskId');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Dự án đã có quy trình. Vui lòng chọn công việc cha có sẵn!');
             return;
         }
         if (!this.assignerId) {

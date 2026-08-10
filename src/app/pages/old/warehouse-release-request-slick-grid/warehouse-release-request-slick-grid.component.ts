@@ -49,7 +49,7 @@ import {
 } from 'angular-slickgrid';
 
 import { DateTime } from 'luxon';
-import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbModalRef, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { map, catchError, of, forkJoin } from 'rxjs';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -61,6 +61,7 @@ import { AppUserService } from '../../../services/app-user.service';
 import { BillExportDetailComponent } from '../Sale/BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { BillExportDetailNewComponent } from '../Sale/BillExport/bill-export-detail-new/bill-export-detail-new.component';
+import { BillImportDetailNewComponent } from '../Sale/BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
 interface BillExportDetail {
   ProductID: number;
   Qty: number;
@@ -1308,6 +1309,36 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         cssClass: 'text-right',
       },
       {
+        id: 'TotalRequestImportAgain',
+        name: 'SL YC nhập lại',
+        field: 'TotalRequestImportAgain',
+        width: 150,
+        minWidth: 50,
+        sortable: true,
+        type: FieldType.number,
+        filterable: true,
+        filter: { model: Filters['compoundInputNumber'] },
+        cssClass: 'text-right',
+        editor: {
+          model: Editors['integer'],
+        },
+      },
+      {
+        id: 'TotalImportAgain',
+        name: 'SL nhập lại',
+        field: 'TotalImportAgain',
+        width: 150,
+        minWidth: 50,
+        sortable: true,
+        type: FieldType.number,
+        filterable: true,
+        filter: { model: Filters['compoundInputNumber'] },
+        cssClass: 'text-right',
+        editor: {
+          model: Editors['integer'],
+        },
+      },
+      {
         id: 'UserReceiver',
         name: 'Người nhận',
         field: 'UserReceiver',
@@ -1326,6 +1357,21 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         id: 'BillExportCode',
         name: 'Mã phiếu xuất',
         field: 'BillExportCode',
+        width: 250,
+        minWidth: 250,
+        sortable: true,
+        filterable: true,
+        type: FieldType.string,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'BillImportCodeAgain',
+        name: 'Mã phiếu nhập lại',
+        field: 'BillImportCodeAgain',
         width: 250,
         minWidth: 250,
         sortable: true,
@@ -1558,6 +1604,166 @@ updateFooterRow(): void {
         footerCell.innerHTML = '';
       }
     });
+  }
+
+
+  
+
+
+  onWarehouseImportReturnSelect(warehouse: any): void {
+    console.log('[WarehouseRelease] Click "Nhập lại kho vào" ->', warehouse);
+    console.log('[WarehouseRelease] selectedRowsAll:', this.selectedRowsAll);
+
+    if (this.selectedRowsAll.length === 0) {
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn ít nhất một sản phẩm để nhập lại kho!'
+      );
+      return;
+    }
+
+    const validRows = this.selectedRowsAll.filter(
+      (row: any) => (Number(row.QuantityExport) || 0) > 0
+    );
+    const skippedCodes = this.selectedRowsAll
+      .filter((row: any) => (Number(row.QuantityExport) || 0) <= 0)
+      .map((row: any) => row.ProductNewCode || row.ProductCode)
+      .filter((code: any) => !!code);
+    console.log('[WarehouseRelease] validRows (SL đã xuất > 0):', validRows, '| skippedCodes:', skippedCodes);
+
+    if (skippedCodes.length > 0) {
+      this.notification.warning(
+        'Thông báo',
+        `Các sản phẩm có mã: ${skippedCodes.join('; ')} chưa có số lượng đã xuất nên sẽ bị bỏ qua!`
+      );
+    }
+
+    if (validRows.length === 0) {
+      this.notification.warning(
+        'Thông báo',
+        'Không có sản phẩm nào có số lượng đã xuất để nhập lại kho!'
+      );
+      return;
+    }
+
+    const groups = this.groupRowsByKhoType(validRows);
+    console.log('[WarehouseRelease] Nhóm sản phẩm theo loại kho:', groups);
+
+    if (groups.length > 1) {
+      this.notification.info(
+        'Thông báo',
+        `Bạn chọn sản phẩm từ ${groups.length} loại kho khác nhau. Hệ thống sẽ tự động mở lần lượt ${groups.length} phiếu nhập (mỗi loại kho 1 phiếu).`
+      );
+    }
+
+    this.openBillImportSequential(groups, 0, warehouse);
+  }
+
+  private groupRowsByKhoType(rows: any[]): { khoTypeID: number; rows: any[] }[] {
+    const map = new Map<number, any[]>();
+    rows.forEach((row: any) => {
+      const key = row.KhoTypeID;
+      if (!map.has(key)) {
+        map.set(key, []);
+      }
+      map.get(key)!.push(row);
+    });
+    return Array.from(map.entries()).map(([khoTypeID, groupRows]) => ({
+      khoTypeID,
+      rows: groupRows,
+    }));
+  }
+
+  // Mở lần lượt từng phiếu nhập theo loại kho (không mở đồng thời) vì API sinh mã phiếu
+  // sẽ trả cùng 1 mã nếu gọi trùng lúc cho nhiều phiếu chưa được lưu.
+  private openBillImportSequential(
+    groups: { khoTypeID: number; rows: any[] }[],
+    index: number,
+    warehouse: any
+  ): void {
+    if (index >= groups.length) {
+      console.log('[WarehouseRelease] Đã mở hết các phiếu nhập, bỏ chọn và reload dữ liệu');
+      const usedIds = groups.flatMap((g) => g.rows.map((r: any) => r.POKHDetailID));
+      this.selectedRowsAll = this.selectedRowsAll.filter(
+        (r: any) => !usedIds.includes(r.POKHDetailID)
+      );
+      if (this.angularGrid?.slickGrid) {
+        this.angularGrid.slickGrid.setSelectedRows([]);
+      }
+      this.onSearch();
+      return;
+    }
+
+    const group = groups[index];
+    console.log(
+      `[WarehouseRelease] Mở phiếu nhập ${index + 1}/${groups.length} cho loại kho`,
+      group.khoTypeID
+    );
+
+    const modalRef = this.openBillImportForReturn(group.rows, group.khoTypeID, warehouse);
+
+    modalRef.result.then(
+      () => this.openBillImportSequential(groups, index + 1, warehouse),
+      () => this.openBillImportSequential(groups, index + 1, warehouse)
+    );
+  }
+
+  private openBillImportForReturn(selectedRows: any[], khoTypeID: number, warehouse: any): NgbModalRef {
+    console.log('[WarehouseRelease] openBillImportForReturn', { selectedRows, khoTypeID, warehouse });
+
+    const modalRef = this.modalService.open(BillImportDetailNewComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      fullscreen: true,
+    });
+
+    modalRef.componentInstance.isCheckmode = false;
+    modalRef.componentInstance.id = 0;
+    modalRef.componentInstance.WarehouseCode = warehouse.WarehouseCode || '';
+    modalRef.componentInstance.warehouseID = warehouse.ID;
+    modalRef.componentInstance.newBillImport = {
+      Id: 0,
+      BillImportCode: '',
+      ReciverID: 0,
+      Reciver: '',
+      DeliverID: 0,
+      Deliver: '',
+      KhoType: khoTypeID,
+      KhoTypeID: khoTypeID,
+      WarehouseID: warehouse.ID,
+      BillTypeNew: 4,
+      SupplierID: 16677, // NHẬP NỘI BỘ
+      Supplier: '',
+      CreatDate: new Date(),
+      RulePayID: 0,
+      DateRequestImport: new Date(),
+    };
+
+    modalRef.componentInstance.poNCCId = 0;
+    modalRef.componentInstance.isReturnedInventory = true;
+    modalRef.componentInstance.selectedList = selectedRows.map((row: any) => ({
+      PONCCDetailID: 0,
+      ID: 0,
+      ProductSaleID: row.ProductID || 0,
+      ProductNewCode: row.ProductNewCode || '',
+      ProductCode: row.ProductCode || '',
+      ProductName: row.ProductName || '',
+      UnitName: row.Unit || '',
+      QtyRequest: 0,
+      QuantityRemain: 1,
+      ProjectID: row.ProjectID || 0,
+      ProjectCode: row.ProjectCode || row.ProjectCodeExport || '',
+      ProjectName: row.ProjectName || '',
+      BillCode: '',
+      POCode: row.POCode || '',
+      QuantityExport: Number(row.QuantityExport) || 0,
+      POKHDetailImportAgainID: row.POKHDetailID || 0,
+    }));
+
+    console.log('[WarehouseRelease] selectedList gửi sang BillImportDetailNewComponent:', modalRef.componentInstance.selectedList);
+
+    return modalRef;
   }
 
 

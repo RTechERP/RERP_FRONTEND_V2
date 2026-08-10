@@ -241,6 +241,11 @@ export class ViewPokhPrimengComponent implements OnInit {
       { field: 'SomeBill', header: 'Đầu vào (số HĐ/tờ khai)', width: '300px', sortable: true, filterMode: 'input', textWrap: true },
       { field: 'ExpectedDate', header: 'Ngày dự kiến hàng về', width: '150px', sortable: true, filterMode: 'input', format: date, cssClass: 'text-center' },
       { field: 'BillImportCode', header: 'PNK', width: '140px', sortable: true, filterMode: 'input', textWrap: true },
+      { field: 'TotalRequestImportAgain', header: 'SL YC nhập lại', width: '140px', sortable: true, filterMode: 'input', textWrap: true },
+      { field: 'TotalImportAgain', header: 'SL nhập lại', width: '140px', sortable: true, filterMode: 'input', textWrap: true },
+      { field: 'BillRequestImportCodeAgain', header: 'Phiếu YC nhập lại', width: '140px', sortable: true, filterMode: 'input', textWrap: true },
+      { field: 'BillImportCodeAgain', header: 'Phiếu nhập lại', width: '140px', sortable: true, filterMode: 'input', textWrap: true },
+
     ];
 
     this.exportColumnDefinitions = [

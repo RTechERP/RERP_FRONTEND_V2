@@ -38,6 +38,21 @@
           </ul>
         </nz-dropdown-menu>
       </div>
+      <div class="btn-group ms-3">
+        <button nz-button nz-dropdown [nzDropdownMenu]="menuImportReturn">
+          <nz-icon nzType="download">
+          </nz-icon>
+          Nhập lại vào kho
+          <nz-icon nzType="down" />
+        </button>
+        <nz-dropdown-menu #menuImportReturn="nzDropdownMenu">
+          <ul nz-menu style="min-width: 250px;">
+            <li nz-menu-item *ngFor="let warehouse of warehouses" (click)="onWarehouseImportReturnSelect(warehouse)">
+              {{warehouse.WarehouseName}}
+            </li>
+          </ul>
+        </nz-dropdown-menu>
+      </div>
     </div>
 
     <!-- Search Panel -->

@@ -37,11 +37,51 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
 }
 
-:host ::ng-deep .grid-container-detail {
+/* Splitter ngang lồng trong panel dưới phải chiếm hết chiều cao panel */
+:host ::ng-deep .ant-splitter-panel > .ant-splitter {
   flex: 1;
   min-height: 0;
+  height: 100% !important;
+}
+
+/* nz-splitter-panel không render DOM thật (nội dung được chuyển vào
+   .ant-splitter-panel) nên cần wrapper này để bám chiều cao panel. */
+.splitter-pane-content {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+:host ::ng-deep .grid-container-detail,
+:host ::ng-deep .grid-container-detail-special,
+:host ::ng-deep .grid-container-log,
+:host ::ng-deep .grid-container-file,
+:host ::ng-deep .grid-container-filebankslip {
+  flex: 1;
+  min-height: 0;
+  height: 100% !important;
+}
+
+/* Chuỗi chiều cao bên trong mỗi grid container */
+:host ::ng-deep .grid-container angular-slickgrid,
+:host ::ng-deep .grid-container-special angular-slickgrid,
+:host ::ng-deep .grid-container-detail angular-slickgrid,
+:host ::ng-deep .grid-container-detail-special angular-slickgrid,
+:host ::ng-deep .grid-container-log angular-slickgrid,
+:host ::ng-deep .grid-container-file angular-slickgrid,
+:host ::ng-deep .grid-container-filebankslip angular-slickgrid,
+:host ::ng-deep .grid-container .gridPane,
+:host ::ng-deep .grid-container-special .gridPane,
+:host ::ng-deep .grid-container-detail .gridPane,
+:host ::ng-deep .grid-container-detail-special .gridPane,
+:host ::ng-deep .grid-container-log .gridPane,
+:host ::ng-deep .grid-container-file .gridPane,
+:host ::ng-deep .grid-container-filebankslip .gridPane {
+  display: block;
   height: 100% !important;
 }
 
@@ -67,18 +107,17 @@
 }
 
 
-:host ::ng-deep #grvData{
-    height: 42vh !important;
-}
-
-:host ::ng-deep #grvDataSpecial{
-    height: 42vh !important;
-}
-:host ::ng-deep #grvDetail{
-    height: 31vh !important;
-}
-:host ::ng-deep #grvDetailSpecial{
-    height: 31vh !important;
+/* Grid bám chiều cao panel splitter thay vì cố định vh, để kéo splitter
+   là bảng co giãn theo (resize thực tế do ResizeObserver trong TS gọi
+   resizeCanvas()). */
+:host ::ng-deep #grvData,
+:host ::ng-deep #grvDataSpecial,
+:host ::ng-deep #grvDetail,
+:host ::ng-deep #grvDetailSpecial,
+:host ::ng-deep #grvLog,
+:host ::ng-deep #grvFile,
+:host ::ng-deep #grvFileBankslip {
+    height: 100% !important;
 }
 
 /* :host ::ng-deep .slick-row:has(.slick-tree-level-0) .slick-cell {

@@ -97,6 +97,7 @@ interface BillImport {
     CreatDate: Date | string | null;
     DateRequest?: Date | string | null;
     DateRequestImport: Date | string | null;
+    IsReturnedInventory?: boolean;
 }
 
 @Component({
@@ -175,8 +176,9 @@ export class BillImportDetailNewComponent
     @Input() createImport: any;
     @Input() dataHistory: any[] = [];
     @Input() groupID: number = 0;
-
+ @Input() isReturnedInventory: boolean = false;
     @Output() saveSuccess = new EventEmitter<void>();
+    
 
     @Input() newBillImport: BillImport = {
         Id: 0,
@@ -506,6 +508,33 @@ export class BillImportDetailNewComponent
 
 
     private initializeFormData(): void {
+        if (this.isReturnedInventory) {
+            // Luồng nhập lại kho (từ tồn kho trả về / yêu cầu xuất kho) luôn ở trạng thái "Yêu cầu nhập kho"
+            this.initialBillTypeNew = 4;
+            this.isInitialLoad = false;
+            this.updateLabels(4);
+            this.validateForm.patchValue(
+                { BillTypeNew: 4, CreatDate: null, DateRequestImport: new Date() },
+                { emitEvent: false }
+            );
+            this.getNewCode();
+            // Mặc định NCC = "NHẬP NỘI BỘ" (ID 16677) khi nhập lại kho
+            this.validateForm.patchValue(
+                { SupplierID: this.newBillImport?.SupplierID || 16677 },
+                { emitEvent: false }
+            );
+            this.changeSuplierSale();
+            if (this.newBillImport?.KhoTypeID) {
+                this.validateForm.patchValue(
+                    { KhoTypeID: this.newBillImport.KhoTypeID },
+                    { emitEvent: false }
+                );
+                this.changeProductGroup(this.newBillImport.KhoTypeID);
+            }
+            return;
+        }
+
+
         if (this.poNCCId > 0 && this.newBillImport && this.newBillImport.BillImportCode) {
             // Luồng từ PONCC
             this.initialBillTypeNew = this.newBillImport.BillTypeNew || 4;
@@ -1375,7 +1404,19 @@ export class BillImportDetailNewComponent
             this.angularGridDetail.slickGrid.invalidate();
             this.angularGridDetail.slickGrid.render();
         }
-
+        if (columnDef.field === 'Qty' && this.isReturnedInventory) {
+            const maxQty = Math.max(0, Number(args.item.QuantityExport) || 0);
+            const enteredQty = Number(args.item.Qty) || 0;
+            console.log('[BillImportDetail] Qty changed (returned inventory)', { row: args.row, enteredQty, maxQty });
+            if (enteredQty > maxQty) {
+                args.item.Qty = maxQty;
+                this.notification.warning(
+                    'Thông báo',
+                    `Số lượng nhập lại không được lớn hơn số lượng đã xuất (${maxQty})!`
+                );
+                this.angularGridDetail.gridService.updateItem(args.item);
+            }
+        }
         // Bulk edit logic
         const selectedRows = this.angularGridDetail.slickGrid.getSelectedRows();
         if (selectedRows.length > 1) {
@@ -1396,7 +1437,13 @@ export class BillImportDetailNewComponent
                                 rowItem.Unit = args.item.Unit;
                             } else if (field === 'ProjectID') {
                                 rowItem.ProjectNameText = args.item.ProjectNameText;
+                            } else if (field === 'Qty' && this.isReturnedInventory) {
+                                const rowMaxQty = Math.max(0, Number(rowItem.QuantityExport) || 0);
+                                if (Number(rowItem.Qty) > rowMaxQty) {
+                                    rowItem.Qty = rowMaxQty;
+                                }
                             }
+
 
                             this.angularGridDetail.gridService.updateItem(rowItem);
                         }
@@ -1697,11 +1744,15 @@ export class BillImportDetailNewComponent
                     String(item.WareHouseCode).toUpperCase().includes('HN')
                 )?.ID ?? 1;
 
-            // Reset to null first to force nz-select re-render khi giá trị giống nhau
+	            // Reset to null first to force nz-select re-render khi giá trị giống nhau
             this.validateForm.controls['WarehouseID'].setValue(null, { emitEvent: false });
             this.validateForm.controls['WarehouseID'].setValue(resolvedId);
             this.validateForm.controls['WarehouseName'].setValue(resolvedName);
-            this.validateForm.controls['WarehouseID'].disable();
+            if (this.isReturnedInventory) {
+                this.validateForm.controls['WarehouseID'].enable();
+            } else {
+                this.validateForm.controls['WarehouseID'].disable();
+            }
 
             this.warehouseIdHN = hnId;
 
@@ -1748,6 +1799,7 @@ export class BillImportDetailNewComponent
                             ? new Date(data.DateRequestImport)
                             : null,
                         RulePayID: data.RulePayID,
+                        IsReturnedInventory: !!data.IsReturnedInventory,
                     };
 
                     if (data && (data.Status === true || data.Status === 1)) {
@@ -1947,7 +1999,7 @@ export class BillImportDetailNewComponent
                     if (this.isCheckmode && this.id > 0 && !this.isLoadingEditData) {
                         this.isLoadingEditData = true;
                         this.getBillImportDetailID();
-                    } else if (this.poNCCId > 0 && this.selectedList?.length > 0) {
+                    } else if ((this.poNCCId > 0 || this.isReturnedInventory) && this.selectedList?.length > 0) {
                         this.mapDataFromPONCCToTable();
                     } else if (this.dataHistory?.length > 0) {
                         this.mapDataHistoryToTable();
@@ -1998,7 +2050,7 @@ export class BillImportDetailNewComponent
                     if (this.isCheckmode && this.id > 0 && !this.isLoadingEditData) {
                         this.isLoadingEditData = true;
                         this.getBillImportDetailID();
-                    } else if (this.poNCCId > 0 && this.selectedList?.length > 0) {
+                    	 } else if ((this.poNCCId > 0 || this.isReturnedInventory) && this.selectedList?.length > 0) {
                         this.mapDataFromPONCCToTable();
                     } else if (this.dataHistory?.length > 0) {
                         this.mapDataHistoryToTable();
@@ -2028,7 +2080,12 @@ export class BillImportDetailNewComponent
             const projectInfo =
                 this.projectOptions.find((p: any) => p.value === item.ProjectID) || {};
 
-            return {
+           const quantityExport = this.isReturnedInventory
+                ? Number(item.QuantityExport) || 0
+                : undefined;
+            const initialQty = item.QuantityRemain || 0;
+
+	return {
                 id: -(index + 1),
                 ID: 0,
                 PONCCDetailID: item.PONCCDetailID || item.ID || 0,
@@ -2039,11 +2096,22 @@ export class BillImportDetailNewComponent
                 ProductName: item.ProductName || productInfo.ProductName || '',
                 Unit: item.UnitName || item.Unit || productInfo.Unit || '',
                 QtyRequest: item.QtyRequest || 0,
-                Qty: item.QuantityRemain || 0,
-                IsNotKeep: item.IsNotKeep || false,
+                Qty:
+                    quantityExport !== undefined
+                        ? Math.max(0, Math.min(initialQty, quantityExport))
+                        : initialQty,
+                ...(quantityExport !== undefined
+                    ? { QuantityExport: quantityExport }
+                    : {}),
+                ...(this.isReturnedInventory
+                    ? { POKHDetailImportAgainID: item.POKHDetailImportAgainID || null }
+                    : {}),
+                IsNotKeep: this.isReturnedInventory ? (item.IsNotKeep ?? true) : (item.IsNotKeep || false),
                 ProcessedGoods: false,
                 ProjectID: item.ProjectID || 0,
-                ProjectCode: item.ProductCodeOfSupplier || '',
+                ProjectCode: this.isReturnedInventory
+                    ? (item.ProjectCode || '')
+                    : (item.ProductCodeOfSupplier || ''),
                 ProjectNameText: item.ProjectName || projectInfo.label || '',
                 CustomerFullName: '',
                 BillCodePO: item.BillCode || '',
@@ -2058,6 +2126,7 @@ export class BillImportDetailNewComponent
                 SerialNumber: '',
             };
         });
+
 
         this.refreshGrid();
     }
@@ -2355,6 +2424,7 @@ export class BillImportDetailNewComponent
                 ProcessedGoods: row.ProcessedGoods ? 1 : 0,
                 UnitName: row.Unit || '',
                 POKHDetailID: pokhDetailID,
+                POKHDetailImportAgainID: row.POKHDetailImportAgainID || null,
                 POKHDetailQuantity: row.POKHDetailQuantity || null,
                 CustomerID:
                     row.CustomerID && Number(row.CustomerID) > 0
@@ -2366,6 +2436,7 @@ export class BillImportDetailNewComponent
                         : null,
                 POKHList: pokhList,
             };
+
         });
     }
 
@@ -2467,7 +2538,7 @@ export class BillImportDetailNewComponent
 
         const billImportDetailsFromTable = this.dataDetail;
 
-        if (
+if (
             !billImportDetailsFromTable ||
             billImportDetailsFromTable.length === 0
         ) {
@@ -2477,6 +2548,20 @@ export class BillImportDetailNewComponent
             );
             return;
         }
+
+        if (this.isReturnedInventory) {
+            const overQtyRow = billImportDetailsFromTable.find(
+                (row: any) => (Number(row.Qty) || 0) > (Number(row.QuantityExport) || 0)
+            );
+            if (overQtyRow) {
+                this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    `Sản phẩm [${overQtyRow.ProductCode || overQtyRow.ProductName}] có số lượng nhập lại (${overQtyRow.Qty}) lớn hơn số lượng đã xuất (${overQtyRow.QuantityExport || 0})!`
+                );
+                return;
+            }
+        }
+
 
         this.isSaving = true;
 
@@ -2554,6 +2639,7 @@ export class BillImportDetailNewComponent
                     UnApprove: 1,
                     RulePayID: formValues.RulePayID,
                     IsDeleted: false,
+                    IsReturnedInventory: this.isReturnedInventory || !!this.newBillImport?.IsReturnedInventory,
                 },
                 billImportDetail: this.mapTableDataToBillImportDetails(
                     billImportDetailsFromTable

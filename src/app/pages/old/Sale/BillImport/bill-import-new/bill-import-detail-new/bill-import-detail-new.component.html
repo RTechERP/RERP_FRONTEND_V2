@@ -108,8 +108,8 @@
                         <nz-form-label class="fs-12 bill-import-detail-new-fs-12">Kho<span
                                 class="text-danger bill-import-detail-new-text-danger">*</span></nz-form-label>
                         <nz-form-control>
-                            <nz-select nzSize="small" formControlName="WarehouseID" nzShowSearch nzDisabled
-                                nzPlaceHolder="Chọn kho">
+                            <nz-select nzSize="small" formControlName="WarehouseID" nzShowSearch
+                                [nzDisabled]="!isReturnedInventory" nzPlaceHolder="Chọn kho">
                                 <nz-option *ngFor="let wh of warehouses" [nzValue]="wh.ID"
                                     [nzLabel]="wh.WarehouseName"></nz-option>
                             </nz-select>

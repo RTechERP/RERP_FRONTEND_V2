@@ -1425,30 +1425,42 @@ export class ProjectTaskDetailComponent {
         const activeTask = this.currentTaskData || this.task;
         const currentTaskId = activeTask?.ID || 0;
 
-        if (this.selectedProjectId) {
-            this.checkProjectHasGateStep(this.selectedProjectId);
-        } else {
-            this.isProjectLinkedToGateStep = false;
-        }
-
-        this.kanbanService.getProjectTasksList(this.selectedProjectId || 0, this.isPersonalProject).subscribe({
-            next: (res) => {
-                if (res.status === 200 || res.status === 1) {
-                    // Loại trừ bản thân bản ghi hiện tại
-                    this.parentTaskList = (res.data || []).filter((t: any) => t.ID !== currentTaskId);
-                    this.parentTaskTreeNodes = this.buildParentTaskTree(this.parentTaskList);
-                } else {
+        const fetchParentTasks = () => {
+            this.kanbanService.getProjectTasksList(this.selectedProjectId || 0, this.isPersonalProject, this.isProjectLinkedToGateStep).subscribe({
+                next: (res) => {
+                    if (res.status === 200 || res.status === 1) {
+                        // Loại trừ bản thân bản ghi hiện tại
+                        this.parentTaskList = (res.data || []).filter((t: any) => t.ID !== currentTaskId);
+                        this.parentTaskTreeNodes = this.buildParentTaskTree(this.parentTaskList);
+                    } else {
+                        this.parentTaskList = [];
+                        this.parentTaskTreeNodes = [];
+                    }
+                    this.cdr.detectChanges();
+                },
+                error: (err) => {
+                    console.error('Error loading parent tasks', err);
                     this.parentTaskList = [];
                     this.parentTaskTreeNodes = [];
                 }
-                this.cdr.detectChanges();
-            },
-            error: (err) => {
-                console.error('Error loading parent tasks', err);
-                this.parentTaskList = [];
-                this.parentTaskTreeNodes = [];
-            }
-        });
+            });
+        };
+
+        if (this.selectedProjectId) {
+            this.kanbanService.checkProjectHasGateStep(this.selectedProjectId).subscribe({
+                next: (res: any) => {
+                    this.isProjectLinkedToGateStep = (res.status === 200 || res.status === 1) && Array.isArray(res.data) && res.data.length > 0;
+                    fetchParentTasks();
+                },
+                error: () => {
+                    this.isProjectLinkedToGateStep = false;
+                    fetchParentTasks();
+                }
+            });
+        } else {
+            this.isProjectLinkedToGateStep = false;
+            fetchParentTasks();
+        }
     }
 
     //       searchEmployees(): void {

@@ -241,8 +241,8 @@ export class KanbanService {
     }
 
     // --- Parent Task List Methods ---
-    getProjectTasksList(projectID: number = 0, isPersionalProject: boolean = false): Observable<IAPIResponse<any[]>> {
-        return this.http.get<IAPIResponse<any[]>>(`${this.apiUrl}/list-project-task?projectID=${projectID}&isPersionalProject=${isPersionalProject}`);
+    getProjectTasksList(projectID: number = 0, isPersionalProject: boolean = false, isHasGateStep: boolean = false): Observable<IAPIResponse<any[]>> {
+        return this.http.get<IAPIResponse<any[]>>(`${this.apiUrl}/list-project-task?projectID=${projectID}&isPersionalProject=${isPersionalProject}&isHasGateStep=${isHasGateStep}`);
     }
 
     // --- Task Leader Methods ---

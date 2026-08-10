@@ -16,6 +16,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { DateTime } from 'luxon';
+import * as ExcelJS from 'exceljs';
 
 import {
   AngularGridInstance,
@@ -30,6 +31,7 @@ import {
   MultipleSelectOption,
   OnSelectedRowsChangedEventArgs,
 } from 'angular-slickgrid';
+import { ExcelExportService } from '@slickgrid-universal/excel-export';
 
 // ng-zorro
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -120,6 +122,7 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
   angularGrid!: AngularGridInstance;
   columnDefinitions: Column[] = [];
   gridOptions: GridOption = {};
+  excelExportService = new ExcelExportService();
 
   dataset: any[] = [];
   dirtyRows: Map<number, any> = new Map(); // key = ExpectedPayableID
@@ -225,9 +228,17 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
       {
         label: 'Lịch sử thao tác',
         icon: 'fa fa-history text-success',
-        visible: this.permissionService.hasPermission(''),
+        visible: this.permissionService.hasPermission('N35'),
         command: () => {
           this.onHistoryActivity();
+        },
+      },
+      {
+        label: 'Xuất excel',
+        icon: 'fa fa-download text-success',
+        visible: this.permissionService.hasPermission(''),
+        command: () => {
+          this.onExcel();
         },
       },
     ];
@@ -427,6 +438,8 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
         `;
   };
 
+  exportDefaultFormatter: Formatter = (_row, _cell, value) => value ?? '';
+
   angularGridReady(angularGrid: AngularGridInstance) {
     this.angularGrid = angularGrid;
 
@@ -524,6 +537,7 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
           model: Filters['compoundInputText'],
         },
         formatter: this.wrapTextFormatter,
+        exportCustomFormatter: this.exportDefaultFormatter,
       },
       {
         id: 'DeliverName',
@@ -543,6 +557,7 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
           },
         },
         formatter: this.wrapTextFormatter,
+        exportCustomFormatter: this.exportDefaultFormatter,
       },
       {
         id: 'Debt',
@@ -555,6 +570,20 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
           model: Filters['compoundInputText'],
         },
         formatter: this.wrapTextFormatter,
+        exportCustomFormatter: this.exportDefaultFormatter,
+      },
+      {
+        id: 'POCode',
+        field: 'POCode',
+        name: 'Số PO',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['compoundInputText'],
+        },
+        formatter: this.wrapTextFormatter,
+        exportCustomFormatter: this.exportDefaultFormatter,
       },
       {
         id: 'BillCode',
@@ -567,6 +596,7 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
           model: Filters['compoundInputText'],
         },
         formatter: this.wrapTextFormatter,
+        exportCustomFormatter: this.exportDefaultFormatter,
       },
       {
         id: 'SomeBill',
@@ -579,6 +609,7 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
           model: Filters['compoundInputText'],
         },
         formatter: this.wrapTextFormatter,
+        exportCustomFormatter: this.exportDefaultFormatter,
       },
       {
         id: 'DateSomeBill',
@@ -741,6 +772,7 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
           model: Filters['compoundInputText'],
         },
         formatter: this.wrapTextFormatter,
+        exportCustomFormatter: this.exportDefaultFormatter,
       },
       {
         id: 'Note',
@@ -753,6 +785,7 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
           model: Filters['compoundInputText'],
         },
         formatter: this.formatTextWithTooltip,
+        exportCustomFormatter: this.exportDefaultFormatter,
       },
     ];
 
@@ -786,6 +819,12 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
         hideSelectAllCheckbox: false,
       },
       frozenColumn: 3,
+      enableExcelExport: true,
+      excelExportOptions: {
+        sanitizeDataExport: true,
+        exportWithFormatter: true,
+      },
+      externalResources: [this.excelExportService],
     };
   }
   //#endregion
@@ -1042,4 +1081,207 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
     });
   }
 
+  async onExcel(): Promise<void> {
+    const items =
+      (this.angularGrid?.dataView?.getFilteredItems?.() as any[]) ||
+      this.dataset;
+
+    if (!items || items.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có dữ liệu để xuất Excel!'
+      );
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Dự trù phải trả');
+
+    const runtimeColumns =
+      (this.angularGrid?.slickGrid?.getColumns?.() as any[]) ||
+      this.columnDefinitions;
+    const columns = runtimeColumns.filter(
+      (col: any) => col?.id !== '_checkbox_selector' && col?.hidden !== true
+    );
+
+    const numericCols = [
+      'UnitPrice',
+      'Amount',
+      'AmountVnd',
+      'DomesticPayable',
+      'ForeignPayable',
+      'ArisingAmount',
+      'OfficeExpense',
+      'TaxAmount',
+    ];
+    const dateCols = ['DateSomeBill', 'DueDate'];
+
+    // 1. Header Row: Màu xanh nhạt, cỡ chữ to 12pt bold
+    const headers = columns.map((col: any) => col?.name || col?.id);
+    const headerRow = worksheet.addRow(headers);
+    headerRow.height = 28;
+
+    headerRow.eachCell((cell) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFD9E1F2' },
+      };
+      cell.font = {
+        name: 'Arial',
+        size: 12,
+        bold: true,
+        color: { argb: 'FF1F497D' },
+      };
+      cell.alignment = {
+        horizontal: 'center',
+        vertical: 'middle',
+        wrapText: true,
+      };
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFA6B9D7' } },
+        left: { style: 'thin', color: { argb: 'FFA6B9D7' } },
+        bottom: { style: 'medium', color: { argb: 'FF4F81BD' } },
+        right: { style: 'thin', color: { argb: 'FFA6B9D7' } },
+      };
+    });
+
+    // 2. Data Rows: Căn chỉnh định dạng & căn lề nội dung cột
+    const sums: Record<string, number> = {};
+    numericCols.forEach((f) => (sums[f] = 0));
+
+    items.forEach((item: any) => {
+      const rowValues = columns.map((col: any) => {
+        const field = col.field || col.id;
+        const val = item[field];
+
+        if (numericCols.includes(field)) {
+          const num = Number(val) || 0;
+          sums[field] += num;
+          return num;
+        }
+
+        if (dateCols.includes(field)) {
+          if (!val) return '';
+          if (typeof val === 'string' && val.includes('T')) {
+            const dt = DateTime.fromISO(val);
+            if (dt.isValid) return dt.toFormat('dd/MM/yyyy');
+          }
+          const dt = DateTime.fromJSDate(new Date(val));
+          return dt.isValid ? dt.toFormat('dd/MM/yyyy') : String(val);
+        }
+
+        if (field === 'PaymentPercentage') {
+          return val != null && val !== '' ? `${val}%` : '';
+        }
+
+        return val ?? '';
+      });
+
+      const dataRow = worksheet.addRow(rowValues);
+      dataRow.height = 22;
+
+      dataRow.eachCell((cell, colNumber) => {
+        const colDef = columns[colNumber - 1];
+        const field = colDef?.field || colDef?.id;
+
+        cell.font = { name: 'Arial', size: 11 };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFE0E0E0' } },
+          left: { style: 'thin', color: { argb: 'FFE0E0E0' } },
+          bottom: { style: 'thin', color: { argb: 'FFE0E0E0' } },
+          right: { style: 'thin', color: { argb: 'FFE0E0E0' } },
+        };
+
+        if (numericCols.includes(field)) {
+          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+          cell.numFmt = '#,##0.00';
+        } else if (
+          dateCols.includes(field) ||
+          field === 'CurrencyCode' ||
+          field === 'PaymentPercentage'
+        ) {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        } else {
+          cell.alignment = { horizontal: 'left', vertical: 'middle' };
+        }
+      });
+    });
+
+    // 3. Footer Row: Hàng tổng cộng cuối trang
+    const codeCount = items.filter((item: any) => item.CodeNCC).length;
+    const footerValues = columns.map((col: any) => {
+      const field = col.field || col.id;
+      if (field === 'CodeNCC') return `Tổng (${codeCount})`;
+      if (numericCols.includes(field)) return sums[field];
+      return '';
+    });
+
+    const footerRow = worksheet.addRow(footerValues);
+    footerRow.height = 25;
+
+    footerRow.eachCell((cell, colNumber) => {
+      const colDef = columns[colNumber - 1];
+      const field = colDef?.field || colDef?.id;
+
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFF2F4F8' },
+      };
+      cell.font = { name: 'Arial', size: 11, bold: true };
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FF4F81BD' } },
+        bottom: { style: 'double', color: { argb: 'FF4F81BD' } },
+        left: { style: 'thin', color: { argb: 'FFE0E0E0' } },
+        right: { style: 'thin', color: { argb: 'FFE0E0E0' } },
+      };
+
+      if (numericCols.includes(field)) {
+        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+        cell.numFmt = '#,##0.00';
+      } else {
+        cell.alignment = { horizontal: 'left', vertical: 'middle' };
+      }
+    });
+
+    // 4. Auto column width: Căn chỉnh độ rộng cột dựa trên tiêu đề và dữ liệu
+    worksheet.columns.forEach((column: any, index: number) => {
+      const colDef = columns[index];
+      const headerName = String(colDef?.name || colDef?.id || '');
+      let maxLen = headerName.length;
+
+      items.forEach((item: any) => {
+        const field = colDef?.field || colDef?.id;
+        let val = item[field];
+        if (numericCols.includes(field)) {
+          val = this.formatNumberEnUS(val);
+        } else if (dateCols.includes(field)) {
+          val = 'DD/MM/YYYY';
+        }
+        if (val != null) {
+          const len = String(val).length;
+          if (len > maxLen) maxLen = len;
+        }
+      });
+
+      column.width = Math.max(14, Math.min(60, maxLen + 4));
+    });
+
+    // 5. Xuất và tải file Excel
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const dateStr = DateTime.now().toFormat('ddMMyyyy_HHmmss');
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `DuTruThanhToan_${dateStr}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  }
 }
+

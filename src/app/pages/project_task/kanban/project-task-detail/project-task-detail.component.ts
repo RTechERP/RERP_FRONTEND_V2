@@ -307,11 +307,27 @@ export class ProjectTaskDetailComponent {
         if (this.taskLocationSelect !== 'Khác') {
             this.taskCustomLocation = undefined;
         }
+        this.syncScheduleLocationsFromMain();
         this.updateLocationOptions();
     }
 
     onTaskCustomLocationChange(): void {
+        this.syncScheduleLocationsFromMain();
         this.updateLocationOptions();
+    }
+
+    private syncScheduleLocationsFromMain(): void {
+        const taskLoc = (this.taskLocationSelect === 'Khác' ? this.taskCustomLocation : this.taskLocationSelect) || 'VP RTC';
+        const knownLocations = ['VP RTC', 'Đan Phượng'];
+        const isKnownLoc = knownLocations.includes(taskLoc);
+
+        if (this.taskWorkList && this.taskWorkList.length > 0) {
+            this.taskWorkList.forEach(row => {
+                row.Location = taskLoc;
+                row._locationSelect = isKnownLoc ? taskLoc : 'Khác';
+                row._customLocation = isKnownLoc ? undefined : taskLoc;
+            });
+        }
     }
 
     validateDates(): void {
@@ -3646,7 +3662,7 @@ export class ProjectTaskDetailComponent {
             },
             error: (err) => {
                 this.isSaving = false;
-                this.notification.error(NOTIFICATION_TITLE.error, err.message || err.error?.message || 'Lưu thất bại. Vui lòng thử lại.');
+                this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || err.message || 'Lưu thất bại. Vui lòng thử lại.');
                 console.error('Error saving task', err);
             }
         });
@@ -3932,12 +3948,12 @@ export class ProjectTaskDetailComponent {
                     }
                 } else {
                     this.isSaving = false;
-                    this.notification.error(NOTIFICATION_TITLE.error, res.message || res.error?.message || 'Lỗi khi tạo công việc');
+                    this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || res.message || 'Lỗi khi tạo công việc');
                 }
             },
             error: (err: any) => {
                 this.isSaving = false;
-                this.notification.error(NOTIFICATION_TITLE.error, err.message || err.error?.message || 'Lỗi khi tạo công việc');
+                this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || err.message || 'Lỗi khi tạo công việc');
                 console.error('Error creating task', err);
             }
         });
@@ -4051,7 +4067,7 @@ export class ProjectTaskDetailComponent {
             },
             error: (err) => {
                 this.isSaving = false;
-                this.notification.error(NOTIFICATION_TITLE.error, err.message || err.error?.message || 'Lưu thất bại. Vui lòng thử lại.');
+                this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || err.message || 'Lưu thất bại. Vui lòng thử lại.');
                 console.error('Auto-save failed', err);
             }
         });

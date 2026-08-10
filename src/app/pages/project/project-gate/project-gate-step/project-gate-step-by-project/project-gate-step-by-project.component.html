@@ -166,16 +166,19 @@
               class="gate-node-card cursor-pointer p-2 rounded border shadow-sm transition-all text-center position-relative flex-fill"
               [class.border-primary]="selectedSummaryGateId === gate.gateId"
               [class.bg-primary-subtle]="selectedSummaryGateId === gate.gateId"
-              [class.border-success]="selectedSummaryGateId !== gate.gateId && gate.progress === 100"
-              [class.bg-success-subtle]="selectedSummaryGateId !== gate.gateId && gate.progress === 100"
-              [class.bg-white]="selectedSummaryGateId !== gate.gateId && gate.progress < 100"
+              [class.border-danger]="selectedSummaryGateId !== gate.gateId && gate.isDelayed"
+              [class.bg-danger-subtle]="selectedSummaryGateId !== gate.gateId && gate.isDelayed"
+              [class.border-success]="selectedSummaryGateId !== gate.gateId && !gate.isDelayed && gate.progress === 100"
+              [class.bg-success-subtle]="selectedSummaryGateId !== gate.gateId && !gate.isDelayed && gate.progress === 100"
+              [class.bg-white]="selectedSummaryGateId !== gate.gateId && !gate.isDelayed && gate.progress < 100"
               (click)="selectSummaryGate(gate.gateId)"
               style="min-width: 90px; max-width: 150px; padding: 6px 4px !important; transition: all 0.2s;">
 
               <div class="fw-bold text-truncate text-uppercase fs-12 mb-1"
                 [class.text-primary]="selectedSummaryGateId === gate.gateId"
-                [class.text-success]="selectedSummaryGateId !== gate.gateId && gate.progress === 100"
-                [class.text-dark]="selectedSummaryGateId !== gate.gateId && gate.progress < 100">
+                [class.text-danger]="selectedSummaryGateId !== gate.gateId && gate.isDelayed"
+                [class.text-success]="selectedSummaryGateId !== gate.gateId && !gate.isDelayed && gate.progress === 100"
+                [class.text-dark]="selectedSummaryGateId !== gate.gateId && !gate.isDelayed && gate.progress < 100">
                 {{ gate.gateCode }}
               </div>
 
@@ -286,9 +289,12 @@
                     @for (step of dept.steps; track step.stepLinkId) {
                     <li
                       class="list-group-item p-2 border rounded d-flex flex-column gap-1 mb-1 cursor-pointer transition-all"
-                      [class.bg-success-subtle]="step.isApproved && selectedStepDetail?.stepLinkId !== step.stepLinkId"
-                      [class.border-success-subtle]="step.isApproved && selectedStepDetail?.stepLinkId !== step.stepLinkId"
-                      [class.bg-light-subtle]="!step.isApproved && selectedStepDetail?.stepLinkId !== step.stepLinkId"
+                      [class.bg-danger-subtle]="step.isDelayed && selectedStepDetail?.stepLinkId !== step.stepLinkId"
+                      [class.border-danger]="step.isDelayed && selectedStepDetail?.stepLinkId !== step.stepLinkId"
+                      [class.text-danger-emphasis]="step.isDelayed && selectedStepDetail?.stepLinkId !== step.stepLinkId"
+                      [class.bg-success-subtle]="!step.isDelayed && step.isApproved && selectedStepDetail?.stepLinkId !== step.stepLinkId"
+                      [class.border-success-subtle]="!step.isDelayed && step.isApproved && selectedStepDetail?.stepLinkId !== step.stepLinkId"
+                      [class.bg-light-subtle]="!step.isDelayed && !step.isApproved && selectedStepDetail?.stepLinkId !== step.stepLinkId"
                       [class.border-primary]="selectedStepDetail?.stepLinkId === step.stepLinkId"
                       [class.bg-primary-subtle]="selectedStepDetail?.stepLinkId === step.stepLinkId"
                       (click)="selectStepDetail(step, dept)"
@@ -304,6 +310,11 @@
                             style="font-size: 9px; padding: 2px 4px;">
                             Đã duyệt
                           </span>
+                          } @else if (step.isDelayed) {
+                          <span class="badge bg-danger text-white border border-danger"
+                            style="font-size: 9px; padding: 2px 4px;">
+                            Quá hạn
+                          </span>
                           } @else {
                           <span class="badge bg-danger-subtle text-danger border border-danger"
                             style="font-size: 9px; padding: 2px 4px;">
@@ -314,7 +325,11 @@
                       </div>
                       <div class="d-flex align-items-center justify-content-between text-muted mt-1"
                         style="font-size: 10px;">
-                        <span>Bắt đầu: {{ step.startDate ? (step.startDate | date:'dd/MM/yyyy') : '---' }}</span>
+                        <span>
+                          <i class="fa-regular fa-calendar me-1"></i>
+                          {{ step.planEndDate ? 'Hạn: ' + (step.planEndDate | date:'dd/MM/yyyy') : (step.startDate ?
+                          'Bắt đầu: ' + (step.startDate | date:'dd/MM/yyyy') : '---') }}
+                        </span>
                         <span>Checklist: <strong>{{ step.passedChecklists }}/{{ step.totalChecklists }}</strong></span>
                       </div>
                     </li>
@@ -1041,11 +1056,15 @@
               <input type="date" nz-input nzSize="small" class="text-center w-100 input-date" style="font-size: 12px;"
                 [class.input-invalid]="isStartDateInvalid(item)" [(ngModel)]="item.StartDate"
                 (ngModelChange)="onStartDateValueChange(item, activeProjectTypeId + '_' + activeDepartmentId)"
+                [min]="getMinStartDate(item, activeProjectTypeId + '_' + activeDepartmentId)"
+                [max]="getMaxStartDate(item, activeProjectTypeId + '_' + activeDepartmentId)"
                 [disabled]="isStepPassed(item)" />
             </td>
             <td style="width: 120px; text-align: center;">
               <input type="date" nz-input nzSize="small" class="text-center w-100 input-date" style="font-size: 12px;"
                 [(ngModel)]="item.DateEnd" (ngModelChange)="onDateEndValueChange(item)"
+                [min]="getMinDateEnd(item, activeProjectTypeId + '_' + activeDepartmentId)"
+                [max]="getMaxDateEnd(item, activeProjectTypeId + '_' + activeDepartmentId)"
                 [disabled]="isStepPassed(item)" />
             </td>
             <td style="width: 80px; text-align: center;">

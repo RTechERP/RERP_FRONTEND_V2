@@ -16,6 +16,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { ProductsaleServiceService } from '../product-sale-service/product-sale-service.service';
 import { FirmDetailComponent } from '../firm-detail/firm-detail.component';
 import { LocationDetailComponent } from '../location-detail/location-detail.component';
@@ -92,6 +93,7 @@ function inStringListValidator(getList: () => any[], key: string): ValidatorFn {
     NzFormModule,
     NzInputNumberModule,
     NzCheckboxModule,
+    NzModalModule,
     HasPermissionDirective
   ],
   templateUrl: './product-sale-detail.component.html',
@@ -131,6 +133,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
 
   constructor(
     private notification: NzNotificationService,
+    private nzModal: NzModalService,
     private fb: FormBuilder,
     public activeModal: NgbActiveModal,
     private modalService: NgbModal,
@@ -291,6 +294,28 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
         const data = res?.data || (res?.status === 1 ? res?.data : res);
 
         if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+          // Kiểm tra thiếu thông tin: tên, đơn vị, hãng
+          const nameVal = (data.ProductName ?? data.productName ?? '').toString().trim();
+          const unitVal = (data.Unit ?? data.unit ?? '').toString().trim();
+          const makerVal = (data.Maker ?? data.maker ?? '').toString().trim();
+
+          const missingFields: string[] = [];
+          if (!nameVal) missingFields.push('Tên sản phẩm');
+          if (!unitVal) missingFields.push('Đơn vị');
+          if (!makerVal) missingFields.push('Hãng');
+
+          if (missingFields.length > 0) {
+            const apiGroupId = data.ProductGroupID ?? data.productGroupID ?? this.formGroup.get('ProductGroupID')?.value;
+            const matchedGroup = this.listProductGroupcbb.find((x: any) => x.ID === apiGroupId || x.ProductGroupID === apiGroupId);
+            const groupName = matchedGroup ? (matchedGroup.displayName || matchedGroup.ProductGroupName || apiGroupId) : (apiGroupId || 'chưa xác định');
+            const codeVal = (data.ProductCode ?? data.productCode ?? productCode).toString().trim();
+
+            this.nzModal.warning({
+              nzTitle: NOTIFICATION_TITLE.warning || 'Thông báo',
+              nzContent: `Mã sản phẩm "${codeVal}" tại loại kho "${groupName}" đang thiếu các trường: <b>${missingFields.join(', ')}</b>. Cần cập nhật mã sản phẩm này trước khi thêm sản phẩm mới tương ứng.`
+            });
+          }
+
           const patchData: any = {};
 
           if (data.ProductName !== undefined) patchData.ProductName = data.ProductName;
@@ -300,25 +325,33 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
           else if (data.unit !== undefined) patchData.Unit = data.unit;
 
           const makerName = data.Maker ?? data.maker;
-          if (makerName) {
+          if (makerName !== undefined && makerName !== null) {
             const matchedFirm = this.listFirm.find((f: any) => f.FirmName?.trim().toLowerCase() === String(makerName).trim().toLowerCase());
             patchData.Maker = matchedFirm ? matchedFirm.FirmName : makerName;
           }
 
-          // Loại kho (ProductGroupID): chỉ load khi chưa được chọn
+          // Loại kho (ProductGroupID): chỉ load từ API khi người dùng chưa chọn nhóm kho
           const currentGroupId = this.formGroup.get('ProductGroupID')?.value;
-          if (!currentGroupId) {
+          if (!currentGroupId || currentGroupId <= 0) {
             const apiGroupId = data.ProductGroupID ?? data.productGroupID;
             if (apiGroupId !== undefined && apiGroupId !== null) {
               patchData.ProductGroupID = apiGroupId;
             }
           }
 
+          const apiLocationId = data.LocationID ?? data.locationID;
+          if (apiLocationId !== undefined && apiLocationId !== null) {
+            patchData.LocationID = apiLocationId;
+          }
+
           if (data.Note !== undefined) patchData.Note = data.Note;
           else if (data.note !== undefined) patchData.Note = data.note;
 
-          if (data.IsFix !== undefined) patchData.IsFix = data.IsFix;
-          else if (data.isFix !== undefined) patchData.IsFix = data.isFix;
+          // Tích xanh (IsFix): load giá trị tích xanh từ sản phẩm nếu có
+          const apiFix = data.IsFix ?? data.isFix;
+          if (apiFix !== undefined && apiFix !== null) {
+            patchData.IsFix = apiFix === true || apiFix === 1 || apiFix === 'true' || apiFix === '1';
+          }
 
           // if (data.NumberInStoreDauky !== undefined) patchData.NumberInStoreDauky = data.NumberInStoreDauky;
           // else if (data.numberInStoreDauky !== undefined) patchData.NumberInStoreDauky = data.numberInStoreDauky;
@@ -354,8 +387,91 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const formValue = this.formGroup.getRawValue(); // Sử dụng getRawValue() để lấy cả disabled controls
+    const formValue = this.formGroup.getRawValue();
+    const productCode = (formValue.ProductCode || '').toString().trim();
 
+    if (!productCode) {
+      this.executeSaveProductSale(formValue);
+      return;
+    }
+
+    this.isSaving = true;
+    this.productsaleService.getInforProduct(productCode).subscribe({
+      next: (res) => {
+        const data = res?.data || (res?.status === 1 ? res?.data : res);
+
+        if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+          const apiName = (data.ProductName ?? data.productName ?? '').toString().trim();
+          const apiFix = !!(data.IsFix ?? data.isFix);
+          const apiApproved = !!(data.IsApproved ?? data.isApproved);
+          const apiUnit = (data.Unit ?? data.unit ?? '').toString().trim();
+          const apiMaker = (data.Maker ?? data.maker ?? '').toString().trim();
+
+          const formName = (formValue.ProductName || '').toString().trim();
+          const formUnit = (formValue.Unit || '').toString().trim();
+          const formMaker = (formValue.Maker || '').toString().trim();
+
+          const apiGroupId = data.ProductGroupID ?? data.productGroupID;
+          const matchedGroup = this.listProductGroupcbb.find(
+            (x: any) =>
+              x.ID === apiGroupId ||
+              x.ProductGroupID === apiGroupId ||
+              String(x.ProductGroupID).toLowerCase() === String(apiGroupId).toLowerCase() ||
+              String(x.ID) === String(apiGroupId)
+          );
+          const isSameGroup =
+            apiGroupId !== undefined &&
+            apiGroupId !== null &&
+            (formValue.ProductGroupID === apiGroupId ||
+              (matchedGroup && matchedGroup.ID === formValue.ProductGroupID));
+
+          // 1. Trường hợp sản phẩm lấy lên có IsFix hoặc IsApproved là true -> Bắt buộc dùng nút mũi tên để map các trường (trừ mã nhóm)
+          if (apiFix || apiApproved) {
+            const isNameMismatch = apiName && formName.toLowerCase() !== apiName.toLowerCase();
+            const isUnitMismatch = apiUnit && formUnit.toLowerCase() !== apiUnit.toLowerCase();
+            const isMakerMismatch = apiMaker && formMaker.toLowerCase() !== apiMaker.toLowerCase();
+            const isFixMismatch = apiFix && !formValue.IsFix;
+
+            const isMismatch = isNameMismatch || isUnitMismatch || isMakerMismatch || isFixMismatch;
+
+            if (isMismatch) {
+              this.isSaving = false;
+              this.nzModal.warning({
+                nzTitle: NOTIFICATION_TITLE.warning || 'Thông báo',
+                nzContent: 'Thông tin sản phẩm đang không đúng! Vui lòng chọn nút mũi tên <i class="fas fa-circle-up text-primary me-1"></i> bên cạnh Mã thiết bị để cập nhật thông tin sản phẩm tương ứng.'
+              });
+              return;
+            }
+          } else {
+            // 2. Trường hợp cả IsFix và IsApproved đều false: nếu thêm mới ở loại kho khác thì hỏi xác nhận
+            if (!isSameGroup) {
+              this.nzModal.confirm({
+                nzTitle: 'Xác nhận',
+                nzContent: `Mã sản phẩm "<b>${productCode}</b>" đã tồn tại ở loại kho khác. Bạn có chắc chắn muốn lưu thông tin không?`,
+                nzOkText: 'Đồng ý',
+                nzCancelText: 'Hủy',
+                nzOnOk: () => {
+                  this.executeSaveProductSale(formValue);
+                },
+                nzOnCancel: () => {
+                  this.isSaving = false;
+                }
+              });
+              return;
+            }
+          }
+        }
+
+        this.executeSaveProductSale(formValue);
+      },
+      error: (err) => {
+        console.error('Lỗi khi kiểm tra thông tin sản phẩm:', err);
+        this.executeSaveProductSale(formValue);
+      }
+    });
+  }
+
+  private executeSaveProductSale(formValue: any) {
     // Tìm FirmID dựa trên Maker được chọn
     const selectedFirm = this.listFirm.find((f: any) => f.FirmName === formValue.Maker);
     const firmId = selectedFirm ? selectedFirm.ID : 0;
@@ -363,19 +479,13 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     const location = this.listLocation.find((p: any) => p.ID === formValue.LocationID);
     const addressbox = location ? location.LocationName : '';
 
-    // Tìm UnitName dựa trên UnitCode được chọn
-    //const selectedUnit = this.listUnitCount.find((u: any) => u.UnitName === formValue.Unit);
     const unitName = formValue.Unit || '';
-
-    // Đảm bảo IsFix có giá trị mặc định là false nếu không có
     const isFix = formValue.IsFix !== null && formValue.IsFix !== undefined ? formValue.IsFix : false;
 
     if (this.isCheckmode == true) {
       // Update existing product sale
-
       const payload = [{
         ProductSale: {
-          //ID: this.selectedList[0].ID,
           ID: this.id,
           ProductCode: formValue.ProductCode,
           ProductName: formValue.ProductName,
@@ -402,14 +512,13 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
           if (res.status === 1) {
             this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
             this.activeModal.dismiss(true);
-
           } else {
             this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể cập nhật sản phẩm!');
           }
         },
         error: (err) => {
           this.isSaving = false;
-          this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message|| err || 'Có lỗi xảy ra khi cập nhật!' );
+          this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message || err || 'Có lỗi xảy ra khi cập nhật!');
           console.error(err);
         }
       });
@@ -438,7 +547,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
           Note: formValue.Note,
         }
       }];
-      console.log("payload", payload);
+
       this.isSaving = true;
       this.productsaleService.saveDataProductSale(payload).subscribe({
         next: (res) => {
@@ -452,7 +561,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           this.isSaving = false;
-          this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message|| err || 'Có lỗi xảy ra khi thêm mới!' );
+          this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message || err || 'Có lỗi xảy ra khi thêm mới!');
           console.error(err);
         }
       });

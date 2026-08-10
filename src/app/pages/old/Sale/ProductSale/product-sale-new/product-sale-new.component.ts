@@ -1419,7 +1419,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                                 'Đã xóa thành công!'
                             );
                             this.idSale = 0;
-                            this.getDataProductSaleByIDgroup(this.id);
+                            this.getdataFind();
                         } else {
                             this.notification.warning(
                                 'Thông báo',
@@ -1482,9 +1482,18 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
         modalRef.componentInstance.selectedList = this.selectedList;
         modalRef.componentInstance.id = this.idSale;
 
-        modalRef.result.catch((result) => {
-            this.getDataProductSaleByIDgroup(this.id);
-        });
+        modalRef.result.then(
+            (result) => {
+                if (result === true) {
+                    this.getdataFind();
+                }
+            },
+            (reason) => {
+                if (reason === true) {
+                    this.getdataFind();
+                }
+            }
+        );
     }
 
     openModalForNewProductSale() {
@@ -1514,12 +1523,18 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
         });
         modalRef.componentInstance.id = this.id;
 
-        modalRef.result.catch((result) => {
-            if (result === true) {
-                this.getProductGroup();
-                this.getDataProductSaleByIDgroup(this.id);
+        modalRef.result.then(
+            (result) => {
+                if (result === true) {
+                    this.getdataFind();
+                }
+            },
+            (reason) => {
+                if (reason === true) {
+                    this.getdataFind();
+                }
             }
-        });
+        );
     }
 
     //#endregion

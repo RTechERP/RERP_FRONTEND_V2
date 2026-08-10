@@ -23,7 +23,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { environment } from '../../../../../../environments/environment';
 @Component({
   selector: 'app-import-excel-product-sale',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, NzProgressModule, NzIconModule, NzButtonModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, NzProgressModule, NzIconModule, NzButtonModule, NzModalModule],
   templateUrl: './import-excel-product-sale.component.html',
   styleUrl: './import-excel-product-sale.component.css'
 })
@@ -63,7 +63,8 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modalService: NgbModal,
     private productsaleService: ProductsaleServiceService,
-    private http: HttpClient
+    private http: HttpClient,
+    private nzModal: NzModalService
   ) { }
 
   ngOnInit(): void {
@@ -410,7 +411,6 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
   }
 
   saveExcelData() {
-
     if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
       console.log('Không có dữ liệu để lưu.');
@@ -420,7 +420,6 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
     // Lọc dữ liệu để chỉ lấy các dòng có STT là số để xử lý lưu
     const validDataToSave = this.dataTableExcel.filter(row => {
       const stt = row.STT;
-      // Kiểm tra nếu STT là kiểu số hoặc chuỗi có thể chuyển đổi thành số
       return typeof stt === 'number' || (typeof stt === 'string' && !isNaN(parseFloat(stt as string)) && isFinite(parseFloat(stt as string)));
     });
 
@@ -429,57 +428,117 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
 
     if (validDataToSave.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ (STT là số) để lưu!');
-      console.log('Không có dữ liệu hợp lệ (STT là số) để lưu.');
       this.displayProgress = 0;
       this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
       return;
     }
 
-    // Reset tiến trình cho giai đoạn lưu dữ liệu
-    this.processedRowsForSave = 0;
-    const totalProductsToSave = validDataToSave.length;
-    this.displayText = `Đang lưu: 0/${totalProductsToSave} bản ghi`;
-    this.displayProgress = 0;
-
-    // Map dữ liệu để truyền tên thay vì ID - backend sẽ tự tìm và update
-    // Backend nhận ProductSaleImportExcelDTO với các trường: ProductGroupNo, ProductGroupName, FirmName, UnitName, LocationName
+    // Map dữ liệu để truyền tên thay vì ID
     const processedData = validDataToSave.map((row) => {
-      // Lấy ProductGroupNo từ row
       const productGroupNo = row.ProductGroupNo || '';
-
-      // Lấy ProductGroupName từ row (có thể là ProductGroup hoặc ProductGroupName)
       const productGroupName = row.ProductGroupName || row.ProductGroup || '';
-
-      // Lấy FirmName từ row.Maker
       const firmName = row.Maker || '';
-
-      // Lấy UnitName từ row.Unit
       const unitName = row.Unit || '';
-
-      // Lấy LocationName từ row.AddressBox
       const locationName = row.AddressBox || '';
 
-      // Tạo object ProductSaleImportExcelDTO với các trường tên thay vì ID
-      const productSaleImportDTO = {
+      return {
         ProductCode: row.ProductCode || '',
         ProductName: row.ProductName || '',
-        ProductGroupNo: productGroupNo,      // Mã nhóm
-        ProductGroupName: productGroupName,  // Tên nhóm - backend sẽ tự tìm ProductGroupID
+        ProductGroupNo: productGroupNo,
+        ProductGroupName: productGroupName,
         ProductGroupTypeNo: row.ProductGroupTypeNo || '',
         ProductGroupTypeName: row.ProductGroupTypeName || '',
-        FirmName: firmName,                  // Tên hãng - backend sẽ tự tìm FirmID
-        UnitName: unitName,                  // Tên đơn vị - backend sẽ tự tìm Unit
-        LocationName: locationName,          // Tên vị trí - backend sẽ tự tìm LocationID
+        FirmName: firmName,
+        UnitName: unitName,
+        LocationName: locationName,
         Note: row.Note || ''
       };
-
-      return productSaleImportDTO;
     });
 
-    console.log('Dữ liệu gửi đi (đã map tên thay vì ID):', processedData);
+    console.log('Dữ liệu gửi đi kiểm tra:', processedData);
 
-    // Gọi BULK API và hiển thị đúng message trả về từ backend
     this.isSavingData = true;
+    this.displayText = 'Đang kiểm tra dữ liệu...';
+    this.displayProgress = 0;
+
+    // 1. Gọi API validateDataProductSaleExcel để check dữ liệu
+    this.productsaleService.validateDataProductSaleExcel(processedData).subscribe({
+      next: (res: any) => {
+        if (res?.status === 1 || res?.success || res?.data) {
+          const data = res?.data || {};
+          const existingList = data.ExistingList || data.existingList || [];
+          const existingApprovedList = data.ExistingApprovedList || data.existingApprovedList || [];
+          const existingNotApprovedList = data.ExistingNotApprovedList || data.existingNotApprovedList || [];
+
+          const getCodes = (list: any[]): string => {
+            const rawCodes = list
+              .map((x: any) => (x.ProductCode || x.productCode || (typeof x === 'string' ? x : '')).toString().trim())
+              .filter((x: string) => x.length > 0);
+            return Array.from(new Set(rawCodes)).join(', ');
+          };
+
+          // - Nếu existingList có dữ liệu: báo mã đã tồn tại trong nhóm tương ứng
+          if (existingList && existingList.length > 0) {
+            this.isSavingData = false;
+            const codes = getCodes(existingList);
+            this.notification.warning(
+              'Thông báo',
+              `Các mã sản phẩm [${codes || existingList.length + ' mã'}] đã tồn tại trong nhóm tương ứng! Vui lòng kiểm tra lại.`
+            );
+            return;
+          }
+
+          // - Nếu existingApprovedList có dữ liệu: báo sản phẩm đã được duyệt nhưng thông tin hiện tại chưa đúng
+          if (existingApprovedList && existingApprovedList.length > 0) {
+            this.isSavingData = false;
+            const approvedCodes = getCodes(existingApprovedList);
+            this.notification.warning(
+              'Thông báo',
+              `Các sản phẩm [${approvedCodes || existingApprovedList.length + ' sản phẩm'}] đã được duyệt/tích xanh nhưng thông tin hiện tại chưa đúng. Vui lòng kiểm tra lại!`
+            );
+            return;
+          }
+
+          // - Nếu existingNotApprovedList có dữ liệu (và 2 list kia rỗng): thông báo và hỏi người dùng có muốn lưu không
+          if (existingNotApprovedList && existingNotApprovedList.length > 0) {
+            const notApprovedCodes = getCodes(existingNotApprovedList);
+            this.nzModal.confirm({
+              nzTitle: 'Xác nhận lưu dữ liệu',
+              nzContent: `Các sản phẩm [${notApprovedCodes || existingNotApprovedList.length + ' sản phẩm'}] đã tồn tại ở kho khác và chưa được duyệt/tích xanh. Bạn có chắc chắn muốn lưu thông tin không?`,
+              nzOkText: 'Đồng ý',
+              nzCancelText: 'Hủy',
+              nzOnOk: () => {
+                this.executeSaveExcelData(processedData);
+              },
+              nzOnCancel: () => {
+                this.isSavingData = false;
+              }
+            });
+            return;
+          }
+
+          // - Cả 3 list đều không có dữ liệu -> lưu trực tiếp
+          this.executeSaveExcelData(processedData);
+        } else {
+          // Trường hợp status false không có data: báo lỗi bình thường
+          this.isSavingData = false;
+          this.notification.error('Thông báo', res?.message || 'Có lỗi xảy ra khi kiểm tra dữ liệu!');
+        }
+      },
+      error: (err: any) => {
+        this.isSavingData = false;
+        const msg = err?.error?.message || err?.message || 'Có lỗi xảy ra khi kiểm tra dữ liệu.';
+        this.notification.error('Thông báo', msg);
+      }
+    });
+  }
+
+  private executeSaveExcelData(processedData: any[]) {
+    this.isSavingData = true;
+    this.processedRowsForSave = 0;
+    this.displayText = `Đang lưu: 0/${processedData.length} bản ghi`;
+    this.displayProgress = 0;
+
     this.productsaleService.saveDataProductSaleExcel(processedData).subscribe({
       next: (res: any) => {
         const successCount = res?.data?.successCount ?? 0;

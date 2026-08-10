@@ -101,6 +101,7 @@ export class ProductsaleServiceService {
   saveDataProductSaleExcel(data: any) {
     return this.httpclient.post<any>(`${this.baseUrl}/save-data-excel`, data);
   }
+  
   getDataProductSalebyID(id: number) {
     return this.httpclient.get<any>(`${this.baseUrl}/` + id);
   }
@@ -165,5 +166,9 @@ export class ProductsaleServiceService {
 
   getInforProduct(productCode: string) {
     return this.httpclient.get<any>(`${this.baseUrl}/infor-by-product-code?productCode=` + productCode);
+  }
+
+  validateDataProductSaleExcel(data: any) {
+    return this.httpclient.post<any>(`${this.baseUrl}/validate-data-excel`, data);
   }
 }

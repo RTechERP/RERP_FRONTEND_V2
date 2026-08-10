@@ -75,4 +75,21 @@ export class ListProductProjectService {
   getCustomers(): Observable<any> {
     return this.http.get(environment.host + `api/Customer/get-customers`);
   }
+  getDataReturnInventory(
+    projectCode: string,
+    projectID: number,
+    warehousecode: string,
+    productGroupID: string = ''
+  ): Observable<any> {
+    const params: any = {
+      projectId: projectID,
+      projectCode: projectCode,
+      WarehouseCode: warehousecode,
+      ProductGroupID: productGroupID,
+    };
+    return this.http.post(
+      environment.host + `api/BillExport/get-returned-inventory-product`,
+      params
+    );
+  }
 }

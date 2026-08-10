@@ -42,7 +42,7 @@
                     <nz-form-control>
                         <nz-select name="employeeId" [(ngModel)]="employeeId" nzSize="small" style="width: 200px"
                             nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear
-                            nzPlaceHolder="--Chọn nhân viên--" [nzDisabled]="!isTBP">
+                            nzPlaceHolder="--Chọn nhân viên--">
                             <ng-container *ngFor="let group of employees">
                                 <nz-option-group [nzLabel]="group.label">
                                     <nz-option *ngFor="let option of group.options"

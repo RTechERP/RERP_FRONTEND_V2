@@ -14,7 +14,7 @@
 
           <div class="filter-item">
             <label class="filter-label">Mẫu KPI</label>
-            <nz-select nzSize="small" [(ngModel)]="selectedTemplateId" nzShowSearch style="width: 240px;">
+            <nz-select nzSize="small" [(ngModel)]="selectedTemplateId" nzShowSearch style="width: 240px;" nzDisabled>
               <nz-option *ngFor="let t of templates" [nzValue]="t.id" [nzLabel]="t.templateName"></nz-option>
             </nz-select>
           </div>

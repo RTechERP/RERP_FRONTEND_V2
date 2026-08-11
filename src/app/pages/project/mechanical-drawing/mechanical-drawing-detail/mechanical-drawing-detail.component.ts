@@ -177,6 +177,22 @@ export class MechanicalDrawingDetailComponent implements OnInit, OnDestroy {
         return lastDot > 0 ? fileName.substring(0, lastDot) : fileName;
     }
 
+    /**
+     * Trích tên bản vẽ từ tên file để auto-fill khi thêm mới.
+     * Ví dụ: "RTC1.26.017-DR-3D-GP1 (Băng tải load-unload khay).html"
+     *        -> "Băng tải load-unload khay"
+     * Nếu tên file không có dấu (), fallback về tên file (bỏ đuôi mở rộng).
+     */
+    private extractDrawingNameFromFileName(fileName: string): string {
+        const nameWithoutExt = this.getFileNameWithoutExtension(fileName);
+        const matches = [...nameWithoutExt.matchAll(/\(([^()]+)\)/g)];
+        if (matches.length > 0) {
+            const lastMatch = matches[matches.length - 1][1].trim();
+            if (lastMatch) return lastMatch;
+        }
+        return nameWithoutExt;
+    }
+
     private isHtmlFile(fileName: string): boolean {
         const ext = fileName.split('.').pop()?.toLowerCase();
         return ext === 'html' || ext === 'htm';
@@ -216,10 +232,13 @@ export class MechanicalDrawingDetailComponent implements OnInit, OnDestroy {
         this.pendingThumbnailBase64 = null;
         this.capturedThumbnailPreview = null;
 
-        // Khi thêm mới (không phải sửa): tự động điền tên bản vẽ theo tên file (bỏ đuôi mở rộng).
+        // Khi thêm mới (không phải sửa): tự động điền tên bản vẽ.
+        // Ưu tiên lấy phần text trong dấu () của tên file (VD: "...-GP1 (Băng tải load-unload khay).html"
+        // -> "Băng tải load-unload khay"). Nếu không có (), fallback về tên file bỏ đuôi mở rộng.
         // Người dùng vẫn có thể sửa lại sau đó tùy ý.
         if (!this.isEditMode) {
-            this.model.Name = this.getFileNameWithoutExtension(file.name);
+            this.model.Name = this.extractDrawingNameFromFileName(file.name);
+            this.notification.info('Thông báo', 'Đã ghi đè tên bản vẽ theo tệp đính kèm');
         }
 
         this.previewSelectedFile(file);

@@ -509,6 +509,11 @@ export class BillImportDetailNewComponent
 
     private initializeFormData(): void {
         if (this.isReturnedInventory) {
+            // Chụp lại KhoTypeID ngay từ đầu: changeSuplierSale() bên dưới patch RulePayID có emit,
+            // trigger subscription validateForm.valueChanges -> merge form value (KhoTypeID vẫn đang
+            // là 0 mặc định lúc này) đè lên this.newBillImport, làm KhoTypeID bị về 0 trước khi patch.
+            const khoTypeId = this.newBillImport?.KhoTypeID;
+
             // Luồng nhập lại kho (từ tồn kho trả về / yêu cầu xuất kho) luôn ở trạng thái "Yêu cầu nhập kho"
             this.initialBillTypeNew = 4;
             this.isInitialLoad = false;
@@ -524,12 +529,12 @@ export class BillImportDetailNewComponent
                 { emitEvent: false }
             );
             this.changeSuplierSale();
-            if (this.newBillImport?.KhoTypeID) {
+            if (khoTypeId) {
                 this.validateForm.patchValue(
-                    { KhoTypeID: this.newBillImport.KhoTypeID },
+                    { KhoTypeID: khoTypeId },
                     { emitEvent: false }
                 );
-                this.changeProductGroup(this.newBillImport.KhoTypeID);
+                this.changeProductGroup(khoTypeId);
             }
             return;
         }
@@ -2196,9 +2201,19 @@ export class BillImportDetailNewComponent
         // });
         this.productSaleService.getdataProductGroupNew(this.warehouseID, false, true).subscribe({
             next: (res: any) => {
-                this.dataCbbProductGroup = res.data?.data1?.filter(
-                    (x: any) => x.Isvisible != false && x.ParentID == 0
-                        || x.ParentID == null || x.ParentID == undefined
+                const allGroups = res.data?.data1 || [];
+                // Luồng nhập lại kho: KhoTypeID được gán sẵn từ dữ liệu nguồn (có thể là nhóm con,
+                // ParentID khác 0), không phải người dùng tự chọn, nên không lọc theo ParentID
+                // ở đây kẻo nhóm đó bị loại khỏi danh sách và Loại kho hiển thị trống.
+                this.dataCbbProductGroup = this.isReturnedInventory
+                    ? allGroups
+                    : allGroups.filter(
+                        (x: any) => x.Isvisible != false && x.ParentID == 0
+                            || x.ParentID == null || x.ParentID == undefined
+                    );
+                console.log(
+                    '[BillImportDetail] dataCbbProductGroup loaded',
+                    { isReturnedInventory: this.isReturnedInventory, count: this.dataCbbProductGroup?.length, KhoTypeIDForm: this.validateForm.get('KhoTypeID')?.value }
                 );
             },
             error: (err: any) => {

@@ -490,10 +490,11 @@ export class ProjectControlDashboardViewComponent implements OnInit {
     });
 
     this.gateChartOptions = {
+      textStyle: { fontFamily: '"Be Vietnam Pro", sans-serif' },
       title: {
         text: 'Thống kê Dự án theo Gate',
         left: 'left',
-        textStyle: { fontSize: 14, fontWeight: 'bold', color: '#1f2937' }
+        textStyle: { fontFamily: '"Be Vietnam Pro", sans-serif', fontSize: 14, fontWeight: 'bold', color: '#1f2937' }
       },
       tooltip: {
         trigger: 'axis',
@@ -519,12 +520,12 @@ export class ProjectControlDashboardViewComponent implements OnInit {
       xAxis: {
         type: 'category',
         data: xData,
-        axisLabel: { interval: 0, fontSize: 11, fontWeight: '600', color: '#4b5563' }
+        axisLabel: { interval: 0, fontSize: 11, fontWeight: '600', color: '#4b5563', fontFamily: '"Be Vietnam Pro", sans-serif' }
       },
       yAxis: {
         type: 'value',
         minInterval: 1,
-        axisLabel: { color: '#6b7280' }
+        axisLabel: { color: '#6b7280', fontFamily: '"Be Vietnam Pro", sans-serif' }
       },
       series: [
         {
@@ -540,7 +541,8 @@ export class ProjectControlDashboardViewComponent implements OnInit {
             show: true,
             position: 'top',
             color: '#1e40af',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            fontFamily: '"Be Vietnam Pro", sans-serif'
           }
         }
       ]
@@ -555,10 +557,11 @@ export class ProjectControlDashboardViewComponent implements OnInit {
     }));
 
     this.projectTypeChartOptions = {
+      textStyle: { fontFamily: '"Be Vietnam Pro", sans-serif' },
       title: {
         text: 'Phân loại Dự án theo Loại',
         left: 'left',
-        textStyle: { fontSize: 14, fontWeight: 'bold', color: '#1f2937' }
+        textStyle: { fontFamily: '"Be Vietnam Pro", sans-serif', fontSize: 14, fontWeight: 'bold', color: '#1f2937' }
       },
       tooltip: {
         trigger: 'item',
@@ -581,7 +584,7 @@ export class ProjectControlDashboardViewComponent implements OnInit {
         orient: 'vertical',
         right: '5%',
         top: 'center',
-        textStyle: { fontSize: 11, color: '#4b5563' }
+        textStyle: { fontSize: 11, color: '#4b5563', fontFamily: '"Be Vietnam Pro", sans-serif' }
       },
       color: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'],
       series: [
@@ -603,7 +606,8 @@ export class ProjectControlDashboardViewComponent implements OnInit {
             label: {
               show: true,
               fontSize: 12,
-              fontWeight: 'bold'
+              fontWeight: 'bold',
+              fontFamily: '"Be Vietnam Pro", sans-serif'
             }
           },
           data: pieData
@@ -619,10 +623,11 @@ export class ProjectControlDashboardViewComponent implements OnInit {
     const completed = (this.summaryData.departmentDistributions || []).map((d: any) => d.completed ?? d.Completed ?? 0);
 
     this.departmentChartOptions = {
+      textStyle: { fontFamily: '"Be Vietnam Pro", sans-serif' },
       title: {
         text: 'Khối lượng Dự án theo Phòng ban',
         left: 'left',
-        textStyle: { fontSize: 14, fontWeight: 'bold', color: '#1f2937' }
+        textStyle: { fontFamily: '"Be Vietnam Pro", sans-serif', fontSize: 14, fontWeight: 'bold', color: '#1f2937' }
       },
       tooltip: {
         trigger: 'axis',
@@ -649,13 +654,13 @@ export class ProjectControlDashboardViewComponent implements OnInit {
       legend: {
         right: '3%',
         top: '2%',
-        textStyle: { fontSize: 11 }
+        textStyle: { fontSize: 11, fontFamily: '"Be Vietnam Pro", sans-serif' }
       },
       grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
       xAxis: {
         type: 'category',
         data: depts,
-        axisLabel: { interval: 0, rotate: 15, fontSize: 10, color: '#4b5563' }
+        axisLabel: { interval: 0, rotate: 15, fontSize: 10, color: '#4b5563', fontFamily: '"Be Vietnam Pro", sans-serif' }
       },
       yAxis: {
         type: 'value',
@@ -683,10 +688,11 @@ export class ProjectControlDashboardViewComponent implements OnInit {
   // 4. Biểu đồ Donut: Đúng tiến độ vs Trễ tiến độ
   private buildStatusDonutChart(): void {
     this.statusChartOptions = {
+      textStyle: { fontFamily: '"Be Vietnam Pro", sans-serif' },
       title: {
         text: 'Tình hình Tiến độ Dự án',
         left: 'left',
-        textStyle: { fontSize: 14, fontWeight: 'bold', color: '#1f2937' }
+        textStyle: { fontFamily: '"Be Vietnam Pro", sans-serif', fontSize: 14, fontWeight: 'bold', color: '#1f2937' }
       },
       tooltip: {
         trigger: 'item',
@@ -709,7 +715,7 @@ export class ProjectControlDashboardViewComponent implements OnInit {
       legend: {
         bottom: '5%',
         left: 'center',
-        textStyle: { fontSize: 11 }
+        textStyle: { fontSize: 11, fontFamily: '"Be Vietnam Pro", sans-serif' }
       },
       color: ['#10b981', '#ef4444'],
       series: [
@@ -723,7 +729,8 @@ export class ProjectControlDashboardViewComponent implements OnInit {
             show: true,
             formatter: '{b}\n{c} ({d}%)',
             fontSize: 11,
-            fontWeight: '600'
+            fontWeight: '600',
+            fontFamily: '"Be Vietnam Pro", sans-serif'
           },
           data: [
             { value: this.summaryData.onTrackCount || 0, name: 'Đúng tiến độ' },

@@ -1,3 +1,41 @@
+/* ===== Force "Be Vietnam Pro" font for all elements in this component ===== */
+:host,
+:host *,
+:host ::ng-deep * {
+  font-family: "Be Vietnam Pro", sans-serif !important;
+}
+
+/* Restore icon font families */
+:host ::ng-deep .pi,
+:host ::ng-deep [class^="pi-"],
+:host ::ng-deep [class*=" pi-"] {
+  font-family: 'primeicons' !important;
+}
+
+:host ::ng-deep .fa,
+:host ::ng-deep .fas,
+:host ::ng-deep .far,
+:host ::ng-deep .fab,
+:host ::ng-deep .fa-solid,
+:host ::ng-deep .fa-regular,
+:host ::ng-deep .fa-brands,
+:host ::ng-deep [class^="fa-"],
+:host ::ng-deep [class*=" fa-"] {
+  font-family: 'Font Awesome 6 Free', 'Font Awesome 6 Brands', 'FontAwesome', sans-serif !important;
+}
+
+:host ::ng-deep .mdi,
+:host ::ng-deep [class^="mdi-"],
+:host ::ng-deep [class*=" mdi-"] {
+  font-family: "Material Design Icons" !important;
+}
+
+:host ::ng-deep .anticon,
+:host ::ng-deep [class^="anticon-"],
+:host ::ng-deep [class*=" anticon-"] {
+  font-family: "anticon" !important;
+}
+
 .fs-12 {
   font-size: 0.75rem;
 }

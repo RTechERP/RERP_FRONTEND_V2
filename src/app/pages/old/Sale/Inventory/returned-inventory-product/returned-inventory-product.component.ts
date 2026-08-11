@@ -820,10 +820,10 @@ export class ReturnedInventoryProductComponent
             modalRef.destroy();
 
             if (groups.length > 1) {
-              this.notification.info(
-                'Thông báo',
-                `Bạn chọn sản phẩm từ ${groups.length} loại kho khác nhau. Hệ thống sẽ tự động mở lần lượt ${groups.length} phiếu nhập (mỗi loại kho 1 phiếu).`,
-              );
+              // this.notification.info(
+              //   'Thông báo',
+              //   `Bạn chọn sản phẩm từ ${groups.length} loại kho khác nhau. Hệ thống sẽ tự động mở lần lượt ${groups.length} phiếu nhập (mỗi loại kho 1 phiếu).`,
+              // );
             }
 
             this.openBillImportSequential(groups, 0, warehouseID);

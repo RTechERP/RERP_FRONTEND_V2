@@ -232,4 +232,8 @@ export class ProjectPartListService {
   checkPartlistConsumable(payload: any[], projectTypeID: number): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/check-partlist-consumable?projectTypeID=${projectTypeID}`, payload);
   }
+
+  getAllProjectPartList(): Observable<any> {
+    return this.http.get<any>(`${this.urlProjectPartList}/project-partlist`);
+  }
 }

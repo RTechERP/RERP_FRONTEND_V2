@@ -1,0 +1,125 @@
+:host {
+  font-size: 12px;
+}
+
+.modal-title {
+  font-size: 13px !important;
+}
+
+/* Set font size 12px across PrimeNG table, inputs, and paginator */
+::ng-deep .p-datatable {
+  font-size: 12px !important;
+}
+
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  font-size: 12px !important;
+  padding: 0.35rem 0.5rem !important;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+  font-size: 12px !important;
+  padding: 0.35rem 0.5rem !important;
+}
+
+::ng-deep .p-columnfilter-input,
+::ng-deep input.p-inputtext,
+::ng-deep .p-inputtext-sm {
+  font-size: 12px !important;
+  padding: 0.2rem 0.5rem !important;
+  height: 28px !important;
+}
+
+/* Fix p-iconfield icon position and input padding */
+::ng-deep .p-iconfield {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+::ng-deep .p-iconfield .p-inputicon,
+::ng-deep .p-iconfield p-inputicon {
+  position: absolute !important;
+  left: 10px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 2 !important;
+  color: #6c757d !important;
+  pointer-events: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 100% !important;
+}
+
+::ng-deep .p-iconfield .p-inputicon i,
+::ng-deep .p-iconfield p-inputicon i,
+::ng-deep .p-iconfield .pi {
+  font-size: 12px !important;
+  line-height: 1 !important;
+}
+
+::ng-deep .p-iconfield input.p-inputtext,
+::ng-deep .p-iconfield input.p-inputtext-sm {
+  padding-left: 28px !important;
+}
+
+
+
+::ng-deep .p-paginator {
+  font-size: 12px !important;
+  padding: 0.25rem !important;
+}
+
+::ng-deep .p-paginator .p-paginator-pages .p-paginator-page,
+::ng-deep .p-paginator .p-paginator-first,
+::ng-deep .p-paginator .p-paginator-prev,
+::ng-deep .p-paginator .p-paginator-next,
+::ng-deep .p-paginator .p-paginator-last {
+  min-width: 24px !important;
+  height: 24px !important;
+  font-size: 12px !important;
+}
+
+::ng-deep .p-dropdown {
+  height: 28px !important;
+  font-size: 12px !important;
+}
+
+::ng-deep .p-dropdown .p-dropdown-label {
+  font-size: 12px !important;
+  padding: 0.2rem 0.5rem !important;
+}
+
+::ng-deep .p-button.p-button-sm {
+  font-size: 12px !important;
+  padding: 0.25rem 0.6rem !important;
+  height: 28px !important;
+}
+
+.badge {
+  font-size: 11px !important;
+  font-weight: 500;
+}
+
+.btn-close-red {
+  background-color: #dc3545 !important;
+  color: white !important;
+  border: none;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.2s;
+}
+
+.btn-close-red:hover {
+  background-color: #bb2d3b !important;
+}
+

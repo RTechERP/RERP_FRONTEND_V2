@@ -718,14 +718,38 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       this.isSaving = false;
       return;
     }
-    // if (!this.currentUser.IsAdmin && currentTableData.length > 0) {
-    //   const excelProjectCode = currentTableData[0]?.OrderCode?.toString()?.trim() || '';
+    // Check: Nếu các mã sản phẩm (ProductCode) giống nhau mà có Mã đặc biệt (SpecialCode) thì các Mã đặc biệt phải giống nhau
+    const productGroupMap = new Map<string, Set<string>>();
+    for (const row of validDataToSave) {
+      const productCode = row.ProductCode?.toString()?.trim() || '';
+      const specialCode = row.SpecialCode?.toString()?.trim() || '';
 
-    //   if (excelProjectCode && excelProjectCode !== this.projectCode.trim()) {
-    //     this.notification.warning('Cảnh báo', 'Không đúng Mã dự án!');
-    //     return;
-    //   }
-    // }
+      if (!productCode) continue;
+
+      if (!productGroupMap.has(productCode)) {
+        productGroupMap.set(productCode, new Set<string>());
+      }
+      if (specialCode) {
+        productGroupMap.get(productCode)!.add(specialCode);
+      }
+    }
+
+    const invalidProductCodes: string[] = [];
+    productGroupMap.forEach((specialCodesSet, productCode) => {
+      if (specialCodesSet.size > 1) {
+        invalidProductCodes.push(productCode);
+      }
+    });
+
+    if (invalidProductCodes.length > 0) {
+      this.notification.error(
+        'Lỗi dữ liệu',
+        `Mã sản phẩm [${invalidProductCodes.join(', ')}] có các Mã đặc biệt không giống nhau. Vui lòng kiểm tra lại!`
+      );
+      this.isSaving = false;
+      return;
+    }
+
     //hàm check validate và check xem có vật tư tích xanh bị khác không
     this.proceedWithImportCheck(validDataToSave);
   }

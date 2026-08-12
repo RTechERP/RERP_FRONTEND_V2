@@ -1,0 +1,100 @@
+<div class="modal-header d-flex justify-content-between align-items-center bg-light px-3 py-2 border-bottom">
+  <h5 class="modal-title font-weight-bold text-primary m-0">
+    <i class="fa fa-list-alt me-2"></i>Danh sách mã đặc biệt
+  </h5>
+  <button type="button" class="btn-close-red" aria-label="Close" (click)="handleClose()">
+    <i class="pi pi-times"></i>
+  </button>
+</div>
+
+<div class="modal-body p-3">
+  <!-- Key word & Action toolbar -->
+  <div class="d-flex justify-content-between align-items-center mb-3 gap-2">
+    <div class="flex-grow-1">
+      <p-iconfield iconPosition="left" class="w-100">
+        <p-inputicon styleClass="pi pi-search"></p-inputicon>
+        <input
+          pInputText
+          type="text"
+          class="w-100 p-inputtext-sm"
+          [(ngModel)]="keyword"
+          (input)="dt.filterGlobal(keyword.trim(), 'contains')"
+          placeholder="Nhập từ khóa tìm kiếm toàn bộ (Mã SP, mã đặc biệt, nhóm vật tư, hãng...)"
+        />
+      </p-iconfield>
+    </div>
+    <div>
+      <p-button label="Tải lại" icon="pi pi-refresh" size="small" [loading]="isLoading" (onClick)="onSearch()"></p-button>
+    </div>
+  </div>
+
+  <!-- PrimeNG Table -->
+  <nz-spin [nzSpinning]="isLoading">
+    <p-table
+      #dt
+      [value]="dataList"
+      [scrollable]="true"
+      scrollHeight="480px"
+      [paginator]="true"
+      [rows]="50"
+      [rowsPerPageOptions]="[20, 50, 100, 200]"
+      [globalFilterFields]="['ProductCode', 'SpecialCode', 'GroupMaterial', 'Manufacturer', 'Unit']"
+      styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
+      class="w-100"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 50px" class="text-center">STT</th>
+          <th pSortableColumn="SpecialCode">Mã đặc biệt <p-sortIcon field="SpecialCode"></p-sortIcon></th>
+          <th pSortableColumn="ProductCode">Mã SP <p-sortIcon field="ProductCode"></p-sortIcon></th>
+          <th pSortableColumn="GroupMaterial">Tên Vật tư <p-sortIcon field="GroupMaterial"></p-sortIcon></th>
+          <th pSortableColumn="Manufacturer">Hãng sản xuất <p-sortIcon field="Manufacturer"></p-sortIcon></th>
+          <th pSortableColumn="Unit">ĐVT <p-sortIcon field="Unit"></p-sortIcon></th>
+        </tr>
+        <tr>
+          <th></th>
+          <th>
+            <p-columnFilter type="text" field="SpecialCode" matchMode="contains" [showMenu]="false" placeholder="Lọc Mã đặc biệt"></p-columnFilter>
+          </th>
+          <th>
+            <p-columnFilter type="text" field="ProductCode" matchMode="contains" [showMenu]="false" placeholder="Lọc Mã SP"></p-columnFilter>
+          </th>
+          <th>
+            <p-columnFilter type="text" field="GroupMaterial" matchMode="contains" [showMenu]="false" placeholder="Lọc Tên Vật tư"></p-columnFilter>
+          </th>
+          <th>
+            <p-columnFilter type="text" field="Manufacturer" matchMode="contains" [showMenu]="false" placeholder="Lọc Hãng"></p-columnFilter>
+          </th>
+          <th>
+            <p-columnFilter type="text" field="Unit" matchMode="contains" [showMenu]="false" placeholder="Lọc ĐVT"></p-columnFilter>
+          </th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+        <tr>
+          <td class="text-center">{{ rowIndex + 1 }}</td>
+          <td class="fw-bold text-primary">{{ item.ProductCode }}</td>
+          <td>
+            <span class="badge bg-info text-dark" *ngIf="item.SpecialCode">{{ item.SpecialCode }}</span>
+          </td>
+          <td>{{ item.GroupMaterial }}</td>
+          <td>{{ item.Manufacturer }}</td>
+          <td>{{ item.Unit }}</td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center p-4 text-muted">Không tìm thấy dữ liệu phù hợp.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </nz-spin>
+</div>
+
+<div class="modal-footer bg-light px-3 py-2 border-top">
+  <p-button label="Đóng" icon="pi pi-times" severity="danger" size="small" (onClick)="handleClose()"></p-button>
+</div>
+
+

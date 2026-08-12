@@ -77,6 +77,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { ActivityLogPartListComponent } from './activity-log-partlist/activity-log-partlist.component';
 import { ProjectPartListHistoryModalComponent } from './project-partlist-history/project-partlist-history.component';
+import { ProjectPartListSpecialCodeComponent } from './project-part-list-special-code/project-part-list-special-code.component';
 
 @Component({
     selector: 'app-project-part-list-slick-grid',
@@ -106,7 +107,8 @@ import { ProjectPartListHistoryModalComponent } from './project-partlist-history
         NzInputNumberModule,
         NzTableModule,
         ActivityLogPartListComponent,
-        ProjectPartListHistoryModalComponent
+        ProjectPartListHistoryModalComponent,
+        ProjectPartListSpecialCodeComponent
     ],
     templateUrl: './project-part-list-slick-grid.component.html',
     styleUrl: './project-part-list-slick-grid.component.css'
@@ -2288,6 +2290,14 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                         itemVisibilityOverride: () => this.type === 2,
                         action: () => {
                             this.unTechBought();
+                        },
+                    },
+                    {
+                        command: 'openSpecialCodeModal',
+                        title: 'Danh sách mã đặc biệt',
+                        iconCssClass: 'fa fa-list-alt text-primary',
+                        action: () => {
+                            this.openSpecialCodeModal();
                         },
                     },
                 ],
@@ -7102,6 +7112,31 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         modalRef.componentInstance.projectCode = this.projectCodex || '';
         const versionId = dataContext.originalId || dataContext.id;
         modalRef.componentInstance.versionId = versionId;
+    }
+
+    openSpecialCodeModal(): void {
+        let keyword = '';
+        const selectedRowIndexes = this.angularGridPartList?.slickGrid?.getSelectedRows() || [];
+        if (selectedRowIndexes.length > 0) {
+            const firstRowIdx = selectedRowIndexes[0];
+            const item = this.angularGridPartList?.dataView?.getItem(firstRowIdx);
+            if (item) {
+                keyword = item.ProductCode || item.SpecialCode || '';
+            }
+        } else if (this.lastClickedPartListRow) {
+            keyword = this.lastClickedPartListRow.ProductCode || this.lastClickedPartListRow.SpecialCode || '';
+        }
+
+        const modalRef = this.ngbModal.open(ProjectPartListSpecialCodeComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+            size: 'xl'
+        });
+
+        if (keyword && keyword.trim()) {
+            modalRef.componentInstance.keyword = keyword.trim();
+        }
     }
 
     getPriceHistory(): void {

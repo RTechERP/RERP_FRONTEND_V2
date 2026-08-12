@@ -115,7 +115,7 @@
         <ng-template pTemplate="colgroup">
           <colgroup>
             <col style="width: 60px;">
-            <col style="width: 160px;">
+            <col style="width: 260px;">
             <col style="width: 260px;">
             <col style="width: 160px;">
             <col style="width: 160px;">
@@ -133,7 +133,8 @@
         <ng-template pTemplate="header">
           <!-- Hàng nhóm: gom 2 cột Dự kiến và 2 cột Thực tế -->
           <tr>
-            <th colspan="7" style="border: none; background: transparent;"></th>
+            <th colspan="2" pFrozenColumn [frozen]="true" alignFrozen="left" [style.left]="'0px'" style="border: none; background: #f8fafc; z-index: 12 !important;"></th>
+            <th colspan="5" style="border: none; background: transparent;"></th>
             <th colspan="2" class="text-center header-group group-planned" style="letter-spacing: 0.04em;">
               📅 DỰ KIẾN
             </th>
@@ -143,8 +144,8 @@
             <th colspan="3" style="border: none; background: transparent;"></th>
           </tr>
           <tr>
-            <th pResizableColumn style="width: 60px;" class="text-center">Thao tác</th>
-            <th pSortableColumn="Code" pResizableColumn style="width: 160px;">Mã CV <p-sortIcon
+            <th pFrozenColumn [frozen]="true" alignFrozen="left" [style.left]="'0px'" style="width: 60px;" class="text-center">Thao tác</th>
+            <th pFrozenColumn [frozen]="true" alignFrozen="left" [style.left]="'60px'" pSortableColumn="Code" pResizableColumn style="width: 260px;">Mã CV <p-sortIcon
                 field="Code"></p-sortIcon></th>
             <th pSortableColumn="Mission" pResizableColumn style="width: 260px;">Tên công việc <p-sortIcon
                 field="Mission"></p-sortIcon> <span class="text-danger">*</span></th>
@@ -173,8 +174,8 @@
             <th pResizableColumn style="width: 50px;" class="text-center">Chi tiết</th>
           </tr>
           <tr>
-            <th></th>
-            <th>
+            <th pFrozenColumn [frozen]="true" alignFrozen="left" [style.left]="'0px'" style="width: 60px;"></th>
+            <th pFrozenColumn [frozen]="true" alignFrozen="left" [style.left]="'60px'" style="width: 260px;">
               <p-columnFilter type="text" field="Code" [showMenu]="false" placeholder="Lọc Mã CV"
                 matchMode="contains"></p-columnFilter>
             </th>
@@ -237,7 +238,7 @@
             }">
 
             <!-- Thao tác: + Thêm con, x Xóa dòng mới -->
-            <td class="text-center">
+            <td pFrozenColumn [frozen]="true" alignFrozen="left" [style.left]="'0px'" style="width: 60px;" class="text-center">
               <div class="d-flex justify-content-center gap-1">
                 <button class="action-btn text-primary" (click)="addChildTask(row)" nz-tooltip
                   nzTooltipTitle="Thêm công việc con">
@@ -251,7 +252,7 @@
             </td>
 
             <!-- Mã CV (Cây Tree) -->
-            <td>
+            <td pFrozenColumn [frozen]="true" alignFrozen="left" [style.left]="'60px'" style="width: 260px;">
               <span class="tree-indent" [style.width.px]="row.level * 24"></span>
               <button *ngIf="row.hasChildren" class="toggle-btn" (click)="toggleExpand(row)">
                 <i [class]="row.expand ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right'"></i>
@@ -264,6 +265,7 @@
             <td>
               <textarea nz-input [nzAutosize]="{ minRows: 1, maxRows: 10 }" class="input-cell textarea-cell"
                 [class.input-invalid]="row._invalidMission" [(ngModel)]="row.Mission"
+                [disabled]="row.isFromGateStep"
                 (ngModelChange)="onCellChange(row)" placeholder="Nhập tên công việc..."></textarea>
             </td>
 
@@ -277,7 +279,7 @@
             </td>
 
             <!-- Người giao việc (Table Lookup Popover) -->
-            <td style="position: relative;">
+            <td class="lookup-td">
               <div class="table-lookup-cell" [class.input-invalid]="row._invalidAssigner"
                 (click)="openAssignerLookup($event, row, assignerLookupPanel)"
                 style="width: 100%; height: 100%; min-height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; cursor: pointer;">
@@ -292,7 +294,7 @@
             </td>
 
             <!-- Người thực hiện (Table Lookup Popover) -->
-            <td style="position: relative;">
+            <td class="lookup-td">
               <div class="table-lookup-cell" [class.input-invalid]="row._invalidAssignee"
                 (click)="openUserLookup($event, row, userLookupPanel)"
                 style="width: 100%; height: 100%; min-height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; cursor: pointer;">
@@ -307,7 +309,7 @@
             </td>
 
             <!-- Người liên quan (Table Lookup Popover - Chọn nhiều người) -->
-            <td style="position: relative;">
+            <td class="lookup-td">
               <div class="table-lookup-cell" (click)="openRelatedLookup($event, row, relatedLookupPanel)"
                 style="width: 100%; height: 100%; min-height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; cursor: pointer;">
                 <span class="table-lookup-value"
@@ -331,6 +333,7 @@
             <td>
               <input type="date" class="input-cell text-center"
                 [class.input-invalid]="row._invalidPlanDates || row._invalidParentEndDate"
+                [disabled]="row.isFromGateStep"
                 [max]="row._parentPlanEndDate" [(ngModel)]="row.PlanEndDate" (ngModelChange)="onCellChange(row)" />
             </td>
 

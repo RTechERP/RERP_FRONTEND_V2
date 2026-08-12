@@ -61,7 +61,51 @@ nz-spin,
   color: #334155;
   font-weight: 600;
   white-space: nowrap;
-  position: relative !important;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-datatable-thead > tr > th.p-frozen-column {
+  position: sticky !important;
+  z-index: 12 !important;
+  background-color: #f8fafc !important;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-datatable-tbody > tr > td.p-frozen-column {
+  position: sticky !important;
+  z-index: 10 !important;
+  background-color: #ffffff;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-datatable-tbody > tr.row-parent > td.p-frozen-column {
+  background-color: #f1f5f9 !important;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-datatable-tbody > tr.row-dirty > td.p-frozen-column {
+  background-color: #fffbe6 !important;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-datatable-tbody > tr.row-new > td.p-frozen-column {
+  background-color: #f6ffed !important;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-datatable-tbody > tr.row-late-red > td.p-frozen-column {
+  background-color: #fee2e2 !important;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-datatable-tbody > tr.row-late-orange > td.p-frozen-column {
+  background-color: #ffedd5 !important;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-datatable-tbody > tr.row-expiring-soon > td.p-frozen-column {
+  background-color: #fef9c3 !important;
+}
+
+:host ::ng-deep .tree-grid-p-table .p-datatable-tbody > tr > td:not(.p-frozen-column) {
+  z-index: 1 !important;
+}
+
+.lookup-td {
+  position: relative;
+  z-index: 1;
 }
 
 :host ::ng-deep .tree-grid-p-table .p-column-resizer {

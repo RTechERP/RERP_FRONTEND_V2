@@ -69,6 +69,7 @@ export interface GridTaskItem {
   _invalidActualDates?: boolean;
   _invalidParentEndDate?: boolean;
   _invalidParentDeadline?: boolean;
+  isFromGateStep?: boolean;
 }
 
 @Component({
@@ -105,6 +106,7 @@ export class ProjectTaskGridComponent implements OnInit {
   // Filters
   projectId: number = 0;
   isProjectLinkedToGateStep: boolean = false;
+  gateStepTaskIds: Set<number> = new Set<number>();
   dateStart: string = '';
   dateEnd: string = '';
   filterKeyword: string = '';
@@ -300,17 +302,21 @@ export class ProjectTaskGridComponent implements OnInit {
   checkProjectHasGateStep(projectId: number): void {
     if (!projectId) {
       this.isProjectLinkedToGateStep = false;
+      this.gateStepTaskIds.clear();
       this.initMenuItems();
       return;
     }
     this.gridService.checkProjectHasGateStep(projectId).subscribe({
       next: (res: any) => {
-        this.isProjectLinkedToGateStep = Boolean(res && res.data && Array.isArray(res.data) && res.data.length > 0);
+        const dataList = res && res.data && Array.isArray(res.data) ? res.data : [];
+        this.isProjectLinkedToGateStep = dataList.length > 0;
+        this.gateStepTaskIds = new Set(dataList.map((x: any) => x.ProjectTaskID).filter((id: any) => id != null && id > 0));
         this.initMenuItems();
       },
       error: (err: any) => {
         console.error('Error checking project gate step:', err);
         this.isProjectLinkedToGateStep = false;
+        this.gateStepTaskIds.clear();
         this.initMenuItems();
       }
     });
@@ -416,6 +422,8 @@ export class ProjectTaskGridComponent implements OnInit {
           .filter((x: number) => !isNaN(x) && x > 0);
       }
 
+      const isFromGateStep = this.gateStepTaskIds.has(item.ID) || Boolean(item.isFromGateStep || item.IsFromGateStep || item.ProjectGateStepLinkID || item.StepLinkID);
+
       const node: GridTaskItem = {
         ID: item.ID,
         ProjectID: item.ProjectID || this.projectId,
@@ -433,8 +441,9 @@ export class ProjectTaskGridComponent implements OnInit {
         ActualEndDate: item.ActualEndDate ? this.formatDateInput(item.ActualEndDate) : null,
         Deadline: item.Deadline ? this.formatDateInput(item.Deadline) : null,
         Status: item.Status ?? 0,
+        isFromGateStep: isFromGateStep,
         level: 0,
-        expand: true,
+        expand: false,
         hasChildren: false,
         children: []
       };
@@ -905,8 +914,8 @@ export class ProjectTaskGridComponent implements OnInit {
       }
     }
 
-    // 5. Validate dự án có Gate Step bắt buộc phải chọn Công việc cha khi tạo task mới
-    if (this.isProjectLinkedToGateStep && (item._isNew || item.ID <= 0) && (!item.ParentID || item.ParentID <= 0)) {
+    // 5. Validate dự án có Gate Step bắt buộc phải chọn Công việc cha khi tạo task mới (trừ trường hợp là task sinh ra từ Gate Step)
+    if (this.isProjectLinkedToGateStep && (item._isNew || item.ID <= 0) && (!item.ParentID || item.ParentID <= 0) && !item.isFromGateStep) {
       errors.push(`Công việc ${codeStr}: Dự án đã chọn có quy trình Gate Step. Bắt buộc phải chọn Công việc cha!`);
     }
 

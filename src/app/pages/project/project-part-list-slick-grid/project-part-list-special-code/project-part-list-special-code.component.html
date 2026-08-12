@@ -45,27 +45,27 @@
       <ng-template pTemplate="header">
         <tr>
           <th style="width: 50px" class="text-center">STT</th>
-          <th pSortableColumn="SpecialCode">Mã đặc biệt <p-sortIcon field="SpecialCode"></p-sortIcon></th>
-          <th pSortableColumn="ProductCode">Mã SP <p-sortIcon field="ProductCode"></p-sortIcon></th>
-          <th pSortableColumn="GroupMaterial">Tên Vật tư <p-sortIcon field="GroupMaterial"></p-sortIcon></th>
-          <th pSortableColumn="Manufacturer">Hãng sản xuất <p-sortIcon field="Manufacturer"></p-sortIcon></th>
-          <th pSortableColumn="Unit">ĐVT <p-sortIcon field="Unit"></p-sortIcon></th>
+          <th style="width: 180px" pSortableColumn="SpecialCode">Mã đặc biệt <p-sortIcon field="SpecialCode"></p-sortIcon></th>
+          <th style="width: 200px" pSortableColumn="ProductCode">Mã SP <p-sortIcon field="ProductCode"></p-sortIcon></th>
+          <th style="min-width: 220px" pSortableColumn="GroupMaterial">Tên Vật tư <p-sortIcon field="GroupMaterial"></p-sortIcon></th>
+          <th style="width: 160px" pSortableColumn="Manufacturer">Hãng sản xuất <p-sortIcon field="Manufacturer"></p-sortIcon></th>
+          <th style="width: 80px" class="text-center" pSortableColumn="Unit">ĐVT <p-sortIcon field="Unit"></p-sortIcon></th>
         </tr>
         <tr>
-          <th></th>
-          <th>
+          <th style="width: 50px"></th>
+          <th style="width: 180px">
             <p-columnFilter type="text" field="SpecialCode" matchMode="contains" [showMenu]="false" placeholder="Lọc Mã đặc biệt"></p-columnFilter>
           </th>
-          <th>
+          <th style="width: 200px">
             <p-columnFilter type="text" field="ProductCode" matchMode="contains" [showMenu]="false" placeholder="Lọc Mã SP"></p-columnFilter>
           </th>
-          <th>
+          <th style="min-width: 220px">
             <p-columnFilter type="text" field="GroupMaterial" matchMode="contains" [showMenu]="false" placeholder="Lọc Tên Vật tư"></p-columnFilter>
           </th>
-          <th>
+          <th style="width: 160px">
             <p-columnFilter type="text" field="Manufacturer" matchMode="contains" [showMenu]="false" placeholder="Lọc Hãng"></p-columnFilter>
           </th>
-          <th>
+          <th style="width: 80px">
             <p-columnFilter type="text" field="Unit" matchMode="contains" [showMenu]="false" placeholder="Lọc ĐVT"></p-columnFilter>
           </th>
         </tr>
@@ -73,14 +73,14 @@
 
       <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
         <tr>
-          <td class="text-center">{{ rowIndex + 1 }}</td>
-          <td class="fw-bold text-primary">{{ item.ProductCode }}</td>
-          <td>
+          <td style="width: 50px" class="text-center">{{ rowIndex + 1 }}</td>
+          <td style="width: 180px" class="fw-bold text-primary">
             <span class="badge bg-info text-dark" *ngIf="item.SpecialCode">{{ item.SpecialCode }}</span>
           </td>
-          <td>{{ item.GroupMaterial }}</td>
-          <td>{{ item.Manufacturer }}</td>
-          <td>{{ item.Unit }}</td>
+          <td style="width: 200px">{{ item.ProductCode }}</td>
+          <td style="min-width: 220px">{{ item.GroupMaterial }}</td>
+          <td style="width: 160px">{{ item.Manufacturer }}</td>
+          <td style="width: 80px" class="text-center">{{ item.Unit }}</td>
         </tr>
       </ng-template>
 

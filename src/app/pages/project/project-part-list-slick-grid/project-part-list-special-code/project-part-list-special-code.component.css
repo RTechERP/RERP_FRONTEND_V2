@@ -14,11 +14,15 @@
 ::ng-deep .p-datatable .p-datatable-thead > tr > th {
   font-size: 12px !important;
   padding: 0.35rem 0.5rem !important;
+  white-space: normal !important;
+  word-break: break-word !important;
 }
 
 ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
   font-size: 12px !important;
   padding: 0.35rem 0.5rem !important;
+  white-space: normal !important;
+  word-break: break-word !important;
 }
 
 ::ng-deep .p-columnfilter-input,
@@ -102,6 +106,9 @@
 .badge {
   font-size: 11px !important;
   font-weight: 500;
+  white-space: normal !important;
+  word-break: break-word !important;
+  text-align: left;
 }
 
 .btn-close-red {

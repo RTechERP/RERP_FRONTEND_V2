@@ -1007,16 +1007,27 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.tb_POKH.setPage(1);
     this.isCopy = false;
   }
+
   handleError(err: any) {
+    const body = err?.error || err;
+    let msg = body?.message || body?.Message || err?.message || 'Có lỗi xảy ra!';
+    const errorsList = body?.data?.Errors || body?.data?.errors || body?.Errors || body?.errors;
+    if (Array.isArray(errorsList) && errorsList.length > 0) {
+      msg += '\n• ' + errorsList.join('\n• ');
+    } else if (typeof errorsList === 'object' && errorsList !== null) {
+      const detailMsgs = Object.values(errorsList).flat().join('\n• ');
+      if (detailMsgs) msg += '\n• ' + detailMsgs;
+    }
     this.notification.create(
-      NOTIFICATION_TYPE_MAP[err.status] || 'error',
-      NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-      err?.error?.message || `${err.error}\n${err.message}`,
+      NOTIFICATION_TYPE_MAP[err?.status] || 'error',
+      NOTIFICATION_TITLE_MAP[err?.status as RESPONSE_STATUS] || 'Lỗi',
+      msg,
       {
         nzStyle: { whiteSpace: 'pre-line' }
       }
     );
   }
+
   //#endregion
   //#region : Hàm xử lý upload files
   uploadFiles(pokhId: number) {

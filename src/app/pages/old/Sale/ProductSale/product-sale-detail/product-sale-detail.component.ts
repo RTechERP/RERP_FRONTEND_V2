@@ -401,22 +401,24 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
         const data = res?.data || (res?.status === 1 ? res?.data : res);
 
         if (data && typeof data === 'object' && Object.keys(data).length > 0) {
-          const apiName = (data.ProductName ?? data.productName ?? '').toString().trim();
+          const cleanStr = (str: any) => (str ?? '').toString().trim().normalize('NFC').toLowerCase();
+
+          const apiName = cleanStr(data.ProductName ?? data.productName);
           const apiFix = !!(data.IsFix ?? data.isFix);
           const apiApproved = !!(data.IsApproved ?? data.isApproved);
-          const apiUnit = (data.Unit ?? data.unit ?? '').toString().trim();
-          const apiMaker = (data.Maker ?? data.maker ?? '').toString().trim();
+          const apiUnit = cleanStr(data.Unit ?? data.unit);
+          const apiMaker = cleanStr(data.Maker ?? data.maker);
 
-          const formName = (formValue.ProductName || '').toString().trim();
-          const formUnit = (formValue.Unit || '').toString().trim();
-          const formMaker = (formValue.Maker || '').toString().trim();
+          const formName = cleanStr(formValue.ProductName);
+          const formUnit = cleanStr(formValue.Unit);
+          const formMaker = cleanStr(formValue.Maker);
 
           const apiGroupId = data.ProductGroupID ?? data.productGroupID;
           const matchedGroup = this.listProductGroupcbb.find(
             (x: any) =>
               x.ID === apiGroupId ||
               x.ProductGroupID === apiGroupId ||
-              String(x.ProductGroupID).toLowerCase() === String(apiGroupId).toLowerCase() ||
+              cleanStr(x.ProductGroupID) === cleanStr(apiGroupId) ||
               String(x.ID) === String(apiGroupId)
           );
           const isSameGroup =
@@ -427,9 +429,9 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
 
           // 1. Trường hợp sản phẩm lấy lên có IsFix hoặc IsApproved là true -> Bắt buộc dùng nút mũi tên để map các trường (trừ mã nhóm)
           if (apiFix || apiApproved) {
-            const isNameMismatch = apiName && formName.toLowerCase() !== apiName.toLowerCase();
-            const isUnitMismatch = apiUnit && formUnit.toLowerCase() !== apiUnit.toLowerCase();
-            const isMakerMismatch = apiMaker && formMaker.toLowerCase() !== apiMaker.toLowerCase();
+            const isNameMismatch = !!apiName && formName !== apiName;
+            const isUnitMismatch = !!apiUnit && formUnit !== apiUnit;
+            const isMakerMismatch = !!apiMaker && formMaker !== apiMaker;
             const isFixMismatch = apiFix && !formValue.IsFix;
 
             const isMismatch = isNameMismatch || isUnitMismatch || isMakerMismatch || isFixMismatch;

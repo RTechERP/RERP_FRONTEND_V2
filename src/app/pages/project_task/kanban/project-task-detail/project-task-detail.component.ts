@@ -119,7 +119,7 @@ export class ProjectTaskDetailComponent {
     isProjectLinkedToGateStep: boolean = false; // dự án đã liên kết quy trình Gate Step
 
     get isParentTaskRequired(): boolean {
-        return this.isProjectLinkedToGateStep;
+        return this.isProjectLinkedToGateStep && !this.isFromGateStep;
     }
 
     @Input() task: any;

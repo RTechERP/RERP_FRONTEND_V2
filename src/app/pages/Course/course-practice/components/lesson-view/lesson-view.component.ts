@@ -841,9 +841,33 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   downloadFile(file: LessonFile): void {
-    if (file.ServerPath) {
-      window.open(file.ServerPath, '_blank');
-    }
+    if (!file.ServerPath) return;
+
+    // Trigger actual file download instead of navigation
+    this.http.get(file.ServerPath, { responseType: 'blob', observe: 'response' }).subscribe({
+      next: (response) => {
+        const blob = response.body;
+        if (!blob) return;
+
+        // Create blob URL and trigger download
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = file.OriginPath || this.getFileNameWithExtension(file.ServerPath);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error) => {
+        // Fallback: if CORS or other error, try direct window.open
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không thể tải file. Vui lòng thử lại sau.'
+        );
+        console.error('Download error:', error);
+      }
+    });
   }
 
   onOpenQuiz(): void {

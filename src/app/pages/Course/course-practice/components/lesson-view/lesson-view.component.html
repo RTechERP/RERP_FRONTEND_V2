@@ -117,7 +117,7 @@
                     <div class="section-subtitle mb-3">Download tài liệu đính kèm:</div>
                     <ng-container *ngFor="let file of currentLessonFiles">
                         <div class="file-item">
-                            <a [href]="file.ServerPath" target="_blank" style="font-size: 12px;">
+                            <a (click)="downloadFile(file)" style="font-size: 12px; cursor: pointer;">
                                 <span nz-icon nzType="file" nzTheme="outline"></span> {{ file.OriginPath }}
                             </a>
                         </div>

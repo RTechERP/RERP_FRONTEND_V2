@@ -169,7 +169,7 @@ export class VehicleBookingManagementComponent
     if (this.isAdmin) {
       return true;
     }
-    const specialPermissions = ['N2', 'N34', 'N1', 'N71'];
+    const specialPermissions = ['N2', 'N34', 'N1', 'N71', 'N117'];
     return this.permissionService.hasAnyPermission(specialPermissions);
   }
 

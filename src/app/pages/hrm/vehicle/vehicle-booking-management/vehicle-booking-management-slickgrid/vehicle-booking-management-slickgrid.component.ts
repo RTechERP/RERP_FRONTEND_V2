@@ -171,7 +171,7 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
     if (this.isAdmin) {
       return true;
     }
-    const specialPermissions = ['N2', 'N34', 'N1', 'N71'];
+    const specialPermissions = ['N2', 'N34', 'N1', 'N71', 'N117'];
     return this.permissionService.hasAnyPermission(specialPermissions);
   }
 
@@ -281,10 +281,10 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
       ]
     });
 
-    // Xem ảnh kiện hàng - chỉ hiện với quyền N34,N2,N1
+    // Xem ảnh kiện hàng - chỉ hiện với quyền N34,N2,N1,N117
     this.menuBars.push({
       label: 'Xem ảnh kiện hàng',
-      visible: this.permissionService.hasPermission('N34,N2,N1'),
+      visible: this.permissionService.hasPermission('N34,N2,N1,N117'),
       icon: 'fa-solid fa-images fa-lg text-info',
       command: () => this.onVehicleBookingFileImages()
     });

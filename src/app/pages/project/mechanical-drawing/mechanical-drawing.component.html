@@ -16,9 +16,8 @@
                 <nz-form-item class="mb-0">
                     <nz-form-label class="fs-12" style="font-size: 12px;">Dự án</nz-form-label>
                     <nz-form-control>
-                        <nz-select [(ngModel)]="projectId" name="projectId" nzSize="small"
-                            nzPlaceHolder="Chọn dự án" nzAllowClear nzShowSearch
-                            nzDropdownClassName="select-dropdown" style="width: 250px;"
+                        <nz-select [(ngModel)]="projectId" name="projectId" nzSize="small" nzPlaceHolder="Chọn dự án"
+                            nzAllowClear nzShowSearch nzDropdownClassName="select-dropdown" style="width: 250px;"
                             (ngModelChange)="search()">
                             <nz-option *ngFor="let item of projects" [nzValue]="item.ID"
                                 [nzLabel]="(item.ProjectCode ? '[' + item.ProjectCode + '] - ' : '') + (item.ProjectName || item.Name)"></nz-option>
@@ -29,111 +28,122 @@
                 <nz-form-item class="mb-0">
                     <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
                     <nz-form-control>
-                        <input nz-input placeholder="Tìm kiếm..." nzSize="small"
-                            [(ngModel)]="keyword" name="keyword" style="width: 200px;"
-                            (keyup.enter)="search()" />
+                        <input nz-input placeholder="Tìm kiếm..." nzSize="small" [(ngModel)]="keyword" name="keyword"
+                            style="width: 200px;" (keyup.enter)="search()" />
                     </nz-form-control>
                 </nz-form-item>
 
                 <nz-form-item class="mb-0">
                     <nz-form-control>
-                        <button nz-button nzType="primary" nzSize="small" (click)="search()"
-                            [nzLoading]="isLoading">
+                        <button nz-button nzType="primary" nzSize="small" (click)="search()" [nzLoading]="isLoading">
                             <nz-icon nzType="search"></nz-icon>
                             Tìm kiếm
                         </button>
                     </nz-form-control>
                 </nz-form-item>
+
+                @if (canManageActions()) {
+                <nz-form-item class="mb-0">
+                    <nz-form-control>
+                        <label nz-checkbox [(ngModel)]="isDeleted" name="isDeleted"
+                            (ngModelChange)="onIsDeletedChange()" class="fs-12" style="font-size: 12px;">
+                            <span class="text-danger fw-bold"><i class="fa-solid fa-trash-can me-1"></i>Xem bản ghi đã xóa</span>
+                        </label>
+                    </nz-form-control>
+                </nz-form-item>
+                }
             </form>
         </div>
 
         <div class="card-body p-3 flex-grow-1" style="min-height: 0; overflow-y: auto; background: #f5f5f5;">
             @if (isLoading && dataset.length === 0) {
-                <div class="text-center py-5">
-                    <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4" fill="var(--surface-ground)" animationDuration=".5s"></p-progressSpinner>
-                    <p class="mt-2 text-muted">Đang tải dữ liệu...</p>
-                </div>
+            <div class="text-center py-5">
+                <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4" fill="var(--surface-ground)"
+                    animationDuration=".5s"></p-progressSpinner>
+                <p class="mt-2 text-muted">Đang tải dữ liệu...</p>
+            </div>
             } @else if (dataset.length === 0) {
-                <div class="text-center py-5">
-                    <i class="fa-solid fa-folder-open text-muted" style="font-size: 4rem;"></i>
-                    <p class="mt-3 text-muted">Không có bản vẽ nào</p>
-                </div>
+            <div class="text-center py-5">
+                <i class="fa-solid fa-folder-open text-muted" style="font-size: 4rem;"></i>
+                <p class="mt-3 text-muted">Không có bản vẽ nào</p>
+            </div>
             } @else {
-                <div class="masonry-grid">
-                    @for (item of dataset; track trackById($index, item)) {
-                        <div class="masonry-item" 
-                            [attr.data-card-id]="item.ID"
-                            [class.selected-card]="selectedId === item.ID" 
-                            (click)="onCardClick(item)">
-                            <div class="card-preview">
-                                @if (item.ThumbnailPath && getThumbnailBlobUrl(item.ID)) {
-                                    <img [src]="getThumbnailBlobUrl(item.ID)"
-                                         class="preview-image"
-                                         [alt]="item.Name" />
-                                } @else if (item.ThumbnailPath && !getThumbnailBlobUrl(item.ID)) {
-                                    <div class="preview-placeholder">
-                                        <i class="fa-solid fa-image fa-spin"></i>
-                                        <span>Đang tải...</span>
-                                    </div>
-                                } @else if (item.FilePath && isHtmlFile(item.FilePath)) {
-                                    <div class="preview-placeholder">
-                                        <i class="fa-solid fa-image"></i>
-                                        <span>Chưa có thumbnail</span>
-                                    </div>
-                                } @else if (item.FilePath) {
-                                    <div class="preview-placeholder">
-                                        <i class="fa-solid fa-file-lines"></i>
-                                        <span>{{ getFileExtension(item.FilePath) }}</span>
-                                    </div>
-                                } @else {
-                                    <div class="preview-placeholder no-file">
-                                        <i class="fa-solid fa-file-circle-xmark"></i>
-                                        <span>Chưa có file</span>
-                                    </div>
-                                }
-                            </div>
-                            <div class="card-info">
-                                <h6 class="card-title" [title]="item.Name">{{ item.Name }}</h6>
-                                <p class="card-project" [title]="item.ProjectName">
-                                    <i class="fa-solid fa-building me-1"></i>{{ item.ProjectName }}
-                                </p>
-                                <div class="card-meta">
-                                    <span><i class="fa-solid fa-user me-1"></i>{{ item.CreatedBy }}</span>
-                                    <span><i class="fa-solid fa-calendar me-1"></i>{{ formatDate(item.CreatedDate) }}</span>
-                                </div>
-                            </div>
-                            <div class="card-actions" (click)="$event.stopPropagation()">
-                                @if (item.FilePath && isHtmlFile(item.FilePath)) {
-                                    <button pButton type="button"
-                                        [icon]="isOpeningTab(item.ID) ? 'pi pi-spin pi-spinner' : 'pi pi-external-link'" 
-                                        class="p-button-rounded p-button-text p-button-sm"
-                                        [disabled]="isOpeningTab(item.ID)"
-                                        (click)="openInNewTab($event, item)" 
-                                        pTooltip="Mở tab mới"></button>
-                                }
-                                @if (item.FilePath) {
-                                    <button pButton type="button" 
-                                        [icon]="isDownloading(item.ID) ? 'pi pi-spin pi-spinner' : 'pi pi-download'" 
-                                        class="p-button-rounded p-button-text p-button-sm"
-                                        [disabled]="isDownloading(item.ID)"
-                                        (click)="downloadFile($event, item)" 
-                                        pTooltip="Tải file"></button>
-                                }
-                            </div>
+            <div class="masonry-grid">
+                @for (item of dataset; track trackById($index, item)) {
+                <div class="masonry-item" [attr.data-card-id]="item.ID" [class.selected-card]="selectedId === item.ID"
+                    (click)="onCardClick(item)">
+                    <div class="card-preview">
+                        @if (isDeleted || item.IsDeleted) {
+                        <span class="position-absolute top-0 start-0 badge bg-danger m-2" style="z-index: 2;">
+                            <i class="fa-solid fa-trash me-1"></i>Đã xóa
+                        </span>
+                        }
+                        @if (item.ThumbnailPath && getThumbnailBlobUrl(item.ID)) {
+                        <img [src]="getThumbnailBlobUrl(item.ID)" class="preview-image" [alt]="item.Name" />
+                        } @else if (item.ThumbnailPath && !getThumbnailBlobUrl(item.ID)) {
+                        <div class="preview-placeholder">
+                            <i class="fa-solid fa-image fa-spin"></i>
+                            <span>Đang tải...</span>
                         </div>
-                    }
+                        } @else if (item.FilePath && isHtmlFile(item.FilePath)) {
+                        <div class="preview-placeholder">
+                            <i class="fa-solid fa-image"></i>
+                            <span>Chưa có thumbnail</span>
+                        </div>
+                        } @else if (item.FilePath) {
+                        <div class="preview-placeholder">
+                            <i class="fa-solid fa-file-lines"></i>
+                            <span>{{ getFileExtension(item.FilePath) }}</span>
+                        </div>
+                        } @else {
+                        <div class="preview-placeholder no-file">
+                            <i class="fa-solid fa-file-circle-xmark"></i>
+                            <span>Chưa có file</span>
+                        </div>
+                        }
+                    </div>
+                    <div class="card-info">
+                        <h6 class="card-title" [title]="item.Name">{{ item.Name }}</h6>
+                        <p class="card-project" [title]="item.ProjectName">
+                            <i class="fa-solid fa-building me-1"></i>{{ item.ProjectName }}
+                        </p>
+                        <div class="card-meta">
+                            <span><i class="fa-solid fa-user me-1"></i>{{ item.CreatedBy }}</span>
+                            <span><i class="fa-solid fa-calendar me-1"></i>{{ formatDate(item.CreatedDate) }}</span>
+                        </div>
+                    </div>
+                    <div class="card-actions" (click)="$event.stopPropagation()">
+                        @if (isDeleted && canManageActions()) {
+                        <button pButton type="button" icon="pi pi-refresh"
+                            class="p-button-rounded p-button-text p-button-sm p-button-success"
+                            (click)="onRestore($event, item)" pTooltip="Khôi phục bản vẽ"></button>
+                        }
+                        @if (item.FilePath && isHtmlFile(item.FilePath)) {
+                        <button pButton type="button"
+                            [icon]="isOpeningTab(item.ID) ? 'pi pi-spin pi-spinner' : 'pi pi-external-link'"
+                            class="p-button-rounded p-button-text p-button-sm" [disabled]="isOpeningTab(item.ID)"
+                            (click)="openInNewTab($event, item)" pTooltip="Mở tab mới"></button>
+                        }
+                        @if (item.FilePath) {
+                        <button pButton type="button"
+                            [icon]="isDownloading(item.ID) ? 'pi pi-spin pi-spinner' : 'pi pi-download'"
+                            class="p-button-rounded p-button-text p-button-sm" [disabled]="isDownloading(item.ID)"
+                            (click)="downloadFile($event, item)" pTooltip="Tải file"></button>
+                        <button pButton type="button" icon="pi pi-copy"
+                            class="p-button-rounded p-button-text p-button-sm"
+                            (click)="copyFilePath($event, item)" pTooltip="Copy đường dẫn file"></button>
+                        }
+                    </div>
                 </div>
+                }
+            </div>
             }
         </div>
 
         <div class="bg-light border-top px-2 py-1 d-flex align-items-center justify-content-between compact-footer">
             <span class="total-label">Tổng số: {{ totalRecords }} bản vẽ</span>
-            <p-paginator
-                [rows]="pageSize"
-                [totalRecords]="totalRecords"
-                [showFirstLastIcon]="true"
-                [showPageLinks]="true"
-                [showCurrentPageReport]="true"
+            <p-paginator [rows]="pageSize" [totalRecords]="totalRecords" [showFirstLastIcon]="true"
+                [showPageLinks]="true" [showCurrentPageReport]="true"
                 currentPageReportTemplate="Trang {currentPage} / {totalPages}"
                 (onPageChange)="handlePageChange($event)">
             </p-paginator>

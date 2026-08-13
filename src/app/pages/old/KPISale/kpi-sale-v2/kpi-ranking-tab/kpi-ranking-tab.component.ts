@@ -442,10 +442,14 @@ export class KpiRankingTabComponent implements OnInit {
   }
 
   /**
-   * Gọi khi user đổi Kỳ KPI hoặc Team → tự động resolve template phù hợp
+   * Gọi khi user đổi Kỳ KPI hoặc Team → tự động resolve template phù hợp và load data
    */
   async onPeriodOrTeamChange(): Promise<void> {
     await this.resolveTeamTemplate();
+    // Auto load ranking data sau khi resolve template
+    if (this.selectedPeriodId && this.selectedTemplateId) {
+      await this.loadRankingData();
+    }
   }
 
   /**

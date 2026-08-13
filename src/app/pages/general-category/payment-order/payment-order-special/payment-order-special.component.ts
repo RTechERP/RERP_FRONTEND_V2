@@ -169,7 +169,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
 
             {
                 id: PaymentOrderDetailField.ContentPayment.field,
-                name: 'Đối tượng nhận COM',
+                name: 'Đối tượng nhận COM <span class="text-danger ms-1">(*)</span>',
                 field: PaymentOrderDetailField.ContentPayment.field,
                 type: PaymentOrderDetailField.ContentPayment.type,
                 width: 250,
@@ -183,7 +183,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
 
             {
                 id: PaymentOrderDetailField.TotalMoney.field,
-                name: 'Số tiền',
+                name: 'Số tiền <span class="text-danger ms-1">(*)</span>',
                 field: PaymentOrderDetailField.TotalMoney.field,
                 type: PaymentOrderDetailField.TotalMoney.type,
                 width: 150,
@@ -239,9 +239,25 @@ export class PaymentOrderSpecialComponent implements OnInit {
                     model: Editors['text'],
                 },
             },
+            // {
+            //     id: 'EmployeeID',
+            //     name: 'Team kinh doanh',
+            //     field: 'EmployeeID',
+            //     type: 'number',
+            //     width: 150,
+            //     sortable: true, filterable: false,
+            //     formatter: Formatters.collection,
+            //     params: {
+            //         collection: this.userTeamNames
+            //     },
+            //     editor: {
+            //         model: Editors['singleSelect'],
+            //         collection: this.userTeamNames
+            //     },
+            // },
             {
                 id: 'EmployeeID',
-                name: 'Team kinh doanh',
+                name: 'Team kinh doanh <span class="text-danger ms-1">(*)</span>',
                 field: 'EmployeeID',
                 type: 'number',
                 width: 150,
@@ -252,7 +268,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 },
                 editor: {
                     model: Editors['singleSelect'],
-                    collection: this.userTeamNames
+                    collection: this.userTeamNames,
+                    required: true,
                 },
             },
             {
@@ -598,7 +615,17 @@ export class PaymentOrderSpecialComponent implements OnInit {
 
             const formData = this.validateForm.getRawValue();
             const detailDatas = this.angularGrid.dataView.getItems();
-
+            //Bắt buộc chọn team kinh doanh trên từng dòng chi tiết
+            const rowsMissingTeam = detailDatas
+            .map((x, index) => ({ x, index }))
+            .filter(({ x }) => !x.EmployeeID);
+            if (rowsMissingTeam.length > 0) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                `Vui lòng chọn Team kinh doanh ở dòng: ${rowsMissingTeam.map(r => r.index + 1).join(', ')}`
+            );
+            return;
+            }
             console.log('[special] submitForm — isCopy:', this.isCopy, '| paymentOrder.ID:', this.paymentOrder.ID);
             console.log('[special] detailDatas (raw):', detailDatas.map(x => ({ id: x.id, Id: x.Id, ID: x.ID, PaymentOrderID: x.PaymentOrderID })));
 

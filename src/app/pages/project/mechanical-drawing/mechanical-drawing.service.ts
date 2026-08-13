@@ -17,7 +17,7 @@ export class MechanicalDrawingService {
   }
 
   // Lấy danh sách mechanical drawings (phân trang, filter)
-  getMechanicalDrawings(page: number, size: number, projectId?: number, keyword?: string): Observable<any> {
+  getMechanicalDrawings(page: number, size: number, projectId?: number, keyword?: string, isDeleted: boolean = false): Observable<any> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
@@ -28,6 +28,10 @@ export class MechanicalDrawingService {
 
     if (keyword && keyword.trim()) {
       params = params.set('keyword', keyword.trim());
+    }
+
+    if (isDeleted) {
+      params = params.set('isDeleted', 'true');
     }
 
     return this.http.get(this._url + 'get-mechanical-drawings', { params });
@@ -48,6 +52,12 @@ export class MechanicalDrawingService {
   deleteMechanicalDrawing(id: number): Observable<any> {
     const params = new HttpParams().set('id', id.toString());
     return this.http.post(this._url + 'delete-mechanical-drawing', null, { params });
+  }
+
+  // Khôi phục
+  restoreMechanicalDrawing(id: number): Observable<any> {
+    const params = new HttpParams().set('id', id.toString());
+    return this.http.post(this._url + 'restore-mechanical-drawing', null, { params });
   }
 
   // Tải file lên
@@ -86,5 +96,11 @@ export class MechanicalDrawingService {
       `${environment.host}api/MechanicalDrawing/thumbnail/${id}`,
       { responseType: 'blob' }
     );
+  }
+
+  // Lấy đường dẫn file trên server
+  getFilePath(id: number): Observable<any> {
+    const params = new HttpParams().set('id', id.toString());
+    return this.http.get(this._url + 'get-file-path', { params });
   }
 }

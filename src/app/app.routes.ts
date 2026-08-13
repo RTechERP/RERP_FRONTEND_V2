@@ -1361,6 +1361,7 @@ export const routes: Routes = [
       { path: 'esl-config', component: EslConfigComponent, canActivate: [authGuard] },
       { path: 'esl-test-registration', component: EslTestRegistrationComponent, canActivate: [authGuard] },
       //KPISALE
+      { path: 'kpi-sale-v2', component: KpiSaleV2Component, canActivate: [authGuard] },
       { path: 'kpi-template-index-tab', component: KpiTemplateIndexTabComponent, canActivate: [authGuard] },
       { path: 'kpi-period-tab', component: KpiPeriodTabComponent, canActivate: [authGuard] },
       { path: 'kpi-mapping-tab', component: KpiMappingTabComponent, canActivate: [authGuard] },

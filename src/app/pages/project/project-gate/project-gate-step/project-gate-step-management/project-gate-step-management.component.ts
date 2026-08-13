@@ -623,7 +623,7 @@ export class ProjectGateStepManagementComponent implements OnInit {
   }
 
   isGateDisabled(gateId: number, currentRow: any): boolean {
-    return this.usedGateIds.has(gateId) && currentRow.ProjectGateID !== gateId;
+    return false;
   }
 
   getAvailableGates(currentRow: any): any[] {
@@ -984,11 +984,6 @@ export class ProjectGateStepManagementComponent implements OnInit {
     const skippedGates: string[] = [];
 
     this.selectedSourceSteps.forEach(src => {
-      if (src.ProjectGateID && existingGateIds.has(src.ProjectGateID)) {
-        skippedGates.push(src.GateCode || `Gate #${src.ProjectGateID}`);
-        return;
-      }
-
       maxSortOrder++;
       const newRow: any = {
         ID: 0,
@@ -1012,16 +1007,13 @@ export class ProjectGateStepManagementComponent implements OnInit {
         _tempId: -Date.now() - Math.floor(Math.random() * 10000)
       };
 
-      if (src.ProjectGateID) {
-        existingGateIds.add(src.ProjectGateID);
-      }
       newRows.push(newRow);
     });
 
     if (newRows.length === 0) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        'Tất cả các bước được chọn đều thuộc Gate đã tồn tại trong template mục tiêu!'
+        'Chưa chọn công đoạn nào để sao chép!'
       );
       return;
     }
@@ -1031,9 +1023,6 @@ export class ProjectGateStepManagementComponent implements OnInit {
     this.isCopyTemplateModalVisible = false;
 
     let msg = `Đã sao chép ${newRows.length} công đoạn vào template! Vui lòng kiểm tra và bấm "Lưu".`;
-    if (skippedGates.length > 0) {
-      msg += ` (Bỏ qua ${skippedGates.length} Gate đã có: ${skippedGates.join(', ')})`;
-    }
     this.notification.success(NOTIFICATION_TITLE.success, msg);
   }
 

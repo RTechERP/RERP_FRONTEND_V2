@@ -1480,7 +1480,7 @@ export class ContractTransferReviewTbpComponent implements OnInit, OnDestroy {
         },
         {
           table: {
-            widths: [20, '*', 50, 115, 115],
+            widths: [20, 55, 95, '*', '*'],
             body: commentTableBody
           },
           layout: yellowTableLayout,

@@ -440,7 +440,7 @@ td.row-error:last-child {
 }
 
 .comment-code {
-    width: 28px;
+    width: 35px;
     text-align: center;
     font-weight: bold;
     background-color: #dce6f1;
@@ -449,14 +449,14 @@ td.row-error:last-child {
 }
 
 .comment-label {
-    width: 130px;
+    width: 80px;
     font-weight: bold;
     vertical-align: middle !important;
     white-space: nowrap;
 }
 
 .comment-sub {
-    width: 160px;
+    width: 120px;
     vertical-align: top;
     padding-top: 6px !important;
     white-space: nowrap;

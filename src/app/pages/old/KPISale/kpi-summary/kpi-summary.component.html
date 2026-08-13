@@ -73,15 +73,14 @@
     </div>
   </div>
 
-  <!-- Approval Workflow Bar (hiển thị trên cùng dưới toolbar) -->
-  <div class="approval-workflow-bar" *ngIf="summaryData">
+  <!-- Approval Workflow Bar (chỉ hiển thị khi chế độ Team) -->
+  <!-- COMMENTED OUT: Duyệt Team và Cá nhân sẽ thực hiện tại kpi-summary-with-ranking -->
+  <!-- <div class="approval-workflow-bar" *ngIf="summaryData && isTeamMode">
     <div class="approval-workflow-bar__head">
       <span class="approval-workflow-bar__title">
         <span nz-icon nzType="audit"></span>
         Quy trình phê duyệt KPI
-        <nz-tag [nzColor]="currentScope === 'TEAM' ? 'geekblue' : 'cyan'">
-          {{ currentScope === 'TEAM' ? 'Theo TEAM' : 'Theo CÁ NHÂN' }}
-        </nz-tag>
+        <nz-tag nzColor="geekblue">Theo TEAM</nz-tag>
       </span>
       <div class="approval-workflow-bar__current">
         <ng-container *ngIf="currentApproval; else pendingActions">
@@ -144,8 +143,7 @@
       </nz-step>
     </nz-steps>
 
-    <!-- Thông tin chi tiết của từng bước -->
-    <!-- <div class="approval-workflow-bar__details" *ngIf="currentApproval">
+    <div class="approval-workflow-bar__details" *ngIf="currentApproval">
       <div class="approval-workflow-bar__detail">
         <span class="label">Admin:</span>
         <span class="value">
@@ -212,8 +210,8 @@
           <ng-template #pendingHr><span class="muted">Chưa chi</span></ng-template>
         </span>
       </div>
-    </div> -->
-  </div>
+    </div>
+  </div> -->
 
   <!-- Summary Info Bar
   <div class="summary-info-bar" *ngIf="summaryData">
@@ -435,7 +433,8 @@
   </div>
 
   <!-- Modal xác nhận duyệt -->
-  <nz-modal
+  <!-- COMMENTED OUT: Duyệt sẽ thực hiện tại kpi-summary-with-ranking -->
+  <!-- <nz-modal
     [(nzVisible)]="approveModalVisible"
     nzTitle="Xác nhận phê duyệt"
     [nzOkLoading]="approving"
@@ -472,5 +471,5 @@
         nzMessage="Lưu ý"
         nzDescription="Sau khi Admin duyệt, toàn bộ tính KPI và sửa Target cho quý này sẽ bị khóa (theo cả 3 tháng trong quý)."></nz-alert>
     </ng-container>
-  </nz-modal>
+  </nz-modal> -->
 </div>

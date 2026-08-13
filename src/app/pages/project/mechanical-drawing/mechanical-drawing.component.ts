@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -33,6 +34,7 @@ import { PermissionService } from '../../../services/permission.service';
     FormsModule,
     NzCardModule,
     NzButtonModule,
+    NzCheckboxModule,
     NzIconModule,
     NzInputModule,
     NzSelectModule,
@@ -57,6 +59,8 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
 
   keyword: string = '';
   projectId: number | null = null;
+  isDeleted: boolean = false;
+  isRestoring: boolean = false;
   projects: any[] = [];
 
   selectedId: number = 0;
@@ -148,7 +152,8 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
       this.page,
       this.pageSize,
       this.projectId || undefined,
-      this.keyword || undefined
+      this.keyword || undefined,
+      this.isDeleted
     ).pipe(finalize(() => this.isLoading = false)).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
@@ -176,26 +181,42 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
   }
 
   initMenuBar(): void {
-    this.menuBars = [
-      {
-        label: 'Thêm',
-        icon: 'fa-solid fa-circle-plus fa-lg text-success',
-        visible: this.canManageActions(),
-        command: () => this.onAdd(),
-      },
-      {
-        label: 'Sửa',
-        icon: 'fa-solid fa-file-pen fa-lg text-primary',
-        visible: this.canManageActions(),
-        command: () => this.onEdit(),
-      },
-      {
-        label: 'Xóa',
-        icon: 'fa-solid fa-trash fa-lg text-danger',
-        visible: this.canManageActions(),
-        command: () => this.onDelete(),
-      },
-    ];
+    if (this.isDeleted) {
+      this.menuBars = [
+        {
+          label: 'Khôi phục',
+          icon: 'fa-solid fa-rotate-left fa-lg text-success',
+          visible: this.canManageActions(),
+          command: () => this.onRestoreSelected(),
+        },
+      ];
+    } else {
+      this.menuBars = [
+        {
+          label: 'Thêm',
+          icon: 'fa-solid fa-circle-plus fa-lg text-success',
+          visible: true,
+          command: () => this.onAdd(),
+        },
+        {
+          label: 'Sửa',
+          icon: 'fa-solid fa-file-pen fa-lg text-primary',
+          visible: true,
+          command: () => this.onEdit(),
+        },
+        {
+          label: 'Xóa',
+          icon: 'fa-solid fa-trash fa-lg text-danger',
+          visible: this.canManageActions(),
+          command: () => this.onDelete(),
+        },
+      ];
+    }
+  }
+
+  onIsDeletedChange(): void {
+    this.initMenuBar();
+    this.search();
   }
 
   onCardClick(row: any): void {
@@ -310,7 +331,6 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
   }
 
   onAdd(): void {
-    if (!this.canManageActions()) return;
 
     const modalRef = this.modalService.open(MechanicalDrawingDetailComponent, {
       size: 'lg',
@@ -326,10 +346,10 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
           // Enrich data với ProjectName từ projects array
           const project = this.projects.find(p => p.ID === result.ProjectID);
           const projectName = project ? (project.ProjectName || project.Name) : '';
-          
+
           // Insert record mới vào đầu danh sách
-          const newRecord = { 
-            ...result, 
+          const newRecord = {
+            ...result,
             STT: 1,
             ProjectName: projectName,
             ProjectCode: project?.ProjectCode || ''
@@ -341,7 +361,7 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
             STT: (this.page - 1) * this.pageSize + index + 1,
           }));
           this.totalRecords = (this.totalRecords || 0) + 1;
-          
+
           // Load thumbnail blob nếu có ThumbnailPath
           if (newRecord.ThumbnailPath && newRecord.ID) {
             this.loadThumbnailBlob(newRecord.ID);
@@ -355,7 +375,6 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
   }
 
   onEdit(): void {
-    if (!this.canManageActions()) return;
 
     if (!this.selectedId) {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn một dòng để sửa');
@@ -424,6 +443,52 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
     });
   }
 
+  copyFilePath(event: Event, row: any): void {
+    event.stopPropagation();
+    if (!row || !row.ID) return;
+
+    this.mechanicalDrawingService.getFilePath(row.ID).subscribe({
+      next: (response: any) => {
+        if (response.status === 1 && response.data?.FilePath) {
+          navigator.clipboard.writeText(response.data.FilePath).then(() => {
+            this.message.success('Đã copy đường dẫn file: ' + response.data.FilePath);
+          }).catch(() => {
+            this.notification.error('Lỗi', 'Không thể copy đường dẫn!');
+          });
+        } else {
+          this.notification.error('Lỗi', 'Không tìm thấy đường dẫn file!');
+        }
+      },
+      error: () => {
+        this.notification.error('Lỗi', 'Không thể lấy đường dẫn file!');
+      }
+    });
+  }
+
+  copyFolderPath(event: Event, row: any): void {
+    event.stopPropagation();
+    if (!row || !row.ID) return;
+
+    this.mechanicalDrawingService.getFilePath(row.ID).subscribe({
+      next: (response: any) => {
+        if (response.status === 1 && response.data?.FilePath) {
+          const filePath = response.data.FilePath;
+          const folderPath = filePath.substring(0, filePath.lastIndexOf('\\'));
+          navigator.clipboard.writeText(folderPath).then(() => {
+            this.message.success('Đã copy đường dẫn thư mục. Paste vào Windows Explorer (Win+E) để mở!');
+          }).catch(() => {
+            this.notification.error('Lỗi', 'Không thể copy đường dẫn!');
+          });
+        } else {
+          this.notification.error('Lỗi', 'Không tìm thấy đường dẫn file!');
+        }
+      },
+      error: () => {
+        this.notification.error('Lỗi', 'Không thể lấy đường dẫn file!');
+      }
+    });
+  }
+
   onDelete(): void {
     if (!this.canManageActions()) return;
     if (this.isDeleting) {
@@ -448,7 +513,7 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
 
         try {
           const response: any = await firstValueFrom(this.mechanicalDrawingService.deleteMechanicalDrawing(this.selectedId));
-          
+
           if (response.status === 1) {
             this.notification.success('Thành công', 'Xóa thành công');
 
@@ -482,6 +547,72 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
           this.notification.error('Lỗi', 'Không thể xóa dữ liệu');
         } finally {
           this.isDeleting = false;
+          this.message.remove(messageId);
+        }
+      }
+    });
+  }
+
+  onRestoreSelected(): void {
+    if (!this.canManageActions()) return;
+    if (!this.selectedId) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn một bản vẽ để khôi phục');
+      return;
+    }
+    this.onRestore(undefined, this.selectedRow);
+  }
+
+  onRestore(event?: Event, row?: any): void {
+    if (event) event.stopPropagation();
+    if (!this.canManageActions()) return;
+    const target = row || this.selectedRow;
+    const targetId = target?.ID || this.selectedId;
+
+    if (!targetId) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn một bản vẽ để khôi phục');
+      return;
+    }
+
+    if (this.isRestoring) {
+      this.notification.info('Thông báo', 'Đang khôi phục dữ liệu, vui lòng chờ');
+      return;
+    }
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận khôi phục',
+      nzContent: `Bạn có chắc chắn muốn khôi phục bản vẽ "${target?.Name || ''}"?`,
+      nzOkText: 'Khôi phục',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOnOk: async () => {
+        this.isRestoring = true;
+        const messageId = this.message.loading('Đang khôi phục, vui lòng chờ...', { nzDuration: 0 }).messageId;
+
+        try {
+          const response: any = await firstValueFrom(this.mechanicalDrawingService.restoreMechanicalDrawing(targetId));
+
+          if (response.status === 1) {
+            this.notification.success('Thành công', 'Khôi phục bản vẽ thành công');
+
+            this.dataset = this.dataset
+              .filter(item => item.ID !== targetId)
+              .map((item, index) => ({
+                ...item,
+                STT: (this.page - 1) * this.pageSize + index + 1,
+              }));
+            this.totalRecords = Math.max(0, (this.totalRecords || 0) - 1);
+
+            if (this.selectedId === targetId) {
+              this.selectedId = 0;
+              this.selectedRow = null;
+            }
+          } else {
+            this.notification.error('Lỗi', response.message || 'Không thể khôi phục bản ghi');
+          }
+        } catch (error: any) {
+          this.notification.error('Lỗi', error?.error?.message || 'Không thể khôi phục dữ liệu');
+        } finally {
+          this.isRestoring = false;
           this.message.remove(messageId);
         }
       }

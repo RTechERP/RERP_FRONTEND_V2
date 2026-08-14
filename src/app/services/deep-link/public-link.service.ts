@@ -29,10 +29,20 @@ export class PublicLinkService {
         return this.http.post<any>(this.url + 'sign', body);
     }
 
-    /** Đọc dữ liệu theo token. Không cần đăng nhập. */
+    /** Đọc dữ liệu danh sách theo token. Không cần đăng nhập. */
     getData(token: string): Observable<any> {
         return this.http.get<any>(this.url + 'data', {
             params: new HttpParams().set('t', token),
+        });
+    }
+
+    /**
+     * Đọc chi tiết một dòng (file đính kèm + các bảng liên kết).
+     * Server kiểm tra `id` phải thuộc đúng dự án ghi trong token.
+     */
+    getDetail(token: string, id: number): Observable<any> {
+        return this.http.get<any>(this.url + 'detail', {
+            params: new HttpParams().set('t', token).set('id', String(id)),
         });
     }
 

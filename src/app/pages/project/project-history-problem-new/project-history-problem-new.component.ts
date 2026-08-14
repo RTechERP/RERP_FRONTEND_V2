@@ -263,26 +263,28 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
       {
         label: 'Copy link',
         icon: 'fa-solid fa-link fa-lg text-secondary',
+        command: () => this.copyPublicLink(),
         visible: canEdit && this.projectId > 0,
-        items: [
-          {
-            label: 'Link nội bộ',
-            icon: 'fa-solid fa-link text-secondary',
-            command: () => this.copyDeepLink(),
-          },
-          {
-            label: 'Link nội bộ (chỉ xem)',
-            icon: 'fa-solid fa-eye text-secondary',
-            command: () => this.copyDeepLink(true),
-          },
-          { separator: true },
-          {
-            label: 'Link công khai (không cần đăng nhập)',
-            icon: 'fa-solid fa-globe text-warning',
-            command: () => this.copyPublicLink(),
-          },
-        ],
       },
+      // {
+      //   label: 'Copy link',
+      //   icon: 'fa-solid fa-link fa-lg text-secondary',
+      //   visible: canEdit && this.projectId > 0,
+      //   items: [
+      //     // {
+      //     //   label: 'Link nội bộ',
+      //     //   icon: 'fa-solid fa-link text-secondary',
+      //     //   command: () => this.copyDeepLink(),
+      //     // },
+      //     // {
+      //     //   label: 'Link nội bộ (chỉ xem)',
+      //     //   icon: 'fa-solid fa-eye text-secondary',
+      //     //   command: () => this.copyDeepLink(true),
+      //     // },
+      //     // { separator: true },
+
+      //   ],
+      // },
     ];
   }
 

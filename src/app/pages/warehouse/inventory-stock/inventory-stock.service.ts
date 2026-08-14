@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpResponse } from '@angular/common/http';
+import { map, Observable } from 'rxjs';
 import { HttpParams } from '@angular/common/http';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
@@ -73,6 +73,18 @@ export class InventoryStockService {
   getLogActivity(inventoryStockId: number) {
     return this.http.get<any>(
       this.apiUrl + `inventory-stock-log?inventoryStockId=${inventoryStockId}`
+    );
+  }
+
+  downloadTemplate(fileName: string): Observable<Blob> {
+    const url = `${environment.host}api/share/software/Template/ImportExcel/${fileName}`;
+    return this.http.get(url, {
+      responseType: 'blob',
+      observe: 'response'
+    }).pipe(
+      map((response: HttpResponse<Blob>) => {
+        return response.body as Blob;
+      })
     );
   }
 }

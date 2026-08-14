@@ -58,4 +58,9 @@ export class AssetsManagementService {
   getAssetLogs(assetID: number): Observable<any> {
     return this.httpclient.get<any>(`${this.urlGetAssets}-log/${assetID}`);
   }
+
+  exportExcelAssetManagement(request: any): Observable<any> {
+    const url = `${environment.host}api/Assets/export-excel-asset-management`;
+    return this.httpclient.post<any>(url, request);
+  }
 }

@@ -865,6 +865,15 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
       ).catch(() => null);
       const rows = res?.data?.dataList || [];
 
+      // Sắp xếp theo Ngày đề xuất từ lái xe (DateReport) tăng dần (cũ nhất lên đầu)
+      rows.sort((a: any, b: any) => {
+        const timeA = a?.DateReport ? new Date(a.DateReport).getTime() : 0;
+        const timeB = b?.DateReport ? new Date(b.DateReport).getTime() : 0;
+        const validA = isNaN(timeA) ? 0 : timeA;
+        const validB = isNaN(timeB) ? 0 : timeB;
+        return validA - validB;
+      });
+
       // Gọi API lấy file riêng cho từng history
       const fileTasks = (rows || []).map((r: any) =>
         firstValueFrom(

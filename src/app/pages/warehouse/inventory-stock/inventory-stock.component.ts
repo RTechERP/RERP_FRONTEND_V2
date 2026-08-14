@@ -99,6 +99,8 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
   warehouses: any[] = [];
   warehouseCode: string = '';
   warehouseId: number = 1;
+  productGroupId: number = 13;
+  productGroupList: any[] = [];
 
   // Menu
   inventoryStockMenu: MenuItem[] = [];
@@ -165,8 +167,9 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
     this.randomCode = this.generateUUIDv4();
     this.initGridColumns();
     this.initGridOptions();
-    this.getProductGroup()
-    this.onSearch();
+    this.getProductGroup().then(() => {
+      this.onSearch();
+    });
     this.loadWarehouse();
     this.loadMenu();
   }
@@ -198,6 +201,11 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
       this.onSearch();
     });
   }
+
+  onProductGroupChange(productGroupId: number): void {
+    this.productGroupId = productGroupId;
+    this.onSearch();
+  }
   //#endregion
 
   //#region load dữ liệu
@@ -206,7 +214,7 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
       {
         label: 'Thêm sản phẩm',
         icon: 'fa-solid fa-circle-plus fa-lg text-success',
-        visible: this.permissionService.hasPermission('N27,N35,N1,N33,N34'),
+        visible: this.permissionService.hasPermission('N64'),
         command: () => {
           console.log('Thêm sản phẩm');
           this.onAddProduct();
@@ -215,7 +223,7 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
       {
         label: 'Sửa sản phẩm',
         icon: 'fa-solid fa-file-pen fa-lg text-primary',
-        visible: this.permissionService.hasPermission('N27,N1'),
+        visible: this.permissionService.hasPermission('N64'),
         command: () => {
           this.onEditProduct();
         },
@@ -223,7 +231,7 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
       {
         label: 'Xóa sản phẩm',
         icon: 'fa-solid fa-trash fa-lg text-danger',
-        visible: this.permissionService.hasPermission('N27,N35,N1,N33,N34'),
+        visible: this.permissionService.hasPermission('N64'),
         command: () => {
           this.onDeleted();
         },
@@ -238,6 +246,7 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
       {
         label: 'Nhập excel',
         icon: 'fa-solid fa-file-arrow-up fa-lg text-success',
+        visible: this.permissionService.hasPermission('N64'),
         command: () => {
           this.onImportExcel();
         },
@@ -257,7 +266,13 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
       this.isLoadingProductGroup = true;
       this.productsaleSV.getdataProductGroupNew(this.warehouseId, false, true).subscribe({
         next: (res) => {
-          this.datasetProductGroup = res.data.data1.filter((x: any) => x.ID === 13);
+          this.productGroupList = res.data?.data1 || [];
+          this.datasetProductGroup = this.productGroupList.filter((x: any) => x.ID === 13);
+          if (this.datasetProductGroup.length > 0) {
+            this.productGroupId = this.datasetProductGroup[0].ID;
+          } else if (this.productGroupList.length > 0 && !this.productGroupId) {
+            this.productGroupId = this.productGroupList[0].ID;
+          }
           this.datasetProductGroup = this.datasetProductGroup.map(
             (item, index) => {
               return {
@@ -268,7 +283,6 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
           );
           this.isLoadingProductGroup = false;
           setTimeout(() => {
-            // Sử dụng biến selectedProductGroupRowIndex để set lại dòng được chọn
             if (this.angularGridProductGroup?.slickGrid) {
               this.angularGridProductGroup.slickGrid.setSelectedRows([
                 this.selectedProductGroupRowIndex,
@@ -293,19 +307,8 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
   onSearch(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.isLoadingInventory = true;
-      let id = -1;
-      let productGroupId = 0;
-      if (this.angularGridProductGroup?.slickGrid) {
-        const selectedIndexes =
-          this.angularGridProductGroup.slickGrid.getSelectedRows();
-        if (selectedIndexes.length > 0) {
-          const selectedItem = this.angularGridProductGroup.dataView.getItem(
-            selectedIndexes[0]
-          );
-          id = selectedItem?.ID || 0;
-          productGroupId = selectedItem?.ID || 0;
-        }
-      }
+      let id = this.productGroupId || 13;
+      let productGroupId = this.productGroupId || 13;
 
       if (this.checkedAll) id = 0;
 
@@ -513,12 +516,25 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
           model: Filters['compoundInput'],
         },
       },
+      // {
+      //   id: 'QuantityUse',
+      //   field: 'QuantityUse',
+      //   name: 'Tồn sử dụng',
+      //   cssClass: 'text-end',
+      //   width: 80,
+      //   sortable: true,
+      //   filterable: true,
+      //   filter: {
+      //     model: Filters['compoundInputNumber'],
+      //   },
+      //   type: 'number',
+      // },
       {
-        id: 'QuantityUse',
-        field: 'QuantityUse',
-        name: 'Tồn sử dụng',
+        id: 'TotalQuantityLast',
+        field: 'TotalQuantityLast',
+        name: 'Tồn CK (sử dụng)',
         cssClass: 'text-end',
-        width: 80,
+        width: 120,
         sortable: true,
         filterable: true,
         filter: {
@@ -529,9 +545,9 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
       {
         id: 'Quantity',
         field: 'Quantity',
-        name: 'Tồn tối thiểu Y/C',
+        name: 'Tồn tối thiểu thực tế',
         cssClass: 'text-end',
-        width: 80,
+        width: 120,
         sortable: true,
         filterable: true,
         filter: {
@@ -539,19 +555,19 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
         },
         type: 'number',
       },
-      {
-        id: 'TotalQuantityEnough',
-        field: 'TotalQuantityEnough',
-        name: 'Số lượng còn lại',
-        cssClass: 'text-end',
-        width: 100,
-        sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInputNumber'],
-        },
-        type: 'number',
-      },
+      // {
+      //   id: 'TotalQuantityEnough',
+      //   field: 'TotalQuantityEnough',
+      //   name: 'Số lượng còn lại',
+      //   cssClass: 'text-end',
+      //   width: 120,
+      //   sortable: true,
+      //   filterable: true,
+      //   filter: {
+      //     model: Filters['compoundInputNumber'],
+      //   },
+      //   type: 'number',
+      // },
       {
         id: 'FullName',
         field: 'FullName',
@@ -586,7 +602,7 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
         id: 'Note',
         field: 'Note',
         name: 'Ghi chú',
-        minWidth: 350,
+        minWidth: 600,
         sortable: true,
         filterable: true,
         formatter: this.wrapTextFormatter,
@@ -910,11 +926,11 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
     const angularGrid = this.angularGridInventory;
     const angularGridProductGroup = this.angularGridProductGroup;
 
-    if (!angularGrid?.dataView || !angularGridProductGroup?.dataView) return;
+    if (!angularGrid?.dataView) return;
 
     const data = angularGrid.dataView.getItems() as any[];
     const dataProductGroup =
-      angularGridProductGroup.dataView.getItems() as any[];
+      (angularGridProductGroup?.dataView?.getItems() as any[]) || [];
 
     const getUniqueValues = (
       items: any[],
@@ -961,21 +977,23 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
       });
     }
 
-    const columnProductGroups = angularGridProductGroup.slickGrid.getColumns();
-    if (columnProductGroups) {
-      columnProductGroups.forEach((column: any) => {
-        if (
-          column.filter &&
-          column.filter.model === Filters['multipleSelect']
-        ) {
-          const field = column.field;
-          if (!field) return;
-          column.filter.collection = getUniqueValues(dataProductGroup, field);
-        }
-      });
+    if (angularGridProductGroup?.slickGrid) {
+      const columnProductGroups = angularGridProductGroup.slickGrid.getColumns();
+      if (columnProductGroups) {
+        columnProductGroups.forEach((column: any) => {
+          if (
+            column.filter &&
+            column.filter.model === Filters['multipleSelect']
+          ) {
+            const field = column.field;
+            if (!field) return;
+            column.filter.collection = getUniqueValues(dataProductGroup, field);
+          }
+        });
+      }
     }
 
-    if (this.columnDefinitionsProductGroup) {
+    if (this.columnDefinitionsProductGroup && dataProductGroup.length > 0) {
       this.columnDefinitionsProductGroup.forEach((colDef: any) => {
         if (
           colDef.filter &&
@@ -993,11 +1011,13 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
     angularGrid.slickGrid.invalidate();
     angularGrid.slickGrid.render();
 
-    const updatedColumnProductGroups =
-      angularGridProductGroup.slickGrid.getColumns();
-    angularGridProductGroup.slickGrid.setColumns(updatedColumnProductGroups);
-    angularGridProductGroup.slickGrid.invalidate();
-    angularGridProductGroup.slickGrid.render();
+    if (angularGridProductGroup?.slickGrid) {
+      const updatedColumnProductGroups =
+        angularGridProductGroup.slickGrid.getColumns();
+      angularGridProductGroup.slickGrid.setColumns(updatedColumnProductGroups);
+      angularGridProductGroup.slickGrid.invalidate();
+      angularGridProductGroup.slickGrid.render();
+    }
   }
   //#endregion
 

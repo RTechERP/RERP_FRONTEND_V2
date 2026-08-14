@@ -14,7 +14,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatters,
@@ -55,7 +55,7 @@ import { AppUserService } from '../../../../../services/app-user.service';
         NgbModule,
         HasPermissionDirective,
         NzSpinModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         MenubarModule,
         NzDropdownModule,
         BillExportDetailFileComponent
@@ -273,7 +273,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -346,7 +346,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -377,7 +377,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -393,7 +393,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -409,7 +409,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -425,7 +425,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -441,7 +441,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -457,7 +457,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -489,7 +489,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -520,7 +520,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -572,7 +572,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -603,7 +603,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -619,7 +619,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -636,13 +636,13 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
             datasetIdPropertyName: 'id',
             enableAutoResize: true,
             gridWidth: '100%',
-            enableRowSelection: true,
+            enableSelection: true,
             enableCheckboxSelector: true,
             checkboxSelector: {
                 hideInFilterHeaderRow: false,
                 hideInColumnTitleRow: true,
             },
-            rowSelectionOptions: {
+            selectionOptions: {
                 selectActiveRow: false
             },
             enableCellNavigation: true,

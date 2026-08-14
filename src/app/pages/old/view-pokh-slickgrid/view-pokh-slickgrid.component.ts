@@ -21,7 +21,7 @@ import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Editors,
   Filters,
@@ -75,7 +75,7 @@ interface GroupedData {
     NzInputModule,
     NzInputNumberModule,
     NzSpinModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar,
   ],
   templateUrl: './view-pokh-slickgrid.component.html',
@@ -346,8 +346,8 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
       gridWidth: '100%',
       enableCellNavigation: true,
       enableFiltering: true,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       rowHeight: 35,
@@ -437,7 +437,7 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
       gridWidth: '100%',
       enableCellNavigation: true,
       enableFiltering: false,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCheckboxSelector: true,
       checkboxSelector: {
         hideSelectAllCheckbox: false,

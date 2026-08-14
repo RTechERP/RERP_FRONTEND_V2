@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Editors,
     GridOption,
@@ -19,7 +19,7 @@ import { ViewPokhSlickgridComponent } from './view-pokh-slickgrid.component';
     imports: [
         CommonModule,
         FormsModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         NzButtonModule,
         NzIconModule,
     ],

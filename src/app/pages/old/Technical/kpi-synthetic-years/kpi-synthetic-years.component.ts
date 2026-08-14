@@ -13,7 +13,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Formatters,
   GridOption
@@ -38,7 +38,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzInputNumberModule,
     NzSpinModule,
     NzCardModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar
   ],
   templateUrl: './kpi-synthetic-years.component.html',
@@ -242,8 +242,8 @@ export class KpiSyntheticYearsComponent implements OnInit {
       enableFiltering: true,
       enableColumnReorder: true,
       enableCellNavigation: true,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: true
       },
       forceFitColumns: true,

@@ -20,7 +20,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -61,7 +61,7 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
     NzSpinModule,
     NzModalModule,
     HasPermissionDirective,
-    AngularSlickgridModule
+    AngularSlickgridComponent
   ],
   selector: 'app-inventory-project-new',
   templateUrl: './inventory-project-new.component.html',
@@ -155,7 +155,7 @@ export class InventoryProjectNewComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             maxHeight: 250,
             filter: true
@@ -172,7 +172,7 @@ export class InventoryProjectNewComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             maxHeight: 250,
             filter: true
@@ -189,7 +189,7 @@ export class InventoryProjectNewComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             maxHeight: 250,
             filter: true
@@ -206,7 +206,7 @@ export class InventoryProjectNewComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             maxHeight: 250,
             filter: true
@@ -223,7 +223,7 @@ export class InventoryProjectNewComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             maxHeight: 250,
             filter: true
@@ -279,7 +279,7 @@ export class InventoryProjectNewComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             maxHeight: 250,
             filter: true
@@ -296,7 +296,7 @@ export class InventoryProjectNewComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             maxHeight: 250,
             filter: true
@@ -313,7 +313,7 @@ export class InventoryProjectNewComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             maxHeight: 250,
             filter: true
@@ -330,7 +330,7 @@ export class InventoryProjectNewComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             maxHeight: 250,
             filter: true
@@ -347,7 +347,7 @@ export class InventoryProjectNewComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             maxHeight: 250,
             filter: true
@@ -364,7 +364,7 @@ export class InventoryProjectNewComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             maxHeight: 250,
             filter: true
@@ -381,7 +381,7 @@ export class InventoryProjectNewComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             maxHeight: 250,
             filter: true  
@@ -398,7 +398,7 @@ export class InventoryProjectNewComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             maxHeight: 250,
             filter: true  
@@ -459,11 +459,11 @@ export class InventoryProjectNewComponent implements OnInit {
       enableAutoResize: true,
       gridWidth: '100%',
       gridHeight: 600,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
       enableFiltering: true,
       enableSorting: true,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: false
       },
       checkboxSelector: {

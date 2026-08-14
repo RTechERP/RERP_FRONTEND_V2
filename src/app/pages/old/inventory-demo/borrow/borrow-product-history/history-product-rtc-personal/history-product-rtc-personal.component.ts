@@ -18,7 +18,7 @@ import { DateTime } from 'luxon';
 // Angular Slickgrid
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatter,
@@ -82,7 +82,7 @@ import { environment } from '../../../../../../../environments/environment';
     imports: [
         CommonModule,
         FormsModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         NzButtonModule,
         NzIconModule,
         NzModalModule,
@@ -198,7 +198,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -253,7 +253,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                         { value: true, label: 'Có' },
                         { value: false, label: 'Không' },
                     ],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -268,7 +268,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -283,7 +283,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -298,7 +298,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -314,7 +314,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -329,7 +329,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -344,7 +344,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -359,7 +359,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -374,7 +374,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -397,7 +397,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -412,7 +412,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -427,7 +427,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -442,7 +442,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -457,7 +457,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
             //     filter: {
             //         model: Filters['multipleSelect'],
             //         collection: [],
-            //         filterOptions: {
+            //         options: {
             //             filter: true,
             //         } as MultipleSelectOption,
             //     },
@@ -522,7 +522,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -545,7 +545,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -560,7 +560,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -575,7 +575,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -591,7 +591,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -607,7 +607,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -626,8 +626,8 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false,
             },
             checkboxSelector: {

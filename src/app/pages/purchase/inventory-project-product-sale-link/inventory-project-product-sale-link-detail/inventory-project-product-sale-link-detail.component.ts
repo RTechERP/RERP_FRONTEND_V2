@@ -18,7 +18,7 @@ import {
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -72,7 +72,7 @@ import { InventoryProjectProductSaleLinkService } from '../inventory-project-pro
     NzDropdownModule,
     NzIconModule,
     NzModalModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   templateUrl: './inventory-project-product-sale-link-detail.component.html',
   styleUrl: './inventory-project-product-sale-link-detail.component.css',
@@ -274,8 +274,8 @@ export class InventoryProjectProductSaleLinkDetailComponent implements OnInit {
       enableAutoSizeColumns: true,
       forceFitColumns: true,
       enableColumnReorder: true,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

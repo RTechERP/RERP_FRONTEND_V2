@@ -12,7 +12,7 @@ import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Formatter,
   Formatters,
@@ -80,7 +80,7 @@ interface SaveDataKPIRequestParam {
     NzTabsModule,
     NzSelectModule,
     NzDividerModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   templateUrl: './kpievaluation-factor-scoring-details.component.html',
   styleUrl: './kpievaluation-factor-scoring-details.component.css'
@@ -2769,7 +2769,7 @@ export class KPIAGVEvaluationFactorScoringDetailsComponent implements OnInit, Af
     }
 
     // 8. Highlight ô đã thay đổi
-    const column = grid.getColumns()[args.cell];
+    const column = grid.getVisibleColumns()[args.cell];
     if (column) {
       this.renderUnsavedCellStyling(changedItem, column, { row: args.row } as EditCommand);
     }

@@ -7,7 +7,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     GridOption,
     Formatters,
@@ -23,7 +23,7 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
         FormsModule,
         NzInputModule,
         NzButtonModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
     ],
     templateUrl: './kpi-evaluation-detail.component.html',
     styleUrl: './kpi-evaluation-detail.component.css'

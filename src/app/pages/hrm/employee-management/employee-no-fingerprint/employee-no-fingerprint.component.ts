@@ -45,7 +45,7 @@ import { DateTime } from 'luxon';
 // SlickGrid
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatter,
@@ -76,7 +76,7 @@ import {
     HasPermissionDirective,
     NzDropdownModule,
     Menubar,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzTreeSelectModule
   ],
   templateUrl: './employee-no-fingerprint.component.html',
@@ -297,7 +297,7 @@ export class EmployeeNoFingerprintComponent
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true } as MultipleSelectOption,
         },
         cssClass: 'text-center',
       },
@@ -312,7 +312,7 @@ export class EmployeeNoFingerprintComponent
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true } as MultipleSelectOption,
         },
         cssClass: 'text-center',
       },
@@ -365,7 +365,7 @@ export class EmployeeNoFingerprintComponent
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true } as MultipleSelectOption,
         },
       },
       {
@@ -405,8 +405,8 @@ export class EmployeeNoFingerprintComponent
       },
       enableAutoResize: true,
       gridWidth: '100%',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

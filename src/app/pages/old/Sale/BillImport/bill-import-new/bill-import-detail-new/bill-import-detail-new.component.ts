@@ -18,7 +18,7 @@ import {
 } from '@angular/forms';
 
 import {
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     AngularGridInstance,
     Column,
     GridOption,
@@ -119,7 +119,7 @@ interface BillImport {
         NzCheckboxModule,
         NzSpinModule,
         HasPermissionDirective,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         NzTabsModule,
     ],
     templateUrl: './bill-import-detail-new.component.html',
@@ -709,11 +709,11 @@ export class BillImportDetailNewComponent
             frozenColumn: 5,
             enableColumnReorder: true,
             enableCheckboxSelector: true,
-            enableRowSelection: true,
+            enableSelection: true,
             checkboxSelector: {
                 hideSelectAllCheckbox: false,
             },
-            rowSelectionOptions: {
+            selectionOptions: {
                 selectActiveRow: false,
             },
             enableCellMenu: true,
@@ -825,7 +825,7 @@ export class BillImportDetailNewComponent
                 editor: {
                     model: Editors['autocompleter'],
                     alwaysSaveOnEnterKey: true,
-                    editorOptions: {
+                    options: {
                         minLength: 0,
                         forceUserInput: false,
                         openSearchListOnFocus: true,
@@ -1015,7 +1015,7 @@ export class BillImportDetailNewComponent
                     model: Editors['singleSelect'],
                     collectionOptions: { addBlankEntry: true },
                     collection: this.projectGridCollection,
-                    editorOptions: { filter: true } as MultipleSelectOption,
+                    options: { filter: true } as MultipleSelectOption,
                 },
             },
             {
@@ -1319,7 +1319,7 @@ export class BillImportDetailNewComponent
     }
 
     onGridDetailClick(e: Event, args: OnClickEventArgs): void {
-        const column = args.grid.getColumns()[args.cell];
+        const column = args.grid.getVisibleColumns()[args.cell];
         const clickedElement = e.target as HTMLElement;
 
         if (column.id === 'action' && !this.isApproved) {
@@ -1352,7 +1352,7 @@ export class BillImportDetailNewComponent
     }
 
     onCellChange(args: any): void {
-        const columnDef = this.angularGridDetail.slickGrid.getColumns()[args.cell];
+        const columnDef = this.angularGridDetail.slickGrid.getVisibleColumns()[args.cell];
 
         if (columnDef.field === 'ProductID') {
             const productIdValue = args.item.ProductID;
@@ -1995,8 +1995,8 @@ export class BillImportDetailNewComponent
                     const productCol = this.columnDefinitionsDetail.find(
                         (c) => c.id === 'ProductID'
                     );
-                    if (productCol?.editor?.editorOptions) {
-                        (productCol.editor.editorOptions as any).collection =
+                    if (productCol?.editor?.options) {
+                        (productCol.editor.options as any).collection =
                             this.productGridCollection;
                     }
 
@@ -2046,8 +2046,8 @@ export class BillImportDetailNewComponent
                     const productCol = this.columnDefinitionsDetail.find(
                         (c) => c.id === 'ProductID'
                     );
-                    if (productCol?.editor?.editorOptions) {
-                        (productCol.editor.editorOptions as any).collection =
+                    if (productCol?.editor?.options) {
+                        (productCol.editor.options as any).collection =
                             this.productGridCollection;
                     }
 
@@ -2739,7 +2739,7 @@ if (
                     model: Editors['singleSelect'],
                     collectionOptions: { addBlankEntry: true },
                     collection: this.cbbStatusPur.map((s: any) => ({ value: s.ID, label: s.Name })),
-                    editorOptions: { filter: true } as MultipleSelectOption,
+                    options: { filter: true } as MultipleSelectOption,
                 } : undefined,
                 formatter: (_row: number, _cell: number, value: any) => {
                     const status = this.cbbStatusPur.find((s: any) => s.ID === value);

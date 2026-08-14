@@ -17,7 +17,7 @@ import { Subscription } from 'rxjs';
 
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   GridOption,
@@ -72,7 +72,7 @@ import { AppUserService } from '../../../../services/app-user.service';
     NzDatePickerModule,
     NzDropdownModule,
     NzSpinModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar,
   ],
   templateUrl: './list-product-project.component.html',
@@ -542,7 +542,7 @@ export class ListProductProjectComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -562,7 +562,7 @@ export class ListProductProjectComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -582,7 +582,7 @@ export class ListProductProjectComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -762,8 +762,8 @@ export class ListProductProjectComponent
       rowHeight: 60,
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

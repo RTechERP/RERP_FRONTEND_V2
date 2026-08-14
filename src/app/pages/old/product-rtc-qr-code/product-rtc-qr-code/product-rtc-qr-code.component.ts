@@ -43,7 +43,7 @@ import { HistoryProductRtcBorrowQrComponent } from '../../inventory-demo/borrow/
 // SlickGrid imports
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatter,
@@ -71,7 +71,7 @@ import {
     NzSpinModule,
     HasPermissionDirective,
     Menubar,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   selector: 'app-product-rtc-qr-code',
   templateUrl: './product-rtc-qr-code.component.html',
@@ -235,7 +235,7 @@ export class ProductRtcQrCodeComponent
             { value: 4, label: 'Lost' },
           ],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
             autoAdjustDropWidthByTextSize: true,
@@ -255,7 +255,7 @@ export class ProductRtcQrCodeComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
             autoAdjustDropWidthByTextSize: true,
@@ -275,7 +275,7 @@ export class ProductRtcQrCodeComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
             autoAdjustDropWidthByTextSize: true,
@@ -295,7 +295,7 @@ export class ProductRtcQrCodeComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
             autoAdjustDropWidthByTextSize: true,
@@ -315,7 +315,7 @@ export class ProductRtcQrCodeComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
             autoAdjustDropWidthByTextSize: true,
@@ -335,7 +335,7 @@ export class ProductRtcQrCodeComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
             autoAdjustDropWidthByTextSize: true,
@@ -355,7 +355,7 @@ export class ProductRtcQrCodeComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
             autoAdjustDropWidthByTextSize: true,
@@ -375,7 +375,7 @@ export class ProductRtcQrCodeComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
             autoAdjustDropWidthByTextSize: true,
@@ -410,8 +410,8 @@ export class ProductRtcQrCodeComponent
       datasetIdPropertyName: 'ID',
 
       // Row selection with checkbox
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

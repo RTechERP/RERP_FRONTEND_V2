@@ -7,7 +7,7 @@ import {
   GridOption,
   Filters,
   Formatters,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   SortDirectionNumber,
   Editors,
   EditCommand,
@@ -42,7 +42,7 @@ import { KPIAGVEvaluationFactorScoringDetailsComponent } from '../kpievaluation-
   imports: [
     CommonModule,
     FormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzButtonModule,
     NzIconModule,
     NzSelectModule,
@@ -704,9 +704,9 @@ export class KPIAGVEvaluationFactorScoringComponent implements OnInit, AfterView
         resizeDetection: 'container'
       },
       gridWidth: '100%',
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: true
       },
       enableSorting: true,
@@ -821,7 +821,7 @@ export class KPIAGVEvaluationFactorScoringComponent implements OnInit, AfterView
             { value: false, label: 'Chưa duyệt' },
           ],
           model: Filters['singleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -838,9 +838,9 @@ export class KPIAGVEvaluationFactorScoringComponent implements OnInit, AfterView
         resizeDetection: 'container'
       },
       gridWidth: '100%',
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: true
       },
       enableFiltering: true,
@@ -1997,7 +1997,7 @@ export class KPIAGVEvaluationFactorScoringComponent implements OnInit, AfterView
 
     const item = args.item;
     const columnId = args.cell !== undefined ?
-      (args.grid?.getColumns()[args.cell]?.id) : null;
+      (args.grid?.getVisibleColumns()[args.cell]?.id) : null;
 
     // Xác định data array cần update
     let dataArray: any[];

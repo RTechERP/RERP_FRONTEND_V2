@@ -6,7 +6,7 @@ import { AppUserService } from '../../../../services/app-user.service';
 import { MenuAppService } from '../menu-app.service';
 import { MenuApp } from '../model/menu-app';
 import { CommonModule } from '@angular/common';
-import { AngularGridInstance, AngularSlickgridModule, Column, Filters, GridOption, OnSelectedRowsChangedEventArgs } from 'angular-slickgrid';
+import { AngularGridInstance, AngularSlickgridComponent, Column, Filters, GridOption, OnSelectedRowsChangedEventArgs } from 'angular-slickgrid';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -39,7 +39,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
         NzTreeSelectModule,
         NzIconModule,
         FormsModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
     ],
     templateUrl: './menu-app-detail.component.html',
     styleUrl: './menu-app-detail.component.css'
@@ -127,8 +127,8 @@ export class MenuAppDetailComponent {
 
             enableFiltering: true,
 
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false// True (Single Selection), False (Multiple Selections)
             },
             checkboxSelector: {

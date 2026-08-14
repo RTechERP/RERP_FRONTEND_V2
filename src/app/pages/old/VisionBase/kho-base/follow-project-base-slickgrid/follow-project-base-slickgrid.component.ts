@@ -31,7 +31,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     EditCommand,
     Filters,
@@ -88,7 +88,7 @@ import { ReadOnlyLongTextEditor } from '../../../../KPITech/kpievaluation-employ
         NzModalModule,
         CommonModule,
         HasPermissionDirective,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         Menubar,
     ],
     templateUrl: './follow-project-base-slickgrid.component.html',
@@ -793,15 +793,15 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
             // THÔNG TIN DỰ ÁN
             { id: 'ProjectCode', name: 'Mã dự án', field: 'ProjectCode', width: 150, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'THÔNG TIN DỰ ÁN' },
             { id: 'ProjectName', name: 'Tên dự án', field: 'ProjectName', width: 250, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'THÔNG TIN DỰ ÁN' },
-            { id: 'FullName', name: 'Sale phụ trách', field: 'FullName', width: 150, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption }, columnGroup: 'THÔNG TIN DỰ ÁN' },
-            { id: 'ProjectManager', name: 'PM', field: 'ProjectManager', width: 150, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption }, columnGroup: 'THÔNG TIN DỰ ÁN' },
-            { id: 'CustomerName', name: 'Đối tác(KH)', field: 'CustomerName', width: 150, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption }, columnGroup: 'THÔNG TIN DỰ ÁN' },
-            { id: 'EndUser', name: 'End User', field: 'EndUser', width: 150, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption }, columnGroup: 'THÔNG TIN DỰ ÁN' },
-            { id: 'ProjectStatusName', name: 'Trạng thái', field: 'ProjectStatusName', width: 150, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption }, columnGroup: 'THÔNG TIN DỰ ÁN' },
+            { id: 'FullName', name: 'Sale phụ trách', field: 'FullName', width: 150, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption }, columnGroup: 'THÔNG TIN DỰ ÁN' },
+            { id: 'ProjectManager', name: 'PM', field: 'ProjectManager', width: 150, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption }, columnGroup: 'THÔNG TIN DỰ ÁN' },
+            { id: 'CustomerName', name: 'Đối tác(KH)', field: 'CustomerName', width: 150, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption }, columnGroup: 'THÔNG TIN DỰ ÁN' },
+            { id: 'EndUser', name: 'End User', field: 'EndUser', width: 150, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption }, columnGroup: 'THÔNG TIN DỰ ÁN' },
+            { id: 'ProjectStatusName', name: 'Trạng thái', field: 'ProjectStatusName', width: 150, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption }, columnGroup: 'THÔNG TIN DỰ ÁN' },
             { id: 'ProjectStartDate', name: 'Ngày bắt đầu', field: 'ProjectStartDate', width: 120, minWidth: 100, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center', columnGroup: 'THÔNG TIN DỰ ÁN' },
-            { id: 'ProjectTypeName', name: 'Loại dự án', field: 'ProjectTypeName', width: 120, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption }, columnGroup: 'THÔNG TIN DỰ ÁN' },
-            { id: 'FirmName', name: 'Hãng', field: 'FirmName', width: 120, minWidth: 80, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption }, columnGroup: 'THÔNG TIN DỰ ÁN' },
-            { id: 'FirmPossibilityPOName', name: 'Khả năng có PO', field: 'FirmPossibilityPOName', width: 140, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption }, columnGroup: 'THÔNG TIN DỰ ÁN', cssClass: 'column-group-border-right', headerCssClass: 'column-group-border-right' },
+            { id: 'ProjectTypeName', name: 'Loại dự án', field: 'ProjectTypeName', width: 120, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption }, columnGroup: 'THÔNG TIN DỰ ÁN' },
+            { id: 'FirmName', name: 'Hãng', field: 'FirmName', width: 120, minWidth: 80, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption }, columnGroup: 'THÔNG TIN DỰ ÁN' },
+            { id: 'FirmPossibilityPOName', name: 'Khả năng có PO', field: 'FirmPossibilityPOName', width: 140, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption }, columnGroup: 'THÔNG TIN DỰ ÁN', cssClass: 'column-group-border-right', headerCssClass: 'column-group-border-right' },
             // DỰ KIẾN
             { id: 'ExpectedPlanDate', name: 'Ngày lên phương án', field: 'ExpectedPlanDate', width: 150, minWidth: 120, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center', columnGroup: 'DỰ KIẾN' },
             { id: 'ExpectedQuotationDate', name: 'Ngày báo giá', field: 'ExpectedQuotationDate', width: 150, minWidth: 120, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center', columnGroup: 'DỰ KIẾN' },
@@ -828,8 +828,8 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
             gridWidth: '100%',
             enableCellNavigation: true,
             enableFiltering: true,
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true
             },
             enableCheckboxSelector: false,
@@ -861,8 +861,8 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
             gridWidth: '100%',
             enableCellNavigation: true,
             enableFiltering: true,
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true
             },
             enableCheckboxSelector: false,
@@ -897,8 +897,8 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
             gridWidth: '100%',
             enableCellNavigation: true,
             enableFiltering: true,
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true
             },
             enableCheckboxSelector: false,

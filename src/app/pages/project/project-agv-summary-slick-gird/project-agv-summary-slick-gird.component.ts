@@ -27,7 +27,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -72,7 +72,7 @@ import { DateTime } from 'luxon';
     NzInputModule,
     NzSelectModule,
     NzTableModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
@@ -278,7 +278,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -328,7 +328,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         //   model: Filters['multipleSelect'],
         //   collection: [],
         //   collectionOptions: { addBlankEntry: true },
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption,
@@ -345,7 +345,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         //   model: Filters['multipleSelect'],
         //   collection: [],
         //   collectionOptions: { addBlankEntry: true },
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption,
@@ -387,7 +387,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         //   model: Filters['multipleSelect'],
         //   collection: [],
         //   collectionOptions: { addBlankEntry: true },
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption,
@@ -441,7 +441,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -473,7 +473,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -505,7 +505,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -537,7 +537,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         //   model: Filters['multipleSelect'],
         //   collection: [],
         //   collectionOptions: { addBlankEntry: true },
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption,
@@ -569,7 +569,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         //   model: Filters['multipleSelect'],
         //   collection: [],
         //   collectionOptions: { addBlankEntry: true },
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption,
@@ -601,7 +601,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         //   model: Filters['multipleSelect'],
         //   collection: [],
         //   collectionOptions: { addBlankEntry: true },
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption,
@@ -680,7 +680,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -697,7 +697,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -713,8 +713,8 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: false,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: true,
       },
       enableCellNavigation: true,
@@ -752,7 +752,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -768,7 +768,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -784,7 +784,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -801,7 +801,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -828,7 +828,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -845,7 +845,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -928,7 +928,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -945,7 +945,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -960,7 +960,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
       },
       enableAutoResize: true,
       forceFitColumns: false,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
       enableFiltering: true,
       autoFitColumnsOnFirstLoad: false,
@@ -990,7 +990,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
             { value: 'true', label: 'true' },
             { value: 'false', label: 'false' },
           ],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1006,7 +1006,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -1022,7 +1022,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -1041,8 +1041,8 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
       gridWidth: '100%',
       enableCellNavigation: true,
       enableFiltering: true, // THÊM enableFiltering cho tree data
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false, // Đổi thành false giống file tham khảo
       },
       enableTreeData: true,

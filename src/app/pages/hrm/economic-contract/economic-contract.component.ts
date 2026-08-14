@@ -19,7 +19,7 @@ import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -57,7 +57,7 @@ import { environment } from '../../../../environments/environment';
     NzSpinModule,
     NzGridModule,
     Menubar,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     EconomicContractImportExcelComponent,
     NzTabsModule
   ],
@@ -238,7 +238,7 @@ export class EconomicContractComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -257,7 +257,7 @@ export class EconomicContractComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -275,7 +275,7 @@ export class EconomicContractComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -319,7 +319,7 @@ export class EconomicContractComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -352,7 +352,7 @@ export class EconomicContractComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -370,7 +370,7 @@ export class EconomicContractComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -478,7 +478,7 @@ export class EconomicContractComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -576,7 +576,7 @@ export class EconomicContractComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -648,9 +648,9 @@ export class EconomicContractComponent implements OnInit {
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: false,
-      enableRowSelection: true,
+      enableSelection: true,
       multiSelect: true,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: false
       },
       enableCheckboxSelector: true,
@@ -764,8 +764,8 @@ export class EconomicContractComponent implements OnInit {
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: true,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: true
       },
       enableCellNavigation: true,

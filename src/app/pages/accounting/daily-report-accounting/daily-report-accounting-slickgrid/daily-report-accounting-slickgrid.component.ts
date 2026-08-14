@@ -17,7 +17,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     EditCommand,
     Filters,
@@ -58,7 +58,7 @@ import { ReadOnlyLongTextEditor } from '../../../KPITech/kpievaluation-employee/
         NzGridModule,
         CommonModule,
         HasPermissionDirective,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         Menubar,
         NzInputNumberModule,
         NzDropdownModule
@@ -379,7 +379,7 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
 
     initGrid(): void {
         this.columnDefinitions = [
-            { id: 'FullName', name: 'Họ tên', field: 'FullName', width: 250, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
+            { id: 'FullName', name: 'Họ tên', field: 'FullName', width: 250, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'ChucVu', name: 'Chức vụ', field: 'ChucVu', width: 250, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
             { id: 'ReportDate', name: 'Ngày báo cáo', field: 'ReportDate', width: 150, minWidth: 100, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center', filter: { model: Filters['compoundInputText'] } },
             { id: 'Content', name: 'Việc đã làm', field: 'Content', width: 300, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
@@ -401,8 +401,8 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
             gridWidth: '100%',
             enableCellNavigation: true,
             enableFiltering: true,
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true
             },
             enableCheckboxSelector: false,

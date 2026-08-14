@@ -42,7 +42,7 @@ import { PermissionService } from '../../../services/permission.service';
 import { Menubar } from 'primeng/menubar';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatter,
@@ -83,7 +83,7 @@ import {
     NzDropdownModule,
     FormsModule,
     Menubar,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzTreeSelectModule
   ]
 })
@@ -394,7 +394,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit, OnDestroy {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -411,7 +411,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit, OnDestroy {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -428,7 +428,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit, OnDestroy {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -476,7 +476,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit, OnDestroy {
             { value: false, label: 'Không' },
           ],
           model: Filters['singleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -557,7 +557,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit, OnDestroy {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -599,8 +599,8 @@ export class EarlyLateComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       enableAutoResize: true,
       gridWidth: '100%',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       checkboxSelector: {

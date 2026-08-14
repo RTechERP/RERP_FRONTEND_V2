@@ -9,7 +9,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { AngularSlickgridModule, Column, GridOption, AngularGridInstance } from 'angular-slickgrid';
+import { AngularSlickgridComponent, Column, GridOption, AngularGridInstance } from 'angular-slickgrid';
 import { ChartModule } from 'primeng/chart';
 import { KpiRankingService } from './kpi-ranking-service/kpi-ranking.service';
 import { Inject, Optional } from '@angular/core';
@@ -27,7 +27,7 @@ import { TabServiceService } from '../../../../layouts/tab-service.service';
     NzInputNumberModule,
     NzFormModule,
     NzSplitterModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     ChartModule
   ],
   templateUrl: './kpi-ranking.component.html',
@@ -117,9 +117,9 @@ export class KpiRankingComponent implements OnInit {
     enableFiltering: true,
     enableSorting: true,
     enableGrouping: true,
-    enableRowSelection: true,
+    enableSelection: true,
     forceFitColumns: true,
-    rowSelectionOptions: {
+    selectionOptions: {
       selectActiveRow: true,
     },
     rowHeight: 35,

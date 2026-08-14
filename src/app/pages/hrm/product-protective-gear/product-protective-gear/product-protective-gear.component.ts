@@ -28,7 +28,7 @@ import { MenuItem, PrimeIcons, SharedModule } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -65,7 +65,7 @@ import { ProductProtectiveGear } from '../model/product-protective-gear';
     NzTableModule,
     NzTabsModule,
     NzSpinModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar,
     NzModalModule,
     NzFormModule,
@@ -605,7 +605,7 @@ export class ProductProtectiveGearComponent implements OnInit {
       enableSorting: true,
       enableFiltering: true,
       enableCellNavigation: true,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCheckboxSelector: false,
       multiSelect: false,
       enableGridMenu: false,
@@ -759,12 +759,12 @@ export class ProductProtectiveGearComponent implements OnInit {
       enableSorting: true,
       enableFiltering: true,
       enableCellNavigation: true,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCheckboxSelector: true,
       multiSelect: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: true,
       },
       autoHeight: false,

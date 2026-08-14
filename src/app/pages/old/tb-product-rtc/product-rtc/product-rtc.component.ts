@@ -23,7 +23,7 @@ import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { SplitterModule } from 'primeng/splitter';
-import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption, MultipleSelectOption, OnSelectedRowsChangedEventArgs } from 'angular-slickgrid';
+import { AngularGridInstance, AngularSlickgridComponent, Column, Filters, Formatters, GridOption, MultipleSelectOption, OnSelectedRowsChangedEventArgs } from 'angular-slickgrid';
 import { TbProductRtcService } from '../tb-product-rtc-service/tb-product-rtc.service';
 import { NgbModal, NgbModalModule, NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
@@ -55,7 +55,7 @@ import { ProductGroupRtcSettingComponent } from '../product-group-rtc-setting/pr
         NzModalModule,
         NzSpinModule,
         SplitterModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         HasPermissionDirective,
         NgbModalModule,
         NgbDropdownModule,
@@ -257,7 +257,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -272,7 +272,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -308,7 +308,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -323,7 +323,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -338,7 +338,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -353,7 +353,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -368,7 +368,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -383,7 +383,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -403,7 +403,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                         { value: true, label: 'Có' },
                         { value: false, label: 'Không' },
                     ],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -418,7 +418,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -433,7 +433,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -448,7 +448,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -487,8 +487,8 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'ID',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true,
             },
             forceFitColumns: true,
@@ -513,8 +513,8 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false,
             },
             checkboxSelector: {

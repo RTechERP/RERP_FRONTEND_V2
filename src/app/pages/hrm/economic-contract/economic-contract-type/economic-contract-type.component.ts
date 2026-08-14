@@ -10,7 +10,7 @@ import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatters,
@@ -34,7 +34,7 @@ import { EconomicContractTypeFormComponent } from './economic-contract-type-form
         NzCardModule,
         NzSplitterModule,
         Menubar,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     templateUrl: './economic-contract-type.component.html',
@@ -124,7 +124,7 @@ export class EconomicContractTypeComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -168,7 +168,7 @@ export class EconomicContractTypeComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -202,7 +202,7 @@ export class EconomicContractTypeComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -222,9 +222,9 @@ export class EconomicContractTypeComponent implements OnInit {
             enableAutoResize: true,
             gridWidth: '100%',
             forceFitColumns: true,
-            enableRowSelection: true,
+            enableSelection: true,
             multiSelect: true,
-            rowSelectionOptions: {
+            selectionOptions: {
                 selectActiveRow: false
             },
             checkboxSelector: {

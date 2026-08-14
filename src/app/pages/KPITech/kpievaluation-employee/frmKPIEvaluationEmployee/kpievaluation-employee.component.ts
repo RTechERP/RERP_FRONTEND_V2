@@ -10,7 +10,7 @@ import {
   GridOption,
   Filters,
   Formatters,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   OnSelectedRowsChangedEventArgs,
   Editors,
   SortDirectionNumber,
@@ -61,7 +61,7 @@ interface LiXi {
   imports: [
     CommonModule,
     FormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzButtonModule,
     NzIconModule,
     NzSelectModule,
@@ -595,9 +595,9 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         resizeDetection: 'container'
       },
       gridWidth: '100%',
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: true
       },
       enableSorting: true,
@@ -695,9 +695,9 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         resizeDetection: 'container'
       },
       gridWidth: '100%',
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: true
       },
       enableSorting: true,
@@ -1922,7 +1922,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       this.angularGridRule.slickGrid.onClick.subscribe((e: any, args: any) => {
         const grid = args.grid;
         const rowData = grid.getDataItem(args.row);
-        const column = grid.getColumns()[args.cell];
+        const column = grid.getVisibleColumns()[args.cell];
 
         if (rowData && column && ['FirstMonth', 'SecondMonth', 'ThirdMonth'].includes(column.id)) {
           const evaluationCode = rowData.EvaluationCode;

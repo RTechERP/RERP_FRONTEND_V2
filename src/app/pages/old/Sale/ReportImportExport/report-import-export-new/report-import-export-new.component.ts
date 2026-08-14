@@ -34,7 +34,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { environment } from '../../../../../../environments/environment';
 import {
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     AngularGridInstance,
     Column,
     Filters,
@@ -84,7 +84,7 @@ interface ProductGroup {
         NzDatePickerModule,
         NzSpinModule,
         NgbModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
     ],
     templateUrl: './report-import-export-new.component.html',
     styleUrl: './report-import-export-new.component.css',
@@ -251,7 +251,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: { filter: true } as MultipleSelectOption,
+                    options: { filter: true } as MultipleSelectOption,
                 },
             },
             {
@@ -357,7 +357,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: { filter: true } as MultipleSelectOption,
+                    options: { filter: true } as MultipleSelectOption,
                 },
             },
             {
@@ -383,8 +383,8 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true,
             },
             enableCellNavigation: true,
@@ -405,8 +405,8 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true,
             },
             enableCellNavigation: true,

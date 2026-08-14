@@ -29,16 +29,15 @@ import { AppUserService } from '../../../../../../services/app-user.service';
 import { ID_ADMIN_DEMO_LIST } from '../../../../../../app.config';
 
 // Angular SlickGrid imports
-import { AngularSlickgridModule } from 'angular-slickgrid';
+import { AngularSlickgridComponent } from 'angular-slickgrid';
 import {
-    AngularGridInstance,
-    Column,
-    Editors,
-    Filters,
-    Formatters,
-    GridOption,
-    OnSelectedRowsChangedEventArgs,
-    FieldType,
+  AngularGridInstance,
+  Column,
+  Editors,
+  Filters,
+  Formatters,
+  GridOption,
+  OnSelectedRowsChangedEventArgs,
 } from 'angular-slickgrid';
 
 @Component({
@@ -70,7 +69,7 @@ import {
         NzModalModule,
         NzCheckboxModule,
         CommonModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
     ]
 })
 export class HistoryProductRtcDetailComponent implements OnInit, AfterViewInit {
@@ -231,7 +230,7 @@ export class HistoryProductRtcDetailComponent implements OnInit, AfterViewInit {
                 name: 'Số lượng hiện có',
                 sortable: true,
                 filterable: true,
-                type: FieldType.number,
+                type: 'number',
                 filter: {
                     model: Filters['compoundInput'],
                 },
@@ -256,14 +255,14 @@ export class HistoryProductRtcDetailComponent implements OnInit, AfterViewInit {
             autoResize: {
                 container: '#grid-container-main',
             },
-            enableRowSelection: true,
+            enableSelection: true,
             enableCheckboxSelector: true,
             checkboxSelector: {
                 hideInFilterHeaderRow: false,
                 hideInColumnTitleRow: true,
             },
             multiSelect: true,
-            rowSelectionOptions: {
+            selectionOptions: {
                 selectActiveRow: true,
             },
             enableFiltering: true,
@@ -315,7 +314,7 @@ export class HistoryProductRtcDetailComponent implements OnInit, AfterViewInit {
                 name: 'Số lượng mượn',
                 sortable: true,
                 filterable: false,
-                type: FieldType.number,
+                type: 'number',
                 editor: {
                     model: Editors['numeric'],
                 },
@@ -330,14 +329,14 @@ export class HistoryProductRtcDetailComponent implements OnInit, AfterViewInit {
             autoResize: {
                 container: '#grid-container-borrow',
             },
-            enableRowSelection: true,
+            enableSelection: true,
             enableCheckboxSelector: true,
             checkboxSelector: {
                 hideInFilterHeaderRow: false,
                 hideInColumnTitleRow: true,
             },
             multiSelect: true,
-            rowSelectionOptions: {
+            selectionOptions: {
                 selectActiveRow: true,
             },
             enableFiltering: false,

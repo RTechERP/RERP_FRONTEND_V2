@@ -28,7 +28,7 @@ import {
   Aggregators,
   SortComparers,
   GroupTotalFormatters,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
 } from 'angular-slickgrid';
 import {
   AutocompleterOption,
@@ -84,7 +84,7 @@ interface Tab {
   imports: [
     CommonModule,
     FormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzFormModule,
     NzSelectModule,
     NzButtonModule,
@@ -905,7 +905,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true,
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -941,7 +941,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true,
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1031,7 +1031,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true,
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1067,7 +1067,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true,
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1093,7 +1093,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         editor: {
           model: Editors['autocompleter'],
           alwaysSaveOnEnterKey: true,
-          editorOptions: {
+          options: {
             minLength: 0,
             forceUserInput: false,
             openSearchListOnFocus: true,
@@ -1230,7 +1230,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1240,7 +1240,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true
           },
           collection: this.getWarehouseCollection(),
-          editorOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1403,7 +1403,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
 
           } as MultipleSelectOption,
@@ -1438,14 +1438,14 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
         editor: {
           model: Editors['singleSelect'],
           collection: this.getProductGroupCollection(isRTCTab),
-          editorOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1471,7 +1471,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1509,7 +1509,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1544,7 +1544,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1604,7 +1604,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1657,7 +1657,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           // Tính index cố định: TT(0) + WarehouseID(1) + TBP columns(0-3) + Approval columns(0-2) + CustomerName(0-1) + Fixed columns before UnitName
@@ -1679,7 +1679,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       //     collectionOptions: {
       //       addBlankEntry: false
       //     },
-      //     editorOptions: {
+      //     options: {
       //       enableClear: true
       //     }
       //   },
@@ -1705,7 +1705,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1739,7 +1739,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1773,7 +1773,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1835,14 +1835,14 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
         editor: {
           model: Editors['singleSelect'],
           collection: this.getCurrencyCollection(),
-          editorOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -2013,7 +2013,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             addBlankEntry: true,
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -2039,7 +2039,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         editor: {
           model: Editors['autocompleter'],
           alwaysSaveOnEnterKey: true,
-          editorOptions: {
+          options: {
             minLength: 0,
             forceUserInput: false,
             openSearchListOnFocus: true,
@@ -2646,8 +2646,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       datasetIdPropertyName: 'id',
 
       // ROW SELECTION CONFIGURATION
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false, // False = Multiple Selections
       },
 
@@ -2901,8 +2901,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     const enableCheckbox = () => {
       angularGrid!.slickGrid!.setOptions({
         enableCheckboxSelector: true,
-        enableRowSelection: true,
-        rowSelectionOptions: {
+        enableSelection: true,
+        selectionOptions: {
           selectActiveRow: false,
         },
         checkboxSelector: {
@@ -3395,7 +3395,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       const angularGrid = this.angularGrids.get(typeId);
       if (!angularGrid) return;
 
-      const column = angularGrid.slickGrid.getColumns()[args.cell];
+      const column = angularGrid.slickGrid.getVisibleColumns()[args.cell];
       if (column?.field === 'ProductCode') {
         const item = angularGrid.dataView.getItem(args.row);
         if (item?.ProductCode) {

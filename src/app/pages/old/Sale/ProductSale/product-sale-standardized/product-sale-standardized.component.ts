@@ -9,7 +9,7 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   Formatter,
@@ -23,7 +23,6 @@ import {
   Aggregators,
   GroupTotalFormatters,
   SortComparers,
-  FieldType,
   MultipleSelectOption,
 } from 'angular-slickgrid';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -58,7 +57,7 @@ interface ProductSale {
   selector: 'app-product-sale-standardized',
   imports: [
     CommonModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzFormModule,
     NzInputModule,
     NzSelectModule,
@@ -242,7 +241,7 @@ export class ProductSaleStandardizedComponent implements OnInit, AfterViewInit {
         width: 80,
         sortable: false,
         formatter: Formatters.checkmarkMaterial,
-        type: FieldType.boolean,
+        type: 'boolean',
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
         customTooltip: {
@@ -317,8 +316,8 @@ export class ProductSaleStandardizedComponent implements OnInit, AfterViewInit {
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
 
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
 

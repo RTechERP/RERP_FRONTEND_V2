@@ -41,7 +41,7 @@ import { Menubar } from 'primeng/menubar';
 import { PermissionService } from '../../../../../../services/permission.service';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   GridOption,
@@ -75,7 +75,7 @@ import { MultipleSelectOption } from '@slickgrid-universal/common';
     NgbModalModule,
     NzModalModule,
     Menubar,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzFormModule,
     NzSpinModule,
   ],
@@ -294,7 +294,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -311,7 +311,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -341,7 +341,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -358,7 +358,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -375,7 +375,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -470,8 +470,8 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: false,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {
@@ -569,8 +569,8 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: false,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {
@@ -683,7 +683,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: collection,
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,

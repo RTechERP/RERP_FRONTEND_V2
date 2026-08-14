@@ -41,7 +41,7 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatters,
@@ -132,7 +132,7 @@ import { TabServiceService } from '../../../layouts/tab-service.service';
         NzMenuModule,
         NzSpinModule,
         HasPermissionDirective,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         Menubar,
     ],
     templateUrl: './job-requirement.component.html',
@@ -2299,7 +2299,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                    options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
                 }
             },
             {
@@ -2315,7 +2315,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                    options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
                 }
             },
             {
@@ -2342,7 +2342,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                    options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
                 }
             },
             {
@@ -2358,7 +2358,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                    options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
                 }
             },
             {
@@ -2374,7 +2374,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                    options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
                 }
             },
             {
@@ -2390,7 +2390,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                    options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
                 }
             },
             {
@@ -2406,7 +2406,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                    options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
                 }
             },
             {
@@ -2422,7 +2422,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                    options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
                 }
             },
             {
@@ -2466,10 +2466,10 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             enableColumnReorder: true,
             enableSorting: true,
             enableFiltering: true,
-            enableRowSelection: true,
+            enableSelection: true,
             enableCheckboxSelector: true,
             checkboxSelector: { hideSelectAllCheckbox: false },
-            rowSelectionOptions: { selectActiveRow: false },
+            selectionOptions: { selectActiveRow: false },
             multiSelect: true,
             rowHeight: 35,
             headerRowHeight: 40,

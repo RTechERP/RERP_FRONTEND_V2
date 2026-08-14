@@ -41,7 +41,7 @@ import {
 } from 'tabulator-tables';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Editors,
   Filters,
@@ -118,7 +118,7 @@ import { TabulatorPopupService } from '../../../shared/components/tabulator-popu
     NzCheckboxModule,
     NzFormModule,
     CommonModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzSpinModule,
   ],
   templateUrl: './pokh-detail-slickgrid.component.html',
@@ -2264,8 +2264,8 @@ export class PokhDetailSlickgridComponent implements OnInit, AfterViewInit {
         indentMarginLeft: 15,
         initiallyCollapsed: false,
       },
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: true
       },
       enableCheckboxSelector: false,
@@ -2541,8 +2541,8 @@ export class PokhDetailSlickgridComponent implements OnInit, AfterViewInit {
       },
       enableCellNavigation: true,
       enableFiltering: false,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: true
       },
       enableCheckboxSelector: false,

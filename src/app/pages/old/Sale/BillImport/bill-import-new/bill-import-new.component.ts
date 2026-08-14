@@ -23,7 +23,7 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
-import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption, MultipleSelectOption, OnClickEventArgs, OnSelectedRowsChangedEventArgs, } from 'angular-slickgrid';
+import { AngularGridInstance, AngularSlickgridComponent, Column, Filters, Formatters, GridOption, MultipleSelectOption, OnClickEventArgs, OnSelectedRowsChangedEventArgs, } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { BillImportServiceService } from '../bill-import-service/bill-import-service.service';
 import { AppUserService } from '../../../../../services/app-user.service';
@@ -104,7 +104,7 @@ interface BillImport {
         NzTabsModule,
         NzSwitchModule,
         HasPermissionDirective,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         Menubar,
         SafeUrlPipe,
     ],
@@ -682,7 +682,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                     collectionOptions: {
                         addBlankEntry: true
                     },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -770,7 +770,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                     collectionOptions: {
                         addBlankEntry: true
                     },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -790,7 +790,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                     collectionOptions: {
                         addBlankEntry: true
                     },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -809,7 +809,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                     collectionOptions: {
                         addBlankEntry: true
                     },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -828,7 +828,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                     collectionOptions: {
                         addBlankEntry: true
                     },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -847,7 +847,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                     collectionOptions: {
                         addBlankEntry: true
                     },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -880,7 +880,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                     collectionOptions: {
                         addBlankEntry: true
                     },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
 
@@ -900,7 +900,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                     collectionOptions: {
                         addBlankEntry: true
                     },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -920,8 +920,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 hideInFilterHeaderRow: false,
                 hideInColumnTitleRow: true,
             },
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false, // Để có thể chọn nhiều dòng bằng checkbox
             },
             enablePagination: false,
@@ -1191,7 +1191,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
             enableAutoResize: false,
             enableFiltering: true,
             enableCellNavigation: true,
-            enableRowSelection: true,
+            enableSelection: true,
             frozenColumn: 3,
             rowHeight: 55,
 
@@ -1244,7 +1244,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
             const cell = args.cell;
 
             // Lấy column definition của cell được click
-            const column = this.angularGridMaster.slickGrid.getColumns()[cell];
+            const column = this.angularGridMaster.slickGrid.getVisibleColumns()[cell];
 
             // Nếu click vào checkbox column thì không làm gì (để checkbox handle)
             if (column?.id === '_checkbox_selector') {

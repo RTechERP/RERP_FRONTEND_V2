@@ -20,7 +20,6 @@ import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura'
 
-import { AngularSlickgridModule } from 'angular-slickgrid';
 import { TranslateModule } from '@ngx-translate/core';
 import { CustomRouteReuseStrategy } from './custom-route-reuse.strategy';
 import { ExcelExportService } from '@slickgrid-universal/common';
@@ -50,7 +49,6 @@ export const appConfig: ApplicationConfig = {
 
             }
         }),
-        importProvidersFrom(AngularSlickgridModule.forRoot()),
         importProvidersFrom(TranslateModule.forRoot({
             defaultLanguage: 'vi',
         })),

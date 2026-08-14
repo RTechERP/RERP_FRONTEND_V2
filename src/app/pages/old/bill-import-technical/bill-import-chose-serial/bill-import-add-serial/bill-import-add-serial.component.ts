@@ -17,7 +17,7 @@ import {
 } from '@angular/forms';
 
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -60,7 +60,7 @@ import { BillImportChoseSerialService } from '../bill-import-chose-serial.servic
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzFormModule,
     NzInputModule,
     NzSelectModule,
@@ -176,7 +176,7 @@ export class BillImportAddSerialComponent implements OnInit, AfterViewInit {
   }
 
   onGridMasterClick(e: Event, args: OnClickEventArgs) {
-    const column = args.grid.getColumns()[args.cell];
+    const column = args.grid.getVisibleColumns()[args.cell];
 
     if (column.id === 'action') {
       const clickedElement = e.target as HTMLElement;
@@ -233,12 +233,12 @@ export class BillImportAddSerialComponent implements OnInit, AfterViewInit {
       editable: true,
       autoEdit: true,
       enableCheckboxSelector: true,
-      enableRowSelection: true,
+      enableSelection: true,
       checkboxSelector: {
         hideInFilterHeaderRow: false,
         hideInColumnTitleRow: true,
       },
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: false,
       },
     };

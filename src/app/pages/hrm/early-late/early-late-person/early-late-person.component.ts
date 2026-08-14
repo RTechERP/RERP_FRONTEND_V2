@@ -39,7 +39,7 @@ import { PermissionService } from '../../../../services/permission.service';
 import { Menubar } from 'primeng/menubar';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatter,
@@ -77,7 +77,7 @@ import {
     NzDropdownModule,
     FormsModule,
     Menubar,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzTreeSelectModule
   ],
   templateUrl: './early-late-person.component.html',
@@ -387,7 +387,7 @@ export class EarlyLatePersonComponent implements OnInit, AfterViewInit, OnDestro
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -404,7 +404,7 @@ export class EarlyLatePersonComponent implements OnInit, AfterViewInit, OnDestro
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -421,7 +421,7 @@ export class EarlyLatePersonComponent implements OnInit, AfterViewInit, OnDestro
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -469,7 +469,7 @@ export class EarlyLatePersonComponent implements OnInit, AfterViewInit, OnDestro
             { value: false, label: 'Không' },
           ],
           model: Filters['singleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -550,7 +550,7 @@ export class EarlyLatePersonComponent implements OnInit, AfterViewInit, OnDestro
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -592,8 +592,8 @@ export class EarlyLatePersonComponent implements OnInit, AfterViewInit, OnDestro
       },
       enableAutoResize: true,
       gridWidth: '100%',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       checkboxSelector: {

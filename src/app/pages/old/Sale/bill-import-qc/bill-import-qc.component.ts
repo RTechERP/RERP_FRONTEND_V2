@@ -21,7 +21,7 @@ import {
   AfterViewInit,
 } from '@angular/core';
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -109,7 +109,7 @@ import { BillImportQcDetailComponent } from './bill-import-qc-detail/bill-import
     NgbModalModule,
     HasPermissionDirective,
     HorizontalScrollDirective,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   templateUrl: './bill-import-qc.component.html',
   styleUrl: './bill-import-qc.component.css',
@@ -812,8 +812,8 @@ export class BillImportQcComponent implements OnInit, AfterViewInit {
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {
@@ -840,8 +840,8 @@ export class BillImportQcComponent implements OnInit, AfterViewInit {
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

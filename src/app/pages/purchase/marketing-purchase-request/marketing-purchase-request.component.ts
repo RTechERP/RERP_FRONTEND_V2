@@ -11,7 +11,7 @@ import {
   Editors,
   OnCellChangeEventArgs,
   OnEventArgs,
-  AngularSlickgridModule
+  AngularSlickgridComponent
 } from 'angular-slickgrid';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
@@ -39,7 +39,7 @@ const PRODUCT_GROUP_MKT_ID = 81; // ID nhóm sản phẩm Marketing
   imports: [
     CommonModule,
     FormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzFormModule,
     NzSelectModule,
     NzButtonModule,
@@ -362,7 +362,7 @@ export class MarketingPurchaseRequestComponent implements OnInit, AfterViewInit,
           collectionOptions: {
             addBlankEntry: false
           },
-          editorOptions: {
+          options: {
             enableClear: true
           }
         },
@@ -404,7 +404,7 @@ export class MarketingPurchaseRequestComponent implements OnInit, AfterViewInit,
           collectionOptions: {
             addBlankEntry: false
           },
-          editorOptions: {
+          options: {
             enableClear: true
           }
         },
@@ -428,7 +428,7 @@ export class MarketingPurchaseRequestComponent implements OnInit, AfterViewInit,
           collectionOptions: {
             addBlankEntry: false
           },
-          editorOptions: {
+          options: {
             enableClear: true
           }
         },
@@ -481,7 +481,7 @@ export class MarketingPurchaseRequestComponent implements OnInit, AfterViewInit,
           collectionOptions: {
             addBlankEntry: false
           },
-          editorOptions: {
+          options: {
             enableClear: true
           }
         },
@@ -506,7 +506,7 @@ export class MarketingPurchaseRequestComponent implements OnInit, AfterViewInit,
           collectionOptions: {
             addBlankEntry: false
           },
-          editorOptions: {
+          options: {
             enableClear: true
           }
         },
@@ -540,7 +540,7 @@ export class MarketingPurchaseRequestComponent implements OnInit, AfterViewInit,
           collectionOptions: {
             addBlankEntry: false
           },
-          editorOptions: {
+          options: {
             enableClear: true
           }
         },
@@ -579,8 +579,8 @@ export class MarketingPurchaseRequestComponent implements OnInit, AfterViewInit,
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       enableCheckboxSelector: true,

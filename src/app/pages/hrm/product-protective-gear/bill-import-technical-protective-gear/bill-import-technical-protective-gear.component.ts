@@ -22,7 +22,7 @@ import { MenuItem, PrimeIcons, SharedModule } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -66,7 +66,7 @@ import { BillImportTechnicalProtectiveGearDetailComponent } from '../bill-import
     NzMenuModule,
     NzSpinModule,
     NzTabsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar,
   ],
   selector: 'app-bill-import-technical-protective-gear',
@@ -469,8 +469,8 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         hideInFilterHeaderRow: false,
         hideInColumnTitleRow: true,
       },
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: true,
       },
       enablePagination: false,
@@ -591,7 +591,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
       },
       enableFiltering: true,
       enableCellNavigation: true,
-      enableRowSelection: true,
+      enableSelection: true,
       frozenColumn: 2,
     };
   }

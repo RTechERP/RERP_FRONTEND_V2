@@ -12,7 +12,7 @@ import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatter,
@@ -36,7 +36,7 @@ import { FiveSRuleErrorFormComponent } from './five-s-rule-error-form/five-s-rul
         NzIconModule,
         NzSpinModule,
         Menubar,
-        AngularSlickgridModule
+        AngularSlickgridComponent
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     templateUrl: './five-s-rule-error.component.html',
@@ -120,8 +120,8 @@ export class FiveSRuleErrorComponent implements OnInit {
             enableCellNavigation: true,
             enableCheckboxSelector: true,
             checkboxSelector: { hideInFilterHeaderRow: false, hideInColumnTitleRow: false, hideSelectAllCheckbox: false, applySelectOnAllPages: true },
-            rowSelectionOptions: { selectActiveRow: false },
-            enableRowSelection: true,
+            selectionOptions: { selectActiveRow: false },
+            enableSelection: true,
             enableFiltering: true,
             enableSorting: true,
             rowHeight: 30,

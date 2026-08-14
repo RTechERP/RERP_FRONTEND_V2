@@ -8,7 +8,7 @@ import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Formatter,
     Formatters,
@@ -27,7 +27,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
         NzSpinModule,
         NzCardModule,
         Menubar,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     templateUrl: './setting-hr-config.component.html',
@@ -176,7 +176,7 @@ export class SettingHrConfigComponent implements OnInit {
             gridWidth: '100%',
             enableSorting: true,
             enableFiltering: false,
-            enableRowSelection: false,
+            enableSelection: false,
             enableCellNavigation: true,
             rowHeight: 40,
             headerRowHeight: 45,

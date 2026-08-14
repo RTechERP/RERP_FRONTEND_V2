@@ -16,7 +16,7 @@ import { DateTime } from 'luxon';
 
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatters,
@@ -72,7 +72,7 @@ import { HrRejectionLetterComponent } from './hr-rejection-letter/hr-rejection-l
     imports: [
         CommonModule,
         FormsModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         NzButtonModule,
         NzIconModule,
         NzModalModule,
@@ -591,7 +591,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: { filter: true } as MultipleSelectOption,
+                    options: { filter: true } as MultipleSelectOption,
                     collectionOptions: { addBlankEntry: true },
                 },
                 excelExportOptions: { width: 25 },
@@ -693,7 +693,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: { filter: true } as MultipleSelectOption,
+                    options: { filter: true } as MultipleSelectOption,
                     collectionOptions: { addBlankEntry: true },
                 },
                 excelExportOptions: { width: 25 },
@@ -859,8 +859,8 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false,
             },
             checkboxSelector: {

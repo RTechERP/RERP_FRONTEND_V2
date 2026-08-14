@@ -21,7 +21,7 @@ import {
 } from '@ng-bootstrap/ng-bootstrap';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Editors,
   Filters,
@@ -76,7 +76,7 @@ import { TaxCompanyDetailComponent } from './tax-company-detail/tax-company-deta
     // ProductSaleDetailComponent,
     // SelectControlComponent,
     HasPermissionDirective,
-    AngularSlickgridModule
+    AngularSlickgridComponent
   ],
   templateUrl: './tax-company.component.html',
   styleUrl: './tax-company.component.css'
@@ -345,8 +345,8 @@ export class TaxCompanyComponent implements OnInit, AfterViewInit {
       },
       gridWidth: '100%',
       forceFitColumns: false,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: true
       },
       enableCellNavigation: true,

@@ -16,7 +16,7 @@ import { DepartmentServiceService } from '../../department/department-service/de
 import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatters,
@@ -36,7 +36,7 @@ import {
         NzSplitterModule,
         NzSelectModule,
         NzSpinModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
     ],
     templateUrl: './employee-contact.component.html',
     styleUrl: './employee-contact.component.css'

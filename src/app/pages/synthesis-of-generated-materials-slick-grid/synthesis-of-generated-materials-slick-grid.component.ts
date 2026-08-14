@@ -18,7 +18,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   GridOption
@@ -58,7 +58,7 @@ import { ProjectService } from '../project/project-service/project.service';
     NzInputModule,
     NzSelectModule,
     NzTableModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzTabsModule,
     NzSpinModule,
     NzTreeSelectModule,
@@ -212,7 +212,7 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
         // filter: {
         //   model: Filters['multipleSelect'],
         //   collection: [],
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption,
@@ -228,7 +228,7 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
         // filter: {
         //   model: Filters['multipleSelect'],
         //   collection: [],
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption,
@@ -249,7 +249,7 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
         // filter: {
         //   model: Filters['multipleSelect'],
         //   collection: [],
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption,
@@ -270,7 +270,7 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
         // filter: {
         //   model: Filters['multipleSelect'],
         //   collection: [],
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption,
@@ -320,7 +320,7 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
         // filter: {
         //   model: Filters['multipleSelect'],
         //   collection: [],
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption,
@@ -406,7 +406,7 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
         // filter: {
         //   model: Filters['multipleSelect'],
         //   collection: [],
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption,
@@ -427,7 +427,7 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
         // filter: {
         //   model: Filters['multipleSelect'],
         //   collection: [],
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption,
@@ -448,7 +448,7 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
         // filter: {
         //   model: Filters['multipleSelect'],
         //   collection: [],
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption,
@@ -469,7 +469,7 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: false,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
       enableExcelCopyBuffer: true,
       enableFiltering: true,

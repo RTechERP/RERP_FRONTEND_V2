@@ -21,7 +21,7 @@ import {
 } from '@ng-bootstrap/ng-bootstrap';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Editors,
   Filters,
@@ -91,7 +91,7 @@ interface DocumentImportPoNCC {
     // ProductSaleDetailComponent,
     // SelectControlComponent,
     HasPermissionDirective,
-    AngularSlickgridModule
+    AngularSlickgridComponent
   ],
   templateUrl: './bill-document-import.component.html',
   styleUrls: ['./bill-document-import.component.css'],
@@ -546,8 +546,8 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: false,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       enableCellNavigation: true,
@@ -698,8 +698,8 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: false,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       enableCellNavigation: true,

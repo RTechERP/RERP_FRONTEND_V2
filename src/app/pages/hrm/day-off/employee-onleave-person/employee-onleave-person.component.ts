@@ -38,7 +38,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Menubar } from 'primeng/menubar';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatter,
@@ -72,7 +72,7 @@ import {
     NgIf,
     NzSpinModule,
     Menubar,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzTreeSelectModule
   ],
   templateUrl: './employee-onleave-person.component.html',
@@ -342,7 +342,7 @@ export class EmployeeOnleavePersonComponent implements OnInit {
             { value: false, label: 'Chưa duyệt' },
           ],
           model: Filters['singleSelect'],
-          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true } as MultipleSelectOption,
         },
         cssClass: 'text-center'
       },
@@ -361,7 +361,7 @@ export class EmployeeOnleavePersonComponent implements OnInit {
             { value: false, label: 'Chưa duyệt' },
           ],
           model: Filters['singleSelect'],
-          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true } as MultipleSelectOption,
         },
         cssClass: 'text-center'
       },
@@ -380,7 +380,7 @@ export class EmployeeOnleavePersonComponent implements OnInit {
             { value: false, label: 'Chưa duyệt' },
           ],
           model: Filters['singleSelect'],
-          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true } as MultipleSelectOption,
         },
         cssClass: 'text-center'
       },
@@ -412,7 +412,7 @@ export class EmployeeOnleavePersonComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true } as MultipleSelectOption,
         },
       },
       {
@@ -434,7 +434,7 @@ export class EmployeeOnleavePersonComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true } as MultipleSelectOption,
         },
       },
       {
@@ -489,7 +489,7 @@ export class EmployeeOnleavePersonComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true } as MultipleSelectOption,
         },
       },
       {
@@ -580,8 +580,8 @@ export class EmployeeOnleavePersonComponent implements OnInit {
       },
       enableAutoResize: true,
       gridWidth: '100%',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       checkboxSelector: {

@@ -17,7 +17,7 @@ import {
 } from '@angular/forms';
 
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -63,7 +63,7 @@ import { BillImportQcService } from '../bill-import-qc-service/bill-import-qc-se
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzFormModule,
     NzInputModule,
     NzSelectModule,
@@ -129,7 +129,7 @@ export class BillImportQcFileComponent implements OnInit, AfterViewInit {
   }
 
   onGridMasterClick(e: Event, args: OnClickEventArgs) {
-    const column = args.grid.getColumns()[args.cell];
+    const column = args.grid.getVisibleColumns()[args.cell];
 
     if (column.id === 'action') {
       const clickedElement = e.target as HTMLElement;

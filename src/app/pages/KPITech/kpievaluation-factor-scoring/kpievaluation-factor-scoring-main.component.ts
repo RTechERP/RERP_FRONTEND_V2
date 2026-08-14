@@ -7,7 +7,7 @@ import {
   GridOption,
   Filters,
   Formatters,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   SortDirectionNumber,
   Editors,
   EditCommand,
@@ -53,7 +53,7 @@ import { MenuItem, TreeNode } from 'primeng/api';
   imports: [
     CommonModule,
     FormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzButtonModule,
     NzIconModule,
     NzSelectModule,
@@ -1666,7 +1666,7 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
 
     const item = args.item;
     const columnId = args.cell !== undefined ?
-      (args.grid?.getColumns()[args.cell]?.id) : null;
+      (args.grid?.getVisibleColumns()[args.cell]?.id) : null;
 
     // Xác định data array cần update
     let dataArray: any[];

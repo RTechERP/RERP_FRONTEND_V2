@@ -18,7 +18,7 @@ import {
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -74,7 +74,7 @@ import { BorrowService } from '../../borrow-service/borrow.service';
     NzDropdownModule,
     NzIconModule,
     NzModalModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   templateUrl: './history-product-rtc-return-qr.component.html',
   styleUrl: './history-product-rtc-return-qr.component.css',

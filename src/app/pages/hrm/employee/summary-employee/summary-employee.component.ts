@@ -29,7 +29,7 @@ import { AuthService } from '../../../../auth/auth.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   GridOption,
@@ -55,7 +55,7 @@ import { MultipleSelectOption } from '@slickgrid-universal/common';
     NgbModalModule,
     NzFormModule,
     HasPermissionDirective,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   templateUrl: './summary-employee.component.html',
   styleUrl: './summary-employee.component.css',
@@ -456,7 +456,7 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       gridWidth: '100%',
       gridHeight: 400,
       forceFitColumns: true,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
       enableFiltering: true,
       autoFitColumnsOnFirstLoad: true,
@@ -475,23 +475,23 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       {
         id: 'StatusTBPText', name: 'TBP duyệt', field: 'StatusTBPText', width: 100, sortable: true, filterable: true,
         formatter: this.statusFormatter,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       {
         id: 'StatusHRText', name: 'HR duyệt', field: 'StatusHRText', width: 100, sortable: true, filterable: true,
         formatter: this.statusFormatter,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'EmployeeLeave', name: 'Người xin nghỉ', field: 'EmployeeLeave', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'EmployeeTP', name: 'Trưởng bộ phận', field: 'EmployeeTP', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'EmployeeHR', name: 'Nhân sự', field: 'EmployeeHR', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       {
         id: 'TypeIsRealText', name: 'Loại nghỉ', field: 'TypeIsRealText', width: 120, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       {
         id: 'TimeOnLeaveText', name: 'Thời gian nghỉ', field: 'TimeOnLeaveText', width: 120, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'StartDate', name: 'Ngày bắt đầu', field: 'StartDate', width: 140, sortable: true, formatter: this.formatDate, filterable: true, filter: { model: Filters['compoundDate'] } },
       { id: 'EndDate', name: 'Ngày kết thúc', field: 'EndDate', width: 140, sortable: true, formatter: this.formatDate, filterable: true, filter: { model: Filters['compoundDate'] } },
@@ -510,18 +510,18 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       {
         id: 'IsApprovedTPText', name: 'TBP Duyệt', field: 'IsApprovedTPText', width: 100, sortable: true, filterable: true,
         formatter: this.statusFormatter,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       {
         id: 'IsApprovedText', name: 'HR duyệt', field: 'IsApprovedText', width: 100, sortable: true, filterable: true,
         formatter: this.statusFormatter,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'EmployeeEarlyLate', name: 'Họ tên', field: 'EmployeeEarlyLate', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'EmployeeApprovedTP', name: 'Trưởng bộ phận', field: 'EmployeeApprovedTP', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       {
         id: 'TypeText', name: 'Loại', field: 'TypeText', width: 150, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'DateRegister', name: 'Ngày', field: 'DateRegister', width: 120, sortable: true, formatter: this.formatDateOnly, filterable: true, filter: { model: Filters['compoundDate'] } },
       { id: 'DateStart', name: 'Thời gian bắt đầu', field: 'DateStart', width: 140, sortable: true, formatter: this.formatDate, filterable: true, filter: { model: Filters['compoundDate'] } },
@@ -545,19 +545,19 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       {
         id: 'StatusTBPText', name: 'TBP duyệt', field: 'StatusTBPText', width: 100, sortable: true, filterable: true,
         formatter: this.statusFormatter,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       {
         id: 'StatusHRText', name: 'HR duyệt', field: 'StatusHRText', width: 100, sortable: true, filterable: true,
         formatter: this.statusFormatter,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'EmployeeFullName', name: 'Họ tên', field: 'EmployeeFullName', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ApprovedTBP', name: 'Trưởng phòng', field: 'ApprovedTBP', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ApprovedHR', name: 'Nhân sự', field: 'ApprovedHR', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       {
         id: 'TypeName', name: 'Loại', field: 'TypeName', width: 120, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'DateRegister', name: 'Ngày', field: 'DateRegister', width: 120, sortable: true, formatter: this.formatDateOnly, filterable: true, filter: { model: Filters['compoundDate'] } },
       { id: 'TimeStart', name: 'Từ', field: 'TimeStart', width: 140, sortable: true, formatter: this.formatDate, filterable: true, filter: { model: Filters['compoundDate'] } },
@@ -566,7 +566,7 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       { id: 'ProjectName', name: 'Dự án', field: 'ProjectName', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       {
         id: 'LocationText', name: 'Địa điểm', field: 'LocationText', width: 150, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'Reason', name: 'Lý do', field: 'Reason', width: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ReasonDeciline', name: 'Lý do không duyệt', field: 'ReasonDeciline', width: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
@@ -592,12 +592,12 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       {
         id: 'StatusTBPText', name: 'TBP Duyệt', field: 'StatusTBPText', width: 110, minWidth: 110, sortable: true, filterable: true,
         formatter: this.statusFormatter,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       {
         id: 'StatusHRText', name: 'HR Duyệt', field: 'StatusHRText', width: 110, minWidth: 110, sortable: true, filterable: true,
         formatter: this.statusFormatter,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'EmployeeName', name: 'Họ tên', field: 'EmployeeName', width: 160, minWidth: 160, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ApprovedName', name: 'Trưởng phòng', field: 'ApprovedName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
@@ -606,7 +606,7 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       { id: 'Location', name: 'Địa điểm', field: 'Location', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       {
         id: 'TypeName', name: 'Loại', field: 'TypeName', width: 130, minWidth: 130, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'CostType', name: 'Phí công tác', field: 'CostType', width: 130, minWidth: 130, sortable: true, cssClass: 'text-right', formatter: currencyFormatter, filterable: true, filter: { model: Filters['compoundInputNumber'] } },
       { id: 'CostVehicle', name: 'Phương tiện', field: 'CostVehicle', width: 130, minWidth: 130, sortable: true, cssClass: 'text-right', formatter: currencyFormatter, filterable: true, filter: { model: Filters['compoundInputNumber'] } },
@@ -635,12 +635,12 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       {
         id: 'StatusTBPText', name: 'TBP Duyệt', field: 'StatusTBPText', width: 100, sortable: true, filterable: true,
         formatter: this.statusFormatter,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       {
         id: 'StatusHRText', name: 'HR Duyệt', field: 'StatusHRText', width: 100, sortable: true, filterable: true,
         formatter: this.statusFormatter,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'EmployeeName', name: 'Họ tên', field: 'EmployeeName', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ApprovedName', name: 'Người duyệt', field: 'ApprovedName', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
@@ -648,7 +648,7 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       { id: 'DateRegister', name: 'Ngày', field: 'DateRegister', width: 120, sortable: true, formatter: this.formatDateOnly, filterable: true, filter: { model: Filters['compoundDate'] } },
       {
         id: 'TimeWFHText', name: 'Khoảng thời gian', field: 'TimeWFHText', width: 130, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'Reason', name: 'Lý do', field: 'Reason', width: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ReasonDeciline', name: 'Lý do không duyệt', field: 'ReasonDeciline', width: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
@@ -664,12 +664,12 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       {
         id: 'IsApprovedTPText', name: 'TBP duyệt', field: 'IsApprovedTPText', width: 100, sortable: true, filterable: true,
         formatter: this.statusFormatter,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       {
         id: 'IsApprovedHRText', name: 'HR duyệt', field: 'IsApprovedHRText', width: 100, sortable: true, filterable: true,
         formatter: this.statusFormatter,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'EmployeeName', name: 'Họ tên', field: 'EmployeeName', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ApprovedTPName', name: 'Trưởng bộ phận', field: 'ApprovedTPName', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
@@ -677,7 +677,7 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       { id: 'DayWork', name: 'Ngày', field: 'DayWork', width: 120, sortable: true, formatter: this.formatDateOnly, filterable: true, filter: { model: Filters['compoundDate'] } },
       {
         id: 'TypeText', name: 'Loại', field: 'TypeText', width: 120, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'Note', name: 'Ghi chú', field: 'Note', width: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ReasonDeciline', name: 'Lý do không duyệt', field: 'ReasonDeciline', width: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
@@ -692,12 +692,12 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       {
         id: 'IsApprovedTBPText', name: 'TBP duyệt', field: 'IsApprovedTBPText', width: 100, sortable: true, filterable: true,
         formatter: this.statusFormatter,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       {
         id: 'IsApprovedHRText', name: 'HR duyệt', field: 'IsApprovedHRText', width: 100, sortable: true, filterable: true,
         formatter: this.statusFormatter,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'FullName', name: 'Họ tên', field: 'FullName', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ApprovedTBPName', name: 'TBP', field: 'ApprovedTBPName', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },

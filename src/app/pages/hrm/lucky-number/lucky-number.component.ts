@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Inject, OnInit, Optional } from '@angular/core';
-import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption, SortComparers, SortDirectionNumber } from 'angular-slickgrid';
+import { AngularGridInstance, AngularSlickgridComponent, Column, Filters, Formatters, GridOption, SortComparers, SortDirectionNumber } from 'angular-slickgrid';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import { LuckyNumberService } from './lucky-number.service';
@@ -29,7 +29,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
         CommonModule,
         FormsModule,
         Menubar,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         NzModalModule,
         NzStepsModule,
         NzButtonModule,
@@ -316,8 +316,8 @@ export class LuckyNumberComponent implements OnInit {
 
             enableFiltering: true,
 
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false// True (Single Selection), False (Multiple Selections)
             },
             checkboxSelector: {

@@ -39,9 +39,8 @@ import { Menubar } from 'primeng/menubar';
 
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
-  FieldType,
   Filters,
   Formatter,
   Formatters,
@@ -76,7 +75,7 @@ import { ProjectService } from '../../../project/project-service/project.service
     NzSpinModule,
     NgbModalModule,
     NzModalModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar
   ],
   selector: 'app-inventory-project',
@@ -333,7 +332,7 @@ export class InventoryProjectComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -374,7 +373,7 @@ export class InventoryProjectComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -442,7 +441,7 @@ export class InventoryProjectComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -552,8 +551,8 @@ export class InventoryProjectComponent implements OnInit, AfterViewInit {
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

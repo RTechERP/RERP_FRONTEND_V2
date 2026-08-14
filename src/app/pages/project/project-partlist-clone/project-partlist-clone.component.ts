@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { AngularSlickgridModule, Column, GridOption, Formatters, Filters, AngularGridInstance, Editors, OnEventArgs, Formatter, MultipleSelectOption } from 'angular-slickgrid';
+import { AngularSlickgridComponent, Column, GridOption, Formatters, Filters, AngularGridInstance, Editors, OnEventArgs, Formatter, MultipleSelectOption } from 'angular-slickgrid';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProjectService } from '../project-service/project.service';
 import { ProjectWorkerService } from '../project-department-summary/project-department-summary-form/project-woker/project-worker-service/project-worker.service';
@@ -21,7 +21,7 @@ import { AppUserService } from '../../../services/app-user.service';
 @Component({
   selector: 'app-project-partlist-clone',
   standalone: true,
-  imports: [CommonModule, FormsModule, NzSelectModule, NzButtonModule, AngularSlickgridModule, NzModalModule, NzDropdownModule],
+  imports: [CommonModule, FormsModule, NzSelectModule, NzButtonModule, AngularSlickgridComponent, NzModalModule, NzDropdownModule],
   templateUrl: './project-partlist-clone.component.html',
   styleUrl: './project-partlist-clone.component.css'
 })
@@ -443,7 +443,7 @@ export class ProjectPartlistCloneComponent implements OnInit {
   }
 
   onCellChanged(args: any): void {
-    const column = args.column || this.angularGrid.slickGrid.getColumns()[args.cell];
+    const column = args.column || this.angularGrid.slickGrid.getVisibleColumns()[args.cell];
     if (column.id === 'TT') {
       const changedRowIdx = args.row;
       const changedItem = args.item || this.angularGrid.dataView.getItem(changedRowIdx);
@@ -657,7 +657,7 @@ export class ProjectPartlistCloneComponent implements OnInit {
         editor: {
           model: Editors['singleSelect'],
           collection: this.getMakerCollection(),
-          editorOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -674,7 +674,7 @@ export class ProjectPartlistCloneComponent implements OnInit {
         editor: {
           model: Editors['singleSelect'],
           collection: this.getUnitCollection(),
-          editorOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -722,7 +722,7 @@ export class ProjectPartlistCloneComponent implements OnInit {
         editor: {
           model: Editors['singleSelect'],
           collection: this.getEmployeeCollection(),
-          editorOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -779,8 +779,8 @@ export class ProjectPartlistCloneComponent implements OnInit {
       gridWidth: '100%',
       enableCellNavigation: true,
       enableFiltering: true,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: true
       },
       autoFitColumnsOnFirstLoad: false,

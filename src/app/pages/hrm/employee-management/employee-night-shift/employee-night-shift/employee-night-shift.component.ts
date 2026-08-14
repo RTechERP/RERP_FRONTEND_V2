@@ -28,7 +28,7 @@ import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatter,
@@ -83,7 +83,7 @@ import { Menubar } from 'primeng/menubar';
     NzFormModule,
     NzSpinModule,
     Menubar,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzTreeSelectModule
   ],
   selector: 'app-employee-night-shift',
@@ -469,7 +469,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -486,7 +486,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -529,7 +529,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -549,7 +549,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
             { value: false, label: 'Không' },
           ],
           model: Filters['singleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -702,8 +702,8 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
       },
       enableAutoResize: true,
       gridWidth: '100%',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       checkboxSelector: {

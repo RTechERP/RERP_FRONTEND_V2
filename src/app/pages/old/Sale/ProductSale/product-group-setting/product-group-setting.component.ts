@@ -9,7 +9,7 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -22,7 +22,6 @@ import {
   Aggregators,
   GroupTotalFormatters,
   SortComparers,
-  FieldType,
   MultipleSelectOption,
 } from 'angular-slickgrid';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -61,7 +60,7 @@ interface ProductGroup {
   selector: 'app-product-group-setting',
   imports: [
     CommonModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzFormModule,
     NzInputModule,
     NzSelectModule,
@@ -263,7 +262,7 @@ export class ProductGroupSettingComponent implements OnInit, AfterViewInit {
         width: 80,
         sortable: false,
         formatter: Formatters.checkmarkMaterial,
-        type: FieldType.boolean,
+        type: 'boolean',
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
         customTooltip: {
@@ -309,8 +308,8 @@ export class ProductGroupSettingComponent implements OnInit, AfterViewInit {
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
 
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
 

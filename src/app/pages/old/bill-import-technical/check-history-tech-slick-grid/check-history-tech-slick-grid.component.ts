@@ -21,7 +21,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   GridOption,
@@ -68,7 +68,7 @@ const checkboxFormatter: Formatter = (_row, _cell, value) => {
     NzDatePickerModule,
     NzGridModule,
     NzSpinModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   templateUrl: './check-history-tech-slick-grid.component.html',
   styleUrl: './check-history-tech-slick-grid.component.css',
@@ -397,13 +397,13 @@ export class CheckHistoryTechSlickGridComponent implements OnInit, OnDestroy {
       enableColumnReorder: true,
       enableSorting: true,
       enableFiltering: true,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCheckboxSelector: true,
       resizeByContentOnlyOnFirstLoad: false,
       checkboxSelector: {
         hideSelectAllCheckbox: false,
       },
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: false,
       },
       multiSelect: true,

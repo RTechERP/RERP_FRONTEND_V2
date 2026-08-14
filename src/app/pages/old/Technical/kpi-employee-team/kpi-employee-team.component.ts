@@ -14,7 +14,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatter,
@@ -43,7 +43,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzFormModule,
     NzModalModule,
     NzSpinModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar,
   ],
   templateUrl: './kpi-employee-team.component.html',
@@ -148,8 +148,8 @@ export class KpiEmployeeTeamComponent implements OnInit {
       gridWidth: '100%',
       enableCellNavigation: true,
       enableFiltering: true,
-      enableRowSelection: true,
-      rowSelectionOptions: { selectActiveRow: true },
+      enableSelection: true,
+      selectionOptions: { selectActiveRow: true },
       enableCheckboxSelector: false,
       multiColumnSort: false,
       enableTreeData: true,
@@ -195,8 +195,8 @@ export class KpiEmployeeTeamComponent implements OnInit {
       enableCellNavigation: true,
       enableFiltering: true,
       multiColumnSort: false,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       enableCheckboxSelector: true,

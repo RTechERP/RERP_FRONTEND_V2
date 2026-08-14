@@ -39,7 +39,7 @@ import { saveAs } from 'file-saver';
 import { Menubar } from 'primeng/menubar';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -86,7 +86,7 @@ interface DocumentFile {
     NzFormModule,
     NzSpinModule,
     HasPermissionDirective,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar,
   ],
   templateUrl: './document-sale-admin.component.html',
@@ -284,7 +284,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             autoAdjustDropPosition: true,
           } as MultipleSelectOption,
@@ -300,7 +300,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
       //   filter: {
       //     model: Filters['multipleSelect'],
       //     collection: [],
-      //     filterOptions: {
+      //     options: {
       //       autoAdjustDropHeight: true,
       //       autoAdjustDropPosition: true,
       //     } as MultipleSelectOption,
@@ -316,7 +316,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             autoAdjustDropPosition: true,
           } as MultipleSelectOption,
@@ -332,7 +332,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             autoAdjustDropPosition: true,
           } as MultipleSelectOption,
@@ -370,7 +370,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             autoAdjustDropPosition: true,
           } as MultipleSelectOption,
@@ -386,7 +386,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             autoAdjustDropPosition: true,
           } as MultipleSelectOption,
@@ -402,7 +402,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             autoAdjustDropPosition: true,
           } as MultipleSelectOption,
@@ -418,7 +418,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             autoAdjustDropPosition: true,
           } as MultipleSelectOption,
@@ -434,7 +434,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             autoAdjustDropPosition: true,
           } as MultipleSelectOption,
@@ -458,8 +458,8 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
       enableGrouping: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: true,
       },
     };
@@ -497,8 +497,8 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
       enableFiltering: true,
       rowHeight: 35,
       headerRowHeight: 40,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: true,
       },
     };

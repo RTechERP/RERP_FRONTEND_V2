@@ -22,7 +22,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Editors,
   Filters,
@@ -54,7 +54,7 @@ import { TabServiceService } from '../../../../layouts/tab-service.service';
     NzFormModule,
     NzModalModule,
     NzSpinModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar,
   ],
   templateUrl: './summary-kpi-employee-point.component.html',
@@ -490,7 +490,7 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
+          options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
         },
       },
       {
@@ -505,7 +505,7 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
+          options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
         },
       },
       {
@@ -634,13 +634,13 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
       preHeaderPanelHeight: 28,
       rowHeight: 35,
       headerRowHeight: 40,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCheckboxSelector: true,
       checkboxSelector: {
         hideSelectAllCheckbox: false,
       },
       multiSelect: true,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: false,
       },
       enableGrouping: true,

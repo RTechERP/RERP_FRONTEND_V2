@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -13,7 +13,7 @@ import { environment } from '../../../../../environments/environment';
 @Component({
   selector: 'app-row-detail-view',
   standalone: true,
-  imports: [CommonModule, AngularSlickgridModule],
+  imports: [CommonModule, AngularSlickgridComponent],
   template: `
     <div class="row-detail-container">
       <div class="loading-overlay" *ngIf="isLoading">

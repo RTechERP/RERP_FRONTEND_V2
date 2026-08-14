@@ -29,7 +29,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatter,
@@ -72,7 +72,7 @@ import { InventoryStockLogComponent } from './inventory-stock-log/inventory-stoc
     NzCheckboxModule,
     NzSpinModule,
     NgbModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar,
   ],
   templateUrl: './inventory-stock.component.html',
@@ -386,7 +386,7 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -401,7 +401,7 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -577,7 +577,7 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -611,8 +611,8 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: true,
       },
       enableCellNavigation: true,
@@ -650,8 +650,8 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       multiSelect: true,

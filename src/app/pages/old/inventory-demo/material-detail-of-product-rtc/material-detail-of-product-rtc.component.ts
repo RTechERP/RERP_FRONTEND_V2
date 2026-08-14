@@ -31,7 +31,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzFormModule } from 'ng-zorro-antd/form'; //
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -54,7 +54,7 @@ import { NzCardModule } from 'ng-zorro-antd/card';
   imports: [
     SplitterModule,
     CardModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzCheckboxModule,
     ReactiveFormsModule,
     CommonModule,
@@ -406,7 +406,7 @@ export class MaterialDetailOfProductRtcComponent
       enableFiltering: true,
       enableSorting: true,
       enableCellNavigation: true,
-      enableRowSelection: false,
+      enableSelection: false,
       datasetIdPropertyName: 'id',
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
@@ -425,7 +425,7 @@ export class MaterialDetailOfProductRtcComponent
       enableFiltering: true,
       enableSorting: true,
       enableCellNavigation: true,
-      enableRowSelection: false,
+      enableSelection: false,
       datasetIdPropertyName: 'id',
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
@@ -444,7 +444,7 @@ export class MaterialDetailOfProductRtcComponent
       enableFiltering: true,
       enableSorting: true,
       enableCellNavigation: true,
-      enableRowSelection: false,
+      enableSelection: false,
       datasetIdPropertyName: 'id',
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,

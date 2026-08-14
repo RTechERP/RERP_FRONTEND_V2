@@ -22,7 +22,7 @@ import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import {
     Aggregators,
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     GridOption,
@@ -48,7 +48,7 @@ import { KpiErrorEmployeeSummaryMaxService } from './kpi-error-employee-summary-
         NzFormModule,
         NzDatePickerModule,
         NzDropdownModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
     ],
     templateUrl: './kpi-error-employee-summary-max.component.html',
     styleUrl: './kpi-error-employee-summary-max.component.css',
@@ -233,7 +233,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
+                    options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
                 },
             },
             {
@@ -258,7 +258,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
+                    options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
                 },
             },
             {
@@ -273,7 +273,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
+                    options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
                 },
             },
             ...this.dynamicMonthColumns
@@ -298,7 +298,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
+                    options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
                 },
             },
             {
@@ -323,7 +323,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
+                    options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
                 },
             },
             {
@@ -338,7 +338,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
+                    options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
                 },
             },
         ];
@@ -359,13 +359,13 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
             preHeaderPanelHeight: 28,
             rowHeight: 35,
             headerRowHeight: 40,
-            enableRowSelection: true,
+            enableSelection: true,
             enableCheckboxSelector: true,
             checkboxSelector: {
                 hideSelectAllCheckbox: false,
             },
             multiSelect: true,
-            rowSelectionOptions: {
+            selectionOptions: {
                 selectActiveRow: true,
             },
             enableGrouping: true,

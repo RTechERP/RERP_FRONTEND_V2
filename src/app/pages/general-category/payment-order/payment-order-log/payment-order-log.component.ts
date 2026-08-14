@@ -7,7 +7,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Formatters,
     GridOption,
@@ -24,7 +24,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
         FormsModule,
         NzButtonModule,
         NzSelectModule,
-        AngularSlickgridModule
+        AngularSlickgridComponent
     ],
     templateUrl: './payment-order-log.component.html',
     styleUrl: './payment-order-log.component.css'
@@ -113,7 +113,7 @@ export class PaymentOrderLogComponent implements OnInit {
             headerRowHeight: 35,
             rowHeight: 35,
             enableCheckboxSelector: false,
-            enableRowSelection: false,
+            enableSelection: false,
         };
     }
 

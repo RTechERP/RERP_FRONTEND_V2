@@ -26,7 +26,7 @@ import {
     OnClickEventArgs,
     OnCellChangeEventArgs,
     OnSelectedRowsChangedEventArgs,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     MultipleSelectOption,
     SortDirectionNumber
 } from 'angular-slickgrid';
@@ -85,7 +85,7 @@ import { ProjectPartListSpecialCodeComponent } from './project-part-list-special
     imports: [
         CommonModule,
         FormsModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         NzCardModule,
         NzButtonModule,
         NzIconModule,
@@ -476,13 +476,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             forceFitColumns: true,
             gridWidth: '100%',
             datasetIdPropertyName: 'ID',
-            enableRowSelection: true,
+            enableSelection: true,
             enableCheckboxSelector: true,
             checkboxSelector: {
                 hideSelectAllCheckbox: false,
                 columnIndexPosition: 0
             },
-            rowSelectionOptions: {
+            selectionOptions: {
                 selectActiveRow: false
             },
             enableCellNavigation: true,
@@ -633,9 +633,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
+            enableSelection: true,
             enableCellNavigation: true,
-            rowSelectionOptions: {
+            selectionOptions: {
                 selectActiveRow: true,
             },
             enableSorting: true,
@@ -708,9 +708,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
+            enableSelection: true,
             enableCellNavigation: true,
-            rowSelectionOptions: {
+            selectionOptions: {
                 selectActiveRow: true,
             },
             enableSorting: true,
@@ -787,9 +787,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
+            enableSelection: true,
             enableCellNavigation: true,
-            rowSelectionOptions: {
+            selectionOptions: {
                 selectActiveRow: true,
             },
             enableSorting: true,
@@ -893,9 +893,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
+            enableSelection: true,
             enableCellNavigation: true,
-            rowSelectionOptions: {
+            selectionOptions: {
                 selectActiveRow: true,
             },
             enableSorting: true,
@@ -1029,7 +1029,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 //   model: Filters['multipleSelect'],
                 //   collection: [],
                 //   collectionOptions: { addBlankEntry: true },
-                //   filterOptions: {
+                //   options: {
                 //     filter: true,
                 //     autoAdjustDropWidthByTextSize: true,
                 //   } as MultipleSelectOption
@@ -1067,7 +1067,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 //   model: Filters['multipleSelect'],
                 //   collection: [],
                 //   collectionOptions: { addBlankEntry: true },
-                //   filterOptions: {
+                //   options: {
                 //     filter: true,
                 //     autoAdjustDropWidthByTextSize: true,
                 //   } as MultipleSelectOption
@@ -1143,7 +1143,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1181,7 +1181,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1219,7 +1219,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1259,7 +1259,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                         { value: false, label: 'Không' }
                     ],
                     collectionOptions: { addBlankEntry: false },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1288,7 +1288,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     collectionOptions: {
                         addBlankEntry: true
                     },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropWidthByTextSize: true,
                         filter: true
                     }
@@ -1304,7 +1304,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                         // { value: false, label: 'Không có' },
                     ],
                     model: Filters['singleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -1320,7 +1320,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                         { value: false, label: 'Không' }
                     ],
                     collectionOptions: { addBlankEntry: false },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1349,7 +1349,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1363,7 +1363,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1377,7 +1377,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1476,7 +1476,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                         { value: false, label: 'Không' }
                     ],
                     collectionOptions: { addBlankEntry: false },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1490,7 +1490,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1503,7 +1503,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1565,7 +1565,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1612,7 +1612,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1634,7 +1634,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1760,7 +1760,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                         { value: false, label: 'Không' }
                     ],
                     collectionOptions: { addBlankEntry: false },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1772,7 +1772,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1809,7 +1809,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1822,7 +1822,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1866,7 +1866,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1912,7 +1912,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1935,7 +1935,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -1991,7 +1991,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -2004,7 +2004,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -2051,7 +2051,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -2096,7 +2096,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -2109,7 +2109,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
@@ -2162,9 +2162,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             frozenColumn: 7,
             // rowHeight: 33, // Base height - sẽ tự động tăng theo nội dung qua CSS
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
+            enableSelection: true,
             enableCellNavigation: true,
-            rowSelectionOptions: {
+            selectionOptions: {
                 selectActiveRow: false,
             },
             enableFiltering: true,

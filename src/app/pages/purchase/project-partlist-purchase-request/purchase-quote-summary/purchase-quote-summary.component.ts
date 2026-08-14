@@ -6,7 +6,7 @@ import {
   HostListener,
 } from '@angular/core';
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -61,7 +61,7 @@ import { PaymentOrderComponent } from '../../../general-category/payment-order/p
     NzSpinModule,
     NzModalModule,
     NzDropdownModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar,
   ],
   templateUrl: './purchase-quote-summary.component.html',
@@ -654,7 +654,7 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -872,9 +872,9 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
+      enableSelection: true,
       multiSelect: true,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: true,
       },
       checkboxSelector: {

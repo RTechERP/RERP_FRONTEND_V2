@@ -5,7 +5,7 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -57,7 +57,7 @@ import { PriceHistoryPartlistSlickGridComponent } from '../../price-history-part
     NzSpinModule,
     NzModalModule,
     NzDropdownModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar,
   ],
   templateUrl: './project-partlist-price-request-old.component.html',
@@ -702,7 +702,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -720,7 +720,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -735,7 +735,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -750,7 +750,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -769,7 +769,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -788,7 +788,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -820,7 +820,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -860,7 +860,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -875,7 +875,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -890,7 +890,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -905,7 +905,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1208,7 +1208,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1298,8 +1298,8 @@ export class ProjectPartlistPriceRequestOldComponent
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: false,
-      rowSelectionOptions: {
+      enableSelection: false,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

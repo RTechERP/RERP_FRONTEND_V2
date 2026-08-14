@@ -10,7 +10,7 @@ import {
 } from '@angular/forms';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -51,7 +51,7 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzFormModule,
     NzInputModule,
     NzButtonModule,
@@ -375,8 +375,8 @@ export class ProjectPartlistPriceRequestOldDetailComponent implements OnInit {
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       multiSelect: true,

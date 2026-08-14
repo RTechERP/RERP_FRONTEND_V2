@@ -20,10 +20,9 @@ import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../../directives/has-permission.directive';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Editors,
-  FieldType,
   Filters,
   Formatter,
   Formatters,
@@ -64,7 +63,7 @@ interface data {
     NzSpinModule,
     NzCheckboxModule,
     HasPermissionDirective,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   templateUrl: './bill-import-synthetic-new.component.html',
   styleUrl: './bill-import-synthetic-new.component.css',
@@ -212,7 +211,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
             { value: false, label: 'Chưa nhận' },
           ],
           model: Filters['singleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -258,7 +257,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
           collectionOptions: {
             addBlankEntry: true
           },
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -291,7 +290,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
           collectionOptions: {
             addBlankEntry: true
           },
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -339,7 +338,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
           collectionOptions: {
             addBlankEntry: true
           },
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -399,7 +398,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
           collectionOptions: {
             addBlankEntry: true
           },
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -418,7 +417,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
           collectionOptions: {
             addBlankEntry: true
           },
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -458,7 +457,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: true,
         filterable: true,
-        type: FieldType.number,
+        type: 'number',
         filter: { model: Filters['compoundInputNumber'] },
         cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
@@ -492,7 +491,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
             { value: false, label: 'Không' },
           ],
           model: Filters['singleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -510,7 +509,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
           collectionOptions: {
             addBlankEntry: true
           },
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -539,7 +538,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: true,
         filterable: true,
-        type: FieldType.number,
+        type: 'number',
         filter: { model: Filters['compoundInputNumber'] },
         editor: { model: Editors['integer'] },
         cssClass: 'text-right',
@@ -567,7 +566,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         width: 130,
         sortable: true,
         filterable: true,
-        type: FieldType.number,
+        type: 'number',
         formatter: (row: number, cell: number, value: any) =>
           this.formatNumberEnUS(value),
         filter: { model: Filters['compoundInputNumber'] },
@@ -581,7 +580,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         width: 130,
         sortable: true,
         filterable: true,
-        type: FieldType.number,
+        type: 'number',
         formatter: (row: number, cell: number, value: any) =>
           this.formatNumberEnUS(value),
         filter: { model: Filters['compoundInputNumber'] },
@@ -649,7 +648,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         width: 100,
         sortable: true,
         filterable: true,
-        type: FieldType.number,
+        type: 'number',
         formatter: (_row, _cell, value) => {
           if (!value) return '0';
           return Number(value).toLocaleString('en-US');
@@ -676,7 +675,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         width: 150,
         sortable: true,
         filterable: true,
-        type: FieldType.number,
+        type: 'number',
         formatter: (_row, _cell, value) => {
           if (!value) return '0';
           return Number(value).toLocaleString('en-US');
@@ -735,7 +734,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
       enableFiltering: true,
       enableSorting: true,
       enableCellNavigation: true,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCheckboxSelector: true,
       enableExcelExport: true,
       externalResources: [this.excelExportService],
@@ -744,7 +743,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
       },
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: false,
       },
       editable: true,
@@ -830,7 +829,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
     // Listen to cell change event for updating DueDate and propagate to selected rows
     this.angularGrid.slickGrid.onCellChange.subscribe(
       (_e: any, args: any) => {
-        const columnDef = args.column || this.angularGrid.slickGrid.getColumns()[args.cell];
+        const columnDef = args.column || this.angularGrid.slickGrid.getVisibleColumns()[args.cell];
         const columnId = columnDef?.id;
         const field = columnDef?.field;
 

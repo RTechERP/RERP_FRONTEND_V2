@@ -11,7 +11,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   GridOption,
 } from 'angular-slickgrid';
@@ -29,7 +29,7 @@ import { PermissionService } from '../../../../../services/permission.service';
     FormsModule,
     NzButtonModule,
     NzModalModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar,
   ],
   templateUrl: './kpi-error-type.component.html',

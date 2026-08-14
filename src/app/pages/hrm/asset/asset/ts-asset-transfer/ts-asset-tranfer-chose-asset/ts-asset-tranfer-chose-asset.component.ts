@@ -19,7 +19,7 @@ import { AssetsRecoveryService } from '../../ts-asset-recovery/ts-asset-recovery
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   GridOption,
@@ -37,7 +37,7 @@ import {
     NzInputModule,
     NzButtonModule,
     NzModalModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
 })
 export class TsAssetTranferChoseAssetComponent implements OnInit {
@@ -264,12 +264,12 @@ export class TsAssetTranferChoseAssetComponent implements OnInit {
       enableAutoSizeColumns: false,
       // Bật checkbox selection
       enableCheckboxSelector: true,
-      enableRowSelection: true,
+      enableSelection: true,
       checkboxSelector: {
         hideSelectAllCheckbox: false,
         width: 50,
       },
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: false,
       },
       // Cho phép chọn nhiều dòng

@@ -42,7 +42,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 // } from 'tabulator-tables';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatters,
@@ -129,7 +129,7 @@ import { TabServiceService } from '../../../layouts/tab-service.service';
         NzSpinModule,
         CommonModule,
         HasPermissionDirective,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         Menubar,
     ],
     templateUrl: './pokh-slickgrid.component.html',
@@ -2228,7 +2228,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                     collectionOptions: {
                         addBlankEntry: true
                     },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -2236,7 +2236,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
             },
             { id: 'NewAccount', name: 'New Account', field: 'NewAccount', width: 100, minWidth: 70, formatter: this.checkboxFormatter, sortable: true, filterable: true, filter: { model: Filters['singleSelect'], collection: [{ value: null, label: 'Tất cả' }, { value: true, label: 'Có' }, { value: false, label: 'Không' }] } },
 
-            { id: 'AccountTypeText', name: 'Loại Account', field: 'AccountTypeText', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
+            { id: 'AccountTypeText', name: 'Loại Account', field: 'AccountTypeText', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
 
             { id: 'PONumber', name: 'Số POKH', field: 'PONumber', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'POCode', name: 'Mã PO', field: 'POCode', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
@@ -2259,7 +2259,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                     collectionOptions: {
                         addBlankEntry: true
                     },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -2289,8 +2289,8 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
             gridWidth: '100%',
             enableCellNavigation: true,
             enableFiltering: true,
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false
             },
             enableCheckboxSelector: true,
@@ -2462,7 +2462,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                     collectionOptions: {
                         addBlankEntry: true
                     },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true
                     } as any
                 }
@@ -2471,14 +2471,14 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
             { id: 'ProductCode', name: 'Mã Sản Phẩm (Cũ)', field: 'ProductCode', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'ProductName', name: 'Tên sản phẩm', field: 'ProductName', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'GuestCode', name: 'Mã theo khách', field: 'GuestCode', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
-            { id: 'Maker', name: 'Hãng', field: 'Maker', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
+            { id: 'Maker', name: 'Hãng', field: 'Maker', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true, } as any, } },
             { id: 'Qty', name: 'Số lượng', field: 'Qty', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'QuantityReturn', name: 'SL đã về', field: 'QuantityReturn', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'QuantityExport', name: 'SL đã xuất', field: 'QuantityExport', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'QuantityRemain', name: 'SL còn lại', field: 'QuantityRemain', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'QuantityRequest', name: 'SL đã yêu cầu mua', field: 'QuantityRequest', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'FilmSize', name: 'Kích thước phim cắt/Model', field: 'FilmSize', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-            { id: 'Unit', name: 'ĐVT', field: 'Unit', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
+            { id: 'Unit', name: 'ĐVT', field: 'Unit', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true, } as any, } },
             { id: 'UnitPrice', name: 'Đơn giá trước VAT', field: 'UnitPrice', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'IntoMoney', name: 'Tổng tiền trước VAT', field: 'IntoMoney', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'DiscountAmount', name: 'Tiền chiết khấu', field: 'DiscountAmount', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
@@ -2515,8 +2515,8 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 indentMarginLeft: 15,
                 initiallyCollapsed: false,
             },
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true
             },
             enableCheckboxSelector: false,
@@ -2581,8 +2581,8 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
             gridWidth: '100%',
             enableCellNavigation: true,
             enableFiltering: false,
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true
             },
             enableCheckboxSelector: false,

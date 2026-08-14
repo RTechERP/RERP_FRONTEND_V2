@@ -29,7 +29,7 @@ import { MenuItem, PrimeIcons, SharedModule } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -67,7 +67,7 @@ import { ProductProtectiveGear } from '../model/product-protective-gear';
     NzTabsModule,
     NzSpinModule,
     HasPermissionDirective,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar,
     NzModalModule,
     NzFormModule,
@@ -278,12 +278,12 @@ export class InventoryDemoProtectiveGearComponent implements OnInit {
       enableSorting: true,
       enableFiltering: true,
       enableCellNavigation: true,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCheckboxSelector: false,
       multiSelect: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: true,
       },
       autoHeight: false,
@@ -419,12 +419,12 @@ export class InventoryDemoProtectiveGearComponent implements OnInit {
       enableSorting: true,
       enableFiltering: true,
       enableCellNavigation: true,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCheckboxSelector: false,
       multiSelect: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: true,
       },
       autoHeight: false,

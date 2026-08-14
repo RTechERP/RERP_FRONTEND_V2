@@ -21,7 +21,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatter,
@@ -54,7 +54,7 @@ import { ChiTietSanPhamSaleNewComponent } from '../../chi-tiet-san-pham-sale/chi
     NzInputModule,
     NzSpinModule,
     NzTagModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   templateUrl: './inventory-overaged.component.html',
   styleUrl: './inventory-overaged.component.css'
@@ -146,7 +146,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
           collectionOptions: {
             addBlankEntry: true
           },
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -166,7 +166,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
           collectionOptions: {
             addBlankEntry: true
           },
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -186,7 +186,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
           collectionOptions: {
             addBlankEntry: true
           },
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -206,7 +206,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
           collectionOptions: {
             addBlankEntry: true
           },
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -225,7 +225,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
           collectionOptions: {
             addBlankEntry: true
           },
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -244,7 +244,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
           collectionOptions: {
             addBlankEntry: true
           },
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -334,8 +334,8 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

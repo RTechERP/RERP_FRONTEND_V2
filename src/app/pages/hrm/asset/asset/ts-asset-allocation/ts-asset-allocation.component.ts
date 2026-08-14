@@ -25,7 +25,7 @@ import { ContextMenuModule } from 'primeng/contextmenu';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   GridOption,
@@ -77,7 +77,7 @@ import { PermissionService } from '../../../../../services/permission.service';
     NzTabsModule,
     NzDropdownModule,
     NgbModalModule, HasPermissionDirective,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzSpinModule,
     NzFormModule,
     Menubar,
@@ -450,7 +450,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -488,7 +488,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -506,7 +506,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -523,7 +523,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -553,8 +553,8 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: true,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       checkboxSelector: {
@@ -587,7 +587,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -605,7 +605,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -641,7 +641,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: true,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
       enableFiltering: true,
       autoFitColumnsOnFirstLoad: true,

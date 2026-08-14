@@ -10,7 +10,7 @@ import {
   GridOption,
   Filters,
   Formatters,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   OnSelectedRowsChangedEventArgs,
   Editors,
   SortDirectionNumber,
@@ -50,7 +50,7 @@ interface LiXi {
   imports: [
     CommonModule,
     FormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzButtonModule,
     NzIconModule,
     NzSelectModule,
@@ -761,9 +761,9 @@ export class KPIAGVEvaluationEmployeeComponent implements OnInit, AfterViewInit,
         resizeDetection: 'container'
       },
       gridWidth: '100%',
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: true
       },
       enableSorting: true,
@@ -843,9 +843,9 @@ export class KPIAGVEvaluationEmployeeComponent implements OnInit, AfterViewInit,
         resizeDetection: 'container'
       },
       gridWidth: '100%',
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: true
       },
       enableSorting: true,

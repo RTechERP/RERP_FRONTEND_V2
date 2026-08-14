@@ -40,7 +40,7 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   GridOption,
@@ -117,7 +117,7 @@ import { TabServiceService } from '../../../../layouts/tab-service.service';
     NzMenuModule,
     NzSpinModule,
     HasPermissionDirective,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar,
   ],
   templateUrl: './job-requirement-personal.component.html',
@@ -1190,7 +1190,7 @@ export class JobRequirementPersonalComponent {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+          options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
         }
       },
       {
@@ -1206,7 +1206,7 @@ export class JobRequirementPersonalComponent {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+          options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
         }
       },
       {
@@ -1233,7 +1233,7 @@ export class JobRequirementPersonalComponent {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+          options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
         }
       },
       {
@@ -1249,7 +1249,7 @@ export class JobRequirementPersonalComponent {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+          options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
         }
       },
       {
@@ -1265,7 +1265,7 @@ export class JobRequirementPersonalComponent {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+          options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
         }
       },
       {
@@ -1281,7 +1281,7 @@ export class JobRequirementPersonalComponent {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+          options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
         }
       },
       {
@@ -1297,7 +1297,7 @@ export class JobRequirementPersonalComponent {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+          options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
         }
       },
       {
@@ -1313,7 +1313,7 @@ export class JobRequirementPersonalComponent {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+          options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
         }
       },
       {
@@ -1342,10 +1342,10 @@ export class JobRequirementPersonalComponent {
       enableColumnReorder: true,
       enableSorting: true,
       enableFiltering: true,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCheckboxSelector: true,
       checkboxSelector: { hideSelectAllCheckbox: false },
-      rowSelectionOptions: { selectActiveRow: false },
+      selectionOptions: { selectActiveRow: false },
       multiSelect: true,
       rowHeight: 35,
       headerRowHeight: 40,

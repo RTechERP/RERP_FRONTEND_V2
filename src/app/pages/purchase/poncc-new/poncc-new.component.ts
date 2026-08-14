@@ -26,7 +26,7 @@ import { NzTabsComponent, NzTabComponent } from 'ng-zorro-antd/tabs';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -97,7 +97,7 @@ import { ActivityLogPonccComponent } from '../poncc/activity-log-poncc/activity-
     NzDropdownModule,
     NzSwitchModule,
     SafeUrlPipe,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     MenubarModule,
   ],
   templateUrl: './poncc-new.component.html',
@@ -370,7 +370,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -402,7 +402,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -528,7 +528,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -598,7 +598,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -721,7 +721,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -753,7 +753,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -785,7 +785,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -843,7 +843,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1403,8 +1403,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       enableAutoResize: false,
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {
@@ -1461,8 +1461,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       enableAutoResize: false,
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

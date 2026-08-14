@@ -19,7 +19,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -67,7 +67,7 @@ import { ProjectService } from '../project/project-service/project.service';
     NzInputNumberModule,
     NzSelectModule,
     NzTableModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzTabsModule,
     NzSpinModule,
     NzTreeSelectModule,
@@ -313,7 +313,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -435,7 +435,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -519,7 +519,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,

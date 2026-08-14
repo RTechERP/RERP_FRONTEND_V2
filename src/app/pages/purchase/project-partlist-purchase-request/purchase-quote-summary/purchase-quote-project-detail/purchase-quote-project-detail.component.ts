@@ -14,7 +14,7 @@ import {
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import * as ExcelJS from 'exceljs';
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -27,7 +27,6 @@ import {
   Aggregators,
   GroupTotalFormatters,
   SortComparers,
-  FieldType,
   MultipleSelectOption,
   SortDirectionNumber,
 } from 'angular-slickgrid';
@@ -59,7 +58,7 @@ import { PermissionService } from '../../../../../services/permission.service';
   selector: 'app-purchase-quote-project-detail',
   imports: [
     CommonModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzFormModule,
     NzInputModule,
     NzSelectModule,
@@ -659,7 +658,7 @@ export class PurchaseQuoteProjectDetailComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -677,7 +676,7 @@ export class PurchaseQuoteProjectDetailComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -692,7 +691,7 @@ export class PurchaseQuoteProjectDetailComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -707,7 +706,7 @@ export class PurchaseQuoteProjectDetailComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -726,7 +725,7 @@ export class PurchaseQuoteProjectDetailComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -745,7 +744,7 @@ export class PurchaseQuoteProjectDetailComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -777,7 +776,7 @@ export class PurchaseQuoteProjectDetailComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -817,7 +816,7 @@ export class PurchaseQuoteProjectDetailComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -832,7 +831,7 @@ export class PurchaseQuoteProjectDetailComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -847,7 +846,7 @@ export class PurchaseQuoteProjectDetailComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -862,7 +861,7 @@ export class PurchaseQuoteProjectDetailComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1121,7 +1120,7 @@ export class PurchaseQuoteProjectDetailComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1211,8 +1210,8 @@ export class PurchaseQuoteProjectDetailComponent implements OnInit {
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: false,
-      rowSelectionOptions: {
+      enableSelection: false,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

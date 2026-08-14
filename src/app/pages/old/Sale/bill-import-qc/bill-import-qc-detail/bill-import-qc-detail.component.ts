@@ -17,7 +17,7 @@ import {
 } from '@angular/forms';
 
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -35,7 +35,6 @@ import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import {
   MultipleSelectOption,
   OnEventArgs,
-  OperatorType,
   SortDirectionNumber,
 } from '@slickgrid-universal/common';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -80,7 +79,7 @@ import { PermissionService } from '../../../../../services/permission.service';
     NzModalModule,
     HasPermissionDirective,
     NzSplitterModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzSpinComponent,
   ],
   templateUrl: './bill-import-qc-detail.component.html',
@@ -480,7 +479,7 @@ export class BillImportQcDetailComponent
 
     // Subscribe vào event onBeforeEditCell để kiểm tra quyền
     angularGrid.slickGrid.onBeforeEditCell.subscribe((_e: any, args: any) => {
-      const columnDef = angularGrid.slickGrid.getColumns()[args.cell];
+      const columnDef = angularGrid.slickGrid.getVisibleColumns()[args.cell];
       const item = args.item;
       const fieldName = columnDef.field;
 
@@ -555,7 +554,7 @@ export class BillImportQcDetailComponent
 
     // Subscribe vào event onCellChange
     angularGrid.slickGrid.onCellChange.subscribe((_e: any, args: any) => {
-      const columnDef = angularGrid.slickGrid.getColumns()[args.cell];
+      const columnDef = angularGrid.slickGrid.getVisibleColumns()[args.cell];
 
       if (columnDef.field === 'ProductSaleID') {
         const selectedProduct = this.productSaleGrid.find(
@@ -602,7 +601,7 @@ export class BillImportQcDetailComponent
     });
 
     angularGrid.slickGrid.onDblClick.subscribe((_e: any, args: any) => {
-      const columnDef = angularGrid.slickGrid.getColumns()[args.cell];
+      const columnDef = angularGrid.slickGrid.getVisibleColumns()[args.cell];
       const item = args.grid.getDataItem(args.row);
       if (item?.ID !== undefined && item?.ID !== null) {
         this.currentRowId = item.ID;
@@ -769,7 +768,7 @@ export class BillImportQcDetailComponent
     )
       return;
 
-    const column = args.grid.getColumns()[args.cell];
+    const column = args.grid.getVisibleColumns()[args.cell];
 
     if (column.id === 'action') {
       const clickedElement = e.target as HTMLElement;
@@ -995,8 +994,8 @@ export class BillImportQcDetailComponent
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'ID',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       multiSelect: true,
@@ -1125,7 +1124,7 @@ export class BillImportQcDetailComponent
             addBlankEntry: true
           },
           collection: this.productSaleGrid,
-          editorOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1232,7 +1231,7 @@ export class BillImportQcDetailComponent
             addBlankEntry: true
           },
           collection: this.leadersGrid,
-          editorOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1283,7 +1282,7 @@ export class BillImportQcDetailComponent
             addBlankEntry: true
           },
           collection: this.employeeRequestsGrid,
-          editorOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1324,7 +1323,7 @@ export class BillImportQcDetailComponent
             addBlankEntry: true
           },
           collection: this.projectsGrid,
-          editorOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1439,7 +1438,7 @@ export class BillImportQcDetailComponent
             { value: 2, label: 'NG' },
             { value: 3, label: 'Đã yêu cầu QC' },
           ],
-          operator: OperatorType['equal'],
+          operator: 'EQ',
         },
 
         customTooltip: {

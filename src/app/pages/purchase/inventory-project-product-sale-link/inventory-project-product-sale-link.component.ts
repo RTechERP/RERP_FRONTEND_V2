@@ -18,9 +18,8 @@ import { DateTime } from 'luxon';
 
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
-  FieldType,
   Filters,
   Formatter,
   Formatters,
@@ -65,7 +64,7 @@ import { InventoryProjectProductSaleLinkDetailComponent } from './inventory-proj
   imports: [
     CommonModule,
     FormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzButtonModule,
     NzIconModule,
     NzModalModule,
@@ -307,7 +306,7 @@ export class InventoryProjectProductSaleLinkComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -336,7 +335,7 @@ export class InventoryProjectProductSaleLinkComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -365,7 +364,7 @@ export class InventoryProjectProductSaleLinkComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -383,7 +382,7 @@ export class InventoryProjectProductSaleLinkComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -401,7 +400,7 @@ export class InventoryProjectProductSaleLinkComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -419,7 +418,7 @@ export class InventoryProjectProductSaleLinkComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -462,8 +461,8 @@ export class InventoryProjectProductSaleLinkComponent
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

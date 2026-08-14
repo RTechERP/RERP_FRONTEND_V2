@@ -20,7 +20,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   GridOption,
@@ -74,7 +74,7 @@ import { PermissionService } from '../../../../../services/permission.service';
     HasPermissionDirective,
     NzDropdownModule,
     NzModalModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzSpinModule,
     NzFormModule,
     Menubar
@@ -381,7 +381,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       { id: 'IsApproveAccountant', name: 'KT Duyệt', field: 'IsApproveAccountant', width: 100, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter },
       {
         id: 'Code', name: 'Mã thu hồi', field: 'Code', width: 160, sortable: true, filterable: true, cssClass: 'text-center',
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       {
         id: 'DateRecovery', name: 'Ngày thu hồi', field: 'DateRecovery', width: 160, sortable: true, cssClass: 'text-center', formatter: formatDate, filterable: true,
@@ -390,29 +390,29 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       { id: 'DateApprovedHR', name: 'Ngày duyệt', field: 'DateApprovedHR', width: 160, sortable: true, cssClass: 'text-center', formatter: formatDate, hidden: true },
       {
         id: 'EmployeeReturnName', name: 'Thu hồi từ', field: 'EmployeeReturnName', width: 160, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'EmployeeReturnID', name: 'EmployeeReturnID', field: 'EmployeeReturnID', hidden: true },
       {
         id: 'DepartmentReturn', name: 'Phòng ban', field: 'DepartmentReturn', width: 160, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       {
         id: 'PossitionReturn', name: 'Chức vụ', field: 'PossitionReturn', width: 160, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       {
         id: 'EmployeeRecoveryName', name: 'Người thu hồi', field: 'EmployeeRecoveryName', width: 160, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'EmployeeRecoveryID', name: 'EmployeeRecoveryID', field: 'EmployeeRecoveryID', hidden: true },
       {
         id: 'DepartmentRecovery', name: 'Phòng ban NTH', field: 'DepartmentRecovery', width: 160, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       {
         id: 'PossitionRecovery', name: 'Chức vụ NTH', field: 'PossitionRecovery', width: 160, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       {
         id: 'Note', name: 'Ghi chú', field: 'Note', width: 360, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] },
@@ -430,8 +430,8 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: true,
-      enableRowSelection: true,
-      rowSelectionOptions: { selectActiveRow: false },
+      enableSelection: true,
+      selectionOptions: { selectActiveRow: false },
       checkboxSelector: { hideInFilterHeaderRow: false, hideInColumnTitleRow: true, applySelectOnAllPages: true },
       enableCheckboxSelector: true,
       enableCellNavigation: true,
@@ -450,11 +450,11 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       { id: 'STT', name: 'STT', field: 'STT', width: 60, sortable: true, cssClass: 'text-center' },
       {
         id: 'TSCodeNCC', name: 'Mã NCC', field: 'TSCodeNCC', width: 150, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       {
         id: 'TSAssetName', name: 'Tên tài sản', field: 'TSAssetName', width: 200, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption },
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `<span title="${dataContext.TSAssetName}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
@@ -479,7 +479,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: true,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
       enableFiltering: true,
       autoFitColumnsOnFirstLoad: true,

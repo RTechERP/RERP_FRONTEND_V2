@@ -26,7 +26,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -84,7 +84,7 @@ interface Employee {
     NzModalModule,
     NgbModalModule,
     NzFormModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     MeetingMinuteFormComponent,
   ],
   providers: [
@@ -211,11 +211,11 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
       { id: 'ProjectCode', name: 'Mã dự án', field: 'ProjectCode', sortable: true, minWidth: 80, filterable: true, },
       { id: 'ProjectName', name: 'Tên dự án', field: 'ProjectName', sortable: true, minWidth: 150, filterable: true, cssClass: 'cell-wrap' },
       { id: 'Title', name: 'Tiêu đề', field: 'Title', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'TypeName', name: 'Loại cuộc họp', field: 'TypeName', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
-      { id: 'CreatorName', name: 'Người tạo', field: 'CreatorName', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
+      { id: 'TypeName', name: 'Loại cuộc họp', field: 'TypeName', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], options: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
+      { id: 'CreatorName', name: 'Người tạo', field: 'CreatorName', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], options: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
       { id: 'DateStart', name: 'Ngày bắt đầu', field: 'DateStart', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['compoundDate'] }, formatter: Formatters.dateIso, type: 'date', cssClass: 'text-center', headerCssClass: 'text-center' },
       { id: 'DateEnd', name: 'Ngày kết thúc', field: 'DateEnd', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['compoundDate'] }, formatter: Formatters.dateIso, type: 'date', cssClass: 'text-center', headerCssClass: 'text-center' },
-      { id: 'Place', name: 'Địa điểm', field: 'Place', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
+      { id: 'Place', name: 'Địa điểm', field: 'Place', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], options: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
     ];
     this.gridOptionsMeetingMinutes = this.getDefaultGridOptions('#grid-meeting-minutes');
   }
@@ -235,7 +235,7 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
       { id: 'DetailContent', name: 'Nội dung', field: 'DetailContent', sortable: true, minWidth: 150, filterable: true, cssClass: 'cell-wrap' },
       { id: 'DetailResult', name: 'Kết quả', field: 'DetailResult', sortable: true, minWidth: 150, filterable: true, cssClass: 'cell-wrap' },
       { id: 'EmployeeCode', name: 'Mã nhân viên', field: 'EmployeeCode', sortable: true, minWidth: 80, filterable: true, cssClass: 'text-center', headerCssClass: 'text-center' },
-      { id: 'CustomerName', name: 'Người phụ trách', field: 'CustomerName', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
+      { id: 'CustomerName', name: 'Người phụ trách', field: 'CustomerName', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], options: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
       { id: 'PhoneNumber', name: 'Số điện thoại', field: 'PhoneNumber', sortable: true, minWidth: 100, filterable: true, cssClass: 'text-center', headerCssClass: 'text-center' },
       { id: 'PlanDate', name: 'Kế hoạch', field: 'PlanDate', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['compoundDate'] }, formatter: Formatters.dateIso, type: 'date', cssClass: 'text-center', headerCssClass: 'text-center' },
       { id: 'Note', name: 'Ghi chú', field: 'Note', sortable: true, minWidth: 150, filterable: true, cssClass: 'cell-wrap' },
@@ -306,7 +306,7 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
       autoResize: { container: containerId, calculateAvailableSizeBy: 'container' },
       enableAutoResize: true,
       gridWidth: '100%',
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
       enableFiltering: true,
       enableSorting: true,

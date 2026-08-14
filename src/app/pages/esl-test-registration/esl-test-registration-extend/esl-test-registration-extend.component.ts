@@ -5,7 +5,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
-import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalRef, NZ_MODAL_DATA } from 'ng-zorro-antd/modal';
 import { EslTestRegistrationService } from '../esl-test-registration.service';
 import { AppUserService } from '../../../services/app-user.service';
@@ -24,7 +24,6 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
     NzFormModule,
     NzSelectModule,
     NzRadioModule,
-    NzNotificationModule,
     NzSpinModule,
     NzDatePickerModule
   ],

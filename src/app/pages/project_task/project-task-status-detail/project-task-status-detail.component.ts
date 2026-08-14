@@ -2,8 +2,8 @@ import { Component, OnInit, inject, signal, computed, Input, ChangeDetectorRef, 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
-import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ProjectTaskService, ProjectTaskItem } from '../project-task/project-task.service';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -28,9 +28,8 @@ import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component
     CommonModule,
     FormsModule,
     NzIconModule,
-    NzNotificationModule,
     NzModalModule,
-    NzToolTipModule,
+    NzTooltipModule,
     TableModule,
     TagModule,
     TooltipModule,

@@ -13,7 +13,6 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
-import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -34,7 +33,6 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzSplitterModule,
     NzIconModule,
     NzTypographyModule,
-    NzMessageModule,
     NzButtonModule,
     NzSelectModule,
     NzFormModule,

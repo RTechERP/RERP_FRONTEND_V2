@@ -40,7 +40,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 
 import {
     NgbModal,
@@ -83,7 +83,7 @@ import { HrRejectionLetterComponent } from './hr-rejection-letter/hr-rejection-l
         NzDatePickerModule,
         NzSplitterModule,
         NzTreeSelectModule,
-        NzDropDownModule,
+        NzDropdownModule,
         NgbModalModule,
         Menubar,
         HomeLayoutCandidateComponent,

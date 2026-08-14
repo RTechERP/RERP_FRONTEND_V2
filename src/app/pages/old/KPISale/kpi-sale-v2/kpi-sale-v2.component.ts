@@ -20,7 +20,7 @@ import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzTableModule } from 'ng-zorro-antd/table';
 
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
 import { KpiApiResponse, KpiCalculateResponse, KpiSaleV2Service, KpiTeamCalculateRequest, KpiTeam, KpiTotalPerformanceResponse } from './kpi-sale-v2.service';
@@ -314,7 +314,7 @@ export interface ResultTreeRow {
     NzSwitchModule,
     NzTableModule,
     NzTagModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzTreeSelectModule,
     HasPermissionDirective,
   ],

@@ -89,7 +89,7 @@
 
             <!-- Right Panel: Exam Results -->
             <nz-splitter-panel>
-                <nz-tabset [(nzSelectedIndex)]="mainTabIndex" (nzSelectedIndexChange)="onMainTabChange($event)" class="h-100 main-exam-tabset">
+                <nz-tabs [(nzSelectedIndex)]="mainTabIndex" (nzSelectedIndexChange)="onMainTabChange($event)" class="h-100 main-exam-tabset">
 
                     <!-- Tab Khóa học -->
                     <nz-tab nzTitle="Khóa học">
@@ -108,7 +108,7 @@
                   </button>
                                 </div>
                             </div>
-                            <nz-tabset [(nzSelectedIndex)]="courseSubTabIndex" (nzSelectedIndexChange)="onCourseSubTabChange($event)" class="h-100 result-tabset">
+                            <nz-tabs [(nzSelectedIndex)]="courseSubTabIndex" (nzSelectedIndexChange)="onCourseSubTabChange($event)" class="h-100 result-tabset">
 
                                 <nz-tab *ngIf="showCourseTN" nzTitle="Trắc nghiệm">
                                     <app-exam-result-table [data]="courseExamResultTN" [type]="1" [isLoading]="isLoadingCourseExamResults" (selectionChange)="onCourseResultSelectionChange($event)" (viewDetails)="onViewDetails($event)" (viewPracticeDetails)="onViewPracticeDetails($event)"
@@ -127,7 +127,7 @@
                                         (rowRightClick)="onResultTableRightClick($event, menu, 'course')">
                                     </app-exam-result-table>
                                 </nz-tab>
-                            </nz-tabset>
+                            </nz-tabs>
                         </div>
                     </nz-tab>
 
@@ -137,7 +137,7 @@
                             <div class="card-header-bar lesson-header">
                                 <span class="card-header-title">KẾT QUẢ THI BÀI HỌC - {{ selectedLesson?.Code }}</span>
                             </div>
-                            <nz-tabset [(nzSelectedIndex)]="lessonSubTabIndex" (nzSelectedIndexChange)="onLessonSubTabChange($event)" class="h-100 result-tabset">
+                            <nz-tabs [(nzSelectedIndex)]="lessonSubTabIndex" (nzSelectedIndexChange)="onLessonSubTabChange($event)" class="h-100 result-tabset">
 
                                 <nz-tab *ngIf="showLessonTN" nzTitle="Trắc nghiệm">
                                     <app-exam-result-table [data]="lessonExamResultTN" [type]="1" [isLoading]="isLoadingLessonExamResults" (selectionChange)="onLessonResultSelectionChange($event)" (viewDetails)="onViewDetails($event)" (viewPracticeDetails)="onViewPracticeDetails($event)"
@@ -156,10 +156,10 @@
                                         (rowRightClick)="onResultTableRightClick($event, menu, 'lesson')">
                                     </app-exam-result-table>
                                 </nz-tab>
-                            </nz-tabset>
+                            </nz-tabs>
                         </div>
                     </nz-tab>
-                </nz-tabset>
+                </nz-tabs>
             </nz-splitter-panel>
         </nz-splitter>
     </div>

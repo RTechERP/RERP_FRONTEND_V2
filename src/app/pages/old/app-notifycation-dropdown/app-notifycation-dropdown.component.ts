@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 
@@ -18,7 +18,7 @@ export interface NotifyItem {
 @Component({
   selector: 'app-app-notifycation-dropdown',
   standalone: true,
-  imports: [CommonModule, NzDropDownModule, NzIconModule, NzBadgeModule],
+  imports: [CommonModule, NzDropdownModule, NzIconModule, NzBadgeModule],
   templateUrl: './app-notifycation-dropdown.component.html',
   styleUrls: ['./app-notifycation-dropdown.component.css']
 })

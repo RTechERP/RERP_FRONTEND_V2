@@ -287,7 +287,7 @@
             <!-- Panel trên: chứa 2 tab -->
             <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" nzDefaultSize="70%">
               <div #masterPanelRef class="splitter-pane-content">
-              <nz-tabset
+              <nz-tabs
                 [nzSelectedIndex]="activeTabIndex"
                 (nzSelectedIndexChange)="onTabChange($event)"
               >
@@ -348,7 +348,7 @@
                     </angular-slickgrid>
                   </div>
                 </nz-tab>
-              </nz-tabset>
+              </nz-tabs>
               </div>
             </nz-splitter-panel>
 
@@ -395,7 +395,7 @@
     (nzOnCancel)="onClosePreview()"
   >
     <ng-container *nzModalContent>
-      <nz-tabset>
+      <nz-tabs>
         @for (t of tabs; track t.title; let i = $index) {
           <nz-tab [nzTitle]="t.title">
             <div class="d-flex justify-content-between">
@@ -681,7 +681,7 @@
             </div>
           </nz-tab>
         }
-      </nz-tabset>
+      </nz-tabs>
     </ng-container>
 
     <ng-template #modalFooter> </ng-template>

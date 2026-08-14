@@ -53,7 +53,7 @@ import { HandoverFormComponent } from './handover-form/handover-form.component';
 import * as ExcelJS from 'exceljs';
 import { format, isValid, parseISO } from 'date-fns';
 import { ChangeDetectorRef } from '@angular/core';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 // @ts-ignore
 import { saveAs } from 'file-saver';
 import { HandoverRejectreasonFormComponent } from './handover-rejectreason-form/handover-rejectreason-form.component';
@@ -199,7 +199,7 @@ interface HandoverPersonalAsset {
     NgbModalModule,
     NzFormModule,
     NzInputNumberModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzMenuModule,
     HasPermissionDirective,
   ],

@@ -29,7 +29,7 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzTableModule } from 'ng-zorro-antd/table';
 
@@ -121,7 +121,7 @@ interface BillExport {
     NzCardModule,
     NzDatePickerModule,
     NzDrawerModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzFlexModule,
     NzGridModule,
     NzIconModule,

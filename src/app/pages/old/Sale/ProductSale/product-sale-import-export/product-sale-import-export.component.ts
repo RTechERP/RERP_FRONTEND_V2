@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 // PrimeNG Imports
@@ -70,7 +70,6 @@ export interface StandardizationRow {
     FieldsetModule,
     CardModule,
     NzModalModule,
-    NzNotificationModule,
     ProductSaleImportExportLogComponent
   ],
   templateUrl: './product-sale-import-export.component.html',

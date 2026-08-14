@@ -12,12 +12,10 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { EmployeeBussinessService } from '../../employee-bussiness-service/employee-bussiness.service';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
@@ -47,12 +45,10 @@ import { OverTimeService } from '../../../../over-time/over-time-service/over-ti
     NzDatePickerModule,
     NzButtonModule,
     NzIconModule,
-    NzNotificationModule,
     NzSpinModule,
     NzCheckboxModule,
     NzGridModule,
     NzUploadModule,
-    NzMessageModule,
   ]
 })
 export class EmployeeRegisterBussinessFormComponent implements OnInit {

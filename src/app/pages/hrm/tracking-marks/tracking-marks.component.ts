@@ -21,7 +21,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { CommonModule } from '@angular/common';
@@ -59,7 +59,7 @@ import { TrackingMarksDetailComponent } from './tracking-marks-detail/tracking-m
     NzTableModule,
     NzModalModule,
     NzFormModule,
-    NzDropDownModule,
+    NzDropdownModule,
   ],
   templateUrl: './tracking-marks.component.html',
   styleUrl: './tracking-marks.component.css'

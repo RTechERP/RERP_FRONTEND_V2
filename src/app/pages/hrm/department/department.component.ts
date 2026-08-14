@@ -9,7 +9,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
@@ -40,7 +40,6 @@ import { DepartmentFormComponent } from './department-form/department-form.compo
     NzSelectModule,
     NzFormModule,
     NzInputModule,
-    NzNotificationModule,
     NgIf,
     NzSpinModule,
     HasPermissionDirective,

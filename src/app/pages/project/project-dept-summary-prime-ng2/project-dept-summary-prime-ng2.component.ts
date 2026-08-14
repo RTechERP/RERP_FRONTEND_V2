@@ -21,9 +21,9 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import * as ExcelJS from 'exceljs';
-import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { ProjectDetailComponent } from '../project-detail/project-detail.component';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { ProjectChangeComponent } from '../project-change/project-change.component';
@@ -81,7 +81,7 @@ import { TabServiceService } from '../../../layouts/tab-service.service';
     NzDatePickerModule,
     NzInputModule,
     NzSelectModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzSpinModule,
     CommonModule,
     HasPermissionDirective,
@@ -99,7 +99,6 @@ import { TabServiceService } from '../../../layouts/tab-service.service';
     SelectModule,
     TagModule,
     NzModalModule,
-    NzNotificationModule,
     NgbModalModule,
     RouterModule
   ],

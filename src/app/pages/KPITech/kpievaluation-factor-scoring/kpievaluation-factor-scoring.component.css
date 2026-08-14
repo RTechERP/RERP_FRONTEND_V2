@@ -186,7 +186,7 @@ nz-spin {
 }
 
 /* Ensure tabs fill height */
-nz-tabset {
+nz-tabs {
   display: flex;
   flex-direction: column;
   height: 100%;

@@ -14,7 +14,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzGridModule } from 'ng-zorro-antd/grid';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { SupplierSaleService } from '../../supplier-sale/supplier-sale.service';
@@ -72,7 +72,7 @@ import { forkJoin } from 'rxjs';
         NzCheckboxModule,
         NzTabsModule,
         NzGridModule,
-        NzDropDownModule,
+        NzDropdownModule,
         NzIconModule,
         NzModalModule,
         NzSwitchModule,

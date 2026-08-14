@@ -32,7 +32,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
 import { ProjectService } from '../project/project-service/project.service';
@@ -63,7 +63,7 @@ import { ProjectService } from '../project/project-service/project.service';
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
-    NzDropDownModule,
+    NzDropdownModule,
     CommonModule,
   ],
 })

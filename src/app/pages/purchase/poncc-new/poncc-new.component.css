@@ -131,7 +131,7 @@
 }
 
 /* Đảm bảo tabset và tab content có chiều cao đầy đủ */
-:host ::ng-deep nz-tabset,
+:host ::ng-deep nz-tabs,
 :host ::ng-deep .ant-tabs {
   flex: 1;
   min-height: 0;

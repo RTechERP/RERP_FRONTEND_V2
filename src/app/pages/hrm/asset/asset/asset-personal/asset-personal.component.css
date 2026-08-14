@@ -28,7 +28,7 @@ nz-form-label {
     height: 100%;
 }
 
-:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab-btn {
+:host ::ng-deep nz-tabs.approval-tabs .ant-tabs-tab-btn {
     padding: 4px !important;
     padding-left: 12px !important;
     font-size: 12px !important;

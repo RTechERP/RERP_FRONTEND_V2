@@ -137,7 +137,7 @@
                                 [nzBodyStyle]="{padding: '0px 24px' }" (nzOnCancel)="showPreview = false">
                                 <ng-container *nzModalContent>
 
-                                    <nz-tabset>
+                                    <nz-tabs>
                                         @for (t of tabs; track t.title; let i = $index) {
                                         <nz-tab [nzTitle]="t.title">
                                             <button class="my-1" nz-button nzType="primary" nzSize="small"
@@ -167,7 +167,7 @@
                                             </div>
                                         </nz-tab>
                                         }
-                                    </nz-tabset>
+                                    </nz-tabs>
                                 </ng-container>
 
                                 <ng-template #modalFooter>
@@ -246,7 +246,7 @@
                     <nz-splitter nzLayout="vertical">
                         <!-- Panel trên: chứa 2 tab -->
                         <nz-splitter-panel [nzSize]="">
-                            <nz-tabset [(nzSelectedIndex)]="activeTabIndex"
+                            <nz-tabs [(nzSelectedIndex)]="activeTabIndex"
                                 (nzSelectedIndexChange)="onTabChange($event)">
                                 <nz-tab nzTitle="PO Thương mại">
                                     <div class="tab-content-container">
@@ -258,7 +258,7 @@
                                         <div #table_poMuon class="tabulator"></div>
                                     </div>
                                 </nz-tab>
-                            </nz-tabset>
+                            </nz-tabs>
                         </nz-splitter-panel>
 
                         <!-- Panel dưới: chi tiết -->

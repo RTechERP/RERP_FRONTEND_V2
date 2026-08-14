@@ -43,12 +43,11 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSpinComponent } from 'ng-zorro-antd/spin';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { AppUserService } from '../../../../../services/app-user.service';
 import { MenuItem } from 'primeng/api';
 import { DateTime } from 'luxon';
-import { AnimationKeyframesSequenceMetadata } from '@angular/animations';
 import { ProjectService } from '../../../../project/project-service/project.service';
 import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { ProjectPartlistPriceRequestService } from '../../../../old/project-partlist-price-request/project-partlist-price-request-service/project-partlist-price-request.service';
@@ -67,7 +66,7 @@ import { PermissionService } from '../../../../../services/permission.service';
     NzDatePickerModule,
     NzButtonModule,
     NzGridModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzIconModule,
     NzModalModule,
     NzSplitterModule,

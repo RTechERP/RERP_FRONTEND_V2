@@ -9,7 +9,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { OverTimeService } from '../../../over-time-service/over-time.service';
@@ -30,7 +30,6 @@ import { ProjectService } from '../../../../../project/project-service/project.s
     NzTableModule,
     NzCheckboxModule,
     NzSpinModule,
-    NzNotificationModule
   ],
   template: `
      <div class="modal-header bg-primary align-items-center p-2">

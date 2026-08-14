@@ -5,7 +5,7 @@ import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { MenuService } from './pages/systems/menus/menu-service/menu.service';
@@ -20,7 +20,7 @@ import { AutocompleteDirectiveDirective } from './directives/autocomplete-direct
     NzMenuModule,
     NzButtonModule,
     NzTabsModule,
-    NzDropDownModule,
+    NzDropdownModule,
     // NzBadgeModule,
     // NzAvatarModule,
     // BrowserModule,

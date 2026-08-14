@@ -45,7 +45,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 
 // ng-bootstrap
 import {
@@ -88,7 +88,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
     NzSplitterModule,
     NzTableModule,
     NzTreeSelectModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NgbModalModule,
     Menubar,
   ],

@@ -21,7 +21,7 @@ import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { Menubar } from 'primeng/menubar';
 import { ProjectTaskSumaryAttendanceService } from './project-task-sumary-attendance.service';
 import { WorkplanService } from '../../person/workplan/workplan.service';
@@ -54,7 +54,7 @@ import { AppUserService } from '../../../services/app-user.service';
     NzCardModule,
     NzGridModule,
     HasPermissionDirective,
-    NzDropDownModule,
+    NzDropdownModule,
     Menubar,
     TableModule
   ]

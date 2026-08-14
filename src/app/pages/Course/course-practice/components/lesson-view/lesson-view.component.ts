@@ -25,8 +25,8 @@ import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { VgCoreModule, VgApiService } from '@videogular/ngx-videogular/core';
@@ -107,8 +107,8 @@ export interface Chapter {
     NzButtonModule,
     NzIconModule,
     NzCheckboxModule,
-    NzDropDownModule,
-    NzToolTipModule,
+    NzDropdownModule,
+    NzTooltipModule,
     VgCoreModule,
     VgControlsModule,
     VgOverlayPlayModule,

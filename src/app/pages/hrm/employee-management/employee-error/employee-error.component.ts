@@ -20,7 +20,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 
@@ -57,7 +57,7 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
     NgbModalModule,
     // EmployeeErrorDetailComponent,
     HasPermissionDirective,
-    NzDropDownModule,
+    NzDropdownModule,
   ],
   templateUrl: './employee-error.component.html',
   styleUrls: ['./employee-error.component.css'],

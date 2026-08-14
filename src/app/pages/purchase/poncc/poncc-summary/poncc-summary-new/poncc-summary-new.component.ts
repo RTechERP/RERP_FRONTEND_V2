@@ -47,7 +47,7 @@ import { ProjectService } from '../../../../project/project-service/project.serv
 import ExcelJS from 'exceljs';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { AppUserService } from '../../../../../services/app-user.service';
 import { MenuItem } from 'primeng/api';
@@ -67,7 +67,7 @@ import { TabServiceService } from '../../../../../layouts/tab-service.service';
     NzDatePickerModule,
     NzButtonModule,
     NzGridModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzIconModule,
     NzModalModule,
     NzSplitterModule,

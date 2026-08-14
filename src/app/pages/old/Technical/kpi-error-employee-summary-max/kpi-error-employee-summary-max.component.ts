@@ -17,7 +17,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 
 import {
     Aggregators,
@@ -47,7 +47,7 @@ import { KpiErrorEmployeeSummaryMaxService } from './kpi-error-employee-summary-
         NzSelectModule,
         NzFormModule,
         NzDatePickerModule,
-        NzDropDownModule,
+        NzDropdownModule,
         AngularSlickgridModule,
     ],
     templateUrl: './kpi-error-employee-summary-max.component.html',

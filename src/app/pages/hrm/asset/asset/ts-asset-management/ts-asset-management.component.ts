@@ -40,7 +40,7 @@ import { ContextMenuModule } from 'primeng/contextmenu';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { NzModalModule } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { MenubarModule } from 'primeng/menubar';
@@ -82,7 +82,7 @@ import { TsAssetManagementPersonalService } from '../../../../old/ts-asset-manag
         NgbModalModule,
         HasPermissionDirective,
         NzModalModule,
-        NzDropDownModule,
+        NzDropdownModule,
         NzSpinModule,
         NzFormModule,
         MenubarModule,

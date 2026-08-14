@@ -17,7 +17,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
   AngularGridInstance,
@@ -70,7 +70,7 @@ interface GroupedData {
     NzCardModule,
     NzSplitterModule,
     NzFormModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzDatePickerModule,
     NzInputModule,
     NzInputNumberModule,

@@ -132,7 +132,7 @@
                 </div>
             </div>
 
-            <nz-tabset *ngIf="!isLoading" [(nzSelectedIndex)]="activeTabIndex" class="exam-tabs">
+            <nz-tabs *ngIf="!isLoading" [(nzSelectedIndex)]="activeTabIndex" class="exam-tabs">
 
                 <!-- TAB TRẮC NGHIỆM -->
                 <nz-tab *ngIf="hasMultipleChoice" [nzTitle]="mcTabTitle">
@@ -323,7 +323,7 @@
                     </div>
                 </nz-tab>
 
-            </nz-tabset>
+            </nz-tabs>
         </div>
 
         <!-- Footer Navigator -->

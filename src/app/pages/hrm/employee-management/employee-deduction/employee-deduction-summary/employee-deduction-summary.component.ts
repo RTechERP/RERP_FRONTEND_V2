@@ -13,7 +13,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzGridModule } from 'ng-zorro-antd/grid';
@@ -45,7 +45,7 @@ import { DateTime } from 'luxon';
     NzButtonModule,
     NzIconModule,
     NzSpinModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzFormModule,
     NzGridModule,
     NzModalModule,

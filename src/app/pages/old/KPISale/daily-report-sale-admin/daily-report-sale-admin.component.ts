@@ -18,7 +18,7 @@ import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzFlexModule, NzWrap } from 'ng-zorro-antd/flex';
 import { NzDrawerModule, NzDrawerPlacement } from 'ng-zorro-antd/drawer';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -80,7 +80,7 @@ import { ActivatedRoute } from '@angular/router';
         NzLayoutModule,
         NzFlexModule,
         NzDrawerModule,
-        NzDropDownModule,
+        NzDropdownModule,
         NzSplitterModule,
         NzGridModule,
         NzDatePickerModule,

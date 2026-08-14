@@ -14,14 +14,14 @@ import { NOTIFICATION_TITLE_MAP } from '../../hrm/hr-recruitment-interview-asses
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { ProjectSolutionDetailComponent } from '../project-department-summary/project-department-summary-form/project-solution-detail/project-solution-detail.component';
 import { ProjectSolutionVersionDetailComponent } from '../project-department-summary/project-department-summary-form/project-solution-version-detail/project-solution-version-detail.component';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { lastValueFrom } from 'rxjs';
 import { AppUserService } from '../../../services/app-user.service';
 
 @Component({
   selector: 'app-project-partlist-clone',
   standalone: true,
-  imports: [CommonModule, FormsModule, NzSelectModule, NzButtonModule, AngularSlickgridModule, NzModalModule, NzDropDownModule],
+  imports: [CommonModule, FormsModule, NzSelectModule, NzButtonModule, AngularSlickgridModule, NzModalModule, NzDropdownModule],
   templateUrl: './project-partlist-clone.component.html',
   styleUrl: './project-partlist-clone.component.css'
 })

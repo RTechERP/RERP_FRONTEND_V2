@@ -133,7 +133,7 @@
                     <!-- Bảng Detail - Chi tiết đề xuất (ở dưới) - 40% -->
                     <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="40%">
                         <div style="height: 100%; width: 100%; display: flex; flex-direction: column;">
-                            <nz-tabset
+                            <nz-tabs
                                 style="padding-left: 10px; flex: 1; display: flex; flex-direction: column; min-height: 0; width: 100%;">
                                 <nz-tab
                                     [nzTitle]="'Chi tiết đề xuất' + (selectedRow?.VehicleName ? ' - ' + selectedRow.VehicleName : '')"
@@ -148,7 +148,7 @@
                                         </angular-slickgrid>
                                     </div>
                                 </nz-tab>
-                            </nz-tabset>
+                            </nz-tabs>
                         </div>
                     </nz-splitter-panel>
                 </nz-splitter>

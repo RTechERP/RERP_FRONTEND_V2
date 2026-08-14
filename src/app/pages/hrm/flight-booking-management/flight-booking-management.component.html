@@ -265,7 +265,7 @@
         <!-- Bảng Detail -->
         <nz-splitter-panel nzSize="40%">
           <div class="h-100 d-flex flex-column">
-            <nz-tabset class="h-40 flex-grow-1">
+            <nz-tabs class="h-40 flex-grow-1">
               <nz-tab nzTitle="Phương án đề xuất">
                 <nz-spin [nzSpinning]="isDetailLoading" class="h-100">
                   <p-table [value]="selectedProposals()" [scrollable]="true" scrollHeight="flex"
@@ -338,7 +338,7 @@
                   </p-table>
                 </nz-spin>
               </nz-tab>
-            </nz-tabset>
+            </nz-tabs>
           </div>
         </nz-splitter-panel>
       </nz-splitter>

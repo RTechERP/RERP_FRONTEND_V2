@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -35,7 +34,6 @@ import { PrimeIcons, MenuItem } from 'primeng/api';
     FormsModule,
     NzButtonModule,
     NzIconModule,
-    NzNotificationModule,
     ReactiveFormsModule,
     NzSplitterModule,
     NzFormModule,

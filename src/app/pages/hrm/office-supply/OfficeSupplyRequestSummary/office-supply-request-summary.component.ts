@@ -7,7 +7,6 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
-import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -39,7 +38,6 @@ import { UnsubscriptionError } from 'rxjs';
     NzModalModule,
     NzIconModule,
     NzTypographyModule,
-    NzMessageModule,
     NzSplitterModule,
     NzFormModule,
     NzInputModule,

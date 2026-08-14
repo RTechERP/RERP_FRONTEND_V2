@@ -20,7 +20,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { DateTime } from 'luxon';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { DailyReportTechService } from '../../DailyReportTech/DailyReportTechService/daily-report-tech.service';
@@ -44,7 +44,7 @@ import { OverTimePersonFormComponent } from '../../hrm/over-time/over-time-perso
     NzFormModule,
     NzCollapseModule,
     NzRadioModule,
-    NzToolTipModule,
+    NzTooltipModule,
   ],
   templateUrl: './daily-report-lx-detail.component.html',
   styleUrl: './daily-report-lx-detail.component.css'

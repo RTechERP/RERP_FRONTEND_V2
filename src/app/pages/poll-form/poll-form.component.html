@@ -157,7 +157,7 @@
         </div>
       </form>
 
-      <nz-tabset class="poll-tabs" [(nzSelectedIndex)]="activeTabIndex">
+      <nz-tabs class="poll-tabs" [(nzSelectedIndex)]="activeTabIndex">
         <nz-tab nzTitle="Thiết kế">
           <div class="section-strip">
             <div class="section-pill-wrap" *ngFor="let section of sections; let sectionIndex = index; trackBy: trackBySection">
@@ -817,7 +817,7 @@
             </nz-spin>
           </div>
         </nz-tab>
-      </nz-tabset>
+      </nz-tabs>
     </nz-spin>
   </main>
 </div>

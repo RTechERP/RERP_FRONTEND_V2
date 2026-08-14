@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -24,7 +24,7 @@ import { PersonalSignatureComponent } from '../../personal-signature/personal-si
   imports: [
     CommonModule,
     FormsModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzMenuModule,
     NzIconModule,
     NzButtonModule,

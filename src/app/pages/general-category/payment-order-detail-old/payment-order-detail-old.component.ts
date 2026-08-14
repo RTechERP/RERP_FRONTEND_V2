@@ -14,7 +14,7 @@ import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESP
 import { AppUserService } from '../../../services/app-user.service';
 import { FilePreviewComponent } from '../file-preview/file-preview.component';
 import { environment } from '../../../../environments/environment';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { CurrencyFormatRealtimeDirective } from '../../../directives/CurrencyFormatRealtime.directive';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 @Component({
@@ -28,7 +28,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
         NzButtonModule,
         NzIconModule,
         FilePreviewComponent,
-        NzToolTipModule,
+        NzTooltipModule,
         CurrencyFormatRealtimeDirective,
         NzModalModule
     ],

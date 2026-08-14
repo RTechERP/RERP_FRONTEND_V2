@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { MenuItem } from 'primeng/api';
@@ -24,7 +24,6 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     imports: [
         CommonModule,
         FormsModule,
-        NzNotificationModule,
         NzSpinModule,
         NzCardModule,
         Menubar,

@@ -123,7 +123,7 @@
                 <!-- Panel 2: Detail Tickets -->
                 <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="true" nzSize="55%">
                     <div class="h-100 d-flex flex-column bg-white overflow-hidden">
-                        <nz-tabset style="padding-left: 10px; flex: 1; height: 100%;" class="h-100 custom-tabs">
+                        <nz-tabs style="padding-left: 10px; flex: 1; height: 100%;" class="h-100 custom-tabs">
                             <nz-tab [nzTitle]="detailTabTitle">
                                 <ng-template #detailTabTitle>
                                     <div class="d-flex align-items-center gap-2 py-1">
@@ -290,7 +290,7 @@
                                     </div>
                                 </div>
                             </nz-tab>
-                        </nz-tabset>
+                        </nz-tabs>
                     </div>
                 </nz-splitter-panel>
             </nz-splitter>

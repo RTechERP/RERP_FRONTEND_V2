@@ -266,7 +266,7 @@
         </form>
 
         <!-- Tabs for Detail and Document -->
-        <nz-tabset [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="onTabChange($event)"
+        <nz-tabs [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="onTabChange($event)"
             style="margin-top: -10px;">
             <!-- Tab 1: Chi tiết phiếu nhập -->
             <nz-tab nzTitle="Chi tiết phiếu nhập" [nzForceRender]="true">
@@ -288,7 +288,7 @@
                     </angular-slickgrid>
                 </div>
             </nz-tab>
-        </nz-tabset>
+        </nz-tabs>
 
     </nz-spin>
 </div>

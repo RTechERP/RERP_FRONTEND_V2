@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { FormGroupDirective } from '@angular/forms';
@@ -21,7 +21,6 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
   imports: [
     NzIconModule,
     NzButtonModule,
-    NzNotificationModule,
     ReactiveFormsModule,
     NzFormModule,
     NzInputModule,

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { CourseListComponent } from '../course-list/course-list.component';
 import { CourseData } from '../../course-exam-practice.types';
 
@@ -15,7 +15,7 @@ import { CourseData } from '../../course-exam-practice.types';
         FormsModule,
         NzInputModule,
         NzIconModule,
-        NzDropDownModule,
+        NzDropdownModule,
         CourseListComponent
     ],
     templateUrl: './course-selector.component.html',

@@ -6,7 +6,7 @@
     <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
   </div>
   <div class="modal-body pt-0 pb-0 p-2 w-100" style="width: 800px; min-height: 75vh">
-    <nz-tabset class="p-0" (nzSelectedIndexChange)="onChangeIndexTab($event)"
+    <nz-tabs class="p-0" (nzSelectedIndexChange)="onChangeIndexTab($event)"
       style="height: 70vh; display: flex; flex-direction: column;">
       <nz-tab nzTitle="Chi tiết dự án">
         <div style="height: calc(70vh - 50px); overflow-y: auto; padding-right: 4px; overflow-x: hidden;">
@@ -503,7 +503,7 @@
           </form>
         </div>
       </nz-tab>
-    </nz-tabset>
+    </nz-tabs>
   </div>
 
   <div class="modal-footer bg-whitesmoke br p-1">

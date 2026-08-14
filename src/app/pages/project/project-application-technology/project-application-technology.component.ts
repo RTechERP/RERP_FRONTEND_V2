@@ -16,9 +16,9 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { ButtonModule as PButtonModule } from 'primeng/button';
@@ -59,9 +59,8 @@ import * as ExcelJS from 'exceljs';
     NzInputModule,
     NzSelectModule,
     NzSpinModule,
-    NzNotificationModule,
     NzModalModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzDatePickerModule,
     TableModule,
     PButtonModule,

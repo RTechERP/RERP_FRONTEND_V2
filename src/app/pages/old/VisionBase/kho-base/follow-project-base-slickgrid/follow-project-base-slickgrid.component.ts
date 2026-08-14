@@ -17,7 +17,7 @@ import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzFlexModule } from 'ng-zorro-antd/flex';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -74,7 +74,7 @@ import { ReadOnlyLongTextEditor } from '../../../../KPITech/kpievaluation-employ
         NzLayoutModule,
         NzFlexModule,
         NzDrawerModule,
-        NzDropDownModule,
+        NzDropdownModule,
         NzSplitterModule,
         NzGridModule,
         NzDatePickerModule,

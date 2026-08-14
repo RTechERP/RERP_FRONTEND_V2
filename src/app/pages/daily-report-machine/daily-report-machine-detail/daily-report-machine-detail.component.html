@@ -63,7 +63,7 @@
 
         <!-- Dòng 2: Tab dự án (trong fieldset) -->
         <fieldset class="mt-2 border p-2" style="border-radius: 4px;">
-            <nz-tabset [(nzSelectedIndex)]="activeProjectTab" [nzType]="mode === 'edit' ? 'card' : 'editable-card'"
+            <nz-tabs [(nzSelectedIndex)]="activeProjectTab" [nzType]="mode === 'edit' ? 'card' : 'editable-card'"
                 (nzAdd)="mode === 'add' ? addProject() : null"
                 (nzClose)="mode === 'add' ? closeProjectTab($event) : null" [nzAnimated]="false">
                 @for (project of projectList; track $index) {
@@ -222,7 +222,7 @@
                     </fieldset>
                 </nz-tab>
                 }
-            </nz-tabset>
+            </nz-tabs>
         </fieldset>
 
         <!-- Dòng 2.5: Nơi làm việc (fieldset) -->

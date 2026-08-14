@@ -47,7 +47,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { Subscription } from 'rxjs';
@@ -95,7 +95,7 @@ interface Tab {
     NzTabsModule,
     NzSpinModule,
     NzModalModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NgbModule,
     HasPermissionDirective,
     MenubarModule,

@@ -40,7 +40,7 @@ import { CommonModule } from '@angular/common';
 import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { map, catchError, of, forkJoin } from 'rxjs';
 import * as ExcelJS from 'exceljs';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -83,7 +83,7 @@ import { AppUserService } from '../../../services/app-user.service';
     NzModalModule,
     NzSwitchModule,
     NzTabsModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzFormModule,
     NzSpinModule,
     PrimeTableModule,

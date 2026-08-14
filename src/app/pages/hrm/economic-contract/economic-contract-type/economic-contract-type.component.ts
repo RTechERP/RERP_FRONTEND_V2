@@ -2,7 +2,7 @@ import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
@@ -30,7 +30,6 @@ import { EconomicContractTypeFormComponent } from './economic-contract-type-form
         CommonModule,
         FormsModule,
         NgbModalModule,
-        NzNotificationModule,
         NzModalModule,
         NzCardModule,
         NzSplitterModule,

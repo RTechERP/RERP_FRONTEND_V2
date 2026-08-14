@@ -9,10 +9,10 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { AngularSlickgridModule, Column, GridOption, AngularGridInstance, Formatters, Filters, MultipleSelectOption, Editors, EditCommand } from 'angular-slickgrid';
 import { ChartModule } from 'primeng/chart';
 import * as ExcelJS from 'exceljs';
@@ -32,9 +32,9 @@ import { ReadOnlyLongTextEditor } from '../../../../KPITech/kpievaluation-employ
         NzInputModule,
         NzInputNumberModule,
         NzFormModule,
-        NzDropDownModule,
+        NzDropdownModule,
         NzSplitterModule,
-        NzToolTipModule,
+        NzTooltipModule,
         AngularSlickgridModule,
         ChartModule,
         RouterModule

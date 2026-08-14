@@ -34,7 +34,7 @@ import {
   type NzNotificationComponent,
   NzNotificationService,
 } from 'ng-zorro-antd/notification';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
@@ -70,7 +70,7 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
     NzTabsModule,
     CommonModule,
     NzFormModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzModalModule,
     NzSpinModule,
     HasPermissionDirective

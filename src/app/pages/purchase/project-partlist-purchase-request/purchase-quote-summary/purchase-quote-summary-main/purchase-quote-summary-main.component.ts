@@ -31,7 +31,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { DateTime } from 'luxon';
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { AppUserService } from '../../../../../services/app-user.service';
@@ -61,7 +61,7 @@ import { PaymentOrderComponent } from '../../../../general-category/payment-orde
     NzInputModule,
     NzSpinModule,
     NzModalModule,
-    NzDropDownModule,
+    NzDropdownModule,
     AngularSlickgridModule,
     Menubar,
   ],

@@ -11,7 +11,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzMessageModule, NzMessageService } from 'ng-zorro-antd/message';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -40,7 +40,6 @@ import { PermissionService } from '../../../services/permission.service';
     NzSelectModule,
     NzFormModule,
     NzModalModule,
-    NzMessageModule,
     NzSplitterModule,
     Menubar,
     PaginatorModule,

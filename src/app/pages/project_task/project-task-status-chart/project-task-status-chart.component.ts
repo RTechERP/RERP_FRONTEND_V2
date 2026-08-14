@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 // Ng-Zorro
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -55,7 +55,7 @@ echarts.use([
     FormsModule,
     NzIconModule,
     NzButtonModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzSelectModule,
     NzGridModule,
     NzInputModule,

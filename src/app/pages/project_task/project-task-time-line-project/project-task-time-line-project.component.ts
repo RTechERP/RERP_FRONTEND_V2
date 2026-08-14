@@ -6,7 +6,7 @@ import { forkJoin } from 'rxjs';
 // Ng-Zorro
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -32,7 +32,7 @@ import { ProjectTaskService } from '../project-task/project-task.service';
     FormsModule,
     NzIconModule,
     NzButtonModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzModalModule,
     NzSelectModule,
     NzGridModule,

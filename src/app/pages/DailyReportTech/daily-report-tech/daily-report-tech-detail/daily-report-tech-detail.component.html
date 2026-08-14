@@ -56,7 +56,7 @@
 
         <!-- Dòng 2: Tab dự án (trong fieldset) -->
         <fieldset class="mt-2 border p-2" style="border-radius: 4px;">
-            <nz-tabset [(nzSelectedIndex)]="activeProjectTab" [nzType]="mode === 'edit' ? 'card' : 'editable-card'"
+            <nz-tabs [(nzSelectedIndex)]="activeProjectTab" [nzType]="mode === 'edit' ? 'card' : 'editable-card'"
                 (nzAdd)="mode === 'add' ? addProject() : null"
                 (nzClose)="mode === 'add' ? closeProjectTab($event) : null" [nzAnimated]="false">
                 @for (project of projectList; track $index) {
@@ -87,7 +87,7 @@
 
                     <!-- Dòng 2: Tab hạng mục -->
                     <fieldset class="mt-2 border" style="border-radius: 4px;">
-                        <nz-tabset [nzSelectedIndex]="project.activeItemTab ?? 0"
+                        <nz-tabs [nzSelectedIndex]="project.activeItemTab ?? 0"
                             (nzSelectChange)="onProjectItemTabChange($index + 1, $event)"
                             [nzType]="mode === 'edit' ? 'card' : 'editable-card'"
                             (nzAdd)="mode === 'add' ? addProjectItem($index + 1) : null"
@@ -196,11 +196,11 @@
                                 </nz-row>
                             </nz-tab>
                             }
-                        </nz-tabset>
+                        </nz-tabs>
                     </fieldset>
                 </nz-tab>
                 }
-            </nz-tabset>
+            </nz-tabs>
         </fieldset>
 
         <!-- Dòng 2.5: Nơi làm việc (fieldset) -->

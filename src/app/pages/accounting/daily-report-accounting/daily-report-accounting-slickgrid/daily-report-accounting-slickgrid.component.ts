@@ -31,7 +31,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { Menubar } from 'primeng/menubar';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { ID_ADMIN_SALE_LIST, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
@@ -61,7 +61,7 @@ import { ReadOnlyLongTextEditor } from '../../../KPITech/kpievaluation-employee/
         AngularSlickgridModule,
         Menubar,
         NzInputNumberModule,
-        NzDropDownModule
+        NzDropdownModule
     ],
     templateUrl: './daily-report-accounting-slickgrid.component.html',
     styleUrl: './daily-report-accounting-slickgrid.component.css',

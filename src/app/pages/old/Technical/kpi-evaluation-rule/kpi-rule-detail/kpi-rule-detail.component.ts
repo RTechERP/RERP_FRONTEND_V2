@@ -10,7 +10,7 @@ import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { KpiEvaluationRuleService } from '../kpi-evaluation-rule-service/kpi-evaluation-rule.service';
@@ -29,7 +29,7 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
         NzCardModule,
         NzSpinModule,
         NzIconModule,
-        NzToolTipModule,
+        NzTooltipModule,
         NzTreeSelectModule,
     ],
     templateUrl: './kpi-rule-detail.component.html',

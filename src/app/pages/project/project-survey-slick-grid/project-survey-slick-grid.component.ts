@@ -44,7 +44,7 @@ import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -88,7 +88,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
-    NzDropDownModule,
+    NzDropdownModule,
     CommonModule,
     HasPermissionDirective,
     Menubar,

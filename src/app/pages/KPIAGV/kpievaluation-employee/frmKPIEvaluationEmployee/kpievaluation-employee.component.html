@@ -115,7 +115,7 @@
                     nzResizable="true">
                     <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                         <div class="card-body p-2 flex-grow-1" style="min-height: 0; overflow: hidden;">
-                            <nz-tabset [(nzSelectedIndex)]="selectedTabIndex"
+                            <nz-tabs [(nzSelectedIndex)]="selectedTabIndex"
                                 (nzSelectedIndexChange)="onTabChange($event)"
                                 style="height: 89vh !important; line-height: 0.25 !important;">
                                 <!-- Tab 1: Kỹ năng (treeData) -->
@@ -189,7 +189,7 @@
                                         </angular-slickgrid>
                                     </div>
                                 </nz-tab>
-                            </nz-tabset>
+                            </nz-tabs>
                         </div>
                     </div>
                 </nz-splitter-panel>

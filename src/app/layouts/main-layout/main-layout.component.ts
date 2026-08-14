@@ -7,7 +7,7 @@ import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { ReactiveFormsModule } from '@angular/forms';
 // import { MenuService } from '../../pages/old/menus/menu-service/menu.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -126,7 +126,7 @@ export const isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
         NzMenuModule,
         NzButtonModule,
         NzTabsModule,
-        NzDropDownModule,
+        NzDropdownModule,
         ReactiveFormsModule,
         CommonModule,
         AppNotifycationDropdownComponent,

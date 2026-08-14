@@ -51,7 +51,7 @@ import { HrhiringRequestService } from './hrhiring-request-service/hrhiring-requ
 import { HrhiringRequestDetailComponent } from './hrhiring-request-detail/hrhiring-request-detail.component';
 import { PdfGeneratorService } from './hrhiring-request-service/pdf-generator.service';
 
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../../app.config';
 import { PermissionService } from '../../../../services/permission.service';
 import { NOTIFICATION_TITLE } from '../../hr-recruitment-interview-assessment/hr-recruitment-interview-assessment-form/hr-recruitment-interview-assessment-form.component';
@@ -73,7 +73,7 @@ import { NOTIFICATION_TITLE } from '../../hr-recruitment-interview-assessment/hr
     NzCardModule,
     NzModalModule,
     NzGridModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzTabsModule,
     NzTreeSelectModule,
     TableModule,

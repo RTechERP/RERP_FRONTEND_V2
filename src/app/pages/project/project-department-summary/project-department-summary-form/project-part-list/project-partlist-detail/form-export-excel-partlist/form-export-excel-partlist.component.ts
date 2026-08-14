@@ -14,7 +14,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DateTime } from 'luxon';
@@ -31,7 +31,7 @@ import { AuthService } from '../../../../../../../auth/auth.service';
     NzIconModule,
     NzSplitterModule,
     NzInputModule,
-    NzToolTipModule,
+    NzTooltipModule,
   ],
   templateUrl: './form-export-excel-partlist.component.html',
   styleUrl: './form-export-excel-partlist.component.css',

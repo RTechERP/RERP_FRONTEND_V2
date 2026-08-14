@@ -7,11 +7,11 @@
 <div class="modal-body">
     <!-- Hiển thị tabs nếu có nhiều nhóm -->
     <div *ngIf="isMultipleGroups" class="mb-3">
-        <nz-tabset [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="switchTab($event)">
+        <nz-tabs [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="switchTab($event)">
             <nz-tab *ngFor="let group of groupedData; let i = index"
                 [nzTitle]="'Biên bản ' + i + ' - ID: ' + group.items[0].POKHDetailID">
             </nz-tab>
-        </nz-tabset>
+        </nz-tabs>
     </div>
 
     <!-- Nội dung tab hiện tại -->

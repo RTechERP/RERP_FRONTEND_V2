@@ -25,12 +25,12 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzContextMenuService, NzDropdownMenuComponent, NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzContextMenuService, NzDropdownMenuComponent, NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { KPIService } from '../../kpi-service/kpi.service';
 import { AppUserService } from '../../../../services/app-user.service';
 import { AuthService } from '../../../../auth/auth.service';
@@ -70,11 +70,11 @@ interface LiXi {
     NzSplitterModule,
     NzTabsModule,
     NzCardModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzModalModule,
     NzDividerModule,
     NzSpinModule,
-    NzDropDownModule,
+    NzDropdownModule,
     CustomTableKpi,
     CustomTreeTableKpi,
   ],

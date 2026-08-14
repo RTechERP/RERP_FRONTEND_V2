@@ -10,7 +10,6 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
@@ -32,7 +31,7 @@ import { EarlyLateService } from '../early-late-service/early-late.service';
 import { DepartmentServiceService } from '../../department/department-service/department-service.service';
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { AuthService } from '../../../../auth/auth.service';
 import { WFHService } from '../../employee-management/employee-wfh/WFH-service/WFH.service';
@@ -63,7 +62,6 @@ import {
     NzSelectModule,
     NzFormModule,
     NzInputModule,
-    NzNotificationModule,
     ReactiveFormsModule,
     NzIconModule,
     NzCheckboxModule,
@@ -76,7 +74,7 @@ import {
     NzTimePickerModule,
     NzSpinModule,
     NgIf,
-    NzDropDownModule,
+    NzDropdownModule,
     FormsModule,
     Menubar,
     AngularSlickgridModule,

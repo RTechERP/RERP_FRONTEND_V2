@@ -16,7 +16,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { UpdateVersionService } from '../update-version.service';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzMessageModule, NzMessageService } from 'ng-zorro-antd/message';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { forkJoin, Observable, of } from 'rxjs';
 
 interface UpdateVersion {
@@ -53,7 +53,6 @@ interface UpdateVersion {
         EditorModule,
         NzUploadModule,
         NzIconModule,
-        NzMessageModule
     ],
     templateUrl: './update-version-form.component.html',
     styleUrl: './update-version-form.component.css'

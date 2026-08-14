@@ -8,7 +8,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NOTIFICATION_TITLE } from '../../../../../../../app.config';
@@ -37,7 +37,6 @@ interface VehicleItem {
     NzInputNumberModule,
     NzSelectModule,
     NzFormModule,
-    NzNotificationModule,
     NzGridModule
   ],
   templateUrl: './vehicle-select-modal.component.html',

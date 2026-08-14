@@ -22,9 +22,9 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import * as ExcelJS from 'exceljs';
-import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ProjectService } from '../../project-service/project.service';
@@ -63,7 +63,7 @@ import { MenubarModule } from 'primeng/menubar';
         NzDatePickerModule,
         NzInputModule,
         NzSelectModule,
-        NzDropDownModule,
+        NzDropdownModule,
         NzSpinModule,
         CommonModule,
         HasPermissionDirective,
@@ -78,7 +78,6 @@ import { MenubarModule } from 'primeng/menubar';
         SelectModule,
         TagModule,
         NzModalModule,
-        NzNotificationModule,
         RouterModule,
     ],
     templateUrl: './project-progress-report.component.html',

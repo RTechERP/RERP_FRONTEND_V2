@@ -2,7 +2,7 @@ import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { forkJoin, lastValueFrom, of, Observable } from 'rxjs';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -26,7 +26,7 @@ import { Router } from '@angular/router';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
 import { FiveSRatingDetailComponent } from '../five-s-rating-detail/five-s-rating-detail.component';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
@@ -45,7 +45,6 @@ import * as ExcelJS from 'exceljs';
         FormsModule,
         ReactiveFormsModule,
         NgbModalModule,
-        NzNotificationModule,
         NzModalModule,
         NzButtonModule,
         NzIconModule,
@@ -57,7 +56,7 @@ import * as ExcelJS from 'exceljs';
         MenubarModule,
         TableModule,
         NzTableModule,
-        NzToolTipModule,
+        NzTooltipModule,
         NzPopconfirmModule,
         ButtonModule,
         RippleModule,

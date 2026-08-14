@@ -10,14 +10,12 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzMessageModule } from 'ng-zorro-antd/message';
 import { DateTime } from 'luxon';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { OverTimeService } from '../../over-time-service/over-time.service';
@@ -44,12 +42,10 @@ import { Vietnamese } from 'flatpickr/dist/l10n/vn.js';
     NzDatePickerModule,
     NzButtonModule,
     NzIconModule,
-    NzNotificationModule,
     NzSpinModule,
     NzCheckboxModule,
     NzGridModule,
     NzUploadModule,
-    NzMessageModule,
     NzModalModule
   ]
 })

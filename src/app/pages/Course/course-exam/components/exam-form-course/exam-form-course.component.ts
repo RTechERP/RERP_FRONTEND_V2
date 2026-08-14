@@ -9,7 +9,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { CourseListComponent } from '../course-list/course-list.component';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 
 @Component({
@@ -24,7 +24,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
         NzInputNumberModule,
         NzSelectModule,
         CourseListComponent,
-        NzDropDownModule,
+        NzDropdownModule,
         NzIconModule,
         FormsModule
     ],

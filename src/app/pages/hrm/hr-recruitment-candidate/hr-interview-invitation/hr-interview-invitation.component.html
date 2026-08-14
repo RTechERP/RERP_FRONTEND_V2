@@ -21,7 +21,7 @@
 
   <nz-spin [nzSpinning]="isSending" nzTip="Đang gửi mail...">
     <!-- TABS PER ỨNG VIÊN -->
-    <nz-tabset
+    <nz-tabs
       [nzSelectedIndex]="activeTabIndex"
       (nzSelectedIndexChange)="activeTabIndex = $any($event)"
       nzType="card"
@@ -425,7 +425,7 @@
         </div>
         <!-- /tab-body -->
       </nz-tab>
-    </nz-tabset>
+    </nz-tabs>
   </nz-spin>
 
   <!-- FOOTER -->

@@ -14,7 +14,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
@@ -62,7 +62,7 @@ import { BillImportTechnicalProtectiveGearDetailComponent } from '../bill-import
     NzCheckboxModule,
     NgbModule,
     NzDatePickerModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzMenuModule,
     NzSpinModule,
     NzTabsModule,

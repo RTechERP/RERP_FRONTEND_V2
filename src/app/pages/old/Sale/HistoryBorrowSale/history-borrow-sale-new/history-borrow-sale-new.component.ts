@@ -11,7 +11,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import {
     AngularGridInstance,
     AngularSlickgridModule,
@@ -57,7 +57,7 @@ import { AppUserService } from '../../../../../services/app-user.service';
         NzSpinModule,
         AngularSlickgridModule,
         MenubarModule,
-        NzDropDownModule,
+        NzDropdownModule,
         BillExportDetailFileComponent
     ],
     templateUrl: './history-borrow-sale-new.component.html',

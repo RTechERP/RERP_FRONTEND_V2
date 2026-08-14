@@ -15,7 +15,6 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
-import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -30,7 +29,7 @@ import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzTagModule } from 'ng-zorro-antd/tag';
@@ -48,7 +47,6 @@ import { NzCarouselModule } from 'ng-zorro-antd/carousel';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NzAnchorModule } from 'ng-zorro-antd/anchor';
-import { NzBackTopModule } from 'ng-zorro-antd/back-top';
 import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
 import { NzCalendarModule } from 'ng-zorro-antd/calendar';
 import { NzCascaderModule } from 'ng-zorro-antd/cascader';
@@ -56,7 +54,7 @@ import { NzCodeEditorModule } from 'ng-zorro-antd/code-editor';
 import { NzColorPickerModule } from 'ng-zorro-antd/color-picker';
 import { NzCommentModule } from 'ng-zorro-antd/comment';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzFormItemComponent } from 'ng-zorro-antd/form';
 import { NzFormDirective } from 'ng-zorro-antd/form';
 import { NzFormLabelComponent } from 'ng-zorro-antd/form';
@@ -100,7 +98,6 @@ interface Product {
     NzModalModule,
     NzIconModule,
     NzTypographyModule,
-    NzMessageModule,
     NzSplitterModule,
     NzFormModule,
     NzInputModule,
@@ -113,7 +110,7 @@ interface Product {
     NzSpaceModule,
     NzGridModule,
     NzCheckboxModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzPopconfirmModule,
     NzBadgeModule,
     NzTagModule,
@@ -131,7 +128,6 @@ interface Product {
     NzDrawerModule,
     NzAffixModule,
     NzAnchorModule,
-    NzBackTopModule,
     NzBreadCrumbModule,
     NzCalendarModule,
     NzCascaderModule,
@@ -139,7 +135,7 @@ interface Product {
     NzColorPickerModule,
     NzCommentModule,
     NzDescriptionsModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzFormItemComponent,
     NzFormDirective,
     NzFormLabelComponent,

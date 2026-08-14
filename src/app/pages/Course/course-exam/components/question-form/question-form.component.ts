@@ -10,7 +10,6 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { AnswerItem, SaveCourseQuestionPayload, QuestionData } from '../../course-exam.types';
@@ -33,7 +32,6 @@ import { environment } from '../../../../../../environments/environment';
     NzTableModule,
     NzIconModule,
     NzUploadModule,
-    NzNotificationModule
   ],
   templateUrl: './question-form.component.html',
   styleUrls: ['./question-form.component.css']

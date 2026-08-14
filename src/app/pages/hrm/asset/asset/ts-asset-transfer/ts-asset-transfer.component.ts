@@ -36,7 +36,7 @@ declare var bootstrap: any;
 // @ts-ignore
 import { saveAs } from 'file-saver';
 
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { TsAssetManagementPersonalService } from '../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification'
@@ -75,7 +75,7 @@ import { PermissionService } from '../../../../../services/permission.service';
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NgbModalModule, HasPermissionDirective, NzModalModule,
     AngularSlickgridModule,
     NzSpinModule,

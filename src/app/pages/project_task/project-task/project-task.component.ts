@@ -6,11 +6,11 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzRateModule } from 'ng-zorro-antd/rate';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { forkJoin, Subscription } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
@@ -46,11 +46,11 @@ type TabType = 'all' | 'assigned' | 'related' | 'myApproval';
     NzIconModule,
     NzModalModule,
     NzInputModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzRateModule,
     NzSwitchModule,
     NzDrawerModule,
-    NzDropDownModule,
+    NzDropdownModule,
 
     ButtonModule,
     TableModule,

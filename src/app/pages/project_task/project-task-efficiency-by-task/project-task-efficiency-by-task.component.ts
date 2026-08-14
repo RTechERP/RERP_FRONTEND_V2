@@ -7,7 +7,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 
@@ -37,7 +37,7 @@ interface ExtendedColumnDef extends ColumnDef {
     CommonModule, FormsModule,
     NzButtonModule, NzIconModule, NzSelectModule,
     NzFormModule, NzSpinModule, NzInputModule,
-    NzDropDownModule, NzTagModule,
+    NzDropdownModule, NzTagModule,
     CustomTable, Menubar, ContextMenuModule
   ],
   templateUrl: './project-task-efficiency-by-task.component.html',

@@ -38,7 +38,7 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
 declare var bootstrap: any;
 import * as ExcelJS from 'exceljs';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { AssetAllocationService } from './ts-asset-allocation-service/ts-asset-allocation.service';
 import { TsAssetManagementPersonalService } from '../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
@@ -75,7 +75,7 @@ import { PermissionService } from '../../../../../services/permission.service';
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NgbModalModule, HasPermissionDirective,
     AngularSlickgridModule,
     NzSpinModule,

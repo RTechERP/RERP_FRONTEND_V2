@@ -31,7 +31,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -59,7 +59,7 @@ import { AppUserService } from '../../../services/app-user.service';
     NzSelectModule,
     NzInputModule,
     NzSpinModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzModalModule,
     NzSplitterModule,
     HasPermissionDirective,

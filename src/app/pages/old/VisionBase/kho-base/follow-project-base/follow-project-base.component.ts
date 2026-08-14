@@ -32,7 +32,6 @@ import { NgModel } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { CommonModule } from '@angular/common';
 import { KhoBaseService } from '../kho-base-service/kho-base.service';
-import { group } from '@angular/animations';
 import { NzTreeNodeOptions } from 'ng-zorro-antd/tree';
 import { FollowProjectBaseDetailComponent } from './follow-project-base-detail/follow-project-base-detail.component';
 import { ImportExcelComponent } from './import-excel/import-excel.component';

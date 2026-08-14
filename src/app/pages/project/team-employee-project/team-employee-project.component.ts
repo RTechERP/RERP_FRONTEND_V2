@@ -20,7 +20,7 @@ import { MenuItem } from 'primeng/api';
 import { MultiSelectModule } from 'primeng/multiselect';
 
 // Ant Design
-import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 import { TeamEmployeeProjectService } from './team-employee-project.service';
 import { ProjectService } from '../project-service/project.service';
@@ -79,7 +79,6 @@ export interface DepartmentItem {
     InputTextModule,
     ContextMenuModule,
     MultiSelectModule,
-    NzNotificationModule,
   ],
   templateUrl: './team-employee-project.component.html',
   styleUrls: ['./team-employee-project.component.css'],

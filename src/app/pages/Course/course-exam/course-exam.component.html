@@ -40,7 +40,7 @@
 
 <!-- MOBILE LAYOUT -->
 <div style="height: 94vh;" *ngIf="isSmallScreen">
-    <nz-tabset class="h-100 mobile-tabset" [nzTabBarGutter]="10" [(nzSelectedIndex)]="mobileTabIndex">
+    <nz-tabs class="h-100 mobile-tabset" [nzTabBarGutter]="10" [(nzSelectedIndex)]="mobileTabIndex">
         <nz-tab nzTitle="Danh sách">
             <div class="d-flex flex-column h-100">
                 <!-- Top Half: Exam List -->
@@ -74,7 +74,7 @@
                 </ng-container>
             </div>
         </nz-tab>
-    </nz-tabset>
+    </nz-tabs>
 </div>
 
 <app-exam-form-course [isVisible]="isCourseExamModalVisible" [isEdit]="isExamEditMode" [examData]="currentExamData" [courseData]="currentCourse" [allCourses]="allCoursesData" [existingExams]="courseExamData" (onCancel)="handleCourseExamCancel()" (onSave)="handleCourseExamSave($event)"></app-exam-form-course>

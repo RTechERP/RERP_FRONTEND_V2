@@ -33,7 +33,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
@@ -70,7 +70,7 @@ import { CardModule } from "primeng/card";
     NzDatePickerModule,
     NzCheckboxModule,
     NzIconModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzMenuModule,
     NzTabsModule,
     NzSpinModule,

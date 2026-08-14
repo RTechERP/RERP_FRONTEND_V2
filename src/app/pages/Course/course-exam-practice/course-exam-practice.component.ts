@@ -12,7 +12,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
-import { NzContextMenuService, NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzContextMenuService, NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { CourseExamPracticeService } from './course-exam-practice-service/course-exam-practice.service';
 import { MenuItem } from 'primeng/api';
@@ -48,7 +48,7 @@ import { PracticeDetailsModalComponent } from './components/practice-details-mod
     ExamResultDetailModalComponent,
     PracticeDetailsModalComponent,
     NzEmptyModule,
-    NzDropDownModule
+    NzDropdownModule
   ],
   templateUrl: './course-exam-practice.component.html',
   styleUrl: './course-exam-practice.component.css'

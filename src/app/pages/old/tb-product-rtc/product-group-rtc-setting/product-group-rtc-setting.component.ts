@@ -38,7 +38,7 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSpinComponent } from 'ng-zorro-antd/spin';
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { AppUserService } from '../../../../services/app-user.service';
 import { MenuItem } from 'primeng/api';
@@ -68,7 +68,7 @@ interface ProductGroupRTC {
     NzDatePickerModule,
     NzButtonModule,
     NzGridModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzIconModule,
     NzModalModule,
     NzSplitterModule,

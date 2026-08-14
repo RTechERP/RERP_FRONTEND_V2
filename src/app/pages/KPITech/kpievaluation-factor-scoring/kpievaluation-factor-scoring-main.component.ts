@@ -22,10 +22,10 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
-import { NzDropDownModule, NzContextMenuService, NzDropdownMenuComponent } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule, NzContextMenuService, NzDropdownMenuComponent } from 'ng-zorro-antd/dropdown';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
@@ -61,9 +61,9 @@ import { MenuItem, TreeNode } from 'primeng/api';
     NzSplitterModule,
     NzTabsModule,
     NzCardModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzModalModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzDividerModule,
     NzSpinModule,
     NzTreeSelectModule,

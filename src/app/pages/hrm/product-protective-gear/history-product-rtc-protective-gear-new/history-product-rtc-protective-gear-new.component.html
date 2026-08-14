@@ -36,7 +36,7 @@
   </div>
 
   <!-- Tabs for LocationType -->
-  <nz-tabset [(nzSelectedIndex)]="selectedTab" (nzSelectedIndexChange)="onTabChange($event)">
+  <nz-tabs [(nzSelectedIndex)]="selectedTab" (nzSelectedIndexChange)="onTabChange($event)">
     <!-- Tab 1: Tủ mũ & quần áo (LocationType = 1) -->
     <nz-tab nzTitle="Tủ mũ & quần áo">
       <div class="tab-container" cdkDropList [cdkDropListData]="datasetByType.get(1) || []"
@@ -285,5 +285,5 @@
         </div>
       </div>
     </nz-tab>
-  </nz-tabset>
+  </nz-tabs>
 </div>

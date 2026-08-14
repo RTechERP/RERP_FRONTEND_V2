@@ -45,7 +45,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { DateTime } from 'luxon';
 import { SearchProductSerialNumberServiceService } from './search-product-serial-number-service/search-product-serial-number-service.service';
@@ -72,7 +72,7 @@ import { NzCardModule } from 'ng-zorro-antd/card';
     NzCheckboxModule,
     NgbModule,
     NzDatePickerModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzMenuModule,
     NzSpinModule,
     NzCardModule,

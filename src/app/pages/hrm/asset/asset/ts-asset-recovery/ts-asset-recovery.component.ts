@@ -38,7 +38,7 @@ import { AssetAllocationService } from '../ts-asset-allocation/ts-asset-allocati
 import { TsAssetRecoveryFormComponent } from './ts-asset-recovery-form/ts-asset-recovery-form.component';
 import { AssetsRecoveryService } from './ts-asset-recovery-service/ts-asset-recovery.service';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 // @ts-ignore
 import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
@@ -72,7 +72,7 @@ import { PermissionService } from '../../../../../services/permission.service';
     NzTabsModule,
     NgbModalModule,
     HasPermissionDirective,
-    NzDropDownModule,
+    NzDropdownModule,
     NzModalModule,
     AngularSlickgridModule,
     NzSpinModule,

@@ -29,7 +29,6 @@ import {
 // Service
 import { KpiCriteriaService } from './kpi-criteria-service/kpi-criteria.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
-import { trigger } from '@angular/animations';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { KpiCriteriaDetailComponent } from './kpi-criteria-detail/kpi-criteria-detail.component';
 

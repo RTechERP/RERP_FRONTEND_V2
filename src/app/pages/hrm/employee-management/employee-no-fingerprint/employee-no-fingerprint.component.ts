@@ -24,7 +24,7 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { firstValueFrom } from 'rxjs';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
 // NgBootstrap Modal
@@ -74,7 +74,7 @@ import {
     NzModalModule,
     NgbModalModule, //
     HasPermissionDirective,
-    NzDropDownModule,
+    NzDropdownModule,
     Menubar,
     AngularSlickgridModule,
     NzTreeSelectModule

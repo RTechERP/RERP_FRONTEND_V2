@@ -16,7 +16,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { FormsModule } from '@angular/forms';
 import { DateTime } from 'luxon';
 
@@ -31,7 +31,7 @@ import { DateTime } from 'luxon';
         NzCardModule,
         NzGridModule,
         NzSpinModule,
-        NzToolTipModule,
+        NzTooltipModule,
         NzFormModule,
         NzInputModule,
         NzSelectModule,

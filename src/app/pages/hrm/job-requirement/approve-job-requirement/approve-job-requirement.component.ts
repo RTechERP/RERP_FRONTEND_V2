@@ -34,7 +34,7 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
     AngularGridInstance,
@@ -94,7 +94,7 @@ import { RowDetailViewComponent } from './row-detail-view.component';
         NgbModalModule,
         NzFormModule,
         NzInputNumberModule,
-        NzDropDownModule,
+        NzDropdownModule,
         NzMenuModule,
         NzSpinModule,
         HasPermissionDirective,

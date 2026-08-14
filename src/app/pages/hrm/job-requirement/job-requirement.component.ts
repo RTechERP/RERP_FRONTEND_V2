@@ -63,7 +63,7 @@ import { EmployeeService } from '../employee/employee-service/employee.service';
 import * as ExcelJS from 'exceljs';
 import { format, isValid, parseISO } from 'date-fns';
 import { ChangeDetectorRef } from '@angular/core';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 
 // @ts-ignore
 import { saveAs } from 'file-saver';
@@ -128,7 +128,7 @@ import { TabServiceService } from '../../../layouts/tab-service.service';
         NgbModalModule,
         NzFormModule,
         NzInputNumberModule,
-        NzDropDownModule,
+        NzDropdownModule,
         NzMenuModule,
         NzSpinModule,
         HasPermissionDirective,

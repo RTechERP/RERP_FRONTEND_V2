@@ -7,7 +7,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzTagModule } from 'ng-zorro-antd/tag';
@@ -33,7 +33,7 @@ import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESP
     NzInputModule,
     NzSelectModule,
     NzSpinModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzInputNumberModule,
     NzCheckboxModule,
     NzTagModule,

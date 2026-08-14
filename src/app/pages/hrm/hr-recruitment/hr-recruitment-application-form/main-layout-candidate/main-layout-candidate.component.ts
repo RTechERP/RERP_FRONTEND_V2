@@ -6,7 +6,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
@@ -16,7 +16,7 @@ import { CandidateTestComponent } from '../../candidate-test/candidate-test.comp
 @Component({
     selector: 'app-main-layout-candidate',
     standalone: true,
-    imports: [CommonModule, NzCardModule, NzIconModule, NzSpinModule, NzTagModule, NzToolTipModule, NzGridModule],
+    imports: [CommonModule, NzCardModule, NzIconModule, NzSpinModule, NzTagModule, NzTooltipModule, NzGridModule],
     templateUrl: './main-layout-candidate.component.html',
     styleUrls: ['./main-layout-candidate.component.css']
 })

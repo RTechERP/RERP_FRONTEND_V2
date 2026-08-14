@@ -37,7 +37,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NgbActiveModal, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { ProjectPartlistPurchaseRequestService } from '../project-partlist-purchase-request.service';
 import { RequestType, Currency } from '../project-partlist-purchase-request.model';
@@ -418,7 +418,7 @@ class GroupSelectEditor {
     NzSpinModule,
     NzTabsModule,
     NzModalModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NgbModule,
     HasPermissionDirective
   ],

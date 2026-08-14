@@ -6,7 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 // Ng-Zorro
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzGridModule } from 'ng-zorro-antd/grid';
@@ -80,7 +80,7 @@ export interface GridTaskItem {
     FormsModule,
     NzIconModule,
     NzButtonModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzSelectModule,
     NzGridModule,
     NzInputModule,

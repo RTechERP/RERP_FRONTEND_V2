@@ -5,7 +5,6 @@ import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -23,7 +22,7 @@ import { ProjectService } from '../../../project/project-service/project.service
 
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
@@ -35,7 +34,6 @@ import { ActivatedRoute } from '@angular/router';
 import { PrimeIcons } from 'primeng/api';
 import { PermissionService } from '../../../../services/permission.service';
 import { Menubar } from 'primeng/menubar';
-import { style } from '@angular/animations';
 import { AppUserService } from '../../../../services/app-user.service';
 @Component({
     selector: 'app-approve-tp',
@@ -48,7 +46,6 @@ import { AppUserService } from '../../../../services/app-user.service';
         NzCardModule,
         NzButtonModule,
         NzIconModule,
-        NzNotificationModule,
         ReactiveFormsModule,
         NzSplitterModule,
         NzFormModule,
@@ -58,7 +55,7 @@ import { AppUserService } from '../../../../services/app-user.service';
         NzGridModule,
         NzSpinModule,
         NzModalModule,
-        NzDropDownModule,
+        NzDropdownModule,
         NzMenuModule,
 
         Menubar,

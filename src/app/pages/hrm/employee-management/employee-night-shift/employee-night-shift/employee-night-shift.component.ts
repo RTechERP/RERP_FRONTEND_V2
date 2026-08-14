@@ -49,7 +49,7 @@ import { EmployeeAttendanceService } from '../../employee-attendance/employee-at
 import { VehicleRepairService } from '../../../vehicle/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
 import { EmployeeNightShiftSummaryComponent } from '../employee-night-shift-summary/employee-night-shift-summary.component';
 import { EmployeeNightShiftFormComponent } from '../employee-night-shift-form/employee-night-shift-form.component';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { PermissionService } from '../../../../../services/permission.service';
 import { AuthService } from '../../../../../auth/auth.service';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -79,7 +79,7 @@ import { Menubar } from 'primeng/menubar';
     NzModalModule,
     HasPermissionDirective,
     NgbDropdownModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzFormModule,
     NzSpinModule,
     Menubar,

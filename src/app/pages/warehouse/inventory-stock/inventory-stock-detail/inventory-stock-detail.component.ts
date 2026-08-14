@@ -31,7 +31,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
@@ -54,7 +54,7 @@ import { AppUserService } from '../../../../services/app-user.service';
     NzFormModule,
     NzInputNumberModule,
     NzTreeSelectModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzTableModule,
   ],
   templateUrl: './inventory-stock-detail.component.html',

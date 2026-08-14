@@ -121,6 +121,8 @@ export class PublicViewComponent implements OnInit {
                             ...filters,
                             readOnly: true,
                             publicData: data,
+                            // Trang con cần token để tự gọi API chi tiết khi click 1 dòng.
+                            publicToken: token,
                         },
                     }],
                     parent: this.injector,

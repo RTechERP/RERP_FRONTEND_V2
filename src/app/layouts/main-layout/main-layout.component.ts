@@ -61,6 +61,7 @@ import { ConfigNotificationKeyPersonalComponent } from '../../pages/systems/app-
 import { PersonalSignatureComponent } from '../../pages/personal-signature/personal-signature.component';
 import { ConfigNotificationService } from '../../pages/systems/app-user/config-notification-key/config-notification-service/config-notification.service';
 import { AppUserService } from '../../services/app-user.service';
+import { DeepLinkService } from '../../services/deep-link/deep-link.service';
 
 type TabItem = {
     title: string;
@@ -161,7 +162,8 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         private modalService: NgbModal,
         private notifService: NotificationService,
         private appUserService: AppUserService,
-        private configNotificationService: ConfigNotificationService
+        private configNotificationService: ConfigNotificationService,
+        private deepLink: DeepLinkService
     ) {
         // this.menuComps = this.menuService.getMenus();
     }
@@ -258,6 +260,9 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
     tabOpens: string[] = [];
 
+    /** Cây menu đã tải xong chưa — deep-link phải đợi menu mới tìm được component. */
+    private menusLoaded = false;
+
     ngOnInit(): void {
         this.checkExpireSessionConfig();
         this.startSessionCountdown();
@@ -307,6 +312,20 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             this.newTab(payload.route, payload.title, payload.queryParams);
         });
 
+        // Deep-link điều hướng trong lúc app đang chạy (vd: deepLink.navigate(...),
+        // hoặc dán URL vào thanh địa chỉ khi SPA đã mở). Lần điều hướng đầu tiên do
+        // getCompMenus() xử lý nên bỏ qua khi menu chưa tải xong.
+        this.routerSubscription = this.router.events
+            .pipe(filter(event => event instanceof NavigationEnd))
+            .subscribe((event: any) => {
+                if (!this.menusLoaded) return;
+                const url = event.urlAfterRedirects || event.url;
+                // Chỉ can thiệp khi URL thật sự là deep-link, các điều hướng
+                // thông thường vẫn giữ nguyên hành vi cũ.
+                if (!this.deepLink.parse(url).isDeepLink) return;
+                this.openTabFromUrl(url);
+            });
+
         // Handle direct navigation to personal pages
         if (this.router.url.includes('personal-information')) {
             this.newTabComp(PersonalInfomationComponent, 'Thông tin cá nhân', 'personal-information');
@@ -323,28 +342,62 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         return this.menuService.getCompMenus(this.menuCompKey).pipe(
             tap(menus => {
                 this.menuComps = menus;
-                const router = this.router.url.split('?')[0].replace('/', '');
-
-                this.toggleMenuComp(this.findRootKeyByRouter(this.menuComps, router) || '');
-
-                const menu = this.findMenuByRouter(menus, router) as LeafItem;
-                if (menu) {
-                    this.newTabComp(menu.comp, menu.title, (menu.router ?? ''), menu.data);
-                } else {
-                    if (router === 'personal-information') {
-                        this.newTabComp(PersonalInfomationComponent, 'Thông tin cá nhân', 'personal-information');
-                    } else if (router === 'config-notification-key-personal') {
-                        this.newTabComp(ConfigNotificationKeyPersonalComponent, 'Setting cá nhân', 'setting-personal');
-                    } else if (router === 'signature-personal') {
-                        this.newTabComp(PersonalSignatureComponent, 'Chữ ký cá nhân', 'signature-personal');
-                    }
-                }
+                this.menusLoaded = true;
+                this.openTabFromUrl(this.router.url);
             }),
             catchError(err => {
                 // this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
                 return of(null);
             })
         );
+    }
+
+    /**
+     * Mở tab tương ứng với URL hiện tại.
+     *
+     * Ngoài luồng cũ (URL = route của 1 menu), hàm này còn hiểu deep-link:
+     * URL có thể dùng alias ngắn và mang theo bộ lọc đã mã hoá, ví dụ
+     * `/issuelog?q=1MB5SVEMtMDAx`. Bộ lọc sau khi giải mã được trộn vào
+     * `tabData` để trang đích tự lọc — xem src/app/services/deep-link/.
+     */
+    private openTabFromUrl(url: string): void {
+        const parsed = this.deepLink.parse(url);
+        const route = parsed.route;
+        if (!route) return;
+
+        this.toggleMenuComp(this.findRootKeyByRouter(this.menuComps, route) || '');
+
+        const menu = this.findMenuByRouter(this.menuComps, route) as LeafItem;
+
+        if (!menu?.comp) {
+            // Các trang cá nhân không nằm trong cây menu
+            if (route === 'personal-information') {
+                        this.newTabComp(PersonalInfomationComponent, 'Thông tin cá nhân', 'personal-information');
+            } else if (route === 'config-notification-key-personal') {
+                        this.newTabComp(ConfigNotificationKeyPersonalComponent, 'Setting cá nhân', 'setting-personal');
+            } else if (route === 'signature-personal') {
+                        this.newTabComp(PersonalSignatureComponent, 'Chữ ký cá nhân', 'signature-personal');
+                    }
+            return;
+        }
+
+        const openTab = (filters: any) => this.newTabComp(
+            menu.comp,
+            parsed.title || menu.title,
+            menu.router ?? route,
+            { ...(menu.data ?? {}), ...filters }
+        );
+
+        // Không phải deep-link -> giữ nguyên hành vi cũ
+        if (!parsed.isDeepLink) {
+            openTab({});
+            return;
+        }
+
+        this.deepLink.resolve(parsed).subscribe({
+            next: filters => openTab(filters),
+            error: () => openTab(parsed.filters)
+        });
     }
 
     startSessionCountdown() {

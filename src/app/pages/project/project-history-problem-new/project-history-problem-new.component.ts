@@ -31,6 +31,7 @@ import { ProjectHistoryProblemDetailComponent } from './project-history-problem-
 import { PermissionService } from '../../../services/permission.service';
 import { ClipboardService } from '../../../services/clipboard.service';
 import { DeepLinkService } from '../../../services/deep-link/deep-link.service';
+import { PublicLinkService } from '../../../services/deep-link/public-link.service';
 @Component({
   selector: 'app-project-history-problem-new',
   standalone: true,
@@ -72,6 +73,9 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
    * ngay khi gặp 401.
    */
   private publicData: any = null;
+
+  /** Token của link công khai, cần để gọi API chi tiết khi click một dòng. */
+  private publicToken: string = '';
 
   get isPublicMode(): boolean {
     return !!this.publicData;
@@ -126,6 +130,7 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
     private permissionService: PermissionService,
     private clipboard: ClipboardService,
     private deepLink: DeepLinkService,
+    private publicLink: PublicLinkService,
     @Optional() @Inject('tabData') private tabData?: any
   ) { }
 
@@ -138,6 +143,7 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
       if (this.tabData.readOnly !== undefined) this.readOnly = !!this.tabData.readOnly;
       if (this.tabData.publicData) {
         this.publicData = this.tabData.publicData;
+        this.publicToken = this.tabData.publicToken ?? '';
         this.readOnly = true;   // link công khai luôn là chỉ đọc
       }
     }
@@ -879,10 +885,12 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
     this.linkedWorkerVersions = [];
     this.linkedPartListVersions = [];
 
-    // Chế độ công khai: các API lấy file đính kèm và dữ liệu liên kết đều cần
-    // token. Gọi vào sẽ nhận 401 và bị authInterceptor đá thẳng về trang login,
-    // nên dừng ở đây — link chia sẻ chỉ xem được lưới dữ liệu chính.
-    if (this.isPublicMode) return;
+    // Chế độ công khai không được gọi các API cần token (sẽ nhận 401 và bị
+    // authInterceptor đá về trang login), nên đi qua endpoint ẩn danh riêng.
+    if (this.isPublicMode) {
+      this.loadPublicDetail(rowData?.ID);
+      return;
+    }
 
     if (rowData?.ID > 0) {
       this.projectHistoryProblemNewService.getFiles(rowData.ID).subscribe({
@@ -906,6 +914,44 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
 
       this.loadLinkedData(rowData.ID);
     }
+  }
+
+  /**
+   * Chi tiết một dòng ở chế độ công khai.
+   *
+   * Gộp file đính kèm và các bảng liên kết vào 1 request qua endpoint ẩn danh
+   * `api/PublicLink/detail`. Server tự kiểm tra dòng này có thuộc đúng dự án
+   * ghi trong token hay không.
+   */
+  private loadPublicDetail(problemId: number): void {
+    if (!(problemId > 0) || !this.publicToken) return;
+
+    this.publicLink.getDetail(this.publicToken, problemId).subscribe({
+      next: (res: any) => {
+        if (res?.status !== 1 || !res?.data) return;
+
+        const files = Array.isArray(res.data.files) ? res.data.files : [];
+        const fileType = (x: any) =>
+          x.FileType !== undefined ? Number(x.FileType)
+            : (x.Type !== undefined ? Number(x.Type) : 1);
+
+        this.previewImages = files;
+        this.previewImagesBefore = files.filter((x: any) => fileType(x) === 1);
+        this.previewImagesAfter = files.filter((x: any) => fileType(x) === 2);
+
+        this.linkedProjectItems = Array.isArray(res.data.dtProjectItemLink) ? res.data.dtProjectItemLink : [];
+        this.linkedWorkerVersions = Array.isArray(res.data.dtWorkerVersionLink) ? res.data.dtWorkerVersionLink : [];
+        this.linkedPartListVersions = Array.isArray(res.data.dtPartlistVersionLink) ? res.data.dtPartlistVersionLink : [];
+      },
+      error: () => {
+        this.previewImages = [];
+        this.previewImagesBefore = [];
+        this.previewImagesAfter = [];
+        this.linkedProjectItems = [];
+        this.linkedWorkerVersions = [];
+        this.linkedPartListVersions = [];
+      }
+    });
   }
 
   loadLinkedData(problemId: number): void {

@@ -852,94 +852,216 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     }
     onDisposeAsset() { }
     async exportToExcelAdvanced() {
-        const selectedData = this.dataset;
+        this.isLoading = true;
+        const request = {
+            filterText: this.filterText || '',
+            pageNumber: 1,
+            pageSize: 9999999,
+            dateStart: this.dateStart || '2024-05-22',
+            dateEnd: this.dateEnd || '2027-05-22',
 
-        if (!selectedData || selectedData.length === 0) {
-            this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
-            return;
-        }
-
-        const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('Danh sách tài sản');
-
-        const exportColumns = [
-            { header: 'STT', key: 'STT', width: 8, field: 'STT' },
-            { header: 'Mã tài sản', key: 'TSCodeNCC', width: 20, field: 'TSCodeNCC' },
-            { header: 'Office Active', key: 'OfficeActiveStatusText', width: 15, field: 'OfficeActiveStatusText' },
-            { header: 'Windows Active', key: 'WindowActiveStatusText', width: 15, field: 'WindowActiveStatusText' },
-            { header: 'Tên tài sản', key: 'TSAssetName', width: 30, field: 'TSAssetName' },
-            { header: 'Mã loại', key: 'AssetCode', width: 15, field: 'AssetCode' },
-            { header: 'Tên loại', key: 'AssetType', width: 20, field: 'AssetType' },
-            { header: 'Mã nguồn gốc', key: 'SourceCode', width: 15, field: 'SourceCode' },
-            { header: 'Tên nguồn gốc', key: 'SourceName', width: 20, field: 'SourceName' },
-            { header: 'Mã NCC', key: 'SupplierCode', width: 15, field: 'SupplierCode' },
-            { header: 'Tên NCC', key: 'SupplierName', width: 20, field: 'SupplierName' },
-            { header: 'Số Seri', key: 'Seri', width: 15, field: 'Seri' },
-            { header: 'Model', key: 'Model', width: 20, field: 'Model' },
-            { header: 'Số lượng', key: 'Quantity', width: 10, field: 'Quantity' },
-            { header: 'Tình trạng', key: 'Status', width: 18, field: 'Status' },
-            { header: 'Mô tả chi tiết', key: 'SpecificationsAsset', width: 30, field: 'SpecificationsAsset' },
-            { header: 'Đơn vị', key: 'UnitName', width: 10, field: 'UnitName' },
-            { header: 'Mã phòng ban', key: 'DepartmentCode', width: 15, field: 'DepartmentCode' },
-            { header: 'Phòng ban', key: 'Name', width: 20, field: 'Name' },
-            { header: 'Mã nhân viên', key: 'EmployeeCode', width: 15, field: 'EmployeeCode' },
-            { header: 'Người quản lý', key: 'FullName', width: 20, field: 'FullName' },
-            { header: 'Thời gian mua', key: 'DateBuy', width: 15, field: 'DateBuy' },
-            { header: 'Bảo hành (tháng)', key: 'Insurance', width: 15, field: 'Insurance' },
-            { header: 'Ngày hiệu lực', key: 'DateEffect', width: 15, field: 'DateEffect' },
-            { header: 'Ghi chú', key: 'Note', width: 30, field: 'Note' }
-        ];
-
-        worksheet.columns = exportColumns.map(c => ({ header: c.header, key: c.key, width: c.width }));
-
-        const headerRow = worksheet.getRow(1);
-        headerRow.font = { bold: true };
-        headerRow.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFE0E0E0' },
         };
 
-        selectedData.forEach((row: any, index: number) => {
-            const rowValue: any = { ...row };
-            rowValue.STT = index + 1;
+        this.assetManagementService.exportExcelAssetManagement(request).subscribe({
+            next: async (res: any) => {
+                this.isLoading = false;
+                const exportData = res?.data || [];
 
-            // Format dates
-            ['DateBuy', 'DateEffect'].forEach(field => {
-                if (row[field]) {
-                    rowValue[field] = DateTime.fromISO(row[field]).toFormat('dd/MM/yyyy');
+                if (!exportData || exportData.length === 0) {
+                    this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
+                    return;
                 }
-            });
 
-            worksheet.addRow(rowValue);
+                const workbook = new ExcelJS.Workbook();
+                const worksheet = workbook.addWorksheet('Danh sách tài sản');
+
+                // Header Row 1
+                const row1Values = [
+                    'STT', 'Mã tài sản', 'Office Active', 'Windows Active', 'Tên tài sản',
+                    'Mã loại', 'Tên loại', 'Mã nguồn gốc', 'Tên nguồn gốc', 'Mã NCC',
+                    'Tên NCC', 'Số Seri', 'Model', 'Số lượng', 'Tình trạng',
+                    'Mô tả chi tiết', 'Đơn vị', 'Mã phòng ban', 'Phòng ban', 'Mã nhân viên',
+                    'Người quản lý', 'Thời gian mua', 'Bảo hành (tháng)', 'Ngày hiệu lực',
+                    'Lịch sử cấp phát', '', '', '', '',
+                    'Ghi chú'
+                ];
+
+                // Header Row 2 (5 sub-columns for Lịch sử cấp phát)
+                const row2Values = [
+                    'STT', 'Mã tài sản', 'Office Active', 'Windows Active', 'Tên tài sản',
+                    'Mã loại', 'Tên loại', 'Mã nguồn gốc', 'Tên nguồn gốc', 'Mã NCC',
+                    'Tên NCC', 'Số Seri', 'Model', 'Số lượng', 'Tình trạng',
+                    'Mô tả chi tiết', 'Đơn vị', 'Mã phòng ban', 'Phòng ban', 'Mã nhân viên',
+                    'Người quản lý', 'Thời gian mua', 'Bảo hành (tháng)', 'Ngày hiệu lực',
+                    'Hành động', 'Người giao', 'Người nhận', 'Ngày', 'Tình trạng',
+                    'Ghi chú'
+                ];
+
+                worksheet.addRow(row1Values);
+                worksheet.addRow(row2Values);
+
+                // Merge single columns vertically (Row 1 & Row 2)
+                const singleCols = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 30];
+                singleCols.forEach(colIndex => {
+                    worksheet.mergeCells(1, colIndex, 2, colIndex);
+                });
+
+                // Merge "Lịch sử cấp phát" horizontally across columns 25..29 in Row 1
+                worksheet.mergeCells(1, 25, 1, 29);
+
+                // Column widths
+                const colWidths = [
+                    8, 20, 15, 15, 30, 15, 20, 15, 20, 15,
+                    20, 15, 20, 10, 18, 30, 10, 15, 20, 15,
+                    20, 15, 15, 15, 18, 25, 25, 15, 20, 30
+                ];
+                colWidths.forEach((w, idx) => {
+                    worksheet.getColumn(idx + 1).width = w;
+                });
+
+                // Style header rows
+                [1, 2].forEach(rNum => {
+                    const row = worksheet.getRow(rNum);
+                    row.font = { name: 'Times New Roman', size: 11, bold: true };
+                    row.eachCell({ includeEmpty: true }, (cell) => {
+                        cell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: 'FFE0E0E0' },
+                        };
+                        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                        cell.border = {
+                            top: { style: 'thin' },
+                            left: { style: 'thin' },
+                            bottom: { style: 'thin' },
+                            right: { style: 'thin' },
+                        };
+                    });
+                });
+
+                // Add data rows starting at Row 3
+                let currentRowIndex = 3;
+
+                exportData.forEach((row: any, index: number) => {
+                    const parseLines = (val: string) => {
+                        if (!val) return [];
+                        return val.split('\n').map(x => x.trim());
+                    };
+
+                    const actions = parseLines(row.AllocationAction);
+                    const delivers = parseLines(row.AllocationDeliver);
+                    const receivers = parseLines(row.AllocationReceiver);
+                    const dates = parseLines(row.AllocationDate);
+                    const statuses = parseLines(row.AllocationStatus);
+
+                    const maxLines = Math.max(
+                        actions.length,
+                        delivers.length,
+                        receivers.length,
+                        dates.length,
+                        statuses.length
+                    );
+
+                    // Filter out invalid SQL dummy rows
+                    const validEvents: Array<{ action: string; deliver: string; receiver: string; date: string; status: string }> = [];
+
+                    for (let i = 0; i < maxLines; i++) {
+                        const act = actions[i] || '';
+                        const del = delivers[i] || '';
+                        const rec = receivers[i] || '';
+                        const dat = dates[i] || '';
+                        const sta = statuses[i] || '';
+
+                        if (act || del || rec || dat) {
+                            validEvents.push({ action: act, deliver: del, receiver: rec, date: dat, status: sta });
+                        }
+                    }
+
+                    const numRows = Math.max(validEvents.length, 1);
+                    const startRow = currentRowIndex;
+                    const endRow = startRow + numRows - 1;
+
+                    for (let i = 0; i < numRows; i++) {
+                        const isFirst = i === 0;
+                        const ev = validEvents[i] || { action: '', deliver: '', receiver: '', date: '', status: '' };
+
+                        const rowValues = [
+                            isFirst ? index + 1 : '',
+                            isFirst ? (row.TSCodeNCC || '') : '',
+                            isFirst ? (row.OfficeActiveStatus === 1 ? 'Đã kích hoạt' : (row.OfficeActiveStatus === 0 ? 'Chưa kích hoạt' : '')) : '',
+                            isFirst ? (row.WindowActiveStatus === 1 ? 'Đã kích hoạt' : (row.WindowActiveStatus === 0 ? 'Chưa kích hoạt' : '')) : '',
+                            isFirst ? (row.TSAssetName || '') : '',
+                            isFirst ? (row.AssetCode || '') : '',
+                            isFirst ? (row.AssetType || '') : '',
+                            isFirst ? (row.SourceCode || '') : '',
+                            isFirst ? (row.SourceName || '') : '',
+                            isFirst ? (row.SupplierCode || '') : '',
+                            isFirst ? (row.SupplierName || '') : '',
+                            isFirst ? (row.Seri || '') : '',
+                            isFirst ? (row.Model || '') : '',
+                            isFirst ? (row.Quantity ?? '') : '',
+                            isFirst ? (row.Status || '') : '',
+                            isFirst ? (row.SpecificationsAsset || '') : '',
+                            isFirst ? (row.UnitName || '') : '',
+                            isFirst ? (row.DepartmentCode || '') : '',
+                            isFirst ? (row.Name || '') : '',
+                            isFirst ? (row.EmployeeCode || '') : '',
+                            isFirst ? (row.FullName || '') : '',
+                            isFirst ? (row.DateBuy ? DateTime.fromISO(row.DateBuy).toFormat('dd/MM/yyyy') : '') : '',
+                            isFirst ? (row.Insurance || '') : '',
+                            isFirst ? (row.DateEffect ? DateTime.fromISO(row.DateEffect).toFormat('dd/MM/yyyy') : '') : '',
+                            ev.action,
+                            ev.deliver,
+                            ev.receiver,
+                            ev.date,
+                            ev.status,
+                            isFirst ? (row.Note || '') : ''
+                        ];
+
+                        const addedRow = worksheet.addRow(rowValues);
+                        addedRow.eachCell({ includeEmpty: true }, (cell) => {
+                            cell.font = { name: 'Times New Roman', size: 11 };
+                            cell.border = {
+                                top: { style: 'thin' },
+                                left: { style: 'thin' },
+                                bottom: { style: 'thin' },
+                                right: { style: 'thin' },
+                            };
+                            cell.alignment = { wrapText: true, vertical: 'top' };
+                        });
+
+                        currentRowIndex++;
+                    }
+
+                    // Merge main asset columns only if numRows > 1
+                    if (numRows > 1) {
+                        const mainCols = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 30];
+                        mainCols.forEach(colIndex => {
+                            worksheet.mergeCells(startRow, colIndex, endRow, colIndex);
+                            const masterCell = worksheet.getCell(startRow, colIndex);
+                            masterCell.alignment = { wrapText: true, vertical: 'middle' };
+                        });
+                    }
+                });
+
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                });
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `danh-sach-tai-san-${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            },
+            error: (err: any) => {
+                this.isLoading = false;
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message || 'Lỗi khi xuất dữ liệu Excel');
+            }
         });
-
-        worksheet.eachRow((row, rowNumber) => {
-            row.eachCell({ includeEmpty: true }, (cell) => {
-                cell.border = {
-                    top: { style: 'thin' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thin' },
-                    right: { style: 'thin' },
-                };
-                if (rowNumber === 1) {
-                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                }
-            });
-        });
-
-        const buffer = await workbook.xlsx.writeBuffer();
-        const blob = new Blob([buffer], {
-            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        });
-
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `danh-sach-tai-san-${new Date().toISOString().split('T')[0]}.xlsx`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
     }
     openModalImportExcel() {
         const modalRef = this.ngbModal.open(TsAssetManagementImportExcelComponent, {

@@ -315,6 +315,15 @@ export class VehicleRentalRequestComponent implements OnInit {
     });
   }
 
+  getVehicleTypeName(type?: number): string {
+    switch (type) {
+      case 1: return 'Xe tải';
+      case 2: return 'Xe tải có cẩu';
+      case 3: return 'Xe nâng';
+      default: return '';
+    }
+  }
+
   async exportExcel() {
     if (!this.selectedRequests || this.selectedRequests.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một bản ghi để xuất Excel');
@@ -329,21 +338,21 @@ export class VehicleRentalRequestComponent implements OnInit {
     worksheet.getCell('A1').value = 'NGÀY YÊU CẦU';
     worksheet.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } };
 
-    worksheet.mergeCells('D1:I1');
+    worksheet.mergeCells('D1:J1');
     worksheet.getCell('D1').value = 'NỘI DUNG YÊU CẦU';
     worksheet.getCell('D1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC6E0B4' } };
 
-    worksheet.mergeCells('J1:M1');
-    worksheet.getCell('J1').value = 'THÔNG SỐ KỸ THUẬT';
-    worksheet.getCell('J1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE699' } };
+    worksheet.mergeCells('K1:N1');
+    worksheet.getCell('K1').value = 'THÔNG SỐ KỸ THUẬT';
+    worksheet.getCell('K1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE699' } };
 
-    worksheet.mergeCells('N1:P1');
-    worksheet.getCell('N1').value = 'KHOẢNG CÁCH';
-    worksheet.getCell('N1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } };
+    worksheet.mergeCells('O1:Q1');
+    worksheet.getCell('O1').value = 'KHOẢNG CÁCH';
+    worksheet.getCell('O1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } };
 
-    worksheet.mergeCells('Q1:S1');
-    worksheet.getCell('Q1').value = 'PHÒNG HCNS ĐỀ XUẤT';
-    worksheet.getCell('Q1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC6E0B4' } };
+    worksheet.mergeCells('R1:T1');
+    worksheet.getCell('R1').value = 'PHÒNG HCNS ĐỀ XUẤT';
+    worksheet.getCell('R1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC6E0B4' } };
 
     // Định dạng Dòng 1
     const row1 = worksheet.getRow(1);
@@ -362,7 +371,7 @@ export class VehicleRentalRequestComponent implements OnInit {
     // Cấu hình Headers (Dòng 2)
     const headers = [
       'Năm', 'Tháng', 'Ngày',
-      'Stt', 'Người yêu cầu', 'Bộ phận', 'Tên hàng', 'Mã dự án', 'Số lượng',
+      'Stt', 'Người yêu cầu', 'Bộ phận', 'Tên hàng', 'Mã dự án', 'Số lượng', 'Loại xe',
       'Dài (Cm)', 'Rộng (Cm)', 'Cao (Cm)', 'Trọng lượng (Kg)',
       'Xuất phát', 'Đích', 'Khoảng cách (km)',
       'Đơn vị vận chuyển', 'Chi phí (Chưa bao gồm Vat)', 'Ghi chú'
@@ -373,11 +382,11 @@ export class VehicleRentalRequestComponent implements OnInit {
 
     // Định dạng Dòng 2 & Màu nền theo nhóm
     const groupColors = [
-      { start: 1, end: 3, color: 'FFB4C6E7' }, // Ngày yêu cầu
-      { start: 4, end: 9, color: 'FFC6E0B4' }, // Nội dung
-      { start: 10, end: 13, color: 'FFFFE699' }, // Thông số
-      { start: 14, end: 16, color: 'FFB4C6E7' }, // Khoảng cách
-      { start: 17, end: 19, color: 'FFC6E0B4' }  // Đề xuất
+      { start: 1, end: 3, color: 'FFB4C6E7' },  // Ngày yêu cầu
+      { start: 4, end: 10, color: 'FFC6E0B4' }, // Nội dung + Loại xe
+      { start: 11, end: 14, color: 'FFFFE699' },// Thông số
+      { start: 15, end: 17, color: 'FFB4C6E7' },// Khoảng cách
+      { start: 18, end: 20, color: 'FFC6E0B4' } // Đề xuất
     ];
 
     row2.eachCell((cell, colNumber) => {
@@ -399,7 +408,7 @@ export class VehicleRentalRequestComponent implements OnInit {
     // Set độ rộng cột
     worksheet.columns = [
       { width: 8 }, { width: 8 }, { width: 8 }, // Ngày
-      { width: 6 }, { width: 20 }, { width: 20 }, { width: 25 }, { width: 20 }, { width: 12 }, // Nội dung
+      { width: 6 }, { width: 20 }, { width: 20 }, { width: 25 }, { width: 20 }, { width: 12 }, { width: 18 }, // Nội dung + Loại xe
       { width: 10 }, { width: 10 }, { width: 10 }, { width: 15 }, // Thông số
       { width: 20 }, { width: 35 }, { width: 18 }, // Khoảng cách
       { width: 25 }, { width: 25 }, { width: 30 } // Đề xuất
@@ -422,6 +431,7 @@ export class VehicleRentalRequestComponent implements OnInit {
         item.PackageName || '',
         item.ProjectName || '',
         item.PackageQuantity ? item.PackageQuantity + ' kiện' : '',
+        this.getVehicleTypeName(item.VehicleType),
         item.PackageLengthCm || '',
         item.PackageWidthCm || '',
         item.PackageHeightCm || '',
@@ -445,7 +455,7 @@ export class VehicleRentalRequestComponent implements OnInit {
         cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
 
         // Màu đỏ cho cột Chi phí
-        if (colNumber === 18 && cell.value) {
+        if (colNumber === 19 && cell.value) {
           cell.font = { size: 11, name: 'Times New Roman', color: { argb: 'FFFF0000' }, bold: true };
           // Format tiền VNĐ
           cell.numFmt = '#,##0"đ"';

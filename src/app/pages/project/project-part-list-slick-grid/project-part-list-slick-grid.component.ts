@@ -78,6 +78,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { ActivityLogPartListComponent } from './activity-log-partlist/activity-log-partlist.component';
 import { ProjectPartListHistoryModalComponent } from './project-partlist-history/project-partlist-history.component';
 import { ProjectPartListSpecialCodeComponent } from './project-part-list-special-code/project-part-list-special-code.component';
+import { makeTextRowHeightProvider } from '../../../shared/utils/slickgrid-row-height.util';
 
 @Component({
     selector: 'app-project-part-list-slick-grid',
@@ -450,7 +451,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
                     if (!value) return '';
                     const escaped = this.escapeHtml(dataContext.Note);
-                    return `<span title="${escaped}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;word-wrap:break-word;word-break:break-word;white-space:pre-wrap;">${value}</span>`;
+                    // Bỏ -webkit-line-clamp: dòng nay tự giãn theo nội dung nhờ
+                    // enableVariableRowHeight nên không cần cắt cụt còn 2 dòng nữa.
+                    return `<span title="${escaped}" style="display:block;overflow:hidden;word-wrap:break-word;word-break:break-word;white-space:pre-wrap;line-height:20px;">${value}</span>`;
                 }
             },
             {
@@ -494,6 +497,14 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             enableAutoSizeColumns: false,
             rowHeight: 40,
             headerRowHeight: 40,
+            // Variable Row Height (SlickGrid v10): dòng tự giãn theo độ dài cột Ghi chú.
+            // Phải bật cờ thì rowHeightProvider mới có tác dụng.
+            enableVariableRowHeight: true,
+            rowHeightProvider: makeTextRowHeightProvider(['Note'], {
+                lineHeight: 20,
+                min: 40,   // bằng rowHeight mặc định ở trên
+                max: 140,  // chặn trên để ghi chú quá dài không phá layout
+            }),
         };
     }
 

@@ -17,7 +17,7 @@ import { FiveSDepartmentComponent } from './FiveSDepartment/five-s-department.co
   ],
   template: `
     <div class="rating-error-container p-3">
-      <nz-tabset>
+      <nz-tabs>
         <nz-tab nzTitle="Quy tắc lỗi 5S">
           <app-five-s-rule-error></app-five-s-rule-error>
         </nz-tab>
@@ -27,7 +27,7 @@ import { FiveSDepartmentComponent } from './FiveSDepartment/five-s-department.co
         <nz-tab nzTitle="Phòng ban chấm điểm 5S">
           <app-five-s-department></app-five-s-department>
         </nz-tab>
-      </nz-tabset>
+      </nz-tabs>
     </div>
   `,
   styles: [`

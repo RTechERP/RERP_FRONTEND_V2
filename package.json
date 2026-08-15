@@ -3,10 +3,10 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "node --max-old-space-size=4096 ./node_modules/@angular/cli/bin/ng.js serve",
-    "build": "node --max-old-space-size=8192 ./node_modules/@angular/cli/bin/ng.js build",
-    "watch": "node --max-old-space-size=4096 ./node_modules/@angular/cli/bin/ng.js build --watch --configuration development",
-    "test": "ng test"
+    "start": "cross-env NODE_OPTIONS=--max-old-space-size=8192 ng serve",
+    "build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 ng build",
+    "watch": "cross-env NODE_OPTIONS=--max-old-space-size=8192 ng build --watch --configuration development",
+    "test": "cross-env NODE_OPTIONS=--max-old-space-size=8192 ng test"
   },
   "private": true,
   "dependencies": {
@@ -87,6 +87,7 @@
     "@types/luxon": "^3.6.2",
     "@types/tabulator-tables": "^6.2.6",
     "baseline-browser-mapping": "^2.9.11",
+    "cross-env": "^10.1.0",
     "jasmine-core": "~5.6.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",

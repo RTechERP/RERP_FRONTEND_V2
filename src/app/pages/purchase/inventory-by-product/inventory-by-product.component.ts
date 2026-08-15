@@ -25,21 +25,20 @@ import { TabServiceService } from '../../../layouts/tab-service.service';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import {
-    AngularSlickgridModule,
-    AngularGridInstance,
-    Column,
-    GridOption,
-    Filters,
-    Formatters,
-    Editors,
-    OnClickEventArgs,
-    OnCellChangeEventArgs,
-    OnSelectedRowsChangedEventArgs,
-    Aggregators,
-    GroupTotalFormatters,
-    SortComparers,
-    FieldType,
-    MultipleSelectOption,
+  AngularSlickgridComponent,
+  AngularGridInstance,
+  Column,
+  GridOption,
+  Filters,
+  Formatters,
+  Editors,
+  OnClickEventArgs,
+  OnCellChangeEventArgs,
+  OnSelectedRowsChangedEventArgs,
+  Aggregators,
+  GroupTotalFormatters,
+  SortComparers,
+  MultipleSelectOption,
 } from 'angular-slickgrid';
 
 @Component({
@@ -55,7 +54,7 @@ import {
         NzFormModule,
         NzSplitterModule,
         Menubar,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
     ],
     selector: 'app-inventory-by-product',
     templateUrl: './inventory-by-product.component.html',
@@ -361,7 +360,7 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
                     collectionOptions: {
                         addBlankEntry: true,
                     },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -408,7 +407,7 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
                     collectionOptions: {
                         addBlankEntry: true,
                     },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -430,7 +429,7 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
                     collectionOptions: {
                         addBlankEntry: true,
                     },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -446,7 +445,7 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
                 cssClass: 'text-end',
                 width: 80,
                 sortable: false,
-                type: FieldType.number,
+                type: 'number',
                 formatter: Formatters.decimal,
                 params: { decimalPlaces: 2, thousandSeparator: ',' },
                 filterable: true,
@@ -462,7 +461,7 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
                 cssClass: 'text-end',
                 width: 90,
                 sortable: false,
-                type: FieldType.number,
+                type: 'number',
                 formatter: Formatters.decimal,
                 params: { decimalPlaces: 2, thousandSeparator: ',' },
                 filterable: true,
@@ -478,7 +477,7 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
                 cssClass: 'text-end',
                 width: 80,
                 sortable: false,
-                type: FieldType.number,
+                type: 'number',
                 formatter: Formatters.decimal,
                 params: { decimalPlaces: 0, thousandSeparator: ',' },
                 filterable: true,
@@ -514,8 +513,8 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
 
-            //enableRowSelection: true,
-            rowSelectionOptions: {
+            //enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true,
             },
 

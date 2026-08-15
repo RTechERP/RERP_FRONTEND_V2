@@ -9,11 +9,11 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
-import { AngularSlickgridModule, Column, GridOption, AngularGridInstance, Formatters, Filters, MultipleSelectOption, Editors, EditCommand } from 'angular-slickgrid';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
+import { AngularSlickgridComponent, Column, GridOption, AngularGridInstance, Formatters, Filters, MultipleSelectOption, Editors, EditCommand } from 'angular-slickgrid';
 import { ChartModule } from 'primeng/chart';
 import * as ExcelJS from 'exceljs';
 import { SummaryKpiErrorEmployeeService } from '../summary-kpi-error-employee-service/summary-kpi-error-employee.service';
@@ -32,10 +32,10 @@ import { ReadOnlyLongTextEditor } from '../../../../KPITech/kpievaluation-employ
         NzInputModule,
         NzInputNumberModule,
         NzFormModule,
-        NzDropDownModule,
+        NzDropdownModule,
         NzSplitterModule,
-        NzToolTipModule,
-        AngularSlickgridModule,
+        NzTooltipModule,
+        AngularSlickgridComponent,
         ChartModule,
         RouterModule
     ],
@@ -82,9 +82,9 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
         enableFiltering: true,
         enableSorting: true,
         enableGrouping: true,
-        enableRowSelection: true,
+        enableSelection: true,
         forceFitColumns: false,
-        rowSelectionOptions: {
+        selectionOptions: {
             selectActiveRow: true,
         },
         rowHeight: 35,
@@ -173,10 +173,10 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
     initColumns() {
         // TH1: Lỗi họp phòng KT & KPI
         this.colDefTH1 = [
-            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, filterable: true, minWidth: 150, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
+            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, filterable: true, minWidth: 150, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'Code', name: 'Mã lỗi vi phạm', field: 'Code', sortable: true, filterable: true, minWidth: 70, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Content', name: 'Nội dung lỗi vi phạm', field: 'Content', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
-            { id: 'DepartmentName', name: 'Phòng ban', field: 'DepartmentName', sortable: true, filterable: true, minWidth: 150, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
+            { id: 'DepartmentName', name: 'Phòng ban', field: 'DepartmentName', sortable: true, filterable: true, minWidth: 150, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'TotalError', name: 'Số lần vi phạm', field: 'TotalError', sortable: true, filterable: true, minWidth: 80, formatter: this.totalErrorFormatter, filter: { model: Filters['compoundInputNumber'] } },
             { id: 'Quantity', name: 'Tỉ lệ', field: 'Quantity', sortable: true, filterable: true, minWidth: 80, formatter: this.numberRightFormatter, filter: { model: Filters['compoundInputNumber'] } },
             { id: 'TotalErrorReal', name: 'Số lần vi phạm/Tỉ lệ', field: 'TotalErrorReal', sortable: true, filterable: true, minWidth: 80, formatter: this.numberRightFormatter, filter: { model: Filters['compoundInputNumber'] } },
@@ -188,10 +188,10 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
 
         // TH2: Lỗi đánh giá riêng KPI
         this.colDefTH2 = [
-            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, filterable: true, minWidth: 120, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
+            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, filterable: true, minWidth: 120, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'Code', name: 'Mã lỗi vi phạm', field: 'Code', sortable: true, filterable: true, minWidth: 70, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Content', name: 'Nội dung lỗi vi phạm', field: 'Content', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
-            { id: 'DepartmentName', name: 'Phòng ban', field: 'DepartmentName', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
+            { id: 'DepartmentName', name: 'Phòng ban', field: 'DepartmentName', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'TotalError', name: 'Số lần vi phạm', field: 'TotalError', sortable: true, filterable: true, minWidth: 80, formatter: this.numberRightFormatter, filter: { model: Filters['compoundInputNumber'] } },
             { id: 'UnitName', name: 'Đơn vị', field: 'UnitName', sortable: true, filterable: true, minWidth: 80, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Note', name: 'Ghi chú', field: 'Note', sortable: true, filterable: true, minWidth: 80, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
@@ -200,10 +200,10 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
 
         // TH3: Điểm cộng
         this.colDefTH3 = [
-            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, filterable: true, minWidth: 80, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
+            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, filterable: true, minWidth: 80, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'Code', name: 'Mã điểm cộng', field: 'Code', sortable: true, filterable: true, minWidth: 70, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Content', name: 'Nội dung điểm cộng', field: 'Content', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
-            { id: 'DepartmentName', name: 'Phòng ban', field: 'DepartmentName', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
+            { id: 'DepartmentName', name: 'Phòng ban', field: 'DepartmentName', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'TotalErrorReal', name: 'Số lần', field: 'TotalErrorReal', sortable: true, filterable: true, minWidth: 80, formatter: this.numberRightFormatter, filter: { model: Filters['compoundInputNumber'] } },
             { id: 'UnitName', name: 'Đơn vị', field: 'UnitName', sortable: true, filterable: true, minWidth: 80, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Note', name: 'Ghi chú', field: 'Note', sortable: true, filterable: true, minWidth: 80, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },

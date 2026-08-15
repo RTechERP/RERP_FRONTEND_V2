@@ -14,7 +14,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 // PrimeNG
 import { Table, TableModule } from 'primeng/table';
@@ -49,7 +49,6 @@ import { AppUserService } from '../../../services/app-user.service';
         NzInputModule,
         NzSelectModule,
         NzSpinModule,
-        NzNotificationModule,
         // PrimeNG
         MenubarModule,
         TooltipModule,

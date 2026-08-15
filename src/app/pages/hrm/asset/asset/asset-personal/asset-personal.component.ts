@@ -12,7 +12,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
-import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -36,7 +36,6 @@ import { AssetPersonalService } from './asset-personal.service';
         NzTabsModule,
         NzTableModule,
         NzSplitterModule,
-        NzNotificationModule,
         TableModule,
         ButtonModule,
         CheckboxModule

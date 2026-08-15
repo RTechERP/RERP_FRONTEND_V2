@@ -1,5 +1,5 @@
 <div class="d-flex flex-column h-100">
-    <nz-tabset (nzSelectChange)="onTabSelect($event)" class="h-100">
+    <nz-tabs (nzSelectChange)="onTabSelect($event)" class="h-100">
         <!-- TAB 1: TỔNG HỢP LỖI CỦA NHÂN VIÊN -->
         <nz-tab nzTitle="TỔNG HỢP LỖI CỦA NHÂN VIÊN" [nzForceRender]="true">
             <div class="d-flex flex-column h-100">
@@ -138,7 +138,7 @@
                 <nz-splitter class="flex-grow-1" style="min-height: 0;">
                     <!-- Left: Sub-Tabs with Grids -->
                     <nz-splitter-panel nzDefaultSize="75%" [nzMin]="'50%'" [nzMax]="'85%'">
-                        <nz-tabset class="h-100 sub-tabs" (nzSelectChange)="onSubTabSelect($event)">
+                        <nz-tabs class="h-100 sub-tabs" (nzSelectChange)="onSubTabSelect($event)">
                             <!-- Sub-Tab 1: LỖI HỌP PHÒNG KỸ THUẬT VÀ ĐÁNH GIÁ KPI -->
                             <nz-tab nzTitle="LỖI HỌP PHÒNG KỸ THUẬT VÀ ĐÁNH GIÁ KPI" [nzForceRender]="true">
                                 <div class="grid-container h-100">
@@ -168,7 +168,7 @@
                                     </angular-slickgrid>
                                 </div>
                             </nz-tab>
-                        </nz-tabset>
+                        </nz-tabs>
                     </nz-splitter-panel>
 
                     <!-- Right: File List and Image -->
@@ -416,5 +416,5 @@
                 </nz-splitter>
             </div>
         </nz-tab>
-    </nz-tabset>
+    </nz-tabs>
 </div>

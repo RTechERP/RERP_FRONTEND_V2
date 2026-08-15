@@ -34,7 +34,7 @@ import { Menubar } from 'primeng/menubar';
 
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatters,
@@ -55,7 +55,7 @@ import {
         NzGridModule,
         NzSpinModule,
         Menubar,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
     ],
     selector: 'app-borrow-report',
     templateUrl: './borrow-report.component.html',
@@ -435,7 +435,7 @@ export class BorrowReportComponent implements OnInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                     collectionOptions: {
@@ -662,8 +662,8 @@ export class BorrowReportComponent implements OnInit {
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false,
             },
             checkboxSelector: {

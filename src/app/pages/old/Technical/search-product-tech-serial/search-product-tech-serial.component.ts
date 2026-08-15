@@ -45,7 +45,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { ActivatedRoute } from '@angular/router';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -80,7 +80,7 @@ import {
     NzTabsModule,
     NgbModalModule,
     NzSpinModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   selector: 'app-search-product-tech-serial',
   templateUrl: './search-product-tech-serial.component.html',
@@ -226,7 +226,7 @@ export class SearchProductTechSerialComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -269,7 +269,7 @@ export class SearchProductTechSerialComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -284,7 +284,7 @@ export class SearchProductTechSerialComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -311,7 +311,7 @@ export class SearchProductTechSerialComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -354,7 +354,7 @@ export class SearchProductTechSerialComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -369,7 +369,7 @@ export class SearchProductTechSerialComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -405,7 +405,7 @@ export class SearchProductTechSerialComponent implements OnInit, AfterViewInit {
       enableFiltering: true,
       enableSorting: true,
       enableCellNavigation: true,
-      enableRowSelection: false,
+      enableSelection: false,
       datasetIdPropertyName: 'id',
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
@@ -426,7 +426,7 @@ export class SearchProductTechSerialComponent implements OnInit, AfterViewInit {
       enableFiltering: true,
       enableSorting: true,
       enableCellNavigation: true,
-      enableRowSelection: false,
+      enableSelection: false,
       datasetIdPropertyName: 'id',
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,

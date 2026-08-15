@@ -5,7 +5,7 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -29,7 +29,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { DateTime } from 'luxon';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { ProjectPartlistPriceRequestService } from '../../old/project-partlist-price-request/project-partlist-price-request-service/project-partlist-price-request.service';
@@ -56,8 +56,8 @@ import { PriceHistoryPartlistSlickGridComponent } from '../../price-history-part
     NzInputModule,
     NzSpinModule,
     NzModalModule,
-    NzDropDownModule,
-    AngularSlickgridModule,
+    NzDropdownModule,
+    AngularSlickgridComponent,
     Menubar,
   ],
   templateUrl: './project-partlist-price-request-old.component.html',
@@ -702,7 +702,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -720,7 +720,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -735,7 +735,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -750,7 +750,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -769,7 +769,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -788,7 +788,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -820,7 +820,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -860,7 +860,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -875,7 +875,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -890,7 +890,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -905,7 +905,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1208,7 +1208,7 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1298,8 +1298,8 @@ export class ProjectPartlistPriceRequestOldComponent
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: false,
-      rowSelectionOptions: {
+      enableSelection: false,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

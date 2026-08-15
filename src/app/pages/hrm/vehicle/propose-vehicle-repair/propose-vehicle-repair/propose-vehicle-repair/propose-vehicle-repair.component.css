@@ -141,7 +141,7 @@ angular-slickgrid,
 }
 
 /* Fix nz-tab height for grid */
-:host ::ng-deep nz-tabset {
+:host ::ng-deep nz-tabs {
   display: flex !important;
   flex-direction: column !important;
   height: 100% !important;

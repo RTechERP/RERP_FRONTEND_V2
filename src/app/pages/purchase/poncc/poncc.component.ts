@@ -15,7 +15,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
-import { NzTabSetComponent, NzTabComponent } from 'ng-zorro-antd/tabs';
+import { NzTabsComponent, NzTabComponent } from 'ng-zorro-antd/tabs';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import {
     TabulatorFull as Tabulator,
@@ -33,7 +33,7 @@ import { NzSpinComponent } from 'ng-zorro-antd/spin';
 import { PonccDetailComponent } from './poncc-detail/poncc-detail.component';
 import { PonccSummaryComponent } from './poncc-summary/poncc-summary.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { BillImportDetailComponent } from '../../old/Sale/BillImport/Modal/bill-import-detail/bill-import-detail.component';
 import { firstValueFrom } from 'rxjs';
 import ExcelJS from 'exceljs';
@@ -49,7 +49,6 @@ import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
 
 import { DateTime } from 'luxon';
 import { environment } from '../../../../environments/environment';
-import { style } from '@angular/animations';
 import { content } from 'html2canvas/dist/types/css/property-descriptors/content';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { SafeUrlPipe } from '../../../../safeUrl.pipe';
@@ -97,12 +96,12 @@ import { SafeUrlPipe } from '../../../../safeUrl.pipe';
         NzInputModule,
         NzSelectModule,
         NzSplitterModule,
-        NzTabSetComponent,
+        NzTabsComponent,
         NzTabComponent,
         NzSpinComponent,
         NzModalModule,
         HasPermissionDirective,
-        NzDropDownModule,
+        NzDropdownModule,
         NzSwitchModule,
         SafeUrlPipe
     ],

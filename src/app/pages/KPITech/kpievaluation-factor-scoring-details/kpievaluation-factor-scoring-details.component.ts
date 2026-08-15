@@ -19,7 +19,7 @@ import { TreeNode, MenuItem } from 'primeng/api';
 
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Formatter,
   Formatters,
@@ -88,7 +88,7 @@ interface SaveDataKPIRequestParam {
     NzTabsModule,
     NzSelectModule,
     NzDividerModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     CustomTableKpi,
     CustomTreeTableKpi,
     NzTagModule
@@ -4065,7 +4065,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     }, this.CALC_DEBOUNCE_MS);
 
     // 7. Highlight ô đã thay đổi (chỉ update cell vừa thay đổi)
-    const column = grid.getColumns()[args.cell];
+    const column = grid.getVisibleColumns()[args.cell];
     if (column) {
       this.renderUnsavedCellStyling(changedItem, column, { row: args.row } as EditCommand);
     }

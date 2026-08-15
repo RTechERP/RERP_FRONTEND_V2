@@ -31,7 +31,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatter,
@@ -104,7 +104,7 @@ interface ProductSale {
         NgbModule,
         NzSpinModule,
         HasPermissionDirective,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
     ],
     templateUrl: './product-sale-new.component.html',
     styleUrls: ['./product-sale-new.component.css'],
@@ -424,8 +424,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true,
             },
             enableCheckboxSelector: false,
@@ -534,7 +534,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                 resizeDetection: 'container',
             },
             datasetIdPropertyName: 'id',
-            enableRowSelection: false,
+            enableSelection: false,
             enableCellNavigation: false,
             enableFiltering: false,
             autoFitColumnsOnFirstLoad: true,
@@ -595,7 +595,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -613,7 +613,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -638,7 +638,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                         { value: true, label: 'Có' },
                         { value: false, label: 'Không' },
                     ],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                     } as MultipleSelectOption,
                 },
@@ -661,7 +661,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                         { value: true, label: 'Có' },
                         { value: false, label: 'Không' },
                     ],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                     } as MultipleSelectOption,
                 },
@@ -789,8 +789,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false,
             },
             checkboxSelector: {

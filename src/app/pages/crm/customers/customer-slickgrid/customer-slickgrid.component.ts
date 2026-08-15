@@ -25,7 +25,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     GridOption,
     Filters,
@@ -61,7 +61,7 @@ import { Menubar } from 'primeng/menubar';
         NzTreeSelectModule,
         HasPermissionDirective,
         Menubar,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     templateUrl: './customer-slickgrid.component.html',
@@ -210,12 +210,12 @@ export class CustomerSlickgridComponent implements OnInit, AfterViewInit {
             gridWidth: '100%',
             enableCellNavigation: true,
             enableFiltering: true,
-            enableRowSelection: true,
+            enableSelection: true,
             enableCheckboxSelector: true,
             checkboxSelector: {
                 hideSelectAllCheckbox: false,
             },
-            rowSelectionOptions: {
+            selectionOptions: {
                 selectActiveRow: false,
             },
             multiSelect: true,

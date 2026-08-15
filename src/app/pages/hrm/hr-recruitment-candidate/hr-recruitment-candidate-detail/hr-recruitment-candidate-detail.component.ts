@@ -63,7 +63,7 @@ import { concatMap } from 'rxjs/operators';
 import { HasPermissionDirective } from "../../../../directives/has-permission.directive";
 import { PermissionService } from '../../../../services/permission.service';
 import { NzUploadComponent } from "ng-zorro-antd/upload";
-import { AngularGridInstance, AngularSlickgridModule, Column, Editors, Filters, Formatters, GridOption, Aggregator, OnCellChangeEventArgs, OnEventArgs, GridService } from 'angular-slickgrid';
+import { AngularGridInstance, AngularSlickgridComponent, Column, Editors, Filters, Formatters, GridOption, Aggregator, OnCellChangeEventArgs, OnEventArgs, GridService } from 'angular-slickgrid';
 import { HRRecruitmentCandidateService } from '../hr-recruitment-candidate.service';
 
 @Component({
@@ -95,7 +95,7 @@ import { HRRecruitmentCandidateService } from '../hr-recruitment-candidate.servi
     CommonModule,
     HasPermissionDirective,
     NzUploadComponent,
-    AngularSlickgridModule
+    AngularSlickgridComponent
   ],
   templateUrl: './hr-recruitment-candidate-detail.component.html',
   styleUrl: './hr-recruitment-candidate-detail.component.css'

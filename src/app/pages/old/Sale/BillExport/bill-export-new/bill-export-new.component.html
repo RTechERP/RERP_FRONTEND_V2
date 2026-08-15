@@ -203,7 +203,7 @@
                 <!-- Panel dưới: bảng chi tiết -->
                 <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
                     <div #detailPaneRef class="splitter-pane-content">
-                        <nz-tabset class="main-tab" style="padding-left: 10px !important">
+                        <nz-tabs class="main-tab" style="padding-left: 10px !important">
                             <nz-tab [nzTitle]="tabDetailTitle">
                                 <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
                                     <div [ngClass]="'grid-container-detail-' + componentId" class="grid-pane">
@@ -216,7 +216,7 @@
                                     </div>
                                 </nz-spin>
                             </nz-tab>
-                        </nz-tabset>
+                        </nz-tabs>
                     </div>
                 </nz-splitter-panel>
             </nz-splitter>
@@ -234,7 +234,7 @@
         (nzOnCancel)="onClosePreview()"
     >
         <ng-container *nzModalContent>
-            <nz-tabset style="width: 100%;">
+            <nz-tabs style="width: 100%;">
                 <ng-container *ngFor="let t of tabs; let i = index">
                     <nz-tab [nzTitle]="t.title">
                         <div class="d-flex justify-content-between my-2">
@@ -520,7 +520,7 @@
                         </div>
                     </nz-tab>
                 </ng-container>
-            </nz-tabset>
+            </nz-tabs>
         </ng-container>
 
         <ng-template #modalFooter> </ng-template>

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TreeTableModule } from 'primeng/treetable';
 import { TreeNode } from 'primeng/api';
 import { FormGroupDirective } from '@angular/forms';
@@ -33,7 +33,6 @@ import { EmployeeSelectTableComponent } from './employee-select-table/employee-s
     CommonModule,
     NzIconModule,
     NzButtonModule,
-    NzNotificationModule,
     ReactiveFormsModule,
     NzFormModule,
     NzInputModule,

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { forkJoin } from 'rxjs';
-import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -24,7 +24,6 @@ import { RatingErrorService } from '../../rating-error-service/rating-error.serv
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
-        NzNotificationModule,
         NzButtonModule,
         NzSelectModule,
         NzInputModule,

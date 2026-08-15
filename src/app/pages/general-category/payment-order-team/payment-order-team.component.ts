@@ -16,7 +16,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { PaymentOrderDetailComponent } from '../payment-order/payment-order-detail/payment-order-detail.component';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatter,
@@ -97,7 +97,7 @@ import { firstValueFrom, forkJoin } from 'rxjs';
         InputTextModule,
         ButtonModule,
         SplitterModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         NzButtonModule,
         NzFormModule,
         NzInputModule,
@@ -828,7 +828,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                         // { value: false, label: 'Không gấp' },
                     ],
                     model: Filters['singleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -873,7 +873,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -896,7 +896,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                     collectionOptions: {
                         addBlankEntry: true,
                     },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -915,7 +915,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -933,7 +933,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -952,7 +952,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -971,7 +971,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -989,7 +989,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     // collection: [],
                     model: Filters['compoundInputText'],
-                    // filterOptions: {
+                    // options: {
                     //     autoAdjustDropHeight: true,
                     //     filter: true,
                     // } as MultipleSelectOption,
@@ -1010,7 +1010,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['multipleSelect'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -1032,7 +1032,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['multipleSelect'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -1054,7 +1054,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['compoundInputNumber'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -1074,7 +1074,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -1100,7 +1100,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                         // { value: false, label: 'Không có' },
                     ],
                     model: Filters['singleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -1119,7 +1119,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -1138,7 +1138,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['multipleSelect'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -1157,7 +1157,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['multipleSelect'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -1175,7 +1175,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -1193,7 +1193,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -1212,7 +1212,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['multipleSelect'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -1237,7 +1237,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                         // { value: false, label: 'Không có' },
                     ],
                     model: Filters['singleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -1257,7 +1257,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['multipleSelect'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -1276,7 +1276,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['multipleSelect'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -1294,7 +1294,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -1314,7 +1314,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['multipleSelect'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -1333,7 +1333,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['multipleSelect'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -1353,7 +1353,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['multipleSelect'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -1373,7 +1373,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['multipleSelect'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -1392,7 +1392,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -1412,7 +1412,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['multipleSelect'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -1432,7 +1432,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['multipleSelect'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -1453,7 +1453,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -1502,7 +1502,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -1550,7 +1550,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -1599,7 +1599,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -1648,7 +1648,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -1694,8 +1694,8 @@ export class PaymentOrderTeamComponent implements OnInit {
             gridWidth: '100%',
             // gridHeight: 300, // ⚠️ QUAN TRỌNG
             // datasetIdPropertyName: '_id',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false, // True (Single Selection), False (Multiple Selections)
             },
             checkboxSelector: {
@@ -1934,7 +1934,7 @@ export class PaymentOrderTeamComponent implements OnInit {
             },
             gridWidth: '100%',
             // datasetIdPropertyName: 'Id',
-            enableRowSelection: true,
+            enableSelection: true,
 
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
@@ -1988,8 +1988,8 @@ export class PaymentOrderTeamComponent implements OnInit {
             gridWidth: '100%',
             // datasetIdPropertyName: 'Id',
 
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false, // True (Single Selection), False (Multiple Selections)
             },
             checkboxSelector: {
@@ -2101,8 +2101,8 @@ export class PaymentOrderTeamComponent implements OnInit {
             },
             gridWidth: '100%',
             // datasetIdPropertyName: 'Id',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false, // True (Single Selection), False (Multiple Selections)
             },
             checkboxSelector: {
@@ -2225,7 +2225,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                         // { value: false, label: 'Không gấp' },
                     ],
                     model: Filters['singleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -2271,7 +2271,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -2289,7 +2289,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -2306,7 +2306,7 @@ export class PaymentOrderTeamComponent implements OnInit {
             //     filter: {
             //         collection: [],
             //         model: Filters['multipleSelect'],
-            //         filterOptions: {
+            //         options: {
             //             autoAdjustDropHeight: true,
             //             filter: true,
             //         } as MultipleSelectOption,
@@ -2325,7 +2325,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -2344,7 +2344,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -2363,7 +2363,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['multipleSelect'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -2381,7 +2381,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -2399,7 +2399,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -2432,7 +2432,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -2451,7 +2451,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -2470,7 +2470,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -2490,7 +2490,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['multipleSelect'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -2509,7 +2509,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['multipleSelect'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -2529,7 +2529,7 @@ export class PaymentOrderTeamComponent implements OnInit {
                 // filter: {
                 //     collection: [],
                 //     model: Filters['multipleSelect'],
-                //     filterOptions: {
+                //     options: {
                 //         autoAdjustDropHeight: true,
                 //         filter: true,
                 //     } as MultipleSelectOption,
@@ -2546,8 +2546,8 @@ export class PaymentOrderTeamComponent implements OnInit {
             gridWidth: '100%',
             // gridHeight: 300, // ⚠️ QUAN TRỌNG
             // datasetIdPropertyName: '_id',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false, // True (Single Selection), False (Multiple Selections)
             },
             checkboxSelector: {
@@ -2728,7 +2728,7 @@ export class PaymentOrderTeamComponent implements OnInit {
             },
             gridWidth: '100%',
             // datasetIdPropertyName: 'Id',
-            enableRowSelection: true,
+            enableSelection: true,
 
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,

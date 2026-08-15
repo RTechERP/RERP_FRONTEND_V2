@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -39,7 +39,6 @@ import { EmployeeDeductionTypeFormComponent } from './employee-deduction-type-fo
     NzIconModule,
     NzSpinModule,
     NzModalModule,
-    NzNotificationModule,
     NgbModalModule
   ],
   providers: [ConfirmationService],

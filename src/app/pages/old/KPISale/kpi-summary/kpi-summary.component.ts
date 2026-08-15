@@ -15,7 +15,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzStepsModule } from 'ng-zorro-antd/steps';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
@@ -81,7 +81,7 @@ export interface KpiSaleTemplate {
     NzSpinModule,
     NzStepsModule,
     NzTableModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzTagModule,
     NzBadgeModule,
     NzRadioModule,

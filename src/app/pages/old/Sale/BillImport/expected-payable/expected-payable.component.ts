@@ -20,10 +20,9 @@ import * as ExcelJS from 'exceljs';
 
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Editors,
-  FieldType,
   Filters,
   Formatter,
   Formatters,
@@ -45,7 +44,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 
 // ng-bootstrap
 import {
@@ -75,7 +74,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
   imports: [
     CommonModule,
     FormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzButtonModule,
     NzIconModule,
     NzModalModule,
@@ -88,7 +87,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
     NzSplitterModule,
     NzTableModule,
     NzTreeSelectModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NgbModalModule,
     Menubar,
   ],
@@ -518,7 +517,7 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -549,7 +548,7 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -799,8 +798,8 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
       gridWidth: '100%',
       enableCellNavigation: true,
       enableFiltering: true,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       autoFitColumnsOnFirstLoad: false,

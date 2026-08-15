@@ -47,7 +47,7 @@
           <!-- Calendar Tabs -->
           <div class="card-body p-1 pt-2 position-relative">
             <nz-spin [nzSpinning]="isDataLoading" [nzTip]="'Đang tải dữ liệu...'">
-              <nz-tabset
+              <nz-tabs
                 [nzSelectedIndex]="0"
                 (nzSelectChange)="onTabChange($event.index ?? 0)"
                
@@ -69,7 +69,7 @@
                     <div id="tbl_data_bookingroom_3" #calendar3></div>
                   </div>
                 </nz-tab>
-              </nz-tabset>
+              </nz-tabs>
             </nz-spin>
           </div>
      

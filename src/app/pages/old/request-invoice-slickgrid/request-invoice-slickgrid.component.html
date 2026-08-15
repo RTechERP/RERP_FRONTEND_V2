@@ -88,7 +88,7 @@
               </div>
             </nz-splitter-panel>
             <nz-splitter-panel nzDefaultSize="23%" [nzCollapsible]="true" nzResizable="true">
-              <nz-tabset [nzTabPosition]="'top'" class="flex-grow-1 d-flex flex-column"
+              <nz-tabs [nzTabPosition]="'top'" class="flex-grow-1 d-flex flex-column"
                 (nzSelectedIndexChange)="onFilesTabChange($event)">
                 <nz-tab nzTitle="Danh sách file">
                   <div class="card-body p-0 flex-grow-1 grid-container-file" style="min-height: 200px;">
@@ -125,7 +125,7 @@
                     </nz-spin>
                   </div>
                 </nz-tab>
-              </nz-tabset>
+              </nz-tabs>
             </nz-splitter-panel>
           </nz-splitter>
         </nz-splitter-panel>

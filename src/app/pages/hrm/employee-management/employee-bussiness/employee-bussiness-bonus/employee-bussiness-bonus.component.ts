@@ -11,7 +11,6 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { EmployeeBussinessService } from '../employee-bussiness-service/employee-bussiness.service';
@@ -35,7 +34,6 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
     NzFormModule,
     NzInputModule,
     NzInputNumberModule,
-    NzNotificationModule,
     NzSpinModule,
     NzSplitterModule,
     VehicleFormComponent,

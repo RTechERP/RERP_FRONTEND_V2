@@ -5,7 +5,7 @@ import {
   AngularGridInstance,
   Column,
   GridOption,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   OnSelectedRowsChangedEventArgs
 } from 'angular-slickgrid';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -24,7 +24,7 @@ import { KPIService } from '../kpi-service/kpi.service';
   imports: [
     CommonModule,
     FormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzButtonModule,
     NzIconModule,
     NzInputModule,
@@ -108,13 +108,13 @@ export class KpiRuleSumarizeTeamChooseEmployeeComponent implements OnInit {
       },
       gridHeight: 400, // Fixed height để grid render đúng trong modal
       gridWidth: '100%',
-      enableRowSelection: true,
+      enableSelection: true,
       enableCheckboxSelector: true,
       checkboxSelector: {
         hideSelectAllCheckbox: false,
         width: 50
       },
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: false
       },
       multiSelect: true,

@@ -4,11 +4,11 @@ import { FormsModule } from '@angular/forms';
 
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzMessageService, NzMessageModule } from 'ng-zorro-antd/message';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzRateModule } from 'ng-zorro-antd/rate';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { ProjectTaskDashboardService, DashboardStats, ChartData } from './project-task-dashboard.service';
 import { KanbanService } from '../kanban/kanban.service';
 import { ProjectTaskItem } from '../project-task/project-task.service';
@@ -54,14 +54,13 @@ echarts.use([
 
     NzIconModule,
     NzModalModule,
-    NzMessageModule,
     NzButtonModule,
     ChartModule,
     TooltipModule,
     NzRateModule,
     NgxEchartsDirective,
     NzInputModule,
-    NzToolTipModule
+    NzTooltipModule
   ],
   providers: [provideEchartsCore({ echarts })],
   templateUrl: './project-task-dashboard.component.html',

@@ -7,7 +7,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Editors,
     Formatters,
@@ -29,7 +29,7 @@ interface KpiErrorGroup {
         FormsModule,
         NzButtonModule,
         NzSelectModule,
-        AngularSlickgridModule
+        AngularSlickgridComponent
     ],
     templateUrl: './kpi-error-fine-amount.component.html',
     styleUrl: './kpi-error-fine-amount.component.css',

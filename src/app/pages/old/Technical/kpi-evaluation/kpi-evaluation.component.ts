@@ -14,7 +14,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   GridOption,
@@ -30,7 +30,7 @@ import { KpiEvaluationDetailComponent } from './kpi-evaluation-detail/kpi-evalua
   imports: [
     CommonModule,
     NzModalModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar,
   ],
   templateUrl: './kpi-evaluation.component.html',

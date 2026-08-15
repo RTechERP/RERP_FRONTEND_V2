@@ -10,7 +10,6 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { PositionServiceService } from '../position-service/position-service.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
@@ -29,7 +28,6 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzButtonModule,
     NzFormModule,
     NzInputModule,
-    NzNotificationModule,
     NzSpinModule,
     NgIf, HasPermissionDirective
   ],

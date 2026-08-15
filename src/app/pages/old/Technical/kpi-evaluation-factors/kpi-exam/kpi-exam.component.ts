@@ -16,7 +16,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 // Angular SlickGrid
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Formatters,
     GridOption,
@@ -41,7 +41,7 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
         NzDatePickerModule,
         NzSpinModule,
         NzIconModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
     ],
     templateUrl: './kpi-exam.component.html',
     styleUrl: './kpi-exam.component.css',
@@ -164,9 +164,9 @@ export class KpiExamComponent implements OnInit {
             enableFiltering: true,
             enableGrouping: true,
             enableCheckboxSelector: true,
-            enableRowSelection: true,
+            enableSelection: true,
             multiSelect: true,
-            rowSelectionOptions: { selectActiveRow: false },
+            selectionOptions: { selectActiveRow: false },
             checkboxSelector: {
                 hideSelectAllCheckbox: false,
             },

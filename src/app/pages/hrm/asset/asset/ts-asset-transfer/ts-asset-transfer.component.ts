@@ -21,7 +21,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   GridOption,
@@ -36,7 +36,7 @@ declare var bootstrap: any;
 // @ts-ignore
 import { saveAs } from 'file-saver';
 
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { TsAssetManagementPersonalService } from '../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification'
@@ -75,9 +75,9 @@ import { PermissionService } from '../../../../../services/permission.service';
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NgbModalModule, HasPermissionDirective, NzModalModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzSpinModule,
     NzFormModule,
     Menubar
@@ -382,7 +382,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
       { id: 'IsApproveAccountant', name: 'KT duyệt', field: 'IsApproveAccountant', width: 100, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter },
       {
         id: 'CodeReport', name: 'Mã điều chuyển', field: 'CodeReport', width: 160, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       {
         id: 'TranferDate', name: 'Ngày chuyển', field: 'TranferDate', width: 160, sortable: true, cssClass: 'text-center', formatter: formatDate, filterable: true,
@@ -392,20 +392,20 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
       { id: 'DateApprovedPersonalProperty', name: 'Ngày cá nhân duyệt', field: 'DateApprovedPersonalProperty', width: 160, sortable: true, cssClass: 'text-center', formatter: formatDate, hidden: true },
       {
         id: 'DeliverName', name: 'Người giao', field: 'DeliverName', width: 160, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       {
         id: 'ReceiverName', name: 'Người nhận', field: 'ReceiverName', width: 160, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'ReceiverID', name: 'ReceiverID', field: 'ReceiverID', hidden: true },
       {
         id: 'DepartmentDeliver', name: 'Phòng giao', field: 'DepartmentDeliver', width: 160, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       {
         id: 'DepartmentReceiver', name: 'Phòng nhận', field: 'DepartmentReceiver', width: 160, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'PossitionDeliver', name: 'Vị trí giao', field: 'PossitionDeliver', width: 160, sortable: true },
       { id: 'PossitionReceiver', name: 'Vị trí nhận', field: 'PossitionReceiver', width: 160, sortable: true },
@@ -424,8 +424,8 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: true,
-      enableRowSelection: true,
-      rowSelectionOptions: { selectActiveRow: false },
+      enableSelection: true,
+      selectionOptions: { selectActiveRow: false },
       checkboxSelector: { hideInFilterHeaderRow: false, hideInColumnTitleRow: true, applySelectOnAllPages: true },
       enableCheckboxSelector: true,
       enableCellNavigation: true,
@@ -444,12 +444,12 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
       { id: 'STT', name: 'STT', field: 'STT', width: 60, sortable: true, cssClass: 'text-center' },
       {
         id: 'TSCodeNCC', name: 'Mã tài sản', field: 'TSCodeNCC', width: 150, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'Quantity', name: 'Số lượng', field: 'Quantity', width: 100, sortable: true, cssClass: 'text-center' },
       {
         id: 'TSAssetName', name: 'Tên tài sản', field: 'TSAssetName', width: 200, sortable: true, filterable: true,
-        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption },
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `<span title="${dataContext.TSAssetName}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
@@ -472,7 +472,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: true,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
       enableFiltering: true,
       autoFitColumnsOnFirstLoad: true,

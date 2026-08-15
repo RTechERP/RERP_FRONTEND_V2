@@ -30,7 +30,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 
 // ng-bootstrap
@@ -68,7 +68,7 @@ import { PermissionService } from '../../../../services/permission.service';
     NzDatePickerModule,
     NzIconModule,
     NzTabsModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzModalModule,
     Menubar,
   ],

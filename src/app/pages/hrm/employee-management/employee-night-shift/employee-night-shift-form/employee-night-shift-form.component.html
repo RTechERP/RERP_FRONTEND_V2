@@ -58,7 +58,7 @@
     </nz-row>
 
     <!-- Tabs cho các ca làm đêm -->
-    <nz-tabset [(nzSelectedIndex)]="selectedIndex" nzType="editable-card" (nzAdd)="newTab()"
+    <nz-tabs [(nzSelectedIndex)]="selectedIndex" nzType="editable-card" (nzAdd)="newTab()"
       (nzClose)="closeTab($event)">
       @for (tab of tabs; track tab; let i = $index) {
       <nz-tab [nzTitle]="tab" [nzClosable]="true">
@@ -187,7 +187,7 @@
         </nz-row>
       </nz-tab>
       }
-    </nz-tabset>
+    </nz-tabs>
   </form>
 </div>
 

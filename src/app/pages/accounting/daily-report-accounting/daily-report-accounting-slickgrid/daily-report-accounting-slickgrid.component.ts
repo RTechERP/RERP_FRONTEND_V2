@@ -17,7 +17,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     EditCommand,
     Filters,
@@ -31,7 +31,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { Menubar } from 'primeng/menubar';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { ID_ADMIN_SALE_LIST, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
@@ -58,10 +58,10 @@ import { ReadOnlyLongTextEditor } from '../../../KPITech/kpievaluation-employee/
         NzGridModule,
         CommonModule,
         HasPermissionDirective,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         Menubar,
         NzInputNumberModule,
-        NzDropDownModule
+        NzDropdownModule
     ],
     templateUrl: './daily-report-accounting-slickgrid.component.html',
     styleUrl: './daily-report-accounting-slickgrid.component.css',
@@ -379,7 +379,7 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
 
     initGrid(): void {
         this.columnDefinitions = [
-            { id: 'FullName', name: 'Họ tên', field: 'FullName', width: 250, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
+            { id: 'FullName', name: 'Họ tên', field: 'FullName', width: 250, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'ChucVu', name: 'Chức vụ', field: 'ChucVu', width: 250, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
             { id: 'ReportDate', name: 'Ngày báo cáo', field: 'ReportDate', width: 150, minWidth: 100, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center', filter: { model: Filters['compoundInputText'] } },
             { id: 'Content', name: 'Việc đã làm', field: 'Content', width: 300, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
@@ -401,8 +401,8 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
             gridWidth: '100%',
             enableCellNavigation: true,
             enableFiltering: true,
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true
             },
             enableCheckboxSelector: false,

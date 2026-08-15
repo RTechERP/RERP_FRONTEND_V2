@@ -35,12 +35,11 @@ import {
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DateTime } from 'luxon';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzMessageModule } from 'ng-zorro-antd/message';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { PermissionService } from '../../../../services/permission.service';
 import { NewsletterFormComponent } from './newsletter-form/newsletter-form.component';
 import { NewsletterDetailComponent } from './newsletter-detail/newsletter-detail.component';
@@ -71,12 +70,11 @@ import { saveAs } from 'file-saver';
         NzInputModule,
         NzSelectModule,
         NzTableModule,
-        NzMessageModule,
         NgbModalModule,
         NzModalModule,
         // HasPermissionDirective,
         NgbDropdownModule,
-        NzDropDownModule,
+        NzDropdownModule,
         MenubarModule,
     ],
     templateUrl: './newsletter.component.html',

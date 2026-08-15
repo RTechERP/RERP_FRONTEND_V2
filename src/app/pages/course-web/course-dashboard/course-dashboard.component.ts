@@ -9,7 +9,7 @@ import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzSkeletonModule } from 'ng-zorro-antd/skeleton';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
@@ -32,7 +32,7 @@ import * as ExcelJS from 'exceljs';
     NzButtonModule,
     NzSkeletonModule,
     NzSelectModule,
-    NzToolTipModule
+    NzTooltipModule
   ],
   templateUrl: './course-dashboard.component.html',
   styleUrl: './course-dashboard.component.css'

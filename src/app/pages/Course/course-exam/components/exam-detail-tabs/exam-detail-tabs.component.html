@@ -1,4 +1,4 @@
-<nz-tabset [nzSelectedIndex]="mainTabIndex" (nzSelectedIndexChange)="onMainTabChange($event)" style="height: 100%;">
+<nz-tabs [nzSelectedIndex]="mainTabIndex" (nzSelectedIndexChange)="onMainTabChange($event)" style="height: 100%;">
     <nz-tab nzTitle="Khóa học">
         <nz-spin [nzSpinning]="isLoading" [nzDelay]="200" style="height: 100%; display: block;">
             <div #CourseExamTable class="h-100 table-container"></div>
@@ -11,4 +11,4 @@
             </nz-spin>
         </div>
     </nz-tab>
-</nz-tabset>
+</nz-tabs>

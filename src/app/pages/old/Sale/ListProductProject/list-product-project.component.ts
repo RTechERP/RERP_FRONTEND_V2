@@ -17,7 +17,7 @@ import { Subscription } from 'rxjs';
 
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   GridOption,
@@ -37,7 +37,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 
 // ng-bootstrap
 import {
@@ -70,9 +70,9 @@ import { AppUserService } from '../../../../services/app-user.service';
     NzInputModule,
     NzFormModule,
     NzDatePickerModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzSpinModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar,
   ],
   templateUrl: './list-product-project.component.html',
@@ -542,7 +542,7 @@ export class ListProductProjectComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -562,7 +562,7 @@ export class ListProductProjectComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -582,7 +582,7 @@ export class ListProductProjectComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -762,8 +762,8 @@ export class ListProductProjectComponent
       rowHeight: 60,
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

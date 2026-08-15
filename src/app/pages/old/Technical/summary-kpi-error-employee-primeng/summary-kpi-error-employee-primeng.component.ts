@@ -9,10 +9,10 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { TableModule } from 'primeng/table';
 import { ChartModule } from 'primeng/chart';
 import { finalize } from 'rxjs';
@@ -50,9 +50,9 @@ interface KpiTableColumn {
         NzInputModule,
         NzInputNumberModule,
         NzFormModule,
-        NzDropDownModule,
+        NzDropdownModule,
         NzSplitterModule,
-        NzToolTipModule,
+        NzTooltipModule,
         TableModule,
         ChartModule,
         RouterModule

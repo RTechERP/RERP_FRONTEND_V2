@@ -28,12 +28,12 @@
                     </div>
                 </div>
             </form>
-            <nz-tabset [(nzSelectedIndex)]="selectedTabIndex" (nzSelectChange)="onTabChange($event.index ?? 0)">
+            <nz-tabs [(nzSelectedIndex)]="selectedTabIndex" (nzSelectChange)="onTabChange($event.index ?? 0)">
                 <nz-tab nzTitle="TỔNG HỢP"></nz-tab>
                 <nz-tab nzTitle="VÂN TAY"></nz-tab>
                 <nz-tab nzTitle="CHẤM CÔNG"></nz-tab>
                 <nz-tab nzTitle="BẢNG LƯƠNG"></nz-tab>
-            </nz-tabset>
+            </nz-tabs>
         </div>
 
         <div class="card-body p-0" style="position: relative">

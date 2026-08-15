@@ -11,7 +11,7 @@ import {
   Optional,
 } from '@angular/core';
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -24,7 +24,6 @@ import {
   Aggregators,
   GroupTotalFormatters,
   SortComparers,
-  FieldType,
   MultipleSelectOption,
 } from 'angular-slickgrid';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -47,7 +46,7 @@ import { ProjectService } from '../../../../project/project-service/project.serv
 import ExcelJS from 'exceljs';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { AppUserService } from '../../../../../services/app-user.service';
 import { MenuItem } from 'primeng/api';
@@ -60,14 +59,14 @@ import { TabServiceService } from '../../../../../layouts/tab-service.service';
   standalone: true,
   imports: [
     CommonModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzFormModule,
     NzInputModule,
     NzSelectModule,
     NzDatePickerModule,
     NzButtonModule,
     NzGridModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzIconModule,
     NzModalModule,
     NzSplitterModule,
@@ -420,7 +419,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-center',
         width: 110,
         sortable: false,
-        type: FieldType.date,
+        type: 'date',
 
         filterable: true,
         customTooltip: {
@@ -439,7 +438,7 @@ export class PonccSummaryNewComponent {
         editor: {
           model: Editors['date'],
           massUpdate: true,
-          editorOptions: { hideClearButton: false },
+          options: { hideClearButton: false },
         },
       },
       {
@@ -455,7 +454,7 @@ export class PonccSummaryNewComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -470,7 +469,7 @@ export class PonccSummaryNewComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         customTooltip: {
           useRegularTooltip: true,
@@ -495,7 +494,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-center',
         width: 110,
         sortable: false,
-        type: FieldType.date,
+        type: 'date',
         filterable: true,
         customTooltip: {
           useRegularTooltip: true,
@@ -514,7 +513,7 @@ export class PonccSummaryNewComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         customTooltip: {
           useRegularTooltip: true,
@@ -530,7 +529,7 @@ export class PonccSummaryNewComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         customTooltip: {
           useRegularTooltip: true,
@@ -546,7 +545,7 @@ export class PonccSummaryNewComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         customTooltip: {
           useRegularTooltip: true,
@@ -562,7 +561,7 @@ export class PonccSummaryNewComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         customTooltip: {
           useRegularTooltip: true,
@@ -578,7 +577,7 @@ export class PonccSummaryNewComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         customTooltip: {
           useRegularTooltip: true,
@@ -606,7 +605,7 @@ export class PonccSummaryNewComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         customTooltip: {
           useRegularTooltip: true,
@@ -622,7 +621,7 @@ export class PonccSummaryNewComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         customTooltip: {
           useRegularTooltip: true,
@@ -650,7 +649,7 @@ export class PonccSummaryNewComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         customTooltip: {
           useRegularTooltip: true,
@@ -669,7 +668,7 @@ export class PonccSummaryNewComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -687,7 +686,7 @@ export class PonccSummaryNewComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -699,7 +698,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-end',
         width: 140,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 2, thousandSeparator: ',' },
         filterable: true,
@@ -715,7 +714,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-end',
         width: 140,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 2, thousandSeparator: ',' },
         filterable: true,
@@ -731,7 +730,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-end',
         width: 130,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 0, thousandSeparator: ',' },
         filterable: true,
@@ -747,7 +746,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-end',
         width: 130,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 0, thousandSeparator: ',' },
         filterable: true,
@@ -763,7 +762,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-end',
         width: 130,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 0, thousandSeparator: ',' },
         filterable: true,
@@ -779,7 +778,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-end',
         width: 150,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 2, thousandSeparator: ',' },
         filterable: true,
@@ -795,7 +794,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-end',
         width: 130,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 2, thousandSeparator: ',' },
         filterable: true,
@@ -817,7 +816,7 @@ export class PonccSummaryNewComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -832,7 +831,7 @@ export class PonccSummaryNewComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         customTooltip: {
           useRegularTooltip: true,
@@ -851,7 +850,7 @@ export class PonccSummaryNewComponent {
           useRegularTooltip: true,
         },
         formatter: Formatters.checkmarkMaterial,
-        type: FieldType.boolean,
+        type: 'boolean',
       },
       {
         id: 'DeptSupplier',
@@ -861,7 +860,7 @@ export class PonccSummaryNewComponent {
         width: 80,
         sortable: false,
         formatter: Formatters.checkmarkMaterial,
-        type: FieldType.boolean,
+        type: 'boolean',
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
         customTooltip: {
@@ -887,7 +886,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-end',
         width: 120,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 2, thousandSeparator: ',' },
         filterable: true,
@@ -903,7 +902,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-end',
         width: 120,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 2, thousandSeparator: ',' },
         filterable: true,
@@ -918,7 +917,7 @@ export class PonccSummaryNewComponent {
         field: 'DeadlineDelivery',
         width: 130,
         sortable: false,
-        type: FieldType.date,
+        type: 'date',
         filterable: true,
         customTooltip: {
           useRegularTooltip: true,
@@ -934,7 +933,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-end',
         width: 120,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 2, thousandSeparator: ',' },
         filterable: true,
@@ -950,7 +949,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-end',
         width: 120,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 2, thousandSeparator: ',' },
         filterable: true,
@@ -978,7 +977,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-end',
         width: 130,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 0, thousandSeparator: ',' },
         filterable: true,
@@ -994,7 +993,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-end',
         width: 130,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 0, thousandSeparator: ',' },
         filterable: true,
@@ -1010,7 +1009,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-end',
         width: 100,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 2, thousandSeparator: ',' },
         filterable: true,
@@ -1026,7 +1025,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-end',
         width: 100,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 2, thousandSeparator: ',' },
         filterable: true,
@@ -1043,7 +1042,7 @@ export class PonccSummaryNewComponent {
         width: 80,
         sortable: false,
         formatter: Formatters.checkmarkMaterial,
-        type: FieldType.boolean,
+        type: 'boolean',
         filterable: true,
         filter: {
           model: Filters['multipleSelect']
@@ -1062,7 +1061,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-center',
         width: 150,
         sortable: false,
-        type: FieldType.date,
+        type: 'date',
         filterable: true,
         customTooltip: {
           useRegularTooltip: true,
@@ -1090,7 +1089,7 @@ export class PonccSummaryNewComponent {
         cssClass: 'text-center',
         width: 150,
         sortable: false,
-        type: FieldType.date,
+        type: 'date',
         filterable: true,
         customTooltip: {
           useRegularTooltip: true,
@@ -1109,7 +1108,7 @@ export class PonccSummaryNewComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         customTooltip: {
           useRegularTooltip: true,
@@ -1122,7 +1121,7 @@ export class PonccSummaryNewComponent {
         field: 'UnitPricePOKH',
         width: 140,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 2, thousandSeparator: ',' },
         filterable: true,
@@ -1139,7 +1138,7 @@ export class PonccSummaryNewComponent {
         width: 150,
         sortable: false,
         formatter: Formatters.checkmarkMaterial,
-        type: FieldType.boolean,
+        type: 'boolean',
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
         customTooltip: {
@@ -1165,7 +1164,7 @@ export class PonccSummaryNewComponent {
         field: 'TaxReduction',
         width: 130,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 2, thousandSeparator: ',' },
         filterable: true,
@@ -1181,7 +1180,7 @@ export class PonccSummaryNewComponent {
         field: 'COFormE',
         width: 120,
         sortable: false,
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 2, thousandSeparator: ',' },
         filterable: true,
@@ -1200,7 +1199,7 @@ export class PonccSummaryNewComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         customTooltip: {
           useRegularTooltip: true,
@@ -1232,8 +1231,8 @@ export class PonccSummaryNewComponent {
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
 
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
 

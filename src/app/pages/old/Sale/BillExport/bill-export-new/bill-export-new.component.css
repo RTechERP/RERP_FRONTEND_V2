@@ -194,7 +194,7 @@
 }
 
 /* Tabset chi tiết chiếm hết chiều cao panel */
-:host ::ng-deep .splitter-pane-content nz-tabset,
+:host ::ng-deep .splitter-pane-content nz-tabs,
 :host ::ng-deep .splitter-pane-content .ant-tabs {
   flex: 1;
   min-height: 0;

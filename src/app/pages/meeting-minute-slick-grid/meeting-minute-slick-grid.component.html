@@ -134,10 +134,10 @@
                     </div>
                 </nz-splitter-panel>
                 <nz-splitter-panel nzDefaultSize="50%" nzMin="30%" nzMax="70%">
-                    <nz-tabset [(nzSelectedIndex)]="mainTabIndex" (nzSelectedIndexChange)="onMainTabChange($event)"
+                    <nz-tabs [(nzSelectedIndex)]="mainTabIndex" (nzSelectedIndexChange)="onMainTabChange($event)"
                         style="height: 100%;">
                         <nz-tab nzTitle="Nhân viên">
-                            <nz-tabset [(nzSelectedIndex)]="activeTab" (nzSelectedIndexChange)="onTabChange($event)"
+                            <nz-tabs [(nzSelectedIndex)]="activeTab" (nzSelectedIndexChange)="onTabChange($event)"
                                 style="height: 100%;">
                                 <nz-tab nzTitle="Nhân viên tham gia">
                                     <div class="grid-container" id="grid-employee">
@@ -155,10 +155,10 @@
                                             (onAngularGridCreated)="onEmployeeContentGridReady($event.detail)"></angular-slickgrid>
                                     </div>
                                 </nz-tab>
-                            </nz-tabset>
+                            </nz-tabs>
                         </nz-tab>
                         <nz-tab nzTitle="Khách hàng">
-                            <nz-tabset [(nzSelectedIndex)]="activeCustomerTab"
+                            <nz-tabs [(nzSelectedIndex)]="activeCustomerTab"
                                 (nzSelectedIndexChange)="onCustomerTabChange($event)" style="height: 100%;">
                                 <nz-tab nzTitle="Khách hàng tham gia">
                                     <div class="grid-container" id="grid-customer">
@@ -178,7 +178,7 @@
                                             (onAngularGridCreated)="onCustomerContentGridReady($event.detail)"></angular-slickgrid>
                                     </div>
                                 </nz-tab>
-                            </nz-tabset>
+                            </nz-tabs>
                         </nz-tab>
                         <nz-tab nzTitle="File đính kèm">
                             <div class="grid-container" id="grid-file">
@@ -188,7 +188,7 @@
                                     (onClick)="onFileRowClick($event)"></angular-slickgrid>
                             </div>
                         </nz-tab>
-                    </nz-tabset>
+                    </nz-tabs>
                 </nz-splitter-panel>
             </nz-splitter>
         </div>

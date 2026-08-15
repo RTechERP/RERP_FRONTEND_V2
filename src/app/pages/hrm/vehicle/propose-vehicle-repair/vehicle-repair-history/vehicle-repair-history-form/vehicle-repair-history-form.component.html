@@ -4,7 +4,7 @@
 </div>
 
 <div class="modal-body p-1 " style="max-height: 60vh; overflow-y: auto; overflow-x: hidden;">
-  <nz-tabset (nzSelectedIndexChange)="onTabChange($event)">
+  <nz-tabs (nzSelectedIndexChange)="onTabChange($event)">
     <nz-tab nzTitle="Thông tin đề xuất" [nzForceRender]="true">
       <form [formGroup]="formGroup" class="row g-3 ">
         <nz-row [nzGutter]="5">
@@ -221,7 +221,7 @@
         </div>
       </div>
     </nz-tab>
-  </nz-tabset>
+  </nz-tabs>
 </div>
 <div class="modal-footer">
   <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>

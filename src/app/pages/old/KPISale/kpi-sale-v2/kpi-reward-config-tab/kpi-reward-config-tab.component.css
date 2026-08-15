@@ -76,34 +76,34 @@
 }
 
 /* ============== TAB CONTENT (chỉ bảng scroll ngang/dọc) ============== */
-nz-tabset {
+nz-tabs {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
 }
 
-nz-tabset ::ng-deep .ant-tabs-content-holder {
+nz-tabs ::ng-deep .ant-tabs-content-holder {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
 }
 
-nz-tabset ::ng-deep .ant-tabs-tabpane {
+nz-tabs ::ng-deep .ant-tabs-tabpane {
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-nz-tabset ::ng-deep .ant-tabs-tabpane-active {
+nz-tabs ::ng-deep .ant-tabs-tabpane-active {
   overflow: hidden;
 }
 
-nz-tabset ::ng-deep .ant-table-wrapper {
+nz-tabs ::ng-deep .ant-table-wrapper {
   width: 100%;
 }
 
-nz-tabset ::ng-deep .ant-table-body {
+nz-tabs ::ng-deep .ant-table-body {
   overflow-x: auto !important;
 }
 

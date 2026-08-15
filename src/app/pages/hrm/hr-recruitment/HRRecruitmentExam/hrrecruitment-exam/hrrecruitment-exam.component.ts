@@ -22,7 +22,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TableModule } from 'primeng/table';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -58,7 +58,7 @@ import { HasPermissionDirective } from '../../../../../directives/has-permission
         NzFormModule,
         NzGridModule,
         NzInputModule,
-        NzDropDownModule,
+        NzDropdownModule,
         TableModule,
         CheckboxModule,
         TooltipModule,

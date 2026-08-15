@@ -25,7 +25,7 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import {
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     AngularGridInstance,
     Column,
     Filters,
@@ -56,7 +56,7 @@ import { BillImportDetailNewComponent } from '../../BillImport/bill-import-new/b
         NzDatePickerModule,
         NzSpinModule,
         NzCheckboxModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
     ],
     templateUrl: './history-import-export-new.component.html',
     styleUrl: './history-import-export-new.component.css',
@@ -165,7 +165,7 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: { filter: true } as MultipleSelectOption,
+                    options: { filter: true } as MultipleSelectOption,
                 },
             },
             {
@@ -179,7 +179,7 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: { filter: true } as MultipleSelectOption,
+                    options: { filter: true } as MultipleSelectOption,
                 },
             },
             {
@@ -300,7 +300,7 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: { filter: true } as MultipleSelectOption,
+                    options: { filter: true } as MultipleSelectOption,
                 },
             },
             {
@@ -329,7 +329,7 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: { filter: true } as MultipleSelectOption,
+                    options: { filter: true } as MultipleSelectOption,
                 },
             },
             {
@@ -360,7 +360,7 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: { filter: true } as MultipleSelectOption,
+                    options: { filter: true } as MultipleSelectOption,
                 },
             },
             {
@@ -400,7 +400,7 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: { filter: true } as MultipleSelectOption,
+                    options: { filter: true } as MultipleSelectOption,
                 },
             },
             {
@@ -413,7 +413,7 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: { filter: true } as MultipleSelectOption,
+                    options: { filter: true } as MultipleSelectOption,
                 },
             },
             {
@@ -447,8 +447,8 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true,
             },
             enableCellNavigation: true,

@@ -19,7 +19,6 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { DateTime } from 'luxon';
@@ -43,7 +42,6 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzButtonModule,
     NzGridModule,
     NzIconModule,
-    NzNotificationModule,
   ],
   templateUrl: './booking-room-form.component.html',
   styleUrls: ['./booking-room-form.component.css'],

@@ -14,7 +14,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
@@ -22,7 +22,7 @@ import { MenuItem, PrimeIcons, SharedModule } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -62,11 +62,11 @@ import { BillExportTechnicalProtectiveGearDetailComponent } from '../bill-export
     NzCheckboxModule,
     NgbModule,
     NzDatePickerModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzMenuModule,
     NzSpinModule,
     NzTabsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar,
   ],
   selector: 'app-bill-export-technical-protective-gear',
@@ -407,8 +407,8 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         hideInFilterHeaderRow: false,
         hideInColumnTitleRow: true,
       },
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: true,
       },
       enablePagination: false,
@@ -528,7 +528,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
       },
       enableFiltering: true,
       enableCellNavigation: true,
-      enableRowSelection: true,
+      enableSelection: true,
       frozenColumn: 2,
     };
   }

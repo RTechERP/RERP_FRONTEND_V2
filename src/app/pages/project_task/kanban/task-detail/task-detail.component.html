@@ -211,7 +211,7 @@
             <div class="tabs-wrapper">
         <!-- Desktop/Tablet Horizontal Tabs (Hidden on small mobile) -->
 
-        <nz-tabset [nzAnimated]="false" [nzSelectedIndex]="activeMainTabIndex" (nzSelectedIndexChange)="onTabChange($event)" nzType="card" class="main-tabs" [nzTabBarExtraContent]="tabBarActionTpl">
+        <nz-tabs [nzAnimated]="false" [nzSelectedIndex]="activeMainTabIndex" (nzSelectedIndexChange)="onTabChange($event)" nzType="card" class="main-tabs" [nzTabBarExtraContent]="tabBarActionTpl">
             <ng-template #tabBarActionTpl>
                 <button class="d-none d-lg-inline-flex" nz-button nzType="text" nzSize="small"
                     (click)="toggleDesktopSidebar()"
@@ -1206,7 +1206,7 @@
                         [placeholder]="targetStatus === 4 ? 'Nhập lý do hủy...' : 'Nhập nội dung chi tiết lý do tạm dừng...'"></textarea>
                 </div>
             </ng-template>
-        </nz-tabset>
+        </nz-tabs>
     </div>
 
     <!-- Footer actions -->

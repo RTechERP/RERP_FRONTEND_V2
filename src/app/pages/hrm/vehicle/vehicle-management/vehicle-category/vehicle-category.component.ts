@@ -26,10 +26,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzFloatButtonModule } from 'ng-zorro-antd/float-button';
 import { NzFlexModule } from 'ng-zorro-antd/flex';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
-import {
-  NzNotificationModule,
-  NzNotificationService,
-} from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzTableComponent } from 'ng-zorro-antd/table';
 import { DateTime } from 'luxon';
 import type { Editor } from 'tabulator-tables';
@@ -62,7 +59,6 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
     NzModalModule,
     NzInputNumberModule,
     NzModalModule,
-    NzNotificationModule,
     NgbModalModule,
     HasPermissionDirective,
     // NgbActiveModal,

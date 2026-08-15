@@ -52,7 +52,7 @@ import { RecommendSupplierService } from './recommend-supplier-service/recommend
 import * as ExcelJS from 'exceljs';
 import { format, isValid, parseISO } from 'date-fns';
 import { ChangeDetectorRef } from '@angular/core';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 // @ts-ignore
@@ -90,7 +90,7 @@ import { MenuEventService } from '../../../systems/menus/menu-service/menu-event
     NgbModalModule,
     NzFormModule,
     NzInputNumberModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzMenuModule,
     HasPermissionDirective,
   ],

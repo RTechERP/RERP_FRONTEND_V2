@@ -18,7 +18,7 @@
     </div>
   </div>
 
-  <nz-tabset [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="activeTabIndex = $any($event)" nzType="card"
+  <nz-tabs [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="activeTabIndex = $any($event)" nzType="card"
     class="candidate-tabs">
     <nz-tab *ngFor="let item of items" [nzTitle]="tabTitle">
       <ng-template #tabTitle>
@@ -51,7 +51,7 @@
         </div>
       </div>
     </nz-tab>
-  </nz-tabset>
+  </nz-tabs>
 
   <!-- FOOTER -->
   <div class="email-footer">

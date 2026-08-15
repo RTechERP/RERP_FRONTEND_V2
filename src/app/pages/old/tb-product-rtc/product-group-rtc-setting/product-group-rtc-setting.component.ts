@@ -9,7 +9,7 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -22,7 +22,6 @@ import {
   Aggregators,
   GroupTotalFormatters,
   SortComparers,
-  FieldType,
   MultipleSelectOption,
 } from 'angular-slickgrid';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -38,7 +37,7 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSpinComponent } from 'ng-zorro-antd/spin';
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { AppUserService } from '../../../../services/app-user.service';
 import { MenuItem } from 'primeng/api';
@@ -61,14 +60,14 @@ interface ProductGroupRTC {
   selector: 'app-product-group-rtc-setting',
   imports: [
     CommonModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzFormModule,
     NzInputModule,
     NzSelectModule,
     NzDatePickerModule,
     NzButtonModule,
     NzGridModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzIconModule,
     NzModalModule,
     NzSplitterModule,
@@ -262,7 +261,7 @@ export class ProductGroupRtcSettingComponent implements OnInit, AfterViewInit {
         width: 80,
         sortable: false,
         formatter: Formatters.checkmarkMaterial,
-        type: FieldType.boolean,
+        type: 'boolean',
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
         customTooltip: {
@@ -308,8 +307,8 @@ export class ProductGroupRtcSettingComponent implements OnInit, AfterViewInit {
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
 
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
 

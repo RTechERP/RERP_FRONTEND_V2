@@ -6,7 +6,7 @@ import { forkJoin } from 'rxjs';
 
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -26,7 +26,7 @@ import { ProjectTaskService } from '../project-task/project-task.service';
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    NzIconModule, NzButtonModule, NzToolTipModule,
+    NzIconModule, NzButtonModule, NzTooltipModule,
     NzSelectModule, NzGridModule,
     MultiSelectModule
   ],

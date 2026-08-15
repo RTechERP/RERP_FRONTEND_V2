@@ -2,7 +2,7 @@ import { Component, OnInit, Input, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NzModalModule } from 'ng-zorro-antd/modal';
-import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -29,7 +29,6 @@ import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATI
     NzButtonModule,
     NzSpinModule,
     NzModalModule,
-    NzNotificationModule
   ],
   templateUrl: './employee-deduction-type-form.component.html',
   styleUrls: ['./employee-deduction-type-form.component.css']

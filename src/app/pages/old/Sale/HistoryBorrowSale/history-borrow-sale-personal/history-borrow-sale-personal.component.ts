@@ -11,10 +11,10 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -54,9 +54,9 @@ import { AppUserService } from '../../../../../services/app-user.service';
     NgbModule,
     HasPermissionDirective,
     NzSpinModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     MenubarModule,
-    NzDropDownModule,
+    NzDropdownModule,
     BillExportDetailFileComponent
   ],
   templateUrl: './history-borrow-sale-personal.component.html',
@@ -286,7 +286,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -359,7 +359,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
       //   filter: {
       //     collection: [],
       //     model: Filters['multipleSelect'],
-      //     filterOptions: {
+      //     options: {
       //       autoAdjustDropHeight: true,
       //       filter: true,
       //     } as MultipleSelectOption,
@@ -389,7 +389,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
       //   filter: {
       //     collection: [],
       //     model: Filters['multipleSelect'],
-      //     filterOptions: {
+      //     options: {
       //       autoAdjustDropHeight: true,
       //       filter: true,
       //     } as MultipleSelectOption,
@@ -405,7 +405,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -421,7 +421,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -437,7 +437,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -453,7 +453,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -469,7 +469,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -485,7 +485,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -516,7 +516,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -546,7 +546,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -598,7 +598,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -628,7 +628,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -644,7 +644,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -661,13 +661,13 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
       datasetIdPropertyName: 'id',
       enableAutoResize: true,
       gridWidth: '100%',
-      enableRowSelection: true,
+      enableSelection: true,
       enableCheckboxSelector: true,
       checkboxSelector: {
         hideInFilterHeaderRow: false,
         hideInColumnTitleRow: true,
       },
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: false
       },
       enableCellNavigation: true,

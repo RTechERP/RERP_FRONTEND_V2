@@ -10,9 +10,8 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -39,8 +38,7 @@ import { signal } from '@angular/core';
     NzTableModule,
     NzFormModule,
     NzInputModule,
-    NzToolTipModule,
-    NzNotificationModule,
+    NzTooltipModule,
     NzSpinModule,
     NzTagModule,
     NzSelectModule,

@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MenuApp } from './model/menu-app';
 import { CommonModule } from '@angular/common';
-import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption } from 'angular-slickgrid';
+import { AngularGridInstance, AngularSlickgridComponent, Column, Filters, Formatters, GridOption } from 'angular-slickgrid';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -29,7 +29,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
     imports: [
         CommonModule,
         Menubar,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         FormsModule,
         NzFormModule,
         NzInputModule,
@@ -188,8 +188,8 @@ export class MenuAppComponent implements OnInit {
 
             enableFiltering: true,
 
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false// True (Single Selection), False (Multiple Selections)
             },
             checkboxSelector: {

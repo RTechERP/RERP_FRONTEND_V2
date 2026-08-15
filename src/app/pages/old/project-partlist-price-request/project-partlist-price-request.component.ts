@@ -53,7 +53,7 @@ import {
   type NzNotificationComponent,
   NzNotificationService,
 } from 'ng-zorro-antd/notification';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { DateTime } from 'luxon';
@@ -82,7 +82,7 @@ import { HorizontalScrollDirective } from '../../../directives/horizontalScroll.
     NzSelectModule,
     NzButtonModule,
     NzIconModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzModalModule,
     NzSplitterModule,
     NzGridModule,

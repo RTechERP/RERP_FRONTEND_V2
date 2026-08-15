@@ -26,10 +26,7 @@ import { TsAssetManagementPersonalService } from '../ts-asset-management-persona
 import { inject } from '@angular/core';
 import { DateTime } from 'luxon';
 import { TsAssetAllocationPersonalService } from '../../ts-asset-allocation-personal/ts-asset-allocation-personal-service/ts-asset-allocation-personal.service';
-import {
-  NzNotificationModule,
-  NzNotificationService,
-} from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
@@ -58,7 +55,6 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzSelectModule,
     NzTableModule,
     NzModalModule,
-    NzNotificationModule,
     NgbModalModule,
     HasPermissionDirective
   ],

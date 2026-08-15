@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatters,
@@ -56,7 +56,7 @@ import { DateTime } from 'luxon';
     imports: [
         CommonModule,
         FormsModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         NzSpinModule,
         NzSplitterModule,
         NzCardModule,
@@ -234,7 +234,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: { filter: true } as MultipleSelectOption,
+                    options: { filter: true } as MultipleSelectOption,
                     collectionOptions: { addBlankEntry: true },
                 },
                 cssClass: 'text-center',
@@ -255,7 +255,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: { filter: true } as MultipleSelectOption,
+                    options: { filter: true } as MultipleSelectOption,
                     collectionOptions: { addBlankEntry: true },
                 },
             },
@@ -265,7 +265,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: { filter: true } as MultipleSelectOption,
+                    options: { filter: true } as MultipleSelectOption,
                     collectionOptions: { addBlankEntry: true },
                 },
             },
@@ -290,7 +290,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: { filter: true } as MultipleSelectOption,
+                    options: { filter: true } as MultipleSelectOption,
                     collectionOptions: { addBlankEntry: true },
                 },
             },
@@ -326,8 +326,8 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false,
             },
             checkboxSelector: {

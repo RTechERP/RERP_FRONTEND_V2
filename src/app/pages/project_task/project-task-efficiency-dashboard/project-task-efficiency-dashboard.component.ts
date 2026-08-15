@@ -12,7 +12,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 
 // ECharts
 import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
@@ -59,7 +59,7 @@ echarts.use([
     NzIconModule,
     NzTableModule,
     NzCardModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NgxEchartsDirective
   ],
   providers: [

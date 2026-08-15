@@ -37,7 +37,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatters,
@@ -109,7 +109,7 @@ import { RequestInvoiceDetailNewPrimengComponent } from '../request-invoice-deta
         NzFormModule,
         CommonModule,
         HasPermissionDirective,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         Menubar,
     ],
     templateUrl: './request-invoice-slickgrid.component.html',
@@ -437,12 +437,12 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { autoAdjustDropHeight: true, filter: true } as any
+                    options: { autoAdjustDropHeight: true, filter: true } as any
                 }
             },
-            { id: 'DealineUrgency', name: 'Deadline', field: 'DealineUrgency', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundDate'], filterOptions: { format: 'DD/MM/YYYY' } }, formatter: this.dateFormatter, cssClass: 'text-center' },
+            { id: 'DealineUrgency', name: 'Deadline', field: 'DealineUrgency', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundDate'], options: { format: 'DD/MM/YYYY' } }, formatter: this.dateFormatter, cssClass: 'text-center' },
             { id: 'Code', name: 'Mã lệnh', field: 'Code', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
-            { id: 'DateRequest', name: 'Ngày yêu cầu', field: 'DateRequest', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundDate'], filterOptions: { format: 'DD/MM/YYYY' } }, formatter: this.dateFormatter, cssClass: 'text-center' },
+            { id: 'DateRequest', name: 'Ngày yêu cầu', field: 'DateRequest', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundDate'], options: { format: 'DD/MM/YYYY' } }, formatter: this.dateFormatter, cssClass: 'text-center' },
             { id: 'FullName', name: 'Người yêu cầu', field: 'FullName', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             {
                 id: 'IsCustomsDeclared',
@@ -457,8 +457,8 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             },
             { id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', width: 250, minWidth: 250, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Address', name: 'Địa chỉ', field: 'Address', width: 300, minWidth: 300, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
-            { id: 'Name', name: 'Công ty bán', field: 'Name', width: 140, minWidth: 140, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
-            { id: 'TypeName', name: 'Loại hợp đồng', field: 'TypeName', width: 300, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
+            { id: 'Name', name: 'Công ty bán', field: 'Name', width: 140, minWidth: 140, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true, } as any, } },
+            { id: 'TypeName', name: 'Loại hợp đồng', field: 'TypeName', width: 300, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true, } as any, } },
             { id: 'AmendReason', name: 'Lý do yêu cầu bổ sung', field: 'AmendReason', width: 215, minWidth: 215, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Note', name: 'Ghi chú', field: 'Note', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
         ];
@@ -473,8 +473,8 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             gridWidth: '100%',
             enableCellNavigation: true,
             enableFiltering: true,
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true
             },
             enableCheckboxSelector: false,
@@ -525,7 +525,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             { id: 'ProductCodeOfSupplier', name: 'Mã sản phẩm NCC', field: 'ProductCodeOfSupplier', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'GuestCode', name: 'Mã theo khách', field: 'GuestCode', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'ProductName', name: 'Tên sản phẩm', field: 'ProductName', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
-            { id: 'Unit', name: 'ĐVT', field: 'Unit', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'Unit', name: 'ĐVT', field: 'Unit', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true, } as any, }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'Quantity', name: 'Số lượng', field: 'Quantity', width: 100, minWidth: 100, sortable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'PONumber', name: 'Số POKH', field: 'PONumber', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'TeamSaleName', name: 'Team kinh doanh', field: 'TeamSaleName', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
@@ -542,14 +542,14 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             { id: 'Note', name: 'Ghi chú', field: 'Note', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'Specifications', name: 'Thông số kỹ thuật', field: 'Specifications', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'InvoiceNumber', name: 'Số hóa đơn', field: 'InvoiceNumber', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
-            { id: 'InvoiceDate', name: 'Ngày hóa đơn', field: 'InvoiceDate', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundDate'], filterOptions: { format: 'DD/MM/YYYY' } }, formatter: this.dateFormatter, cssClass: 'text-center', columnGroup: 'Chung', columnGroupKey: 'Chung' },
-            { id: 'RequestDate', name: 'Ngày đặt hàng', field: 'RequestDate', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'], filterOptions: { format: 'DD/MM/YYYY' } }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
-            { id: 'DateRequestImport', name: 'Ngày hàng về', field: 'DateRequestImport', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'], filterOptions: { format: 'DD/MM/YYYY' } }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
+            { id: 'InvoiceDate', name: 'Ngày hóa đơn', field: 'InvoiceDate', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundDate'], options: { format: 'DD/MM/YYYY' } }, formatter: this.dateFormatter, cssClass: 'text-center', columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'RequestDate', name: 'Ngày đặt hàng', field: 'RequestDate', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'], options: { format: 'DD/MM/YYYY' } }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
+            { id: 'DateRequestImport', name: 'Ngày hàng về', field: 'DateRequestImport', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'], options: { format: 'DD/MM/YYYY' } }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
             { id: 'SupplierName', name: 'Nhà cung cấp', field: 'SupplierName', width: 250, minWidth: 250, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
             { id: 'SomeBill', name: 'Hóa đơn đầu vào', field: 'SomeBill', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
-            { id: 'ExpectedDate', name: 'Ngày hàng về dự kiến', field: 'ExpectedDate', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'], filterOptions: { format: 'DD/MM/YYYY' } }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
+            { id: 'ExpectedDate', name: 'Ngày hàng về dự kiến', field: 'ExpectedDate', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'], options: { format: 'DD/MM/YYYY' } }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
             { id: 'BillImportCode', name: 'PNK', field: 'BillImportCode', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
-            { id: 'CompanyText', name: 'Công ty nhập', field: 'CompanyText', width: 120, minWidth: 120, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
+            { id: 'CompanyText', name: 'Công ty nhập', field: 'CompanyText', width: 120, minWidth: 120, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true, } as any, }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
         ];
 
         this.gridOptionsDetail = {
@@ -562,8 +562,8 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             gridWidth: '100%',
             enableCellNavigation: true,
             enableFiltering: true,
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true
             },
             enableCheckboxSelector: false,
@@ -632,8 +632,8 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             gridWidth: '100%',
             enableCellNavigation: true,
             enableFiltering: false,
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true
             },
             enableCheckboxSelector: false,
@@ -714,8 +714,8 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             gridWidth: '100%',
             enableCellNavigation: true,
             enableFiltering: false,
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true
             },
             enableCheckboxSelector: false,
@@ -801,8 +801,8 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             gridWidth: '100%',
             enableCellNavigation: true,
             enableFiltering: false,
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true
             },
             enableCheckboxSelector: false,

@@ -16,7 +16,7 @@ import {
 } from '@angular/forms';
 
 import {
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     AngularGridInstance,
     Column,
     GridOption,
@@ -121,7 +121,7 @@ interface BillExport {
         NzCheckboxModule,
         NzSpinModule,
         HasPermissionDirective,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         BillExportDetailFileComponent,
     ],
     templateUrl: './bill-export-detail-new.component.html',
@@ -969,11 +969,11 @@ export class BillExportDetailNewComponent
             frozenColumn: 7,
             enableColumnReorder: true,
             enableCheckboxSelector: true,
-            enableRowSelection: true,
+            enableSelection: true,
             checkboxSelector: {
                 hideSelectAllCheckbox: false,
             },
-            rowSelectionOptions: {
+            selectionOptions: {
                 selectActiveRow: false,
             },
             rowHeight: 60,
@@ -1060,7 +1060,7 @@ export class BillExportDetailNewComponent
                 editor: {
                     model: Editors['autocompleter'],
                     alwaysSaveOnEnterKey: true,
-                    editorOptions: {
+                    options: {
                         minLength: 0,
                         forceUserInput: false,
                         openSearchListOnFocus: true,
@@ -1272,7 +1272,7 @@ export class BillExportDetailNewComponent
                     model: Editors['singleSelect'],
                     collectionOptions: { addBlankEntry: true },
                     collection: this.projectGridCollection,
-                    editorOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
 
@@ -1607,7 +1607,7 @@ export class BillExportDetailNewComponent
 
     /** Xử lý click cell (xóa dòng, thêm serial, download PO) */
     onGridDetailClick(e: Event, args: OnClickEventArgs): void {
-        const column = args.grid.getColumns()[args.cell];
+        const column = args.grid.getVisibleColumns()[args.cell];
         const clickedElement = e.target as HTMLElement;
 
         // Handle delete action (only if not approved)
@@ -1726,7 +1726,7 @@ export class BillExportDetailNewComponent
 
     /** Xử lý thay đổi giá trị cell (chọn sản phẩm, dự án, số lượng) */
     onCellChange(args: any): void {
-        const columnDef = this.angularGridDetail.slickGrid.getColumns()[args.cell];
+        const columnDef = this.angularGridDetail.slickGrid.getVisibleColumns()[args.cell];
 
         if (columnDef.field === 'ProductID') {
             // Handle both object (from autocompleter) and number (from other editors)

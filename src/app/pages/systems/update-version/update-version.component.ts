@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, inject, CUSTOM_ELEMENTS_SCHEMA } from '@a
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
@@ -10,7 +10,7 @@ import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -50,12 +50,11 @@ interface UpdateVersion {
     CommonModule,
     FormsModule,
     NgbModalModule,
-    NzNotificationModule,
     NzModalModule,
     NzCardModule,
     NzSplitterModule,
     Menubar,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './update-version.component.html',
@@ -206,7 +205,7 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
             { label: '✗', value: 2 }
           ],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -230,7 +229,7 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -291,7 +290,7 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
             { label: 'Chưa public', value: 2 }
           ],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -383,7 +382,7 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -417,7 +416,7 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -437,9 +436,9 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: true,
-      enableRowSelection: true,
+      enableSelection: true,
       multiSelect: true,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: true
       },
       checkboxSelector: {
@@ -500,7 +499,7 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
     const dataView = this.angularGrid.dataView;
     let clickTimeout: any = null;
     slickGrid.onClick.subscribe((e: any, args: any) => {
-      const column = slickGrid.getColumns()[args.cell];
+      const column = slickGrid.getVisibleColumns()[args.cell];
       if (column.id === '_checkbox_selector') return;
       if (clickTimeout) {
         clearTimeout(clickTimeout);

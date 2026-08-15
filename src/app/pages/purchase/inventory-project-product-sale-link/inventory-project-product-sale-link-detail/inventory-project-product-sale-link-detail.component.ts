@@ -18,7 +18,7 @@ import {
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -43,7 +43,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzGridModule } from 'ng-zorro-antd/grid';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -69,10 +69,10 @@ import { InventoryProjectProductSaleLinkService } from '../inventory-project-pro
     NzCheckboxModule,
     NzTabsModule,
     NzGridModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzIconModule,
     NzModalModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   templateUrl: './inventory-project-product-sale-link-detail.component.html',
   styleUrl: './inventory-project-product-sale-link-detail.component.css',
@@ -274,8 +274,8 @@ export class InventoryProjectProductSaleLinkDetailComponent implements OnInit {
       enableAutoSizeColumns: true,
       forceFitColumns: true,
       enableColumnReorder: true,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

@@ -20,7 +20,7 @@
 
   <nz-spin [nzSpinning]="isSending" nzTip="Đang gửi thư mời...">
     <!-- TABS PER ỨNG VIÊN -->
-    <nz-tabset [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="activeTabIndex = $any($event)" nzType="card"
+    <nz-tabs [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="activeTabIndex = $any($event)" nzType="card"
       class="candidate-tabs">
       <nz-tab *ngFor="let mail of mails; let i = index" [nzTitle]="tabTitle">
         <ng-template #tabTitle>
@@ -203,7 +203,7 @@
         </div>
         <!-- /tab-body -->
       </nz-tab>
-    </nz-tabset>
+    </nz-tabs>
   </nz-spin>
 
   <!-- FOOTER -->

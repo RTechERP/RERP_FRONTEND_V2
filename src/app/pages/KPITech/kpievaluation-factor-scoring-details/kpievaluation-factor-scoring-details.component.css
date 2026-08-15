@@ -345,7 +345,7 @@ angular-slickgrid,
 }
 
 /* ==================== TAB STYLES ==================== */
-nz-tabset {
+nz-tabs {
     display: flex;
     flex-direction: column;
     height: 100%;

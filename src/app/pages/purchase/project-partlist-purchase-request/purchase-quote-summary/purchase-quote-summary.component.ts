@@ -6,7 +6,7 @@ import {
   HostListener,
 } from '@angular/core';
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -31,7 +31,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { DateTime } from 'luxon';
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
 import { AppUserService } from '../../../../services/app-user.service';
@@ -60,8 +60,8 @@ import { PaymentOrderComponent } from '../../../general-category/payment-order/p
     NzInputModule,
     NzSpinModule,
     NzModalModule,
-    NzDropDownModule,
-    AngularSlickgridModule,
+    NzDropdownModule,
+    AngularSlickgridComponent,
     Menubar,
   ],
   templateUrl: './purchase-quote-summary.component.html',
@@ -654,7 +654,7 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -872,9 +872,9 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
+      enableSelection: true,
       multiSelect: true,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: true,
       },
       checkboxSelector: {

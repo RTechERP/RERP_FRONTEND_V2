@@ -8,7 +8,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { TableModule } from 'primeng/table';
 import { ContextMenuModule } from 'primeng/contextmenu';
@@ -60,7 +60,7 @@ echarts.use([
     NzInputModule,
     NzButtonModule,
     NzSpinModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzTabsModule,
     TableModule,
     ContextMenuModule,

@@ -15,14 +15,14 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { NzPopoverModule } from 'ng-zorro-antd/popover';
 import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzSliderModule } from 'ng-zorro-antd/slider';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzListModule } from 'ng-zorro-antd/list';
@@ -88,7 +88,7 @@ export interface ParentTaskTreeNode {
         NzPopoverModule,
         NzProgressModule,
         NzAvatarModule,
-        NzToolTipModule,
+        NzTooltipModule,
         NzSliderModule,
         NzInputNumberModule,
         NzListModule,
@@ -99,7 +99,6 @@ export interface ParentTaskTreeNode {
         NzDrawerModule,
         NzAlertModule,
         NzSpinModule,
-        NzNotificationModule,
         AddRelatedPeopleComponent,
         DragDropModule
     ],

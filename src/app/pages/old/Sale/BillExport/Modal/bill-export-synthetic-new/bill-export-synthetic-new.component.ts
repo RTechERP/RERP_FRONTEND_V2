@@ -27,7 +27,7 @@ import { DateTime } from 'luxon';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatter,
@@ -61,7 +61,7 @@ interface DocumentImport {
         NzDatePickerModule,
         NzSpinModule,
         NzCheckboxModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
     ],
     templateUrl: './bill-export-synthetic-new.component.html',
     styleUrl: './bill-export-synthetic-new.component.css',
@@ -198,7 +198,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                         { value: false, label: 'Không' },
                     ],
                     model: Filters['singleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                     } as MultipleSelectOption,
                 },
@@ -222,7 +222,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                         { value: false, label: 'Không' },
                     ],
                     model: Filters['singleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                     } as MultipleSelectOption,
                 },
@@ -247,7 +247,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                         { value: false, label: 'Chưa nhận' },
                     ],
                     model: Filters['singleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                     } as MultipleSelectOption,
                 },
@@ -276,7 +276,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                     } as MultipleSelectOption,
                 },
@@ -308,7 +308,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                     collectionOptions: {
                         addBlankEntry: true
                     },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -324,7 +324,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                     } as MultipleSelectOption,
                 },
@@ -416,7 +416,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                     } as MultipleSelectOption,
                 },
@@ -431,7 +431,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
             //     filter: {
             //         collection: [],
             //         model: Filters['multipleSelect'],
-            //         filterOptions: {
+            //         options: {
             //             autoAdjustDropHeight: true,
             //         } as MultipleSelectOption,
             //     },
@@ -571,7 +571,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
             enableFiltering: true,
             enableSorting: true,
             enableCellNavigation: true,
-            enableRowSelection: true,
+            enableSelection: true,
             enableCheckboxSelector: true,
             enableExcelExport: true,
             externalResources: [this.excelExportService],
@@ -580,7 +580,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
             },
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
-            rowSelectionOptions: {
+            selectionOptions: {
                 selectActiveRow: false,
             },
             frozenColumn: 7,

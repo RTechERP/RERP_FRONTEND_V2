@@ -88,7 +88,7 @@
       style=" height: 88vh !important; display: flex; flex-direction: column;">
       <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu..." style="height: 100%;">
         <!-- Tabset với height cố định như nz-splitter trong propose-vehicle-repair -->
-        <nz-tabset class="summary-tabs" [(nzSelectedIndex)]="selectedTabIndex"
+        <nz-tabs class="summary-tabs" [(nzSelectedIndex)]="selectedTabIndex"
           (nzSelectedIndexChange)="onTabChange($event)" style="height: 88vh !important; flex: 1;">
 
           <nz-tab [nzTitle]="'Đăng kí nghỉ (' + datasetOnLeave.length + ')'" [nzForceRender]="true">
@@ -147,7 +147,7 @@
             </div>
           </nz-tab>
 
-        </nz-tabset>
+        </nz-tabs>
       </nz-spin>
     </div>
   </div>

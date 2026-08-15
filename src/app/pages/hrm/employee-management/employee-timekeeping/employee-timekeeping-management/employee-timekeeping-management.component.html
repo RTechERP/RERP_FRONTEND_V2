@@ -192,7 +192,7 @@
           class="card-body p-0"
           style="position: relative; height: calc(100% - 50px)"
         >
-          <!-- <nz-tabset
+          <!-- <nz-tabs
             (nzSelectedIndexChange)="onTabChange($event)"
             style="height: 100%"
           >
@@ -202,7 +202,7 @@
             <nz-tab nzTitle="CHI TIẾT CÔNG">
               <div class="border h-100" #tb_DT></div>
             </nz-tab>
-          </nz-tabset> -->
+          </nz-tabs> -->
 
           <div
             *ngIf="isLoadTable"
@@ -221,7 +221,7 @@
           >
             <nz-spin [nzSpinning]="isLoadTable" nzSimple></nz-spin>
           </div>
-          <nz-tabset
+          <nz-tabs
             class="timekeeping-tabs"
             [nzSelectedIndex]="activeTabIndex"
             (nzSelectedIndexChange)="onTabChange($event)"
@@ -238,7 +238,7 @@
                 <div class="border h-100 w-100" #tb_DT></div>
               </div>
             </nz-tab>
-          </nz-tabset>
+          </nz-tabs>
         </div>
       </div>
     </nz-splitter-panel>

@@ -28,7 +28,7 @@ import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { SplitterModule } from 'primeng/splitter';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     GridOption,
@@ -68,7 +68,7 @@ import { MaterialDetailOfProductRtcComponent } from '../material-detail-of-produ
         NzFlexModule,
         NzGridModule,
         NzUploadModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         SplitterModule,
         HasPermissionDirective,
         NgbModalModule,
@@ -342,7 +342,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -358,7 +358,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -383,7 +383,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -398,7 +398,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -413,7 +413,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -428,7 +428,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -443,7 +443,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -458,7 +458,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -473,7 +473,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -488,7 +488,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -503,7 +503,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -518,7 +518,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -533,7 +533,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -548,7 +548,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -563,7 +563,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -578,7 +578,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -593,7 +593,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -608,7 +608,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -623,7 +623,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -638,7 +638,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -653,7 +653,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -668,7 +668,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -685,7 +685,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -701,7 +701,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 // filter: {
                 // model: Filters['multipleSelect'],
                 // collection: [],
-                // filterOptions: {
+                // options: {
                 //     filter: true,
                 // } as MultipleSelectOption,
                 // },
@@ -716,7 +716,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -731,7 +731,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -818,7 +818,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -841,7 +841,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -856,7 +856,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -887,7 +887,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -902,7 +902,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -917,7 +917,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -932,7 +932,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -947,7 +947,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -962,7 +962,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -1012,8 +1012,8 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'ID',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true,
             },
             enableCellNavigation: true,
@@ -1038,8 +1038,8 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false,
             },
             checkboxSelector: {

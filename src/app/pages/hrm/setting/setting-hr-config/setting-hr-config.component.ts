@@ -1,14 +1,14 @@
 import { Component, OnInit, ChangeDetectorRef, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Formatter,
     Formatters,
@@ -24,11 +24,10 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     imports: [
         CommonModule,
         FormsModule,
-        NzNotificationModule,
         NzSpinModule,
         NzCardModule,
         Menubar,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     templateUrl: './setting-hr-config.component.html',
@@ -177,7 +176,7 @@ export class SettingHrConfigComponent implements OnInit {
             gridWidth: '100%',
             enableSorting: true,
             enableFiltering: false,
-            enableRowSelection: false,
+            enableSelection: false,
             enableCellNavigation: true,
             rowHeight: 40,
             headerRowHeight: 45,

@@ -10,7 +10,6 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators, Form } from '@angular/forms';
 import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
@@ -25,7 +24,6 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzMessageModule } from 'ng-zorro-antd/message';
 import { AuthService } from '../../../../../auth/auth.service';
 import { EmployeeService } from '../../../employee/employee-service/employee.service';
 import { EmployeeBussinessService } from '../employee-bussiness-service/employee-bussiness.service';
@@ -50,7 +48,6 @@ import { ProjectService } from '../../../../project/project-service/project.serv
     NzSelectModule,
     NzFormModule,
     NzInputModule,
-    NzNotificationModule,
     ReactiveFormsModule,
     FormsModule,
     NzIconModule,
@@ -62,7 +59,6 @@ import { ProjectService } from '../../../../project/project-service/project.serv
     NgIf,
     NzSpinModule,
     NzUploadModule,
-    NzMessageModule,
   ]
 })
 export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, OnChanges {

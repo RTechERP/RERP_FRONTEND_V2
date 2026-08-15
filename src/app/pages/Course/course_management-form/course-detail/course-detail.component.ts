@@ -28,7 +28,7 @@ import {
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 
 import { CourseManagementService } from '../../course-management/course-management-service/course-management.service';
 import { CourseTypeService } from '../../course-type/course-type-sevice/course-type.service';
@@ -74,7 +74,7 @@ interface Course {
     NzCheckboxModule,
     NzTreeSelectModule,
     NzSwitchModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NgbModalModule,
   ],
   templateUrl: './course-detail.component.html',

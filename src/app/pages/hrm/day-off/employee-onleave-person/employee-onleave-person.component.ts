@@ -10,7 +10,6 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
@@ -39,7 +38,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Menubar } from 'primeng/menubar';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatter,
@@ -63,7 +62,6 @@ import {
     NzSelectModule,
     NzFormModule,
     NzInputModule,
-    NzNotificationModule,
     ReactiveFormsModule,
     NzCheckboxModule,
     NzInputNumberModule,
@@ -74,7 +72,7 @@ import {
     NgIf,
     NzSpinModule,
     Menubar,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzTreeSelectModule
   ],
   templateUrl: './employee-onleave-person.component.html',
@@ -344,7 +342,7 @@ export class EmployeeOnleavePersonComponent implements OnInit {
             { value: false, label: 'Chưa duyệt' },
           ],
           model: Filters['singleSelect'],
-          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true } as MultipleSelectOption,
         },
         cssClass: 'text-center'
       },
@@ -363,7 +361,7 @@ export class EmployeeOnleavePersonComponent implements OnInit {
             { value: false, label: 'Chưa duyệt' },
           ],
           model: Filters['singleSelect'],
-          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true } as MultipleSelectOption,
         },
         cssClass: 'text-center'
       },
@@ -382,7 +380,7 @@ export class EmployeeOnleavePersonComponent implements OnInit {
             { value: false, label: 'Chưa duyệt' },
           ],
           model: Filters['singleSelect'],
-          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true } as MultipleSelectOption,
         },
         cssClass: 'text-center'
       },
@@ -414,7 +412,7 @@ export class EmployeeOnleavePersonComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true } as MultipleSelectOption,
         },
       },
       {
@@ -436,7 +434,7 @@ export class EmployeeOnleavePersonComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true } as MultipleSelectOption,
         },
       },
       {
@@ -491,7 +489,7 @@ export class EmployeeOnleavePersonComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true } as MultipleSelectOption,
         },
       },
       {
@@ -582,8 +580,8 @@ export class EmployeeOnleavePersonComponent implements OnInit {
       },
       enableAutoResize: true,
       gridWidth: '100%',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       checkboxSelector: {

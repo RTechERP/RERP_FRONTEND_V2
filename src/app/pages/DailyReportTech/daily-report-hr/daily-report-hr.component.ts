@@ -9,7 +9,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
-import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -39,7 +39,6 @@ import { DailyReportHrDetailComponent } from '../daily-report-hr-detail/daily-re
     NzSelectModule,
     NzFormModule,
     NzSplitterModule,
-    NzNotificationModule,
     NzModalModule,
   ],
   templateUrl: './daily-report-hr.component.html',

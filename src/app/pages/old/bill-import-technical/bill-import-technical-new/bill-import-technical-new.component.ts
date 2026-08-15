@@ -23,7 +23,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption, MultipleSelectOption, OnSelectedRowsChangedEventArgs, OnClickEventArgs } from 'angular-slickgrid';
+import { AngularGridInstance, AngularSlickgridComponent, Column, Filters, Formatters, GridOption, MultipleSelectOption, OnSelectedRowsChangedEventArgs, OnClickEventArgs } from 'angular-slickgrid';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { BillImportTechnicalFormComponent } from '../bill-import-technical-form/bill-import-technical-form.component';
@@ -59,7 +59,7 @@ function formatDateCell(value: any): string {
         NzSpinModule,
         NzSplitterModule,
         NzTabsModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         HasPermissionDirective,
         NgbModalModule,
     ],
@@ -197,7 +197,7 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
                         { value: true, label: 'Đã duyệt' },
                         { value: false, label: 'Chưa duyệt' },
                     ],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -212,7 +212,7 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -236,7 +236,7 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -251,7 +251,7 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -266,7 +266,7 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -281,7 +281,7 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -296,7 +296,7 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -311,7 +311,7 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -326,7 +326,7 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -350,7 +350,7 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -365,7 +365,7 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -385,8 +385,8 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
             // gridWidth: '100%',
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false,
             },
             checkboxSelector: {

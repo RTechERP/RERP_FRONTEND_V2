@@ -11,7 +11,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzStepsModule } from 'ng-zorro-antd/steps';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { UserService } from '../../services/user.service';
 import { EmployeeService } from '../hrm/employee/employee-service/employee.service';
 
@@ -30,7 +30,7 @@ import { EmployeeService } from '../hrm/employee/employee-service/employee.servi
     NzTagModule,
     NzDividerModule,
     NzStepsModule,
-    NzToolTipModule
+    NzTooltipModule
   ],
   providers: [NzNotificationService],
   templateUrl: './personal-signature.component.html',

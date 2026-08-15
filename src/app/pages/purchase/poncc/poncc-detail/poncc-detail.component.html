@@ -358,7 +358,7 @@
 
         <div nz-row [nzGutter]="4" class="mx-2 border">
           <div nz-col [nzSpan]="24">
-            <nz-tabset nzSize="small" [nzAnimated]="false" (nzSelectedIndexChange)="onTabChange($event)">
+            <nz-tabs nzSize="small" [nzAnimated]="false" (nzSelectedIndexChange)="onTabChange($event)">
               <nz-tab nzTitle="Hàng tiền" nzForceRender="true">
                 <div class="position-relative" style="height: 48vh">
                   <div #tb_HangTien style="height: 100%"></div>
@@ -516,7 +516,7 @@
                   </form>
                 </div>
               </nz-tab>
-            </nz-tabset>
+            </nz-tabs>
           </div>
         </div>
       </div>

@@ -16,7 +16,7 @@ import { Subscription } from 'rxjs';
 
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   GridOption,
@@ -62,7 +62,7 @@ import { BillImportServiceService } from '../../BillImport/bill-import-service/b
     NzFormModule,
     NzDatePickerModule,
     NzSpinModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   templateUrl: './returned-inventory-product.component.html',
   styleUrl: './returned-inventory-product.component.css',
@@ -452,7 +452,7 @@ export class ReturnedInventoryProductComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -472,7 +472,7 @@ export class ReturnedInventoryProductComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -492,7 +492,7 @@ export class ReturnedInventoryProductComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -525,7 +525,7 @@ export class ReturnedInventoryProductComponent
         filter: {
           model: Filters['compoundInput'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -545,7 +545,7 @@ export class ReturnedInventoryProductComponent
         filter: {
           model: Filters['compoundInput'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
           collectionOptions: {
@@ -665,8 +665,8 @@ export class ReturnedInventoryProductComponent
       rowHeight: 40,
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

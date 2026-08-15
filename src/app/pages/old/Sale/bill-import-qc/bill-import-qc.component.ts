@@ -21,7 +21,7 @@ import {
   AfterViewInit,
 } from '@angular/core';
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -60,7 +60,7 @@ import {
   type NzNotificationComponent,
   NzNotificationService,
 } from 'ng-zorro-antd/notification';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { DateTime } from 'luxon';
@@ -90,7 +90,7 @@ import { BillImportQcDetailComponent } from './bill-import-qc-detail/bill-import
     NzSelectModule,
     NzButtonModule,
     NzIconModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzModalModule,
     NzSplitterModule,
     NzGridModule,
@@ -109,7 +109,7 @@ import { BillImportQcDetailComponent } from './bill-import-qc-detail/bill-import
     NgbModalModule,
     HasPermissionDirective,
     HorizontalScrollDirective,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   templateUrl: './bill-import-qc.component.html',
   styleUrl: './bill-import-qc.component.css',
@@ -812,8 +812,8 @@ export class BillImportQcComponent implements OnInit, AfterViewInit {
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {
@@ -840,8 +840,8 @@ export class BillImportQcComponent implements OnInit, AfterViewInit {
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

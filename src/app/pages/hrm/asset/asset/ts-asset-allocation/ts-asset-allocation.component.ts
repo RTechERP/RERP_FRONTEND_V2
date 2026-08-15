@@ -25,7 +25,7 @@ import { ContextMenuModule } from 'primeng/contextmenu';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   GridOption,
@@ -38,7 +38,7 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
 declare var bootstrap: any;
 import * as ExcelJS from 'exceljs';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { AssetAllocationService } from './ts-asset-allocation-service/ts-asset-allocation.service';
 import { TsAssetManagementPersonalService } from '../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
@@ -75,9 +75,9 @@ import { PermissionService } from '../../../../../services/permission.service';
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NgbModalModule, HasPermissionDirective,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzSpinModule,
     NzFormModule,
     Menubar,
@@ -450,7 +450,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -488,7 +488,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -506,7 +506,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -523,7 +523,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -553,8 +553,8 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: true,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       checkboxSelector: {
@@ -587,7 +587,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -605,7 +605,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -641,7 +641,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: true,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
       enableFiltering: true,
       autoFitColumnsOnFirstLoad: true,

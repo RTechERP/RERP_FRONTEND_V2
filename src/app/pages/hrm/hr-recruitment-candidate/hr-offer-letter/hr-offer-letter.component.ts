@@ -13,7 +13,7 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { HRRecruitmentCandidateService } from '../hr-recruitment-candidate.service';
@@ -68,7 +68,7 @@ export interface CandidateOfferMail {
     NzTagModule,
     NzSpinModule,
     NzTabsModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzSelectModule,
   ],
   templateUrl: './hr-offer-letter.component.html',

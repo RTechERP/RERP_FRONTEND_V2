@@ -16,7 +16,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { KpiSaleV2Service, KpiApiResponse, KpiTeam, KpiTeamUpsertRequest, KpiTeamMemberItem, isAutoCreatedTeamCode } from '../kpi-sale-v2.service';
 import { EmployeeOption } from '../kpi-sale-v2.component';
 import { TabServiceService } from '../../../../../layouts/tab-service.service';
@@ -61,7 +61,7 @@ interface KpiTeamDraft {
     NzSpinModule,
     NzTableModule,
     NzTagModule,
-    NzToolTipModule,
+    NzTooltipModule,
   ],
   templateUrl: './kpi-team-tab.component.html',
   styleUrl: './kpi-team-tab.component.css',

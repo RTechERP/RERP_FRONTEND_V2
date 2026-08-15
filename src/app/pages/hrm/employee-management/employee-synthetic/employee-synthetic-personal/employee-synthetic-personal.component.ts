@@ -5,7 +5,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angul
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
@@ -37,7 +37,6 @@ import { PinResetTabComponent } from '../../pin-reset-tab/pin-reset-tab.componen
     NzCardModule,
     NzButtonModule,
     NzIconModule,
-    NzNotificationModule,
     NzTabsModule,
     NzInputNumberModule,
     NzFormModule,

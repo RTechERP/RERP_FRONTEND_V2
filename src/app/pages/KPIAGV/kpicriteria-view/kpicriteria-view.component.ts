@@ -10,7 +10,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Formatters,
   GridOption,
@@ -29,7 +29,7 @@ import { ReadOnlyLongTextEditor } from '../kpievaluation-employee/frmKPIEvaluati
     NzTabsModule,
     NzInputNumberModule,
     NzFormModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   templateUrl: './kpicriteria-view.component.html',
   styleUrl: './kpicriteria-view.component.css'

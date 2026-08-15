@@ -25,7 +25,7 @@ import { LessonViewComponent } from './components/lesson-view/lesson-view.compon
 import { CoursePracticeService } from './course-practice.service';
 import { CourseExamResultComponent } from './course-exam/course-exam-result/course-exam-result.component';
 import { CourseExamResultPracticeComponent } from './course-exam/course-exam-result-practice/course-exam-result-practice.component';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { AppUserService } from '../../../services/app-user.service';
 
@@ -150,7 +150,7 @@ interface CourseTreeNode {
     LessonViewComponent,
     CourseExamResultComponent,
     CourseExamResultPracticeComponent,
-    NzToolTipModule,
+    NzTooltipModule,
     NzSpinModule
   ],
   templateUrl: './course-practice.component.html',

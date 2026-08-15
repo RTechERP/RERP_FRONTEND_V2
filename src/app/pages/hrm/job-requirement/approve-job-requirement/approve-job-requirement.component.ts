@@ -34,11 +34,11 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatters,
@@ -94,11 +94,11 @@ import { RowDetailViewComponent } from './row-detail-view.component';
         NgbModalModule,
         NzFormModule,
         NzInputNumberModule,
-        NzDropDownModule,
+        NzDropdownModule,
         NzMenuModule,
         NzSpinModule,
         HasPermissionDirective,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         Menubar,
     ],
     templateUrl: './approve-job-requirement.component.html',
@@ -695,7 +695,7 @@ export class ApproveJobRequirementComponent implements OnInit, AfterViewInit {
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                    options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
                 }
             },
             {
@@ -724,7 +724,7 @@ export class ApproveJobRequirementComponent implements OnInit, AfterViewInit {
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                    options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
                 }
             },
             {
@@ -741,7 +741,7 @@ export class ApproveJobRequirementComponent implements OnInit, AfterViewInit {
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                    options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
                 }
             },
             {
@@ -758,7 +758,7 @@ export class ApproveJobRequirementComponent implements OnInit, AfterViewInit {
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                    options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
                 }
             },
             {
@@ -775,7 +775,7 @@ export class ApproveJobRequirementComponent implements OnInit, AfterViewInit {
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                    options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
                 }
             },
             {
@@ -792,7 +792,7 @@ export class ApproveJobRequirementComponent implements OnInit, AfterViewInit {
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                    options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
                 }
             },
             {
@@ -809,7 +809,7 @@ export class ApproveJobRequirementComponent implements OnInit, AfterViewInit {
                     model: Filters['multipleSelect'],
                     collection: [],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                    options: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
                 }
             },
             {
@@ -839,10 +839,10 @@ export class ApproveJobRequirementComponent implements OnInit, AfterViewInit {
             enableColumnReorder: true,
             enableSorting: true,
             enableFiltering: true,
-            enableRowSelection: true,
+            enableSelection: true,
             enableCheckboxSelector: true,
             checkboxSelector: { hideSelectAllCheckbox: false },
-            rowSelectionOptions: { selectActiveRow: true },
+            selectionOptions: { selectActiveRow: true },
             rowHeight: 35,
             headerRowHeight: 52,
             forceFitColumns: false,

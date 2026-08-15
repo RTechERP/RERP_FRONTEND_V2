@@ -5,7 +5,6 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzProgressModule } from 'ng-zorro-antd/progress';
@@ -28,7 +27,6 @@ describe('RulePayComponent', () => {
         NzIconModule,
         NzInputModule,
         NzFormModule,
-        NzNotificationModule,
         NzSelectModule,
         NzSplitterModule,
         NzProgressModule,

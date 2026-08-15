@@ -11,9 +11,8 @@ import {
 } from '@angular/core';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
-  FieldType,
   Filters,
   Formatters,
   GridOption,
@@ -33,7 +32,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
@@ -62,7 +61,7 @@ import { CardModule } from "primeng/card";
   imports: [
     CommonModule,
     FormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzFormModule,
     NzInputModule,
     NzButtonModule,
@@ -70,7 +69,7 @@ import { CardModule } from "primeng/card";
     NzDatePickerModule,
     NzCheckboxModule,
     NzIconModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzMenuModule,
     NzTabsModule,
     NzSpinModule,
@@ -464,7 +463,7 @@ export class BillExportPrimeComponent {
       enableSorting: true,
       enableFiltering: true,
       enablePagination: false,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCheckboxSelector: true,
       enableRowMoveManager: false,
       checkboxSelector: {
@@ -472,7 +471,7 @@ export class BillExportPrimeComponent {
         hideInFilterHeaderRow: false,
         hideInColumnTitleRow: true,
       },
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: false,
       },
       multiSelect: true,
@@ -660,9 +659,9 @@ export class BillExportPrimeComponent {
       enableSorting: true,
       enableFiltering: true,
       enablePagination: false,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCheckboxSelector: false,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: true,
       },
       multiSelect: false,
@@ -706,7 +705,7 @@ export class BillExportPrimeComponent {
 
       // Subscribe to onClick để cập nhật detail theo dòng được click
       angularGrid.slickGrid.onClick.subscribe((e: any, args: any) => {
-        const column = angularGrid.slickGrid.getColumns()[args.cell];
+        const column = angularGrid.slickGrid.getVisibleColumns()[args.cell];
 
         // Bỏ qua nếu click vào checkbox selector column
         if (column && column.id === '_checkbox_selector') {

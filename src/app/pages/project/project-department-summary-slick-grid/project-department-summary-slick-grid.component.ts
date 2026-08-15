@@ -26,7 +26,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -41,7 +41,7 @@ import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { ProjectDetailComponent } from '../project-detail/project-detail.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProjectChangeComponent } from '../project-change/project-change.component';
@@ -92,11 +92,11 @@ import { TabServiceService } from '../../../layouts/tab-service.service';
     NzInputModule,
     NzSelectModule,
     NzTableModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
-    NzDropDownModule,
+    NzDropdownModule,
     CommonModule,
     HasPermissionDirective,
     Menubar,
@@ -355,7 +355,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -416,7 +416,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         //   model: Filters['multipleSelect'],
         //   collection: [],
         //   collectionOptions: { addBlankEntry: true },
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption
@@ -433,7 +433,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         //   model: Filters['multipleSelect'],
         //   collection: [],
         //   collectionOptions: { addBlankEntry: true },
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption
@@ -475,7 +475,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         //   model: Filters['multipleSelect'],
         //   collection: [],
         //   collectionOptions: { addBlankEntry: true },
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption
@@ -517,7 +517,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -558,7 +558,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -599,7 +599,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -640,7 +640,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         //   model: Filters['multipleSelect'],
         //   collection: [],
         //   collectionOptions: { addBlankEntry: true },
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption
@@ -741,7 +741,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         //   model: Filters['multipleSelect'],
         //   collection: [],
         //   collectionOptions: { addBlankEntry: true },
-        //   filterOptions: {
+        //   options: {
         //     filter: true,
         //     autoAdjustDropWidthByTextSize: true,
         //   } as MultipleSelectOption
@@ -807,7 +807,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -824,7 +824,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
@@ -842,9 +842,9 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: true,
-      enableRowSelection: true,
+      enableSelection: true,
       enableFiltering: true, // THÊM enableFiltering cho tree data
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: true
       },
       enableCellNavigation: true,
@@ -943,7 +943,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -959,7 +959,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -1000,7 +1000,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -1016,7 +1016,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -1043,7 +1043,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -1059,7 +1059,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -1142,7 +1142,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -1159,7 +1159,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -1174,7 +1174,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
       },
       enableAutoResize: true,
       forceFitColumns: true,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
       enableFiltering: true,
       autoFitColumnsOnFirstLoad: false,
@@ -1216,7 +1216,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
             { value: 'true', label: 'true' },
             { value: 'false', label: 'false' },
           ],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         }
@@ -1233,7 +1233,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -1250,7 +1250,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -1266,7 +1266,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
@@ -1285,8 +1285,8 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
       gridWidth: '100%',
       enableCellNavigation: true,
       enableFiltering: true,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       enableTreeData: true,

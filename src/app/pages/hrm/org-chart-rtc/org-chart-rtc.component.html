@@ -33,12 +33,12 @@
     </div>
 
     <!-- Department Tabs -->
-    <nz-tabset [(nzSelectedIndex)]="selectedTabIndex" (nzSelectedIndexChange)="onDepartmentTabChange($event)">
+    <nz-tabs [(nzSelectedIndex)]="selectedTabIndex" (nzSelectedIndexChange)="onDepartmentTabChange($event)">
       <nz-tab nzTitle="Org Chart">
       </nz-tab>
       <nz-tab *ngFor="let dept of departments" [nzTitle]="dept.Name">
       </nz-tab>
-    </nz-tabset>
+    </nz-tabs>
 
 
     <!-- Diagram Container -->

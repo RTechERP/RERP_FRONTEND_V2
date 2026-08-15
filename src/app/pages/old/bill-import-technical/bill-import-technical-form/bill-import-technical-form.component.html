@@ -175,7 +175,7 @@
             <!-- Điều khoản thanh toán -->
         </nz-row>
     </form>
-    <nz-tabset class="mt-2" [nzAnimated]="false" (nzSelectedIndexChange)="onTabChange($event)">
+    <nz-tabs class="mt-2" [nzAnimated]="false" (nzSelectedIndexChange)="onTabChange($event)">
         <nz-tab nzTitle="Danh sách sản phẩm" nzForceRender="true">
             <div #tableDeviceTemp></div>
         </nz-tab>
@@ -184,7 +184,7 @@
                 <div #table_DocumnetImport></div>
             </nz-spin>
         </nz-tab>
-    </nz-tabset>
+    </nz-tabs>
 </div>
 <!-- Footer nút -->
 <div class="modal-footer">

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MenuItem } from 'primeng/api';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -44,7 +44,6 @@ export interface ColDef {
     FormsModule,
     NzButtonModule,
     NzIconModule,
-    NzNotificationModule,
     NzModalModule,
     NzSpinModule,
     NzInputModule,

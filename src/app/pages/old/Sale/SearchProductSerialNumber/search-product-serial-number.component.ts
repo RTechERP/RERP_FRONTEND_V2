@@ -21,7 +21,7 @@ import {
 
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -45,7 +45,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { DateTime } from 'luxon';
 import { SearchProductSerialNumberServiceService } from './search-product-serial-number-service/search-product-serial-number-service.service';
@@ -72,11 +72,11 @@ import { NzCardModule } from 'ng-zorro-antd/card';
     NzCheckboxModule,
     NgbModule,
     NzDatePickerModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzMenuModule,
     NzSpinModule,
     NzCardModule,
-    AngularSlickgridModule
+    AngularSlickgridComponent
   ],
   templateUrl: './search-product-serial-number.component.html',
   styleUrl: './search-product-serial-number.component.css',
@@ -225,7 +225,7 @@ export class SearchProductSerialNumberComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -268,7 +268,7 @@ export class SearchProductSerialNumberComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -283,7 +283,7 @@ export class SearchProductSerialNumberComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -318,7 +318,7 @@ export class SearchProductSerialNumberComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -369,7 +369,7 @@ export class SearchProductSerialNumberComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -384,7 +384,7 @@ export class SearchProductSerialNumberComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -420,7 +420,7 @@ export class SearchProductSerialNumberComponent
       enableFiltering: true,
       enableSorting: true,
       enableCellNavigation: true,
-      enableRowSelection: false,
+      enableSelection: false,
       datasetIdPropertyName: 'id',
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
@@ -441,7 +441,7 @@ export class SearchProductSerialNumberComponent
       enableFiltering: true,
       enableSorting: true,
       enableCellNavigation: true,
-      enableRowSelection: false,
+      enableSelection: false,
       datasetIdPropertyName: 'id',
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,

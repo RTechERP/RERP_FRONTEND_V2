@@ -12,7 +12,7 @@ import { FormsModule } from '@angular/forms';
 
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatter,
@@ -56,7 +56,7 @@ import { ProductSaleDetailComponent } from '../product-sale-detail/product-sale-
   imports: [
     CommonModule,
     FormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzButtonModule,
     NzIconModule,
     NzModalModule,
@@ -443,7 +443,7 @@ export class ProductSaleNewApprovedComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -461,7 +461,7 @@ export class ProductSaleNewApprovedComponent
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
@@ -486,7 +486,7 @@ export class ProductSaleNewApprovedComponent
             { value: true, label: 'Có' },
             { value: false, label: 'Không' },
           ],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -618,8 +618,8 @@ export class ProductSaleNewApprovedComponent
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

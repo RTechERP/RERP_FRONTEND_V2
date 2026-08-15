@@ -47,7 +47,7 @@
         nzMessage="Cấu hình này áp dụng khi tính Ranking & Thưởng cho từng loại nhân viên (Sales, PM, Admin...).">
       </nz-alert>
 
-      <nz-tabset [nzSelectedIndex]="activeTabIndex" (nzSelectChange)="onTabChange($event.index)" nzSize="default">
+      <nz-tabs [nzSelectedIndex]="activeTabIndex" (nzSelectChange)="onTabChange($event.index)" nzSize="default">
         <!-- ============== TAB 1: CẤU HÌNH CHUNG ============== -->
         <nz-tab nzTitle="Cấu hình chung">
           <div class="tab-toolbar">
@@ -327,7 +327,7 @@
             </p-table>
           </div>
         </nz-tab> -->
-      </nz-tabset>
+      </nz-tabs>
     </div>
   </nz-spin>
 

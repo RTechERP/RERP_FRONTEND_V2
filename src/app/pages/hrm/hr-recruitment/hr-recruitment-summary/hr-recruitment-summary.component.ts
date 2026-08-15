@@ -9,7 +9,7 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
@@ -55,7 +55,7 @@ echarts.use([
     NzFormModule,
     NzGridModule,
     NzIconModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzInputModule,
     NzCheckboxModule,
     NzSpinModule,

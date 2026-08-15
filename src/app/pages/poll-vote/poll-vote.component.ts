@@ -8,7 +8,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTagModule } from 'ng-zorro-antd/tag';
@@ -118,7 +118,6 @@ interface BranchDecision {
         NzDatePickerModule,
         NzEmptyModule,
         NzInputModule,
-        NzNotificationModule,
         NzSpinModule,
         NzTagModule,
         NzModalModule,

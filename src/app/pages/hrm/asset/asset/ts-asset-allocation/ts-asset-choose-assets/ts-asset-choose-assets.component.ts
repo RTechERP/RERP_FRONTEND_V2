@@ -28,7 +28,7 @@ import { AssetAllocationService } from '../ts-asset-allocation-service/ts-asset-
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -51,7 +51,7 @@ import {
     NzInputModule,
     NzButtonModule,
     NzModalModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
 })
 export class TsAssetChooseAssetsComponent implements OnInit {
@@ -340,12 +340,12 @@ export class TsAssetChooseAssetsComponent implements OnInit {
       enableAutoSizeColumns: false,
       // Bật checkbox selection
       enableCheckboxSelector: true,
-      enableRowSelection: true,
+      enableSelection: true,
       checkboxSelector: {
         hideSelectAllCheckbox: false,
         width: 50,
       },
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: false,
       },
       // Cho phép chọn nhiều dòng

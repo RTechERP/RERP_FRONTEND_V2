@@ -21,7 +21,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { NgbActiveModal, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
@@ -60,7 +60,7 @@ import { PONCCService } from '../poncc/poncc.service';
     NzSplitterModule,
     NzTabsModule,
     NzModalModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NgbModule,
     HasPermissionDirective,
     MenubarModule

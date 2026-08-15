@@ -34,7 +34,7 @@ import { SupplierSaleService } from './supplier-sale.service';
 
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -75,7 +75,7 @@ import { PermissionService } from '../../../services/permission.service';
     ToolbarModule,
     MenubarModule,
     InputTextModule,
-    AngularSlickgridModule
+    AngularSlickgridComponent
   ],
   templateUrl: './supplier-sale.component.html',
   styleUrl: './supplier-sale.component.css',
@@ -259,7 +259,7 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -274,7 +274,7 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -355,7 +355,7 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -406,7 +406,7 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -454,7 +454,7 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -482,8 +482,8 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
       enableAutoTooltip: true,
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: false,
-      rowSelectionOptions: {
+      enableSelection: false,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {
@@ -567,8 +567,8 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: false,
-      rowSelectionOptions: {
+      enableSelection: false,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {

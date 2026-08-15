@@ -97,7 +97,7 @@ angular-slickgrid,
 }
 
 /* Ensure tabs fill height */
-nz-tabset {
+nz-tabs {
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -449,18 +449,18 @@ textarea {
     line-height: 1.4 !important;
 }
 
-:host ::ng-deep .kpi-employee-wrapper nz-tabset.approval-tabs .ant-tabs-tab-btn {
+:host ::ng-deep .kpi-employee-wrapper nz-tabs.approval-tabs .ant-tabs-tab-btn {
     color: #141a24 !important;
     opacity: 1 !important;
     padding: 4px !important;
     padding-left: 12px !important;
 }
 
-:host ::ng-deep .kpi-employee-wrapper nz-tabset.approval-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+:host ::ng-deep .kpi-employee-wrapper nz-tabs.approval-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
     color: #0e1114 !important;
     font-weight: 600;
 }
 
-:host ::ng-deep .kpi-employee-wrapper nz-tabset.approval-tabs .ant-tabs-ink-bar {
+:host ::ng-deep .kpi-employee-wrapper nz-tabs.approval-tabs .ant-tabs-ink-bar {
     background: #1677ff !important;
 }

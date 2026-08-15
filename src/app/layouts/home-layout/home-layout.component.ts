@@ -19,7 +19,7 @@ import {
 } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCarouselComponent, NzCarouselModule } from 'ng-zorro-antd/carousel';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
@@ -114,7 +114,7 @@ interface WorkStatus {
         NzMenuModule,
         NzButtonModule,
         NzTabsModule,
-        NzDropDownModule,
+        NzDropdownModule,
         // NzBadgeModule,
         // NzAvatarModule,
         // BrowserModule,

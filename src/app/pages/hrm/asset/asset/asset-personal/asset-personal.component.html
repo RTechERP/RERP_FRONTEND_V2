@@ -42,7 +42,7 @@
 
     <!-- Tabs -->
     <div class="card-body p-1 position-relative flex-grow-1" style="min-height: 0; height: 100%;">
-        <nz-tabset class="approval-tabs" [(nzSelectedIndex)]="selectedTabIndex"
+        <nz-tabs class="approval-tabs" [(nzSelectedIndex)]="selectedTabIndex"
             (nzSelectedIndexChange)="onTabChange($event)">
             <!-- Tab 1: Biên bản -->
             <nz-tab nzTitle="Biên bản" [nzForceRender]="true">
@@ -127,7 +127,7 @@
                         <!-- Bảng Detail - Chi tiết cấp phát (ở dưới) -->
                         <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="true" nzSize="50%">
                             <div style="height: 100%; display: flex; flex-direction: column;">
-                                <nz-tabset style="padding-left: 10px; flex: 1; height: 100%;">
+                                <nz-tabs style="padding-left: 10px; flex: 1; height: 100%;">
                                     <nz-tab [nzTitle]="detailTabTitle">
                                         <p-table [value]="recordDetails" [scrollable]="true" scrollHeight="flex"
                                             styleClass="p-datatable-sm p-datatable-gridlines custom-table">
@@ -155,7 +155,7 @@
                                             </ng-template>
                                         </p-table>
                                     </nz-tab>
-                                </nz-tabset>
+                                </nz-tabs>
                             </div>
                         </nz-splitter-panel>
                     </nz-splitter>
@@ -208,6 +208,6 @@
                     </p-table>
                 </nz-spin>
             </nz-tab>
-        </nz-tabset>
+        </nz-tabs>
     </div>
 </div>

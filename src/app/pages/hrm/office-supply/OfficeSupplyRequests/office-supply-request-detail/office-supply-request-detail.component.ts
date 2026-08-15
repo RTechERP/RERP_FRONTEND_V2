@@ -15,7 +15,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 
 // Services & Config
 import { DangkyvppServiceService } from '../officesupplyrequests-service/office-supply-requests-service.service';
@@ -40,7 +40,7 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
         NzCheckboxModule,
         NzGridModule,
         NzCardModule,
-        NzToolTipModule
+        NzTooltipModule
     ],
     templateUrl: './office-supply-request-detail.component.html',
     styleUrls: ['./office-supply-request-detail.component.css']

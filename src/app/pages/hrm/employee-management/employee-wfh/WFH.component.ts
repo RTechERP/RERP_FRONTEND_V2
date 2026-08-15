@@ -21,7 +21,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -53,7 +53,7 @@ import { PermissionService } from '../../../../services/permission.service';
     NzSplitterModule,
     NzGridModule,
     NzModalModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzMenuModule,
     HasPermissionDirective,
     Menubar,

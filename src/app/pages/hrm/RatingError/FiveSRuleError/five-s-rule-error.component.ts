@@ -2,7 +2,7 @@ import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -12,7 +12,7 @@ import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatter,
@@ -30,14 +30,13 @@ import { FiveSRuleErrorFormComponent } from './five-s-rule-error-form/five-s-rul
         FormsModule,
         ReactiveFormsModule,
         NgbModalModule,
-        NzNotificationModule,
         NzModalModule,
         NzCardModule,
         NzButtonModule,
         NzIconModule,
         NzSpinModule,
         Menubar,
-        AngularSlickgridModule
+        AngularSlickgridComponent
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     templateUrl: './five-s-rule-error.component.html',
@@ -121,8 +120,8 @@ export class FiveSRuleErrorComponent implements OnInit {
             enableCellNavigation: true,
             enableCheckboxSelector: true,
             checkboxSelector: { hideInFilterHeaderRow: false, hideInColumnTitleRow: false, hideSelectAllCheckbox: false, applySelectOnAllPages: true },
-            rowSelectionOptions: { selectActiveRow: false },
-            enableRowSelection: true,
+            selectionOptions: { selectActiveRow: false },
+            enableSelection: true,
             enableFiltering: true,
             enableSorting: true,
             rowHeight: 30,

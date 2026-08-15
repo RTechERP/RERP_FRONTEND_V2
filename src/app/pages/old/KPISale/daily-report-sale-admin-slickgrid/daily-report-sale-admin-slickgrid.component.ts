@@ -19,7 +19,7 @@ import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzFlexModule, NzWrap } from 'ng-zorro-antd/flex';
 import { NzDrawerModule, NzDrawerPlacement } from 'ng-zorro-antd/drawer';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -39,7 +39,7 @@ import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatters,
@@ -83,7 +83,7 @@ import { ActivatedRoute } from '@angular/router';
         NzLayoutModule,
         NzFlexModule,
         NzDrawerModule,
-        NzDropDownModule,
+        NzDropdownModule,
         NzSplitterModule,
         NzGridModule,
         NzDatePickerModule,
@@ -100,7 +100,7 @@ import { ActivatedRoute } from '@angular/router';
         NzCheckboxModule,
         CommonModule,
         HasPermissionDirective,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         Menubar,
     ],
     templateUrl: './daily-report-sale-admin-slickgrid.component.html',
@@ -360,12 +360,12 @@ export class DailyReportSaleAdminSlickgridComponent implements OnInit, AfterView
     initGrid(): void {
         this.columnDefinitions = [
             { id: 'DateReport', name: 'Ngày', field: 'DateReport', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center', filter: { model: Filters['compoundInputText'] } },
-            { id: 'EmployeeFullName', name: 'Nhân viên', field: 'EmployeeFullName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
-            { id: 'ReportTypeName', name: 'Loại báo cáo', field: 'ReportTypeName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
+            { id: 'EmployeeFullName', name: 'Nhân viên', field: 'EmployeeFullName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
+            { id: 'ReportTypeName', name: 'Loại báo cáo', field: 'ReportTypeName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'ReportContent', name: 'Nội dung báo cáo', field: 'ReportContent', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
             { id: 'ProjectCode', name: 'Mã dự án', field: 'ProjectCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
             { id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-            { id: 'EmployeeRequestFullName', name: 'Người yêu cầu', field: 'EmployeeRequestFullName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
+            { id: 'EmployeeRequestFullName', name: 'Người yêu cầu', field: 'EmployeeRequestFullName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'Result', name: 'Kết quả xử lý', field: 'Result', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
             { id: 'Problem', name: 'Vấn đề tồn đọng', field: 'Problem', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
             { id: 'PlanNextDay', name: 'Kế hoạch tiếp theo', field: 'PlanNextDay', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
@@ -381,8 +381,8 @@ export class DailyReportSaleAdminSlickgridComponent implements OnInit, AfterView
             gridWidth: '100%',
             enableCellNavigation: true,
             enableFiltering: true,
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true
             },
             enableCheckboxSelector: false,

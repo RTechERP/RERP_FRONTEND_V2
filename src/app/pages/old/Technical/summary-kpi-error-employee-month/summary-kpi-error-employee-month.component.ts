@@ -10,7 +10,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { AngularSlickgridModule, Column, GridOption, AngularGridInstance, Aggregators, GroupTotalFormatters, Formatters } from 'angular-slickgrid';
+import { AngularSlickgridComponent, Column, GridOption, AngularGridInstance, Aggregators, GroupTotalFormatters, Formatters } from 'angular-slickgrid';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { SummaryKpiErrorEmployeeMonthService } from './summary-kpi-error-employee-month-service/summary-kpi-error-employee-month.service';
 import { ChartModule } from 'primeng/chart';
@@ -29,7 +29,7 @@ import * as ExcelJS from 'exceljs';
         NzInputModule,
         NzGridModule,
         NzCardModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         NzSplitterModule,
         ChartModule
     ],

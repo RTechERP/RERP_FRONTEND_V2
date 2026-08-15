@@ -11,7 +11,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { TableModule } from 'primeng/table';
 import { MenuItem } from 'primeng/api';
@@ -42,7 +42,7 @@ import { TabServiceService } from '../../../../layouts/tab-service.service';
     NzGridModule,
     NzRadioModule,
     NzTagModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzSwitchModule,
     TableModule,
     Menubar

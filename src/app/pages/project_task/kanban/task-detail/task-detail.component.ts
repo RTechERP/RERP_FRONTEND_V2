@@ -20,7 +20,7 @@ import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { NzPopoverModule } from 'ng-zorro-antd/popover';
 import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzSliderModule } from 'ng-zorro-antd/slider';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzListModule } from 'ng-zorro-antd/list';
@@ -78,7 +78,7 @@ import { AddRelatedPeopleComponent } from '../add-related-people/add-related-peo
         NzPopoverModule,
         NzProgressModule,
         NzAvatarModule,
-        NzToolTipModule,
+        NzTooltipModule,
         NzSliderModule,
         NzInputNumberModule,
         NzListModule,

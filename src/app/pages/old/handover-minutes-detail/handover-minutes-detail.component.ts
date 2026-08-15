@@ -51,7 +51,7 @@ import { CommonModule } from '@angular/common';
 import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { map, catchError, of, forkJoin } from 'rxjs';
 import * as ExcelJS from 'exceljs';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 import { HandoverMinutesDetailService } from '../handover-minutes-detail/handover-minutes-detail/handover-minutes-detail.service';
@@ -67,7 +67,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzSelectModule,
     NzButtonModule,
     NzTabsModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzIconModule,
     NzModalModule,
   ],

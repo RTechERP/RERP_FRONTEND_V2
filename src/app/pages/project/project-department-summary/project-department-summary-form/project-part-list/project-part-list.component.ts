@@ -55,7 +55,7 @@ import { ProjectSolutionVersionDetailComponent } from '../project-solution-versi
 import { ProjectSolutionDetailComponent } from '../project-solution-detail/project-solution-detail.component';
 import { ProjectWorkerDetailComponent } from '../project-worker-detail/project-worker-detail.component';
 import { max } from 'rxjs';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { CommonModule } from '@angular/common';
@@ -101,7 +101,7 @@ import { BillExportDetailNewComponent } from '../../../../old/Sale/BillExport/bi
         NzTreeSelectModule,
         NzModalModule,
         NzFormModule,
-        NzDropDownModule,
+        NzDropdownModule,
         NzCheckboxModule,
         HasPermissionDirective,
     ],

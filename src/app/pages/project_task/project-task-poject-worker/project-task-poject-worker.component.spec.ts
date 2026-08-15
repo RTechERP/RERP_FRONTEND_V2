@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 
 import { ProjectTaskPojectWorkerComponent } from './project-task-poject-worker.component';
 
@@ -14,7 +13,6 @@ describe('ProjectTaskPojectWorkerComponent', () => {
       imports: [
         ProjectTaskPojectWorkerComponent,
         HttpClientTestingModule,
-        NzNotificationModule,
         NoopAnimationsModule,
       ],
     })

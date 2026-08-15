@@ -20,7 +20,7 @@ import { Menubar } from 'primeng/menubar';
 // SlickGrid imports
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   GridOption,
@@ -29,7 +29,6 @@ import {
 // Service
 import { KpiCriteriaService } from './kpi-criteria-service/kpi-criteria.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
-import { trigger } from '@angular/animations';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { KpiCriteriaDetailComponent } from './kpi-criteria-detail/kpi-criteria-detail.component';
 
@@ -48,7 +47,7 @@ import { KpiCriteriaDetailComponent } from './kpi-criteria-detail/kpi-criteria-d
     NzFormModule,
     NzModalModule,
     NzAlertModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Menubar,
   ],
   templateUrl: './kpi-criteria.component.html',
@@ -208,8 +207,8 @@ export class KpiCriteriaComponent implements OnInit, OnDestroy {
       gridWidth: '100%',
       enableCellNavigation: true,
       enableFiltering: true,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: true,
       },
       enableCheckboxSelector: false,
@@ -276,8 +275,8 @@ export class KpiCriteriaComponent implements OnInit, OnDestroy {
       gridWidth: '100%',
       enableCellNavigation: true,
       enableFiltering: true,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: true,
       },
       enableCheckboxSelector: false,

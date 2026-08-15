@@ -8,7 +8,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
-import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -33,7 +33,6 @@ import { finalize } from 'rxjs/operators';
     NzSelectModule,
     NzDatePickerModule,
     NzRadioModule,
-    NzNotificationModule,
     NzSpinModule,
     NzGridModule,
     NzCardModule,

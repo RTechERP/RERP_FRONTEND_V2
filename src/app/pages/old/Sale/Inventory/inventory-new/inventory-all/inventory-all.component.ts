@@ -28,7 +28,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatter,
@@ -87,7 +87,7 @@ interface ProductGroup {
     NzCheckboxModule,
     NzSpinModule,
     NgbModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     HasPermissionDirective
   ],
   templateUrl: './inventory-all.component.html',
@@ -386,7 +386,7 @@ export class InventoryAllComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -401,7 +401,7 @@ export class InventoryAllComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -423,8 +423,8 @@ export class InventoryAllComponent {
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: true,
       },
       enableCellNavigation: true,
@@ -453,8 +453,8 @@ export class InventoryAllComponent {
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false,
       },
       checkboxSelector: {
@@ -1599,7 +1599,7 @@ export class InventoryAllComponent {
             { value: true, label: 'Có' },
             { value: false, label: 'Không' },
           ],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1614,7 +1614,7 @@ export class InventoryAllComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -1628,7 +1628,7 @@ export class InventoryAllComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
       },
@@ -1658,7 +1658,7 @@ export class InventoryAllComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -1687,7 +1687,7 @@ export class InventoryAllComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -1700,7 +1700,7 @@ export class InventoryAllComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -1713,7 +1713,7 @@ export class InventoryAllComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -1908,7 +1908,7 @@ export class InventoryAllComponent {
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },

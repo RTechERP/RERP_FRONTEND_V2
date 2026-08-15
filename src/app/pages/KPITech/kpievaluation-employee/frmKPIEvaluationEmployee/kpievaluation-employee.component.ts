@@ -10,7 +10,7 @@ import {
   GridOption,
   Filters,
   Formatters,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   OnSelectedRowsChangedEventArgs,
   Editors,
   SortDirectionNumber,
@@ -25,12 +25,12 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzContextMenuService, NzDropdownMenuComponent, NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzContextMenuService, NzDropdownMenuComponent, NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { KPIService } from '../../kpi-service/kpi.service';
 import { AppUserService } from '../../../../services/app-user.service';
 import { AuthService } from '../../../../auth/auth.service';
@@ -61,7 +61,7 @@ interface LiXi {
   imports: [
     CommonModule,
     FormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzButtonModule,
     NzIconModule,
     NzSelectModule,
@@ -70,11 +70,11 @@ interface LiXi {
     NzSplitterModule,
     NzTabsModule,
     NzCardModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzModalModule,
     NzDividerModule,
     NzSpinModule,
-    NzDropDownModule,
+    NzDropdownModule,
     CustomTableKpi,
     CustomTreeTableKpi,
   ],
@@ -595,9 +595,9 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         resizeDetection: 'container'
       },
       gridWidth: '100%',
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: true
       },
       enableSorting: true,
@@ -695,9 +695,9 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         resizeDetection: 'container'
       },
       gridWidth: '100%',
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: true
       },
       enableSorting: true,
@@ -1922,7 +1922,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       this.angularGridRule.slickGrid.onClick.subscribe((e: any, args: any) => {
         const grid = args.grid;
         const rowData = grid.getDataItem(args.row);
-        const column = grid.getColumns()[args.cell];
+        const column = grid.getVisibleColumns()[args.cell];
 
         if (rowData && column && ['FirstMonth', 'SecondMonth', 'ThirdMonth'].includes(column.id)) {
           const evaluationCode = rowData.EvaluationCode;

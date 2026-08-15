@@ -17,7 +17,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { firstValueFrom, forkJoin, Observable, of } from 'rxjs';
@@ -111,7 +111,7 @@ export type TableRow = TargetGroupHeader | QuarterlyPivotRow | QuarterlyTargetRo
     NzSpinModule,
     NzTableModule,
     NzTagModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzTreeSelectModule
   ],
   templateUrl: './kpi-target-tab.component.html',

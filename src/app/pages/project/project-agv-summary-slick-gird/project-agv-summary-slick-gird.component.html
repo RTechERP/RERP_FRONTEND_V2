@@ -344,7 +344,7 @@
                     <i nz-icon nzType="close"></i>
                   </button>
                 </ng-template>
-                <nz-tabset *ngIf="detailTabsVisible" style="padding-left: 10px !important;"
+                <nz-tabs *ngIf="detailTabsVisible" style="padding-left: 10px !important;"
                   [nzTabBarExtraContent]="tabClose" [(nzSelectedIndex)]="selectedTabIndex"
                   (nzSelectedIndexChange)="switchTab($event === 0 ? 'workreport' : 'typelink')">
                   <nz-tab nzTitle="Danh sách hạng mục">
@@ -378,7 +378,7 @@
                       </angular-slickgrid>
                     </div>
                   </nz-tab>
-                </nz-tabset>
+                </nz-tabs>
               </nz-splitter-panel>
             </nz-splitter>
           </nz-spin>

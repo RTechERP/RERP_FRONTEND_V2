@@ -110,7 +110,7 @@
         </button>
         <div style="width: 100%; max-width: 100%; overflow: auto" class="app-header-tabs">
 
-          <nz-tabset nzType="editable-card" nzHideAdd [(nzSelectedIndex)]="selectedCompIndex"
+          <nz-tabs nzType="editable-card" nzHideAdd [(nzSelectedIndex)]="selectedCompIndex"
             (nzClose)="closeTabComp($event)">
             <nz-tab *ngFor="let tab of dynamicTabComps" [nzTitle]="titleTemplate" [nzClosable]="true"
               class="text-uppercase">
@@ -122,7 +122,7 @@
 
               </ng-template>
             </nz-tab>
-          </nz-tabset>
+          </nz-tabs>
         </div>
         <div class="header-trigger d-flex align-items-center">
           <span *ngIf="sessionCountdown" class="text-white fw-bold me-3 d-inline-flex align-items-center"
@@ -169,13 +169,13 @@
     </nz-header>
     <nz-content class="">
 
-      <!-- <nz-tabset [(nzSelectedIndex)]="selectedIndex" class="hidden-tab-header">
+      <!-- <nz-tabs [(nzSelectedIndex)]="selectedIndex" class="hidden-tab-header">
                 <nz-tab *ngFor="let tab of dynamicTabs; let i = index">
                     <ng-template nz-tab>
                         <router-outlet [name]="tab.outlet"></router-outlet>
                     </ng-template>
                 </nz-tab>
-            </nz-tabset> -->
+            </nz-tabs> -->
 
 
       <div class="content-host" *ngIf="hasDynamicTabComp">

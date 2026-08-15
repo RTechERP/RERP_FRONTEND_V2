@@ -73,7 +73,7 @@
         </div>
         <div class="card-container
         ">
-          <nz-tabset nzSize="small" (nzSelectedIndexChange)="onTabChange($event)">
+          <nz-tabs nzSize="small" (nzSelectedIndexChange)="onTabChange($event)">
             <nz-tab  nzTitle="Hành chính nhân sự -IT">
               <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%; flex-grow: 1;">
                 <div id="table_dailyreportHCNSIT"></div>
@@ -86,7 +86,7 @@
             <nz-tab nzTitle="Lái xe">
               <div id="table_dailyreportLX"></div>
             </nz-tab>
-          </nz-tabset>
+          </nz-tabs>
         </div>
       </div>
     </nz-splitter-panel>

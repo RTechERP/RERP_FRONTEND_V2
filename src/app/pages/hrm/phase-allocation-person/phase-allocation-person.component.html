@@ -73,7 +73,7 @@
                   <i nz-icon nzType="close"></i>
                 </button>
               </ng-template>
-              <nz-tabset style="padding-left: 10px !important;" [nzTabBarExtraContent]="tabClose">
+              <nz-tabs style="padding-left: 10px !important;" [nzTabBarExtraContent]="tabClose">
                 <nz-tab [nzTitle]="detailTabTitle">
                   <!-- Toolbar chi tiết: Filter + Buttons -->
                   <div class="detail-toolbar d-flex gap-2 align-items-center justify-content-between mb-2 flex-wrap">
@@ -102,7 +102,7 @@
 
                   <div #detailTableRef></div>
                 </nz-tab>
-              </nz-tabset>
+              </nz-tabs>
             </nz-splitter-panel>
           </nz-splitter>
         </div>

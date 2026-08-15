@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { FormsModule } from '@angular/forms';
@@ -27,7 +27,6 @@ import { PermissionService } from '../../../services/permission.service';
     CommonModule,
     NzIconModule,
     NzButtonModule,
-    NzNotificationModule,
     NzGridModule,
     NzTagModule,
     TreeTableModule,

@@ -60,7 +60,7 @@
 }
 
 /* Tabset styles to fill remaining height */
-:host ::ng-deep nz-tabset,
+:host ::ng-deep nz-tabs,
 :host ::ng-deep .ant-tabs {
   flex: 1;
   display: flex;

@@ -24,7 +24,7 @@ import {
 import { ProjectPartlistPriceRequestService } from '../../old/project-partlist-price-request/project-partlist-price-request-service/project-partlist-price-request.service';
 import { ProjectPartlistPriceRequestFormComponent } from '../../old/project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
 import { ImportExcelProjectPartlistPriceRequestComponent } from '../../old/project-partlist-price-request/import-excel-project-partlist-price-request/import-excel-project-partlist-price-request.component';
-import { AngularSlickgridModule, AngularGridInstance, Column, GridOption, Filters, Formatters, Editors, OnClickEventArgs, OnCellChangeEventArgs, OnSelectedRowsChangedEventArgs, Aggregators, GroupTotalFormatters, SortComparers } from 'angular-slickgrid';
+import { AngularSlickgridComponent, AngularGridInstance, Column, GridOption, Filters, Formatters, Editors, OnClickEventArgs, OnCellChangeEventArgs, OnSelectedRowsChangedEventArgs, Aggregators, GroupTotalFormatters, SortComparers } from 'angular-slickgrid';
 import { AutocompleterOption, MultipleSelectOption, SortDirectionNumber } from '@slickgrid-universal/common';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -50,7 +50,7 @@ import {
   type NzNotificationComponent,
   NzNotificationService,
 } from 'ng-zorro-antd/notification';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { DateTime } from 'luxon';
@@ -85,7 +85,7 @@ import { HistoryPriceComponent } from '../../purchase/project-partlist-purchase-
     NzSelectModule,
     NzButtonModule,
     NzIconModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzModalModule,
     NzSplitterModule,
     NzGridModule,
@@ -106,7 +106,7 @@ import { HistoryPriceComponent } from '../../purchase/project-partlist-purchase-
     ImportExcelProjectPartlistPriceRequestComponent,
     HasPermissionDirective,
     HorizontalScrollDirective,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     MenubarModule,
     ProjectPartlistPriceRequestLogComponent,
   ],
@@ -1546,7 +1546,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1578,7 +1578,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1610,7 +1610,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1643,7 +1643,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1738,7 +1738,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
 
         formatter: (_row, _cell, value, _column, dataContext) => {
@@ -1771,7 +1771,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1806,7 +1806,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1841,7 +1841,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
 
         formatter: (_row, _cell, value, _column, dataContext) => {
@@ -1874,7 +1874,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
@@ -1941,7 +1941,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1951,7 +1951,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           collectionOptions: {
             addBlankEntry: true
           },
-          editorOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -2111,7 +2111,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -2127,7 +2127,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: {
+          options: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -2154,7 +2154,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         editor: {
           model: Editors['autocompleter'],
           alwaysSaveOnEnterKey: true,
-          editorOptions: {
+          options: {
             minLength: 0,
             forceUserInput: false,
             openSearchListOnFocus: true,
@@ -2353,7 +2353,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             addBlankEntry: true
           },
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
 
         formatter: (_row, _cell, value, _column, dataContext) => {
@@ -2388,7 +2388,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -2505,8 +2505,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false, // True (Single Selection), False (Multiple Selections)
       },
       checkboxSelector: {
@@ -2697,8 +2697,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       // Luôn enable checkbox selector với config cố định
       angularGrid!.slickGrid!.setOptions({
         enableCheckboxSelector: true,
-        enableRowSelection: true,
-        rowSelectionOptions: {
+        enableSelection: true,
+        selectionOptions: {
           selectActiveRow: false,
         },
         checkboxSelector: {

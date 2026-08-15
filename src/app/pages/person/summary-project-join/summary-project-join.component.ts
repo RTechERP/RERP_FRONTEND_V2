@@ -25,7 +25,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -81,7 +81,7 @@ import { SummaryProjectJoinService } from './summary-project-join-service/summar
     NzTreeSelectModule,
     NzModalModule,
     CommonModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     // HasPermissionDirective
   ],
   templateUrl: './summary-project-join.component.html',
@@ -523,8 +523,8 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
       gridWidth: '100%',
       gridHeight: '100%',
       forceFitColumns: false,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       enableCellNavigation: true,
@@ -597,8 +597,8 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
       gridWidth: '100%',
       gridHeight: '100%',
       forceFitColumns: true,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       enableCellNavigation: true,
@@ -1034,8 +1034,8 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
       gridWidth: '100%',
       gridHeight: '100%',
       forceFitColumns: false,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       enableCellNavigation: true,
@@ -1185,8 +1185,8 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
 
       },
       forceFitColumns: true,  // Tự động fit columns theo chiều rộng container
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       enableCellNavigation: true,
@@ -1310,8 +1310,8 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
         resizeDetection: 'container'
       },
       forceFitColumns: true,
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       enableCellNavigation: true,

@@ -4,7 +4,7 @@ import { catchError, tap } from 'rxjs/operators';
 import { AppNotifycationDropdownComponent, NotifyItem } from "../../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component";
 import { AppUserDropdownComponent } from "../../../pages/systems/app-user/app-user-dropdown.component";
 import { NzBadgeComponent } from "ng-zorro-antd/badge";
-import { NzDropDownModule } from "ng-zorro-antd/dropdown";
+import { NzDropdownModule } from "ng-zorro-antd/dropdown";
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 
@@ -65,7 +65,7 @@ import { TravelRegistrationServiceService } from '../../../pages/hrm/travel-regi
     AppNotifycationDropdownComponent,
     AppUserDropdownComponent,
     NzBadgeComponent,
-    NzDropDownModule,
+    NzDropdownModule,
     NzGridModule,
     NzCalendarModule,
     RouterLink,

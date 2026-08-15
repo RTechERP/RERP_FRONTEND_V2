@@ -12,7 +12,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { ProjectService } from '../../../project/project-service/project.service';
 import { DepartmentServiceService } from '../../department/department-service/department-service.service';
 import { CustomTable } from '../../../../shared/components/custom-table/custom-table';
@@ -36,7 +36,7 @@ import { ContractTransferReviewPersonalDetailComponent } from '../contract-trans
     CommonModule, FormsModule,
     NzButtonModule, NzIconModule, NzDatePickerModule,
     NzSelectModule, NzTagModule, NzSpinModule, NzInputModule,
-    NzFormModule, NzDropDownModule,
+    NzFormModule, NzDropdownModule,
     CustomTable, Menubar, NzModalModule,
     ContractTransferReviewSendMailComponent,
     ContractTransferReviewPersonalDetailComponent

@@ -28,7 +28,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
     AngularGridInstance,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     Column,
     Filters,
     Formatter,
@@ -88,7 +88,7 @@ interface ProductGroup {
         NzCheckboxModule,
         NzSpinModule,
         NgbModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         HasPermissionDirective
     ],
     templateUrl: './inventory-new.component.html',
@@ -418,7 +418,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -433,7 +433,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -473,8 +473,8 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: true,
             },
             enableCellNavigation: true,
@@ -520,8 +520,8 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
-            enableRowSelection: true,
-            rowSelectionOptions: {
+            enableSelection: true,
+            selectionOptions: {
                 selectActiveRow: false,
             },
             checkboxSelector: {
@@ -1846,7 +1846,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         { value: true, label: 'Có' },
                         { value: false, label: 'Không' },
                     ],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -1867,7 +1867,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         { value: true, label: 'Có' },
                         { value: false, label: 'Không' },
                     ],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },
@@ -2153,7 +2153,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
-                    filterOptions: {
+                    options: {
                         filter: true,
                     } as MultipleSelectOption,
                 },

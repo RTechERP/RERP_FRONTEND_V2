@@ -9,7 +9,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   GridOption,
@@ -26,7 +26,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzSelectModule,
     NzFormModule,
     NzSpinModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   templateUrl: './choose-employee.component.html',
   styleUrl: './choose-employee.component.css'

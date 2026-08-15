@@ -16,7 +16,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { TableModule } from 'primeng/table';
 import { Tag as PTag } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
@@ -122,7 +122,7 @@ const DEFAULT_COEFFICIENTS: { min: number | null; max: number | null; coef: numb
     NzSpinModule,
     NzTabsModule,
     NzTagModule,
-    NzToolTipModule,
+    NzTooltipModule,
     TableModule,
     PTag,
     ButtonModule,

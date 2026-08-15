@@ -20,7 +20,7 @@ import { BillImportDetailNewComponent } from '../../BillImport/bill-import-new/b
 
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatters,
@@ -45,7 +45,7 @@ import {
     NzInputNumberModule,
     NzDatePickerModule,
     NgbModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   templateUrl: './import-export-detail-modal.component.html',
   styleUrl: './import-export-detail-modal.component.css'
@@ -118,8 +118,8 @@ export class ImportExportModalComponent implements OnInit, AfterViewInit {
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: true,
       },
       enableCellNavigation: true,

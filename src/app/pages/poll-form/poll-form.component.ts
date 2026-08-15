@@ -10,14 +10,14 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { environment } from '../../../environments/environment';
 import { NOTIFICATION_TITLE } from '../../app.config';
 import { AppUserService } from '../../services/app-user.service';
@@ -247,14 +247,13 @@ interface PollStatusView {
     NzIconModule,
     NzInputModule,
     NzModalModule,
-    NzNotificationModule,
     NzProgressModule,
     NzSelectModule,
     NzSpinModule,
     NzSwitchModule,
     NzTabsModule,
     NzTagModule,
-    NzToolTipModule,
+    NzTooltipModule,
   ],
 })
 export class PollFormComponent implements OnInit {

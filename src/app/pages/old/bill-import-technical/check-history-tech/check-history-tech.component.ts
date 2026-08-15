@@ -462,8 +462,8 @@ export class CheckHistoryTechComponent implements OnInit, AfterViewInit {
         }
     }
 
-    @HostListener('document:keydown.control.c', ['$event'])
-    copyCell(event: KeyboardEvent) {
+    @HostListener('document:keydown.control.c')
+    copyCell() {
         if (this.currentCellValue) {
             navigator.clipboard.writeText(this.currentCellValue).then(() => {
             });

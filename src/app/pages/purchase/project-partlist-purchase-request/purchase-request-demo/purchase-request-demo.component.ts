@@ -22,7 +22,7 @@ import {
   Aggregators,
   SortComparers,
   SortDirectionNumber,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
 } from 'angular-slickgrid';
 import {
   MultipleSelectOption,
@@ -37,7 +37,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NgbActiveModal, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { ProjectPartlistPurchaseRequestService } from '../project-partlist-purchase-request.service';
 import { RequestType, Currency } from '../project-partlist-purchase-request.model';
@@ -408,7 +408,7 @@ class GroupSelectEditor {
   imports: [
     CommonModule,
     FormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzButtonModule,
     NzDatePickerModule,
     NzFormModule,
@@ -418,7 +418,7 @@ class GroupSelectEditor {
     NzSpinModule,
     NzTabsModule,
     NzModalModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NgbModule,
     HasPermissionDirective
   ],
@@ -1131,7 +1131,7 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
       }] : []),
       {
@@ -1144,13 +1144,13 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         editor: {
           model: GroupSelectEditor,
           collection: this.getProductGroupCollection(isRTCTab),
           collectionOptions: { addBlankEntry: false },
-          editorOptions: { enableClear: true },
+          options: { enableClear: true },
         },
         formatter: (row: number, cell: number, value: any) => {
           const groups = isRTCTab ? this.productGroupsRTC : this.productGroups;
@@ -1168,7 +1168,7 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -1181,7 +1181,7 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -1194,7 +1194,7 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -1235,13 +1235,13 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         editor: {
           model: GroupSelectEditor,
           collection: this.getWarehouseCollection(),
           collectionOptions: { addBlankEntry: false },
-          editorOptions: { enableClear: true },
+          options: { enableClear: true },
         },
         formatter: (row: number, cell: number, value: any) => {
           const warehouse = this.lstWarehouses.find((w: any) => w.ID === value);
@@ -1258,7 +1258,7 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -1271,7 +1271,7 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -1284,7 +1284,7 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -1328,13 +1328,13 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         editor: {
           model: GroupSelectEditor,
           collection: this.getCurrencyCollection(),
           collectionOptions: { addBlankEntry: false },
-          editorOptions: { enableClear: true },
+          options: { enableClear: true },
         },
         formatter: (row: number, cell: number, value: any) => {
           const currency = this.currencies.find((c: any) => c.ID === value);
@@ -1441,13 +1441,13 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         editor: {
           model: GroupSelectEditor,
           collection: this.getSupplierCollection(),
           collectionOptions: { addBlankEntry: false },
-          editorOptions: { enableClear: true },
+          options: { enableClear: true },
         },
         formatter: (row: number, cell: number, value: any) => {
           const supplier = this.supplierSales.find((s: any) => s.ID === value);
@@ -1496,8 +1496,8 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false, // Multiple Selections
       },
       enableCheckboxSelector: true,
@@ -1588,8 +1588,8 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
     const enableCheckbox = () => {
       angularGrid!.slickGrid!.setOptions({
         enableCheckboxSelector: true,
-        enableRowSelection: true,
-        rowSelectionOptions: {
+        enableSelection: true,
+        selectionOptions: {
           selectActiveRow: false,
         },
         checkboxSelector: {

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormsModule, FormGroup, NonNullableFormBuilder, Validators } from '@angular/forms';
-import { AngularGridInstance, AngularSlickgridModule, Column, Editors, Formatters, GridOption, OnEventArgs } from 'angular-slickgrid';
+import { AngularGridInstance, AngularSlickgridComponent, Column, Editors, Formatters, GridOption, OnEventArgs } from 'angular-slickgrid';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -36,7 +36,7 @@ import Swal from 'sweetalert2';
         NzCheckboxModule,
         NzUploadModule,
         FormsModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         NzIconModule
     ],
     templateUrl: './payment-order-special.component.html',
@@ -293,7 +293,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 container: '.grid-container',
             },
             gridWidth: '100%',
-            enableRowSelection: true,
+            enableSelection: true,
             enableCellNavigation: true,
 
             enableFiltering: false,
@@ -581,7 +581,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
             .get(this.paymentOrderField.Unit.field)
             ?.valueChanges.pipe(takeUntil(this.destroy$))
             .subscribe((value: string) => {
-                const columnId = this.angularGrid.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field);
+                const columnId = this.angularGrid.slickGrid?.getVisibleColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field);
                 const columnElement = this.angularGrid.slickGrid?.getFooterRowColumn(columnId);
 
                 // this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(parseFloat(columnElement.textContent || ''), value);
@@ -667,7 +667,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
             }
 
 
-            const columnId = this.angularGrid.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field);
+            const columnId = this.angularGrid.slickGrid?.getVisibleColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field);
             const columnElement = this.angularGrid.slickGrid?.getFooterRowColumn(columnId);
             this.paymentOrder = {
                 ...this.paymentOrder,
@@ -843,7 +843,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
     updateTotal(cell: number) {
 
         if (cell <= 0) return;
-        const columnId = this.angularGrid.slickGrid?.getColumns()[cell].id;
+        const columnId = this.angularGrid.slickGrid?.getVisibleColumns()[cell].id;
 
         if (columnId != PaymentOrderField.TotalMoney.field) return;
 
@@ -872,7 +872,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
     updateTotalByData(cell: number, data: any) {
 
         if (cell <= 0) return;
-        const columnId = this.angularGrid.slickGrid?.getColumns()[cell].id;
+        const columnId = this.angularGrid.slickGrid?.getVisibleColumns()[cell].id;
 
         if (columnId != PaymentOrderField.TotalMoney.field) return;
 

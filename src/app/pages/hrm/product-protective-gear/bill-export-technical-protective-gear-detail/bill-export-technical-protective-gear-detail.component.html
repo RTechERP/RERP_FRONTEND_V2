@@ -124,7 +124,7 @@
 
   </form>
 
-  <nz-tabset nzSize="small" [nzAnimated]="false" (nzSelectedIndexChange)="onTabChange($event)">
+  <nz-tabs nzSize="small" [nzAnimated]="false" (nzSelectedIndexChange)="onTabChange($event)">
     <nz-tab nzTitle="Danh sách sản phẩm" nzForceRender="true">
       <div class="position-relative" style="height: 38vh;">
         <div #table_BillExportDetails style="height: 100%;"></div>
@@ -135,7 +135,7 @@
         <div #table_DocumnetImport style="height: 100%;"></div>
       </div>
     </nz-tab> -->
-  </nz-tabset>
+  </nz-tabs>
   <!-- Product Selection Popup -->
   <div *ngIf="showProductPopup" style="position: fixed; z-index: 10000; min-width: 600px; max-width: 800px;"
     [style.top]="popupPosition.top" [style.left]="popupPosition.left">

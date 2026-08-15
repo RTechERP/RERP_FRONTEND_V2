@@ -17,7 +17,7 @@ import {
   Filters,
   Formatters,
   MultipleSelectOption,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   SortDirectionNumber,
 } from 'angular-slickgrid';
 import { DateTime } from 'luxon';
@@ -31,7 +31,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -52,14 +52,14 @@ import { AppUserService } from '../../../services/app-user.service';
   imports: [
     CommonModule,
     FormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzCardModule,
     NzButtonModule,
     NzIconModule,
     NzSelectModule,
     NzInputModule,
     NzSpinModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzModalModule,
     NzSplitterModule,
     HasPermissionDirective,
@@ -227,9 +227,9 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       autoResize: { container: '#' + this.solutionContainerId, calculateAvailableSizeBy: 'container' },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
-      rowSelectionOptions: { selectActiveRow: true },
+      selectionOptions: { selectActiveRow: true },
       enableSorting: true,
       enablePagination: false,
       enableGrouping: true,
@@ -279,9 +279,9 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       autoResize: { container: '#' + this.solutionVersionContainerId, calculateAvailableSizeBy: 'container' },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
-      rowSelectionOptions: { selectActiveRow: true },
+      selectionOptions: { selectActiveRow: true },
       enableSorting: true,
       enablePagination: false,
       enableGrouping: true,
@@ -364,9 +364,9 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       autoResize: { container: '#' + this.poVersionContainerId, calculateAvailableSizeBy: 'container' },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
+      enableSelection: true,
       enableCellNavigation: true,
-      rowSelectionOptions: { selectActiveRow: true },
+      selectionOptions: { selectActiveRow: true },
       enableSorting: true,
       enablePagination: false,
       enableGrouping: true,
@@ -446,7 +446,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
         filter: {
           model: Filters['multipleSelect'],
           collection: [{ value: 'Đã duyệt', label: 'Đã duyệt' }, { value: 'Chưa duyệt', label: 'Chưa duyệt' }],
-          filterOptions: { filter: true } as MultipleSelectOption,
+          options: { filter: true } as MultipleSelectOption,
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
@@ -527,11 +527,11 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       //end
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
+      enableSelection: true,
       enableCheckboxSelector: true,
       enableCellNavigation: true,
       checkboxSelector: { hideSelectAllCheckbox: false },
-      rowSelectionOptions: { selectActiveRow: false },
+      selectionOptions: { selectActiveRow: false },
       enableSorting: true,
       multiColumnSort: false,
       enableFiltering: true,
@@ -637,11 +637,11 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
             // Clear selection của PO Version grid
             if (this.angularGridPOVersion?.slickGrid) {
               // Disable selectActiveRow tạm thời để tránh auto-select lại
-              const currentSelectActiveRow = this.angularGridPOVersion.slickGrid.getOptions().rowSelectionOptions?.selectActiveRow;
-              this.angularGridPOVersion.slickGrid.setOptions({ rowSelectionOptions: { selectActiveRow: false } });
+              const currentSelectActiveRow = this.angularGridPOVersion.slickGrid.getOptions().selectionOptions?.selectActiveRow;
+              this.angularGridPOVersion.slickGrid.setOptions({ selectionOptions: { selectActiveRow: false } });
               this.angularGridPOVersion.slickGrid.setSelectedRows([]);
               setTimeout(() => {
-                this.angularGridPOVersion.slickGrid.setOptions({ rowSelectionOptions: { selectActiveRow: currentSelectActiveRow } });
+                this.angularGridPOVersion.slickGrid.setOptions({ selectionOptions: { selectActiveRow: currentSelectActiveRow } });
               }, 0);
             }
             this.toggleTBPColumn();
@@ -690,11 +690,11 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
             // Clear selection của Solution Version grid
             if (this.angularGridSolutionVersion?.slickGrid) {
               // Disable selectActiveRow tạm thời để tránh auto-select lại
-              const currentSelectActiveRow = this.angularGridSolutionVersion.slickGrid.getOptions().rowSelectionOptions?.selectActiveRow;
-              this.angularGridSolutionVersion.slickGrid.setOptions({ rowSelectionOptions: { selectActiveRow: false } });
+              const currentSelectActiveRow = this.angularGridSolutionVersion.slickGrid.getOptions().selectionOptions?.selectActiveRow;
+              this.angularGridSolutionVersion.slickGrid.setOptions({ selectionOptions: { selectActiveRow: false } });
               this.angularGridSolutionVersion.slickGrid.setSelectedRows([]);
               setTimeout(() => {
-                this.angularGridSolutionVersion.slickGrid.setOptions({ rowSelectionOptions: { selectActiveRow: currentSelectActiveRow } });
+                this.angularGridSolutionVersion.slickGrid.setOptions({ selectionOptions: { selectActiveRow: currentSelectActiveRow } });
               }, 0);
             }
             this.toggleTBPColumn();

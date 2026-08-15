@@ -10,7 +10,6 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, Form } from '@angular/forms';
 import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
@@ -38,7 +37,7 @@ import { VehiceDetailComponent } from './vehice-detail/vehice-detail.component';
 import { EmployeeBussinessBonusComponent } from './employee-bussiness-bonus/employee-bussiness-bonus.component';
 import { EmployeeBussinessSummaryComponent } from './employee-bussiness-summary/employee-bussiness-summary.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { AuthService } from '../../../../auth/auth.service';
 import { PermissionService } from '../../../../services/permission.service';
 
@@ -56,7 +55,6 @@ import { PermissionService } from '../../../../services/permission.service';
     NzSelectModule,
     NzFormModule,
     NzInputModule,
-    NzNotificationModule,
     ReactiveFormsModule,
     NzIconModule,
     NzCheckboxModule,
@@ -68,7 +66,7 @@ import { PermissionService } from '../../../../services/permission.service';
     NzSpinModule,
     NzGridModule,
     HasPermissionDirective,
-    NzDropDownModule,
+    NzDropdownModule,
     NzTreeSelectModule
   ]
 })

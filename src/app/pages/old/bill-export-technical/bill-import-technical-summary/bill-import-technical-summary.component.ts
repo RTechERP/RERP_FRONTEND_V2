@@ -18,7 +18,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import * as ExcelJS from 'exceljs';
 
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   GridOption,
   Formatters,
@@ -88,7 +88,7 @@ interface BillImportTechnicalSummary {
     NzSpinModule,
     NzCheckboxModule,
     NzInputNumberModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   templateUrl: './bill-import-technical-summary.component.html',
   styleUrls: ['./bill-import-technical-summary.component.css'],
@@ -203,7 +203,7 @@ export class BillImportTechnicalSummaryComponent
       enableExcelExport: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
-      enableRowSelection: true,
+      enableSelection: true,
       enableCheckboxSelector: true,
       checkboxSelector: {
         hideSelectAllCheckbox: false,
@@ -211,7 +211,7 @@ export class BillImportTechnicalSummaryComponent
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 40,
-      rowSelectionOptions: {
+      selectionOptions: {
         selectActiveRow: false,
       },
       excelExportOptions: {
@@ -274,7 +274,7 @@ export class BillImportTechnicalSummaryComponent
 
     // Lắng nghe sự kiện cell change để tự động tính DueDate
     this.gridObj.onCellChange.subscribe((_e: any, args: any) => {
-      const columnDef = this.gridObj.getColumns()[args.cell];
+      const columnDef = this.gridObj.getVisibleColumns()[args.cell];
       const field = columnDef?.field;
       const editedItem = args.item;
       const newValue = editedItem[field as string];
@@ -459,7 +459,7 @@ export class BillImportTechnicalSummaryComponent
             { value: false, label: 'Chưa nhận' },
           ],
           model: Filters['singleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -873,7 +873,7 @@ export class BillImportTechnicalSummaryComponent
             collectionOptions: {
               addBlankEntry: false
             },
-            filterOptions: {
+            options: {
               autoAdjustDropHeight: true,
               filter: true,
             } as MultipleSelectOption,
@@ -885,7 +885,7 @@ export class BillImportTechnicalSummaryComponent
             collectionOptions: {
               addBlankEntry: true
             },
-            filterOptions: {
+            options: {
               autoAdjustDropHeight: true,
               filter: true,
             } as MultipleSelectOption,

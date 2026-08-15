@@ -2,15 +2,14 @@
 
 import { Component, OnInit, AfterViewInit, OnDestroy, Inject, Optional, HostListener, ElementRef, NgZone, ViewChild } from '@angular/core';
 import {
-    AngularGridInstance,
-    AngularSlickgridModule,
-    Column,
-    FieldType,
-    Filters,
-    Formatters,
-    GridOption,
-    MultipleSelectOption,
-    OnEventArgs,
+  AngularGridInstance,
+  AngularSlickgridComponent,
+  Column,
+  Filters,
+  Formatters,
+  GridOption,
+  MultipleSelectOption,
+  OnEventArgs,
 } from 'angular-slickgrid';
 import { BillExportService } from './../bill-export-service/bill-export.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -26,7 +25,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
@@ -72,7 +71,7 @@ import { LOGO_RTC_BASE64 } from '../../../../../shared/pdf/logo-base64';
     imports: [
         CommonModule,
         FormsModule,
-        AngularSlickgridModule,
+        AngularSlickgridComponent,
         NzFormModule,
         NzInputModule,
         NzInputNumberModule,
@@ -81,7 +80,7 @@ import { LOGO_RTC_BASE64 } from '../../../../../shared/pdf/logo-base64';
         NzDatePickerModule,
         NzCheckboxModule,
         NzIconModule,
-        NzDropDownModule,
+        NzDropdownModule,
         NzMenuModule,
         NzTabsModule,
         NzSpinModule,
@@ -384,7 +383,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                 field: 'IsIncurredApproved',
                 sortable: true,
                 filterable: true,
-                type: FieldType.boolean,
+                type: 'boolean',
                 filter: {
                     model: Filters['singleSelect'],
                     collection: [{ value: 'true', label: 'Có' }, { value: 'false', label: 'Không' }],
@@ -402,7 +401,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                 field: 'IsAfterHours',
                 sortable: true,
                 filterable: true,
-                type: FieldType.boolean,
+                type: 'boolean',
                 filter: {
                     model: Filters['singleSelect'],
                     collection: [{ value: 'true', label: 'Có' }, { value: 'false', label: 'Không' }],
@@ -420,7 +419,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                 field: 'IsOrderPrepared',
                 sortable: true,
                 filterable: true,
-                type: FieldType.boolean,
+                type: 'boolean',
                 filter: {
                     model: Filters['singleSelect'],
                     collection: [{ value: 'true', label: 'Có' }, { value: 'false', label: 'Không' }],
@@ -438,7 +437,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                 field: 'IsOrderReceived',
                 sortable: true,
                 filterable: true,
-                type: FieldType.boolean,
+                type: 'boolean',
                 filter: {
                     model: Filters['singleSelect'],
                     collection: [{ value: 'true', label: 'Có' }, { value: 'false', label: 'Không' }],
@@ -456,7 +455,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                 field: 'IsApproved',
                 sortable: true,
                 filterable: true,
-                type: FieldType.boolean,
+                type: 'boolean',
                 filter: {
                     model: Filters['singleSelect'],
                     collection: [{ value: 'true', label: 'Đã nhận' }, { value: 'false', label: 'Chưa nhận' }],
@@ -491,7 +490,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                     collection: [],
                     model: Filters['multipleSelect'],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -543,7 +542,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                     collection: [],
                     model: Filters['multipleSelect'],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -560,7 +559,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                     collection: [],
                     model: Filters['multipleSelect'],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -665,7 +664,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                     collection: [],
                     model: Filters['multipleSelect'],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -695,7 +694,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                     collection: [],
                     model: Filters['multipleSelect'],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -712,7 +711,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                     collection: [],
                     model: Filters['multipleSelect'],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -729,7 +728,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                     collection: [],
                     model: Filters['multipleSelect'],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -746,7 +745,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                     collection: [],
                     model: Filters['multipleSelect'],
                     collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
+                    options: {
                         autoAdjustDropHeight: true,
                         filter: true,
                     } as MultipleSelectOption,
@@ -764,7 +763,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
             enableFiltering: true,
             enablePagination: false,
             enableCellNavigation: true,
-            enableRowSelection: true,
+            enableSelection: true,
             enableCheckboxSelector: true,
             enableRowMoveManager: false,
             checkboxSelector: {
@@ -772,7 +771,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                 hideInFilterHeaderRow: false,
                 hideInColumnTitleRow: true,
             },
-            rowSelectionOptions: {
+            selectionOptions: {
                 selectActiveRow: false,
             },
             enableColumnPicker: true,
@@ -866,7 +865,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                 field: 'TotalInventory',
                 sortable: true,
                 filterable: true,
-                type: FieldType.number,
+                type: 'number',
                 filter: {
                     model: Filters['compoundInputNumber'],
                 },
@@ -912,7 +911,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                 field: 'Qty',
                 sortable: true,
                 filterable: true,
-                type: FieldType.number,
+                type: 'number',
                 minWidth: 100,
                 formatter: (row: number, cell: number, value: any) =>
                     this.formatNumberEnUS(value),
@@ -957,7 +956,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                 cssClass: 'text-end',
                 sortable: true,
                 filterable: true,
-                type: FieldType.number,
+                type: 'number',
                 minWidth: 120,
                 formatter: (row: number, cell: number, value: any) =>
                     this.formatNumberEnUS(value),
@@ -969,7 +968,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                 cssClass: 'text-end',
                 sortable: true,
                 filterable: true,
-                type: FieldType.number,
+                type: 'number',
                 minWidth: 120,
                 formatter: (row: number, cell: number, value: any) =>
                     this.formatNumberEnUS(value),
@@ -1016,9 +1015,9 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
             enableFiltering: true,
             enablePagination: false,
             enableCellNavigation: true,
-            enableRowSelection: true,
+            enableSelection: true,
             enableCheckboxSelector: false,
-            rowSelectionOptions: {
+            selectionOptions: {
                 selectActiveRow: true,
             },
             multiSelect: false,
@@ -1098,7 +1097,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
             angularGrid.slickGrid.onClick.subscribe((e: any, args: any) => {
                 const cell = args.cell;
                 const row = args.row;
-                const column = angularGrid.slickGrid.getColumns()[cell];
+                const column = angularGrid.slickGrid.getVisibleColumns()[cell];
 
                 // Bỏ qua click vào checkbox column
                 if (column?.id === '_checkbox_selector') return;

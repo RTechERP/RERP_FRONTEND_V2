@@ -85,7 +85,7 @@
                             <i nz-icon nzType="close"></i>
                         </button>
                     </ng-template>
-                    <nz-tabset style="padding-left: 10px !important" [nzTabBarExtraContent]="tabClose">
+                    <nz-tabs style="padding-left: 10px !important" [nzTabBarExtraContent]="tabClose">
                         <nz-tab nzTitle="Sale" [nzForceRender]="true">
                             <div class="grid-container-sale">
                                 <angular-slickgrid gridId="customerSaleGrid" [columns]="columnDefinitionsSale"
@@ -110,7 +110,7 @@
                                 </angular-slickgrid>
                             </div>
                         </nz-tab>
-                    </nz-tabset>
+                    </nz-tabs>
                 </nz-splitter-panel>
             </nz-splitter>
         </div>

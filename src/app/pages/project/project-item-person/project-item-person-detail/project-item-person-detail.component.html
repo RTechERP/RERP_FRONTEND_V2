@@ -39,7 +39,7 @@
             </legend> -->
 
             <!-- Tabs cho các hạng mục công việc -->
-            <nz-tabset [(nzSelectedIndex)]="selectedTabIndex" [nzType]="mode === 'edit' ? 'card' : 'editable-card'"
+            <nz-tabs [(nzSelectedIndex)]="selectedTabIndex" [nzType]="mode === 'edit' ? 'card' : 'editable-card'"
                 (nzAdd)="mode === 'add' ? addTab() : null" (nzClose)="mode === 'add' ? closeTab($event) : null"
                 [nzAnimated]="false">
                 @for (tab of tabs; track tab.id; let i = $index) {
@@ -287,7 +287,7 @@
                     </ng-template>
                 </nz-tab>
                 }
-            </nz-tabset>
+            </nz-tabs>
         </fieldset>
 
         @if (mode === 'edit') {

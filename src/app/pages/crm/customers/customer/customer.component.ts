@@ -56,7 +56,6 @@ import * as ExcelJS from 'exceljs';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 
 import { CustomerServiceService } from '../customer/customer-service/customer-service.service';
-import { group } from '@angular/animations';
 import { ViewPokhService } from '../../../old/view-pokh/view-pokh/view-pokh.service';
 import { CustomerDetailComponent } from '../customer-detail/customer-detail.component';
 import { CustomerMajorComponent } from '../customer-specialization/customer-major/customer-major.component';

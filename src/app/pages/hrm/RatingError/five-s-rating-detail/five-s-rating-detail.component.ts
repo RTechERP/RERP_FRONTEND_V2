@@ -2,7 +2,7 @@ import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -35,7 +35,6 @@ import { TabServiceService } from '../../../../layouts/tab-service.service';
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
-        NzNotificationModule,
         NzModalModule,
         NzButtonModule,
         NzIconModule,

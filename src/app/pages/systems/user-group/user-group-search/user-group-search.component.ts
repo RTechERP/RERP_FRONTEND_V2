@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserGroupService } from '../user-group.service';
-import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
@@ -20,7 +20,6 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
   imports: [
     CommonModule,
     FormsModule,
-    NzNotificationModule,
     NzModalModule,
     NzSpinModule,
     NzSplitterModule,

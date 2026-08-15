@@ -9,11 +9,9 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
-import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { EditorModule } from 'primeng/editor';
@@ -78,12 +76,10 @@ interface NewsletterDTO {
     NzDatePickerModule,
     NzButtonModule,
     NzIconModule,
-    NzNotificationModule,
     NzSpinModule,
     NzCheckboxModule,
     NzGridModule,
     NzUploadModule,
-    NzMessageModule,
     NzModalModule,
     NzInputNumberModule,
     EditorModule

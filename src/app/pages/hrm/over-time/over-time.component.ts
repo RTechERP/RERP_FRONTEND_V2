@@ -10,7 +10,6 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, Form } from '@angular/forms';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
@@ -32,13 +31,13 @@ import { OverTimeTypeComponent } from "./over-time-type/over-time-type.component
 import { SummaryOverTimeComponent } from './summary-over-time/summary-over-time.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { AuthService } from '../../../auth/auth.service';
 import { Menubar } from 'primeng/menubar';
 import { PermissionService } from '../../../services/permission.service';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatter,
@@ -64,7 +63,6 @@ import {
     NzSelectModule,
     NzFormModule,
     NzInputModule,
-    NzNotificationModule,
     ReactiveFormsModule,
     NzIconModule,
     NzCheckboxModule,
@@ -80,9 +78,9 @@ import {
     OverTimeTypeComponent,
     SummaryOverTimeComponent,
     HasPermissionDirective,
-    NzDropDownModule,
+    NzDropdownModule,
     Menubar,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzTreeSelectModule
   ]
 })
@@ -366,7 +364,7 @@ export class OverTimeComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -383,7 +381,7 @@ export class OverTimeComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -400,7 +398,7 @@ export class OverTimeComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -421,7 +419,7 @@ export class OverTimeComponent implements OnInit {
       //       { value: false, label: 'Chưa duyệt' },
       //     ],
       //     model: Filters['singleSelect'],
-      //     filterOptions: {
+      //     options: {
       //       autoAdjustDropHeight: true,
       //     } as MultipleSelectOption,
       //   },
@@ -460,7 +458,7 @@ export class OverTimeComponent implements OnInit {
       //       { value: false, label: 'Không' },
       //     ],
       //     model: Filters['singleSelect'],
-      //     filterOptions: {
+      //     options: {
       //       autoAdjustDropHeight: true,
       //     } as MultipleSelectOption,
       //   },
@@ -536,7 +534,7 @@ export class OverTimeComponent implements OnInit {
             { value: false, label: 'Không' },
           ],
           model: Filters['singleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -571,7 +569,7 @@ export class OverTimeComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -586,7 +584,7 @@ export class OverTimeComponent implements OnInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -628,8 +626,8 @@ export class OverTimeComponent implements OnInit {
       },
       enableAutoResize: true,
       gridWidth: '100%',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       checkboxSelector: {

@@ -13,7 +13,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { CandidateTestService } from './candidate-test-service/candidate-test.service';
 import { HRRecruitmentExamService } from '../HRRecruitmentExam/hr-recruitment-exam-service/hrrecruitment-exam.service';
@@ -80,7 +80,7 @@ export type PageState = 'select' | 'taking' | 'done';
     NzSpinModule,
     NzModalModule,
     NzInputModule,
-    NzToolTipModule,
+    NzTooltipModule,
   ],
   templateUrl: './candidate-test.component.html',
   styleUrl: './candidate-test.component.css'

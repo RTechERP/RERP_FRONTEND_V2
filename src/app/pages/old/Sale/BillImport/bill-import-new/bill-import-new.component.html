@@ -260,7 +260,7 @@
         (nzOnCancel)="onClosePreview()"
     >
         <ng-container *nzModalContent>
-            <nz-tabset style="width: 100%;">
+            <nz-tabs style="width: 100%;">
                 <ng-container *ngFor="let t of tabs; let i = index">
                     <nz-tab [nzTitle]="t.title">
                         <div class="d-flex justify-content-between my-2">
@@ -564,7 +564,7 @@
                         </div>
                     </nz-tab>
                 </ng-container>
-            </nz-tabset>
+            </nz-tabs>
         </ng-container>
 
         <ng-template #modalFooter> </ng-template>

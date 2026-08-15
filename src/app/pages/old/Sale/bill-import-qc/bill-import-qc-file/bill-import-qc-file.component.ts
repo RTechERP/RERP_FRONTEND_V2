@@ -17,7 +17,7 @@ import {
 } from '@angular/forms';
 
 import {
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   AngularGridInstance,
   Column,
   GridOption,
@@ -46,7 +46,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzGridModule } from 'ng-zorro-antd/grid';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
@@ -63,7 +63,7 @@ import { BillImportQcService } from '../bill-import-qc-service/bill-import-qc-se
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzFormModule,
     NzInputModule,
     NzSelectModule,
@@ -73,7 +73,7 @@ import { BillImportQcService } from '../bill-import-qc-service/bill-import-qc-se
     NzCheckboxModule,
     NzTabsModule,
     NzGridModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzIconModule,
     NzModalModule,
     HasPermissionDirective,
@@ -129,7 +129,7 @@ export class BillImportQcFileComponent implements OnInit, AfterViewInit {
   }
 
   onGridMasterClick(e: Event, args: OnClickEventArgs) {
-    const column = args.grid.getColumns()[args.cell];
+    const column = args.grid.getVisibleColumns()[args.cell];
 
     if (column.id === 'action') {
       const clickedElement = e.target as HTMLElement;

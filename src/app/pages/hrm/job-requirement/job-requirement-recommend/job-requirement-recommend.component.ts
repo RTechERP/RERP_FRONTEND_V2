@@ -5,14 +5,14 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
@@ -45,14 +45,14 @@ import { RecommendSupplierService } from '../recommend-supplier/recommend-suppli
     NzIconModule,
     NzModalModule,
     NzInputModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzButtonModule,
     NzSpinModule,
     NzSelectModule,
     NzDatePickerModule,
     NzTagModule,
     NzFormModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzGridModule,
     NzSplitterModule,
     NzTabsModule,

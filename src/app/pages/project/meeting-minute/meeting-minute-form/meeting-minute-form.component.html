@@ -189,7 +189,7 @@
     <div class="mt-2">
       <nz-splitter style="max-height: 75vh; min-height: 400px;">
         <nz-splitter-panel  [nzCollapsible]="true" nzResizable="true">
-          <nz-tabset>
+          <nz-tabs>
             <nz-tab nzTitle="Nhân viên tham gia">
               <nz-splitter nzLayout="vertical" style="height: 350px;">
                 <nz-splitter-panel nzDefaultSize="50%" nzMin="20%" nzMax="100%" [nzSize]="(selectedGroupId === 2) ? '100%' : '50%'">
@@ -223,7 +223,7 @@
             <nz-tab nzTitle="File đính kèm">
               <div #tb_FileTable id="tb_FileTable" style="height: 350px;"></div>
             </nz-tab>
-          </nz-tabset>
+          </nz-tabs>
         </nz-splitter-panel>
       </nz-splitter>
     </div>

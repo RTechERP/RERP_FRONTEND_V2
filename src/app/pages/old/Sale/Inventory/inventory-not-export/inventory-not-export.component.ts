@@ -22,7 +22,7 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatter,
@@ -55,7 +55,7 @@ import { ChiTietSanPhamSaleNewComponent } from '../../chi-tiet-san-pham-sale/chi
     NzSpinModule,
     NzTagModule,
     NzDatePickerModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   templateUrl: './inventory-not-export.component.html',
   styleUrl: './inventory-not-export.component.css'
@@ -149,7 +149,7 @@ export class InventoryNotExportComponent implements OnInit, AfterViewInit, OnDes
           collection: [],
           model: Filters['multipleSelect'],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -163,7 +163,7 @@ export class InventoryNotExportComponent implements OnInit, AfterViewInit, OnDes
           collection: [],
           model: Filters['multipleSelect'],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -177,7 +177,7 @@ export class InventoryNotExportComponent implements OnInit, AfterViewInit, OnDes
           collection: [],
           model: Filters['multipleSelect'],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -193,7 +193,7 @@ export class InventoryNotExportComponent implements OnInit, AfterViewInit, OnDes
           collection: [],
           model: Filters['multipleSelect'],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -207,7 +207,7 @@ export class InventoryNotExportComponent implements OnInit, AfterViewInit, OnDes
           collection: [],
           model: Filters['multipleSelect'],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -221,7 +221,7 @@ export class InventoryNotExportComponent implements OnInit, AfterViewInit, OnDes
           collection: [],
           model: Filters['multipleSelect'],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -276,7 +276,7 @@ export class InventoryNotExportComponent implements OnInit, AfterViewInit, OnDes
           collection: [],
           model: Filters['multipleSelect'],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -290,7 +290,7 @@ export class InventoryNotExportComponent implements OnInit, AfterViewInit, OnDes
           collection: [],
           model: Filters['multipleSelect'],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
         },
       },
       {
@@ -328,7 +328,7 @@ export class InventoryNotExportComponent implements OnInit, AfterViewInit, OnDes
           collection: [],
           model: Filters['multipleSelect'],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+          options: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
         },
       },
     ];
@@ -344,8 +344,8 @@ export class InventoryNotExportComponent implements OnInit, AfterViewInit, OnDes
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
-      rowSelectionOptions: { selectActiveRow: false },
+      enableSelection: true,
+      selectionOptions: { selectActiveRow: false },
       checkboxSelector: {
         hideInFilterHeaderRow: false,
         hideInColumnTitleRow: true,

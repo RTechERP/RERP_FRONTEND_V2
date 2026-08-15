@@ -6,7 +6,7 @@
 </div>
 
 <div class="modal-body-wrapper px-3 bill-import-tabs-modal-body-wrapper bill-import-tabs-px-3">
-  <nz-tabset [(nzSelectedIndex)]="selectedIndex" (nzSelectedIndexChange)="onTabChange($event)" [nzTabPosition]="'top'"
+  <nz-tabs [(nzSelectedIndex)]="selectedIndex" (nzSelectedIndexChange)="onTabChange($event)" [nzTabPosition]="'top'"
     class="h-100 tabcontainer main-warehouse-tab bill-import-tabs-h-100 bill-import-tabs-tabcontainer bill-import-tabs-main-warehouse-tab">
 
     <nz-tab *ngFor="let tab of tabs; let i = index" [nzTitle]="tab.groupName">
@@ -31,7 +31,7 @@
       </div>
     </nz-tab>
 
-  </nz-tabset>
+  </nz-tabs>
 </div>
 <!--
 <div class="modal-footer bill-import-tabs-modal-footer">

@@ -54,7 +54,7 @@ import { HrPurchaseProposalService } from './hr-purchase-proposal-service/hr-pur
 import * as ExcelJS from 'exceljs';
 import { format, isValid, parseISO } from 'date-fns';
 import { ChangeDetectorRef } from '@angular/core';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 // @ts-ignore
@@ -107,7 +107,7 @@ interface DepartmentRequired {
         NgbModalModule,
         NzFormModule,
         NzInputNumberModule,
-        NzDropDownModule,
+        NzDropdownModule,
         NzMenuModule,
         HasPermissionDirective,
     ],

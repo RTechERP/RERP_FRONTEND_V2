@@ -12,7 +12,7 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { HRRecruitmentCandidateService } from '../hr-recruitment-candidate.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
@@ -41,7 +41,7 @@ export interface CandidateRejectionMail {
     NzTagModule,
     NzSpinModule,
     NzTabsModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzSelectModule,
   ],
   templateUrl: './hr-rejection-letter.component.html',

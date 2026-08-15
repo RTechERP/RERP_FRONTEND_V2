@@ -17,7 +17,6 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
@@ -41,12 +40,10 @@ import { AuthService } from '../../../../../auth/auth.service';
     NzIconModule,
     NzInputModule,
     NzInputNumberModule,
-    NzNotificationModule,
     NzSelectModule,
     NzSpinModule,
     NzSplitterModule,
     NzCheckboxModule,
-    NzNotificationModule,
     NzGridModule,
     NzTabsModule,
     HasPermissionDirective

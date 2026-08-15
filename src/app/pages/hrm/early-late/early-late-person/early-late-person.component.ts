@@ -10,7 +10,6 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
@@ -32,7 +31,7 @@ import { EarlyLateService } from '../early-late-service/early-late.service';
 import { DepartmentServiceService } from '../../department/department-service/department-service.service';
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { AuthService } from '../../../../auth/auth.service';
 import { WFHService } from '../../employee-management/employee-wfh/WFH-service/WFH.service';
@@ -40,7 +39,7 @@ import { PermissionService } from '../../../../services/permission.service';
 import { Menubar } from 'primeng/menubar';
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   Filters,
   Formatter,
@@ -63,7 +62,6 @@ import {
     NzSelectModule,
     NzFormModule,
     NzInputModule,
-    NzNotificationModule,
     ReactiveFormsModule,
     NzIconModule,
     NzCheckboxModule,
@@ -76,10 +74,10 @@ import {
     NzTimePickerModule,
     NzSpinModule,
     NgIf,
-    NzDropDownModule,
+    NzDropdownModule,
     FormsModule,
     Menubar,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
     NzTreeSelectModule
   ],
   templateUrl: './early-late-person.component.html',
@@ -389,7 +387,7 @@ export class EarlyLatePersonComponent implements OnInit, AfterViewInit, OnDestro
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -406,7 +404,7 @@ export class EarlyLatePersonComponent implements OnInit, AfterViewInit, OnDestro
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -423,7 +421,7 @@ export class EarlyLatePersonComponent implements OnInit, AfterViewInit, OnDestro
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -471,7 +469,7 @@ export class EarlyLatePersonComponent implements OnInit, AfterViewInit, OnDestro
             { value: false, label: 'Không' },
           ],
           model: Filters['singleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -552,7 +550,7 @@ export class EarlyLatePersonComponent implements OnInit, AfterViewInit, OnDestro
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
-          filterOptions: {
+          options: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
@@ -594,8 +592,8 @@ export class EarlyLatePersonComponent implements OnInit, AfterViewInit, OnDestro
       },
       enableAutoResize: true,
       gridWidth: '100%',
-      enableRowSelection: true,
-      rowSelectionOptions: {
+      enableSelection: true,
+      selectionOptions: {
         selectActiveRow: false
       },
       checkboxSelector: {

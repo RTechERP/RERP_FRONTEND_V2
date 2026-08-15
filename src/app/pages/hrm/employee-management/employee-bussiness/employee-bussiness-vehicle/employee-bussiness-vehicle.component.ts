@@ -10,7 +10,6 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { EmployeeBussinessService } from '../employee-bussiness-service/employee-bussiness.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
@@ -29,7 +28,6 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
     NzButtonModule,
     NzFormModule,
     NzInputModule,
-    NzNotificationModule,
     NzSpinModule,
     NgIf
   ],

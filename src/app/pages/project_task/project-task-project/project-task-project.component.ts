@@ -9,7 +9,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 
 // PrimeNG
@@ -47,7 +47,7 @@ import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component
     NzSelectModule,
     NzGridModule,
     NzCardModule,
-    NzToolTipModule,
+    NzTooltipModule,
     NzModalModule,
     TreeTableModule,
     TableModule,

@@ -16,12 +16,11 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 // SlickGrid imports
 import {
   AngularGridInstance,
-  AngularSlickgridModule,
+  AngularSlickgridComponent,
   Column,
   GridOption,
   Formatters,
   Editors,
-  FieldType,
   OnEventArgs,
 } from 'angular-slickgrid';
 
@@ -42,7 +41,7 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
     NzInputNumberModule,
     NzFormModule,
     NzModalModule,
-    AngularSlickgridModule,
+    AngularSlickgridComponent,
   ],
   templateUrl: './kpi-criteria-detail.component.html',
   styleUrl: './kpi-criteria-detail.component.css',
@@ -130,7 +129,7 @@ export class KpiCriteriaDetailComponent implements OnInit {
         editor: {
           model: Editors['float'],
         },
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 2 },
       },
@@ -144,7 +143,7 @@ export class KpiCriteriaDetailComponent implements OnInit {
         editor: {
           model: Editors['float'],
         },
-        type: FieldType.number,
+        type: 'number',
         formatter: Formatters.decimal,
         params: { decimalPlaces: 2 },
       },
@@ -195,7 +194,7 @@ export class KpiCriteriaDetailComponent implements OnInit {
   }
 
   onDetailCellClick(e: any, args: any): void {
-    const column = args.grid.getColumns()[args.cell];
+    const column = args.grid.getVisibleColumns()[args.cell];
     const item = args.grid.getDataItem(args.row);
 
     // Check if clicking on action column cell (delete row)

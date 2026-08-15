@@ -1,6 +1,26 @@
 # RERPV2
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.7.
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.21.
+
+## Cài đặt
+
+```bash
+npm install
+```
+
+**Sau khi pull về bản nâng cấp Angular 21 lần đầu, phải xoá `node_modules` rồi cài lại:**
+
+```bash
+rm -rf node_modules
+npm install
+```
+
+`package.json` đã đổi rất nhiều (Angular 19 → 21, ng-zorro 19 → 21, angular-slickgrid 9 → 10),
+cài đè lên `node_modules` cũ sẽ để lại package lệch phiên bản và sinh lỗi build khó hiểu.
+
+Không cần `--legacy-peer-deps`. `@videogular/ngx-videogular` chưa có bản cho Angular 21 nên
+đã được xử lý bằng `overrides` trong `package.json` — nới peer riêng cho gói đó thay vì tắt
+kiểm tra peer toàn repo.
 
 ## Development server
 

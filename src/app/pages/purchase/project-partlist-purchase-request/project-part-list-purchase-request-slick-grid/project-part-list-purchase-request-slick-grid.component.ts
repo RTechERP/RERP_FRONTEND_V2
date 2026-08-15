@@ -71,6 +71,7 @@ import * as ExcelJS from 'exceljs';
 import { ActivatedRoute } from '@angular/router';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
 import { ProjectPartlistRequestLogActivityComponent } from '../../project-partlist-purchase-request-new/project-partlist-request-log-activity/project-partlist-request-log-activity.component';
+import { makeTextRowHeightProvider } from '../../../../shared/utils/slickgrid-row-height.util';
 
 interface Tab {
   id: number;
@@ -2696,6 +2697,18 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 28,
+
+      // VARIABLE ROW HEIGHT (SlickGrid v10)
+      // Wrap text toàn bộ cột: dòng tự giãn theo cột có nội dung dài nhất.
+      // Cần đi kèm CSS cho .slick-cell xuống dòng (xem file .css của component),
+      // vì mặc định SlickGrid đặt white-space: nowrap.
+      enableVariableRowHeight: true,
+      rowHeightProvider: makeTextRowHeightProvider('*', {
+        lineHeight: 18, // khớp line-height đặt cho .slick-cell trong file .css
+        padding: 10,    // padding dọc 3+3 của cell + border 1px, còn dư chút
+        min: 30,        // bằng rowHeight mặc định ở trên
+        max: 200,       // ~11 dòng; chặn trên để một ô quá dài không phá layout
+      }),
     };
   }
 

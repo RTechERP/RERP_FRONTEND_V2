@@ -27,51 +27,106 @@ export interface TextRowHeightOptions {
 
 const DEFAULTS: Required<TextRowHeightOptions> = {
   lineHeight: 20,
-  padding: 8,
+  // Đủ cho padding dọc của .slick-cell (3px trên + 3px dưới) + border 1px, còn dư chút.
+  padding: 10,
   min: 30,
   max: 160,
+  // Bề rộng trung bình một ký tự với font ~12px của grid. Để nhỏ hơn thực tế một chút
+  // sẽ ước lượng ra NHIỀU dòng hơn — thà dư chiều cao còn hơn bị cắt chữ.
   avgCharWidth: 7,
 };
 
-/** Đếm số dòng một chuỗi chiếm, tính cả xuống dòng thủ công lẫn wrap theo bề rộng cột. */
+/**
+ * Đếm số dòng một chuỗi chiếm, tính cả xuống dòng thủ công lẫn wrap theo bề rộng cột.
+ *
+ * Mô phỏng đúng cách trình duyệt wrap: ưu tiên ngắt ở RANH GIỚI TỪ, chỉ cắt giữa từ
+ * khi bản thân từ đó dài hơn một dòng (tương ứng `overflow-wrap: anywhere` trong CSS).
+ *
+ * Không được dùng `ceil(độ_dài / số_ký_tự_mỗi_dòng)`: công thức đó giả định chữ được
+ * cắt đều tăm tắp nên luôn ĐẾM THIẾU — một từ không vừa phần cuối dòng sẽ bị đẩy
+ * xuống dòng mới và để lại khoảng trống mà công thức kia không tính tới.
+ */
 function countLines(text: string, charsPerLine: number): number {
-  if (!text) {
+  if (!text || charsPerLine <= 0) {
     return 1;
   }
+
+  let total = 0;
   // Formatter của các grid này dùng `white-space: pre-line` nên '\n' là xuống dòng thật.
-  const segments = text.split('\n');
-  let lines = 0;
-  for (const seg of segments) {
-    lines += charsPerLine > 0 ? Math.max(1, Math.ceil(seg.length / charsPerLine)) : 1;
+  for (const segment of text.split('\n')) {
+    const words = segment.split(/\s+/).filter(Boolean);
+    if (!words.length) {
+      total += 1;
+      continue;
+    }
+
+    let lines = 1;
+    let used = 0; // số ký tự đã dùng trên dòng hiện tại
+
+    for (const word of words) {
+      // +1 cho dấu cách, trừ khi đang ở đầu dòng
+      const needed = used === 0 ? word.length : used + 1 + word.length;
+
+      if (needed <= charsPerLine) {
+        used = needed;
+        continue;
+      }
+
+      // Không vừa dòng hiện tại -> xuống dòng mới
+      if (used > 0) {
+        lines += 1;
+        used = 0;
+      }
+
+      if (word.length <= charsPerLine) {
+        used = word.length;
+      } else {
+        // Từ dài hơn một dòng: bị cắt giữa chừng thành nhiều dòng
+        const extra = Math.ceil(word.length / charsPerLine) - 1;
+        lines += extra;
+        used = word.length - extra * charsPerLine;
+      }
+    }
+
+    total += lines;
   }
-  return lines;
+
+  return total;
 }
 
 /**
  * Tạo callback `rowHeightProvider` tính chiều cao dòng theo nội dung của các cột chỉ định.
  *
  * @param fields Danh sách `field` của các cột quyết định chiều cao (vd: ['Note']).
+ *   Truyền `'*'` để xét TOÀN BỘ cột đang hiển thị — dùng khi muốn wrap text cả bảng.
  * @param options Tuỳ chọn tinh chỉnh; xem {@link TextRowHeightOptions}.
  *
  * @example
- * gridOptions = {
- *   rowHeight: 40,
- *   enableVariableRowHeight: true,
- *   rowHeightProvider: makeTextRowHeightProvider(['Note'], { min: 40, lineHeight: 20 }),
- * };
+ * // Chỉ một vài cột nội dung dài
+ * rowHeightProvider: makeTextRowHeightProvider(['Note'], { min: 40, lineHeight: 20 })
+ *
+ * @example
+ * // Wrap toàn bảng
+ * rowHeightProvider: makeTextRowHeightProvider('*', { min: 30, lineHeight: 18 })
+ *
+ * Lưu ý: bật `enableVariableRowHeight: true` thì provider mới có tác dụng, và phải
+ * có CSS cho `.slick-cell` xuống dòng (`white-space: normal`) thì mới thấy hiệu quả —
+ * mặc định SlickGrid đặt `white-space: nowrap`.
  *
  * Khi nội dung đổi mà SỐ DÒNG không đổi, phải gọi `grid.invalidateRowHeights()`
  * để SlickGrid dựng lại index chiều cao. Đổi bề rộng cột cũng vậy.
  */
 export function makeTextRowHeightProvider(
-  fields: string[],
+  fields: string[] | '*',
   options: TextRowHeightOptions = {}
 ): (grid: SlickGrid, row: number, item: any) => number | undefined {
   const opts = { ...DEFAULTS, ...options };
+  const allColumns = fields === '*';
 
   // Cache bề rộng cột để không phải quét lại danh sách cột cho từng dòng.
   // Chỉ dựng lại khi số cột đang hiển thị thay đổi.
   let widthCache: Record<string, number> = {};
+  let cachedFields: string[] = allColumns ? [] : (fields as string[]);
   let cachedColumnCount = -1;
 
   return (grid: SlickGrid, _row: number, item: any): number | undefined => {
@@ -87,11 +142,14 @@ export function makeTextRowHeightProvider(
           widthCache[col.field as string] = col.width ?? 0;
         }
       }
+      if (allColumns) {
+        cachedFields = Object.keys(widthCache);
+      }
       cachedColumnCount = columns.length;
     }
 
     let maxLines = 1;
-    for (const field of fields) {
+    for (const field of cachedFields) {
       const raw = item[field];
       if (raw === null || raw === undefined || raw === '') {
         continue;

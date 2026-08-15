@@ -3140,6 +3140,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       // Refresh grid to apply changes
       const updatedColumns = angularGrid.slickGrid.getColumns();
       angularGrid.slickGrid.setColumns(updatedColumns);
+      // Width cột có thể đổi mà số dòng không đổi -> SlickGrid không tự dựng lại
+      // index chiều cao của Variable Row Height, phải báo thủ công.
+      angularGrid.slickGrid.invalidateRowHeights?.();
       angularGrid.slickGrid.invalidate();
       angularGrid.slickGrid.render();
     });
@@ -6179,6 +6182,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
 
     if (hasChanges) {
       angularGrid.slickGrid.setColumns(columns);
+      // Width cột có thể đổi mà số dòng không đổi -> SlickGrid không tự dựng lại
+      // index chiều cao của Variable Row Height, phải báo thủ công.
+      angularGrid.slickGrid.invalidateRowHeights?.();
     }
   }
 
@@ -6349,6 +6355,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       // Force refresh columns
       const updatedColumns = angularGrid.slickGrid.getColumns();
       angularGrid.slickGrid.setColumns(updatedColumns);
+      // Width cột có thể đổi mà số dòng không đổi -> SlickGrid không tự dựng lại
+      // index chiều cao của Variable Row Height, phải báo thủ công.
+      angularGrid.slickGrid.invalidateRowHeights?.();
       angularGrid.slickGrid.invalidate();
       angularGrid.slickGrid.render();
     });

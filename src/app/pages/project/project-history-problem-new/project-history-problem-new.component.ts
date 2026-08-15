@@ -29,6 +29,9 @@ import { CustomTable } from '../../../shared/custom-table/custom-table';
 import { ColumnDef } from '../../../shared/custom-table/column-def.model';
 import { ProjectHistoryProblemDetailComponent } from './project-history-problem-detail/project-history-problem-detail.component';
 import { PermissionService } from '../../../services/permission.service';
+import { ClipboardService } from '../../../services/clipboard.service';
+import { DeepLinkService } from '../../../services/deep-link/deep-link.service';
+import { PublicLinkService } from '../../../services/deep-link/public-link.service';
 @Component({
   selector: 'app-project-history-problem-new',
   standalone: true,
@@ -56,6 +59,27 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
   @Input() projectId: number = 0;
   @Input() projectCode: string = '';
   @Input() pmID: number = 0;
+
+  /**
+   * Chế độ chỉ xem (mở từ deep-link có `&ro=1`): tắt mọi nút thao tác.
+   * Đây là ràng buộc giao diện, không thay thế phân quyền phía API.
+   */
+  @Input() readOnly: boolean = false;
+
+  /**
+   * Dữ liệu do vỏ PublicViewComponent lấy sẵn qua API ẩn danh.
+   * Khi có giá trị, trang chạy ở chế độ công khai: không gọi bất kỳ API nào cần
+   * token, vì người xem chưa đăng nhập và authInterceptor sẽ đá về trang login
+   * ngay khi gặp 401.
+   */
+  private publicData: any = null;
+
+  /** Token của link công khai, cần để gọi API chi tiết khi click một dòng. */
+  private publicToken: string = '';
+
+  get isPublicMode(): boolean {
+    return !!this.publicData;
+  }
 
   // Bảng 1: Lịch sử phát sinh
   dataHistory: any[] = [];
@@ -104,6 +128,9 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
     private projectService: ProjectService,
     private appUserService: AppUserService,
     private permissionService: PermissionService,
+    private clipboard: ClipboardService,
+    private deepLink: DeepLinkService,
+    private publicLink: PublicLinkService,
     @Optional() @Inject('tabData') private tabData?: any
   ) { }
 
@@ -113,6 +140,12 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
       if (this.tabData.projectId !== undefined) this.projectId = this.tabData.projectId;
       if (this.tabData.projectCode !== undefined) this.projectCode = this.tabData.projectCode;
       if (this.tabData.pmID !== undefined) this.pmID = this.tabData.pmID;
+      if (this.tabData.readOnly !== undefined) this.readOnly = !!this.tabData.readOnly;
+      if (this.tabData.publicData) {
+        this.publicData = this.tabData.publicData;
+        this.publicToken = this.tabData.publicToken ?? '';
+        this.readOnly = true;   // link công khai luôn là chỉ đọc
+      }
     }
     this.loadProjectInfo();
     this.initMenuBar();
@@ -126,6 +159,9 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
   }
 
   loadProjectInfo(): void {
+    // API này cần token — bỏ qua ở chế độ công khai để tránh 401 đá về login.
+    if (this.isPublicMode) return;
+
     if (this.projectId > 0) {
       this.projectService.getProject(this.projectId).subscribe({
         next: (response: any) => {
@@ -142,20 +178,26 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
   }
 
   initMenuBar(): void {
+    // Chế độ chỉ xem: ẩn hẳn mọi nút, chỉ chừa Tải lại và Xuất Excel.
+    const canEdit = !this.readOnly;
+
     this.menuBars = [
       {
         label: 'Thêm',
         icon: 'fa-solid fa-plus fa-lg text-primary',
+        visible: canEdit,
         command: () => this.addHistoryRow(),
       },
       {
         label: 'Sửa',
         icon: 'fa-solid fa-edit fa-lg text-warning',
+        visible: canEdit,
         command: () => this.editSelectedRow(),
       },
       {
         label: 'Xóa',
         icon: 'fa-solid fa-trash fa-lg text-danger',
+        visible: canEdit,
         command: () => this.deleteSelectedRow(),
       },
       {
@@ -176,7 +218,7 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
       {
         label: 'Duyệt',
         icon: 'fa-solid fa-check-double fa-lg text-primary',
-        visible: this.permissionService.hasPermission("N92") || this.permissionService.hasPermission("N32"),
+        visible: canEdit && (this.permissionService.hasPermission("N92") || this.permissionService.hasPermission("N32")),
         items: [
           {
             label: 'PM Duyệt',
@@ -221,10 +263,93 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
       {
         label: 'Xem lịch sử thay đổi',
         icon: 'fa-solid fa-clock-rotate-left fa-lg text-info',
-        visible: this.permissionService.hasPermission("N32,N1"),
+        visible: canEdit && this.permissionService.hasPermission("N32,N1"),
         command: () => this.openChangeLogModal(),
       },
+      {
+        label: 'Copy link',
+        icon: 'fa-solid fa-link fa-lg text-secondary',
+        command: () => this.copyPublicLink(),
+        visible: canEdit && this.projectId > 0,
+      },
+      // {
+      //   label: 'Copy link',
+      //   icon: 'fa-solid fa-link fa-lg text-secondary',
+      //   visible: canEdit && this.projectId > 0,
+      //   items: [
+      //     // {
+      //     //   label: 'Link nội bộ',
+      //     //   icon: 'fa-solid fa-link text-secondary',
+      //     //   command: () => this.copyDeepLink(),
+      //     // },
+      //     // {
+      //     //   label: 'Link nội bộ (chỉ xem)',
+      //     //   icon: 'fa-solid fa-eye text-secondary',
+      //     //   command: () => this.copyDeepLink(true),
+      //     // },
+      //     // { separator: true },
+
+      //   ],
+      // },
     ];
+  }
+
+  /**
+   * Chặn thao tác ghi khi trang đang ở chế độ chỉ xem.
+   * `disabled` trên menubar chỉ là giao diện — hàm vẫn có thể bị gọi từ
+   * double-click trên lưới hay context menu, nên chặn thêm ở đây.
+   */
+  private blockedByReadOnly(): boolean {
+    if (!this.readOnly) return false;
+    this.notification.info('Chế độ chỉ xem', 'Link này chỉ dùng để xem, không thao tác được.');
+    return true;
+  }
+
+  /**
+   * Copy link nội bộ: mở thẳng trang này đã lọc sẵn theo dự án hiện tại.
+   * Người nhận vẫn phải đăng nhập và vẫn chịu phân quyền như bình thường.
+   */
+  copyDeepLink(readOnly: boolean = false): void {
+    if (this.projectId <= 0) {
+      this.notification.warning('Thông báo', 'Chưa xác định được dự án để tạo link.');
+      return;
+    }
+
+    const url = this.deepLink.buildAbsolute(
+      'issuelog',
+      {
+        projectCode: this.projectCode || undefined,
+        projectId: this.projectCode ? undefined : this.projectId,
+      },
+      { readOnly }
+    );
+
+    this.clipboard.copy(url);
+    this.notification.success(readOnly ? 'Đã copy link chỉ xem' : 'Đã copy link', url);
+  }
+
+  /**
+   * Copy link công khai: người nhận xem được mà không cần đăng nhập.
+   *
+   * Link mang token ký HMAC do server cấp chứ không mang ProjectID trần, nếu
+   * không thì ai cũng dò được ID để lấy dữ liệu mọi dự án qua endpoint ẩn danh.
+   * Ai cầm link là xem được, nên chỉ chia sẻ cho người thật sự cần.
+   */
+  copyPublicLink(): void {
+    if (this.projectId <= 0) {
+      this.notification.warning('Thông báo', 'Chưa xác định được dự án để tạo link.');
+      return;
+    }
+
+    this.deepLink.sharePublic('issuelog', { projectId: this.projectId }).subscribe({
+      next: url => {
+        this.clipboard.copy(url);
+        this.notification.success('Đã copy link công khai', url);
+      },
+      error: err => {
+        this.notification.error('Lỗi', err?.error?.message || err?.message || 'Không tạo được link công khai.');
+      },
+    });
   }
 
   initColumns(): void {
@@ -258,6 +383,7 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
   }
 
   editSelectedRow(): void {
+    if (this.blockedByReadOnly()) return;
     if (this.selectedHistoryRows.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn một dòng để sửa!');
       return;
@@ -272,6 +398,7 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
   }
 
   deleteSelectedRow(): void {
+    if (this.blockedByReadOnly()) return;
     if (this.selectedHistoryRows.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một dòng để xóa!');
       return;
@@ -323,6 +450,7 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
   }
 
   approveSelectedRow(role: string, approve: boolean): void {
+    if (this.blockedByReadOnly()) return;
     if (this.selectedHistoryRows.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một dòng để thực hiện!');
       return;
@@ -366,6 +494,16 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
 
 
   loadData(): void {
+    // Chế độ công khai: dữ liệu đã được PublicViewComponent lấy sẵn.
+    if (this.isPublicMode) {
+      const dtMaster = this.publicData?.dtMaster;
+      this.dataHistory = Array.isArray(dtMaster)
+        ? dtMaster.map((item: any) => this.mapMasterDataToTable(item))
+        : [];
+      this.updateSTT();
+      return;
+    }
+
     const projectID = this.projectId || 0;
     const employeeID = projectID > 0 ? 0 : (this.appUserService.employeeID || 0);
 
@@ -581,6 +719,7 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
 
   // Thêm dòng vào bảng 1
   addHistoryRow(): void {
+    if (this.blockedByReadOnly()) return;
     this.openDetailForm();
   }
 
@@ -748,6 +887,13 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
     this.linkedWorkerVersions = [];
     this.linkedPartListVersions = [];
 
+    // Chế độ công khai không được gọi các API cần token (sẽ nhận 401 và bị
+    // authInterceptor đá về trang login), nên đi qua endpoint ẩn danh riêng.
+    if (this.isPublicMode) {
+      this.loadPublicDetail(rowData?.ID);
+      return;
+    }
+
     if (rowData?.ID > 0) {
       this.projectHistoryProblemNewService.getFiles(rowData.ID).subscribe({
         next: (res: any) => {
@@ -770,6 +916,44 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
 
       this.loadLinkedData(rowData.ID);
     }
+  }
+
+  /**
+   * Chi tiết một dòng ở chế độ công khai.
+   *
+   * Gộp file đính kèm và các bảng liên kết vào 1 request qua endpoint ẩn danh
+   * `api/PublicLink/detail`. Server tự kiểm tra dòng này có thuộc đúng dự án
+   * ghi trong token hay không.
+   */
+  private loadPublicDetail(problemId: number): void {
+    if (!(problemId > 0) || !this.publicToken) return;
+
+    this.publicLink.getDetail(this.publicToken, problemId).subscribe({
+      next: (res: any) => {
+        if (res?.status !== 1 || !res?.data) return;
+
+        const files = Array.isArray(res.data.files) ? res.data.files : [];
+        const fileType = (x: any) =>
+          x.FileType !== undefined ? Number(x.FileType)
+            : (x.Type !== undefined ? Number(x.Type) : 1);
+
+        this.previewImages = files;
+        this.previewImagesBefore = files.filter((x: any) => fileType(x) === 1);
+        this.previewImagesAfter = files.filter((x: any) => fileType(x) === 2);
+
+        this.linkedProjectItems = Array.isArray(res.data.dtProjectItemLink) ? res.data.dtProjectItemLink : [];
+        this.linkedWorkerVersions = Array.isArray(res.data.dtWorkerVersionLink) ? res.data.dtWorkerVersionLink : [];
+        this.linkedPartListVersions = Array.isArray(res.data.dtPartlistVersionLink) ? res.data.dtPartlistVersionLink : [];
+      },
+      error: () => {
+        this.previewImages = [];
+        this.previewImagesBefore = [];
+        this.previewImagesAfter = [];
+        this.linkedProjectItems = [];
+        this.linkedWorkerVersions = [];
+        this.linkedPartListVersions = [];
+      }
+    });
   }
 
   loadLinkedData(problemId: number): void {

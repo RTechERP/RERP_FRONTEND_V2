@@ -433,6 +433,8 @@ import { PersonalSignatureComponent } from './pages/personal-signature/personal-
 import { InventoryStockComponent } from './pages/warehouse/inventory-stock/inventory-stock.component';
 import { MechanicalDrawingComponent } from './pages/project/mechanical-drawing/mechanical-drawing.component';
 import { ReturnedInventoryProductComponent } from './pages/old/Sale/Inventory/returned-inventory-product/returned-inventory-product.component';
+import { buildDeepLinkAliasRoutes } from './services/deep-link/deep-link.config';
+import { PublicViewComponent } from './pages/public-view/public-view.component';
 export const routes: Routes = [
 
   {
@@ -464,6 +466,11 @@ export const routes: Routes = [
       { path: 'home-candidate', component: HomeLayoutCandidateComponent }
     ],
   },
+  {
+    path: 'view',
+    component: PublicViewComponent,
+  },
+
   {
     path: '',
     component: MainLayoutComponent, // layout chứa sidebar, topbar, etc.
@@ -1397,6 +1404,11 @@ export const routes: Routes = [
       { path: 'file-format', component: FileFormatManagementComponent, canActivate: [authGuard] },
       { path: 'project-type-department', component: ProjectTypeDepartmentComponent, canActivate: [authGuard] },
       { path: 'returned-inventory-product-hn', component: ReturnedInventoryProductComponent, canActivate: [authGuard] },
+      // Alias ngắn cho deep-link (vd: /issuelog -> /project-history-problem-new).
+      // Sinh tự động từ DEEP_LINK_PAGES, redirect vẫn giữ nguyên query string.
+      // Phải đứng CUỐI để không chiếm chỗ của các route khai báo ở trên.
+      ...buildDeepLinkAliasRoutes(),
     ],
   },
+
 ];

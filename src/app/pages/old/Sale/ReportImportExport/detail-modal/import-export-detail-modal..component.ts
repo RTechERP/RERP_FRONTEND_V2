@@ -17,6 +17,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { ReportImportExportService } from '../report-import-export-service/report-import-export.service';
 import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 import { BillImportDetailNewComponent } from '../../BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
+import { generateUniqueId } from '../../../../../shared/utils/unique-id.util';
 
 import {
   AngularGridInstance,
@@ -54,7 +55,7 @@ export class ImportExportModalComponent implements OnInit, AfterViewInit {
   @Input() productID: number = 0;
 
   // Unique grid identifiers using crypto
-  private readonly uniqueId = crypto.randomUUID();
+  private readonly uniqueId = generateUniqueId();
   readonly gridIdImport = `gridimportexportdetailimport${this.uniqueId}`;
   readonly gridIdExport = `gridimportexportdetailexport${this.uniqueId}`;
 

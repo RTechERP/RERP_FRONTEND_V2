@@ -9,7 +9,6 @@ import {
   ChangeDetectorRef,
   Optional,
   Inject,
-  ViewChild,
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
@@ -64,6 +63,7 @@ import { TabServiceService } from '../../../layouts/tab-service.service';
 import { PonccSummaryComponent } from '../poncc/poncc-summary/poncc-summary.component';
 import { PonccSummaryNewComponent } from '../poncc/poncc-summary/poncc-summary-new/poncc-summary-new.component';
 import { ActivityLogPonccComponent } from '../poncc/activity-log-poncc/activity-log-poncc.component';
+import { makeTextRowHeightProvider } from '../../../shared/utils/slickgrid-row-height.util';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -152,12 +152,6 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
   angularGridPoMuon!: AngularGridInstance;
   angularGridDetail!: AngularGridInstance;
 
-  @ViewChild('masterPanelRef', { read: ElementRef })
-  masterPanelRef?: ElementRef<HTMLElement>;
-  @ViewChild('detailPanelRef', { read: ElementRef })
-  detailPanelRef?: ElementRef<HTMLElement>;
-  private masterResizeObserver?: ResizeObserver;
-  private detailResizeObserver?: ResizeObserver;
 
   // Maps for filtering
   datasetsAllMapMaster: Map<string, any[]> = new Map(); // key: 'master-0' or 'master-1'
@@ -245,8 +239,6 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       this.filterPatchObserver.disconnect();
       this.filterPatchObserver = null;
     }
-    this.masterResizeObserver?.disconnect();
-    this.detailResizeObserver?.disconnect();
   }
 
   ngAfterViewInit(): void {
@@ -259,30 +251,6 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       }, 100);
     }, 200);
     setTimeout(() => this.patchSlickGridFilterInputs(), 600);
-    setTimeout(() => this.initResizeObservers(), 300);
-  }
-
-  /**
-   * Kéo splitter không kích hoạt autoResize của SlickGrid, nên tự quan sát
-   * wrapper nội dung của từng panel và gọi resizeCanvas() khi kích thước đổi.
-   */
-  private initResizeObservers(): void {
-    const masterEl = this.masterPanelRef?.nativeElement;
-    if (masterEl) {
-      this.masterResizeObserver = new ResizeObserver(() => {
-        this.angularGridPoThuongMai?.slickGrid?.resizeCanvas();
-        this.angularGridPoMuon?.slickGrid?.resizeCanvas();
-      });
-      this.masterResizeObserver.observe(masterEl);
-    }
-
-    const detailEl = this.detailPanelRef?.nativeElement;
-    if (detailEl) {
-      this.detailResizeObserver = new ResizeObserver(() => {
-        this.angularGridDetail?.slickGrid?.resizeCanvas();
-      });
-      this.detailResizeObserver.observe(detailEl);
-    }
   }
 
   /**
@@ -396,7 +364,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         id: 'ProjectCodes',
         name: 'Mã dự án',
         field: 'ProjectCodes',
-        width: 240,
+        width: 120,
         sortable: false,
         filterable: true,
         filter: {
@@ -1400,7 +1368,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private initGridOptions(): void {
     this.gridOptionsMaster = {
-      enableAutoResize: false,
+      enableAutoResize: true,
+      autoResize: {
+        container: '.grid-container-master',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
       enableSelection: true,
@@ -1426,6 +1399,17 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 28,
+
+      // VARIABLE ROW HEIGHT (SlickGrid v10): dòng tự giãn theo nội dung dài nhất.
+      // Phải đi kèm CSS wrap cho .slick-cell trong file .css (mặc định SlickGrid
+      // đặt white-space: nowrap), và lineHeight/padding ở đây phải khớp CSS đó.
+      enableVariableRowHeight: true,
+      rowHeightProvider: makeTextRowHeightProvider('*', {
+        lineHeight: 18,
+        padding: 10,
+        min: 30, // bằng rowHeight mặc định ở trên
+        max: 200,
+      }),
       excelExportOptions: {
         filename: 'poncc',
         sanitizeDataExport: true,
@@ -1458,7 +1442,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     };
 
     this.gridOptionsDetail = {
-      enableAutoResize: false,
+      enableAutoResize: true,
+      autoResize: {
+        container: '.grid-container-detail',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
       enableSelection: true,
@@ -1481,6 +1470,15 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 28,
+
+      // VARIABLE ROW HEIGHT - xem ghi chú ở grid master phía trên
+      enableVariableRowHeight: true,
+      rowHeightProvider: makeTextRowHeightProvider('*', {
+        lineHeight: 18,
+        padding: 10,
+        min: 30,
+        max: 200,
+      }),
     };
 
   }

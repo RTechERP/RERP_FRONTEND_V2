@@ -48,6 +48,7 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
 import { TbProductRtcFormComponent } from '../../tb-product-rtc/tb-product-rtc-form/tb-product-rtc-form.component';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
 import { MaterialDetailOfProductRtcComponent } from '../material-detail-of-product-rtc/material-detail-of-product-rtc.component';
+import { makeTextRowHeightProvider } from '../../../../shared/utils/slickgrid-row-height.util';
 
 @Component({
     selector: 'app-inventory-demo-new',
@@ -1025,6 +1026,16 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             enableContextMenu: false,
             enableCellMenu: false,
             rowHeight: 35,
+            // VARIABLE ROW HEIGHT (SlickGrid v10): dòng tự giãn theo nội dung dài
+            // nhất, min = 35 nên không dòng nào thấp hơn hiện tại.
+            // Đi kèm CSS wrap cho .slick-cell ở cuối file .css của component.
+            enableVariableRowHeight: true,
+            rowHeightProvider: makeTextRowHeightProvider('*', {
+                lineHeight: 18,
+                padding: 10,
+                min: 35,
+                max: 220,
+            }),
         };
     }
 
@@ -1048,6 +1059,14 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 applySelectOnAllPages: true,
             },
             rowHeight: 60,
+            // VARIABLE ROW HEIGHT - xem ghi chú ở grid phía trên
+            enableVariableRowHeight: true,
+            rowHeightProvider: makeTextRowHeightProvider('*', {
+                lineHeight: 18,
+                padding: 10,
+                min: 60,
+                max: 220,
+            }),
             enableCheckboxSelector: true,
             enableCellNavigation: true,
             enableFiltering: true,

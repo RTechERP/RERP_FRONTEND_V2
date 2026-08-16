@@ -79,6 +79,7 @@ import { PermissionService } from '../../../../../../services/permission.service
 import { HistoryProductRtcBorrowQrComponent } from '../history-product-rtc-borrow-qr/history-product-rtc-borrow-qr.component';
 import { HistoryProductRtcReturnQrComponent } from '../history-product-rtc-return-qr/history-product-rtc-return-qr.component';
 import { environment } from '../../../../../../../environments/environment';
+import { generateUniqueId } from '../../../../../../shared/utils/unique-id.util';
 
 @Component({
     selector: 'app-history-product-rtc',
@@ -171,7 +172,7 @@ export class HistoryProductRtcComponent
             this.warehouseID = params['warehouseID'] || 1;
             this.warehouseType = params['warehouseType'] || 0;
         });
-        this.gridId += `${this.warehouseID}-${this.warehouseType}-${crypto.randomUUID()}`;
+        this.gridId += `${this.warehouseID}-${this.warehouseType}-${generateUniqueId()}`;
 
         this.loadDate();
         this.loadEmployee();
@@ -614,6 +615,12 @@ export class HistoryProductRtcComponent
             enableAutoSizeColumns: false,
             enableHeaderMenu: false,
             enablePagination: false,
+
+            // Footer row: hiện tổng số dòng ở cột Mã sản phẩm
+            // (giống màn hình history-product-rtc-personal)
+            showFooterRow: true,
+            createFooterRow: true,
+
             enableContextMenu: true,
             contextMenu: {
                 hideCloseButton: false,
@@ -789,6 +796,8 @@ export class HistoryProductRtcComponent
                 setTimeout(() => {
                     if (this.angularGrid) {
                         this.angularGrid.resizerService.resizeGrid();
+                        // resize cũng vẽ lại grid -> ghi lại footer cho chắc
+                        this.updateFooterRow();
                     }
                 }, 100);
             },
@@ -844,6 +853,10 @@ export class HistoryProductRtcComponent
         // Update grid columns
         this.angularGrid.slickGrid.setColumns(columns);
         this.angularGrid.slickGrid.render();
+
+        // setColumns() dựng lại DOM của footer row nên nội dung đã ghi trước đó
+        // bị xoá -> phải ghi lại tổng số dòng sau khi set cột.
+        this.updateFooterRow();
     }
 
     angularGridReady(angularGrid: AngularGridInstance) {
@@ -854,6 +867,10 @@ export class HistoryProductRtcComponent
             angularGrid.resizerService.resizeGrid();
         }, 100);
 
+        // Footer: cập nhật lại mỗi khi số dòng đổi (nạp dữ liệu, lọc, xoá...)
+        this.angularGrid.dataView.onRowCountChanged.subscribe(() => this.updateFooterRow());
+        this.updateFooterRow();
+
         // Handle double click event on grid
         this.angularGrid.slickGrid.onDblClick.subscribe((_e: any, args: any) => {
             const row = args.row;
@@ -862,6 +879,27 @@ export class HistoryProductRtcComponent
                 this.productHistoryBorrowDetail(item.ID, item);
             }
         });
+    }
+
+    /**
+     * Hiện tổng số dòng ĐANG HIỂN THỊ (sau khi lọc) ở footer, đặt tại cột
+     * Mã sản phẩm - giống cách làm ở history-product-rtc-personal.
+     */
+    updateFooterRow() {
+        const slickGrid = this.angularGrid?.slickGrid;
+        if (!slickGrid) {
+            return;
+        }
+
+        const items =
+            (this.angularGrid.dataView?.getFilteredItems?.() as any[]) || this.dataset || [];
+        // Lọc theo ProductCode để bỏ các dòng group/tổng nhóm
+        const count = items.filter((item: any) => item && item.ProductCode).length;
+
+        const footerCell = slickGrid.getFooterRowColumn?.('ProductCode');
+        if (footerCell) {
+            footerCell.innerHTML = `<b>${count.toLocaleString('vi-VN')}</b>`;
+        }
     }
 
     onRowSelectionChanged(eventData: any, args: OnSelectedRowsChangedEventArgs) {

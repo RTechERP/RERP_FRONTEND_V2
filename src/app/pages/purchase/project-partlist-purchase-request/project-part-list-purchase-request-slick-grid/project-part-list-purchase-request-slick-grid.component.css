@@ -1,28 +1,36 @@
-.ant-tabs-content-holder{
+.ant-tabs-content-holder {
   height: 100% !important;
 }
-:host ::ng-deep nz-tab-body{
+
+:host ::ng-deep nz-tab-body {
   height: 100% !important;
 }
-:host ::ng-deep nz-tabs{
+
+:host ::ng-deep nz-tabs {
   height: 100% !important;
 }
-:host ::ng-deep nz-tab{
+
+:host ::ng-deep nz-tab {
   height: 100% !important;
 }
-:host ::ng-deep nz-tab-content{
+
+:host ::ng-deep nz-tab-content {
   height: 100% !important;
 }
-:host ::ng-deep .card-body{
+
+:host ::ng-deep .card-body {
   height: 85vh !important;
 }
-:host ::ng-deep .card-body .ant-tabs-content-holder{
+
+:host ::ng-deep .card-body .ant-tabs-content-holder {
   height: 100% !important;
 }
-:host ::ng-deep .card-body .ant-tabs-content{
+
+:host ::ng-deep .card-body .ant-tabs-content {
   height: 100% !important;
 }
-:host ::ng-deep .card-body .ant-tabs-tabpane{
+
+:host ::ng-deep .card-body .ant-tabs-tabpane {
   height: 100% !important;
 }
 
@@ -31,8 +39,9 @@
   font-size: 12px;
   font-size: 0.75rem;
 }
+
 ::ng-deep div[id^="gridPurchaseRequest"] {
-  height: 73vh!important;
+  height: 73vh !important;
 }
 
 /* ---------------------------------------------------------------
@@ -55,10 +64,10 @@
    `white-space:nowrap; text-overflow:ellipsis` (và một chỗ -webkit-line-clamp:2)
    vào span/div BÊN TRONG cell. Inline style không bị rule .slick-cell ở trên chạm
    tới, nên phải ghi đè riêng cho phần tử con thì mới wrap được. */
-:host ::ng-deep .slick-cell > span,
-:host ::ng-deep .slick-cell > div,
-:host ::ng-deep .slick-cell > span > span,
-:host ::ng-deep .slick-cell > div > div {
+:host ::ng-deep .slick-cell>span,
+:host ::ng-deep .slick-cell>div,
+:host ::ng-deep .slick-cell>span>span,
+:host ::ng-deep .slick-cell>div>div {
   white-space: normal !important;
   text-overflow: clip !important;
   word-break: break-word !important;
@@ -118,9 +127,11 @@
   padding: 4px 6px;
   font-size: 0.75rem;
 }
-::ng-deep .card{
+
+::ng-deep .card {
   height: 94vh !important;
 }
+
 /* Input date styling */
 .date-input-sm {
   width: 150px;

@@ -37,6 +37,7 @@ import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detai
 import { BillExportDetailFileComponent } from '../../BillExport/bill-export-detail-file/bill-export-detail-file.component';
 import { PermissionService } from '../../../../../services/permission.service';
 import { AppUserService } from '../../../../../services/app-user.service';
+import { generateUniqueId } from '../../../../../shared/utils/unique-id.util';
 
 @Component({
     selector: 'app-history-borrow-sale-new',
@@ -651,6 +652,11 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
             enableAutoSizeColumns: false,
             frozenColumn: 1,
 
+            // Footer row: hiện tổng số dòng (xem updateFooterRow)
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
+
             // Excel export config
             externalResources: [this.excelExportService],
             enableExcelExport: true,
@@ -755,6 +761,36 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
         if (this.dataset && this.dataset.length > 0) {
             this.updateFilterCollections();
         }
+
+        // Footer: cập nhật lại mỗi khi số dòng đổi (nạp dữ liệu, lọc, xoá...)
+        this.angularGrid.dataView.onRowCountChanged.subscribe(() => this.updateFooterRow());
+        this.updateFooterRow();
+    }
+
+    /**
+     * Hiện tổng số dòng ĐANG HIỂN THỊ (sau khi lọc) ở footer.
+     * Đặt vào cột đầu tiên vì cột này nằm trong vùng frozen nên luôn nhìn thấy
+     * dù bảng có cuộn ngang.
+     */
+    updateFooterRow(): void {
+        const slickGrid = this.angularGrid?.slickGrid;
+        if (!slickGrid) {
+            return;
+        }
+
+        const items = (this.angularGrid.dataView?.getFilteredItems?.() as any[]) || [];
+        // Bỏ dòng group/tổng nhóm, chỉ đếm dòng dữ liệu thật
+        let count = 0;
+        for (const item of items) {
+            if (item && !item.__group && !item.__groupTotals) {
+                count++;
+            }
+        }
+
+        const footerCell = slickGrid.getFooterRowColumn?.('ReturnedStatusText');
+        if (footerCell) {
+            footerCell.textContent = `Tổng: ${count.toLocaleString('vi-VN')} dòng`;
+        }
     }
 
     updateFilterCollections() {
@@ -798,6 +834,10 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 return updatedCol || col;
             });
             this.angularGrid.slickGrid.setColumns(updatedColumns);
+
+            // setColumns() dựng lại DOM của footer row nên nội dung đã ghi trước
+            // đó bị xoá -> phải ghi lại tổng số dòng sau khi set cột.
+            this.updateFooterRow();
         }
     }
 

@@ -76,6 +76,7 @@ import { PermissionService } from '../../../../../../services/permission.service
 import { HistoryProductRtcBorrowQrComponent } from '../history-product-rtc-borrow-qr/history-product-rtc-borrow-qr.component';
 import { HistoryProductRtcReturnQrComponent } from '../history-product-rtc-return-qr/history-product-rtc-return-qr.component';
 import { environment } from '../../../../../../../environments/environment';
+import { generateUniqueId } from '../../../../../../shared/utils/unique-id.util';
 
 @Component({
     selector: 'app-history-product-rtc-personal',
@@ -167,7 +168,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
             this.warehouseID = params['warehouseID'] || 1;
             this.warehouseType = params['warehouseType'] || 1;
         });
-        this.gridId += `${this.warehouseID}-${this.warehouseType}-${crypto.randomUUID()}`;
+        this.gridId += `${this.warehouseID}-${this.warehouseType}-${generateUniqueId()}`;
 
         this.loadDate();
         this.loadEmployee();

@@ -562,14 +562,33 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
         id: 'Debt',
         field: 'Debt',
         name: 'Công nợ',
-        width: 120,
+        width: 80,
         sortable: true,
         filterable: true,
+        cssClass: 'text-center',
         filter: {
           model: Filters['compoundInputText'],
         },
         formatter: this.wrapTextFormatter,
         exportCustomFormatter: this.exportDefaultFormatter,
+      },
+      {
+        id: 'IsAdditional',
+        field: 'IsAdditional',
+        name: 'Phát sinh',
+        width: 80,
+        sortable: true,
+        filterable: true,
+        cssClass: 'text-center',
+        formatter: (row, cell, value) => {
+          return value ? '<i class="fa fa-check text-success" aria-hidden="true"></i>' : '';
+        },
+        exportCustomFormatter: (row, cell, value) => {
+          return value ? '<i class="fa fa-check text-success" aria-hidden="true"></i>' : '';
+        },
+        filter: {
+          model: Filters['compoundInputText'],
+        },
       },
       {
         id: 'POCode',
@@ -628,6 +647,32 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
         id: 'DueDate',
         field: 'DueDate',
         name: 'Ngày tới hạn',
+        minWidth: 120,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center',
+      }, {
+        id: 'WeekStartDate',
+        field: 'WeekStartDate',
+        name: 'Ngày bắt đầu tuần dự trù',
+        minWidth: 120,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center',
+      }, {
+        id: 'WeekEndDate',
+        field: 'WeekEndDate',
+        name: 'Ngày bắt đầu tuần dự trù',
         minWidth: 120,
         sortable: true,
         filterable: true,
@@ -1055,7 +1100,10 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
       OfficeExpense: row.OfficeExpense || 0,
       TaxAmount: row.TaxAmount || 0,
       Note: row.Note || '',
-      IsDeleted: false
+      IsDeleted: false,
+      BillImportID: row.BillImportDetailID || 0,
+      PONCCID: row.PONCCID || 0,
+      PaymentPercentage: row.PaymentPercentage || 0
     }));
 
     this.modal.confirm({

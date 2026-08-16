@@ -17,6 +17,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { ExpectedPayableService } from '../expected-payable.service';
 import { ProjectService } from '../../../../../project/project-service/project.service';
 import { SupplierSaleService } from '../../../../../purchase/supplier-sale/supplier-sale.service';
@@ -44,6 +45,7 @@ import { PaymentOrderService } from '../../../../../general-category/payment-ord
     NzIconModule,
     NzSpinModule,
     NzModalModule,
+    NzCheckboxModule,
   ],
   templateUrl: './expected-payable-detail.component.html',
   styleUrl: './expected-payable-detail.component.css'
@@ -104,7 +106,11 @@ export class ExpectedPayableDetailComponent implements OnInit {
         Note: this.data?.Note,
         PaymentPercentage: this.data?.PaymentPercentage ?? 100,
         PONCCID: this.data?.PONCCID,
+        IsAdditional: this.data?.IsAdditional || false,
+        WeekStartDate: this.data?.WeekStartDate,
+        WeekEndDate: this.data?.WeekEndDate,
       });
+      this.updateValidators(this.form.get('IsAdditional')?.value);
     }
   }
 
@@ -131,6 +137,21 @@ export class ExpectedPayableDetailComponent implements OnInit {
       Note: [null],
       PaymentPercentage: [{ value: 100, disabled: this.isDisable }, [Validators.required, Validators.min(0), Validators.max(100)]],
       PONCCID: [{ value: null, disabled: this.isDisable }],
+      IsAdditional: [false],
+      WeekStartDate: [null],
+      WeekEndDate: [null],
+    });
+
+    this.form.get('IsAdditional')!.valueChanges.subscribe((isAdditional) => {
+      this.updateValidators(isAdditional);
+      if (!isAdditional) {
+        this.form.get('WeekStartDate')?.setValue(null);
+        this.form.get('WeekEndDate')?.setValue(null);
+      }
+    });
+
+    this.form.get('WeekStartDate')!.valueChanges.subscribe(() => {
+      this.form.get('WeekEndDate')?.updateValueAndValidity();
     });
 
     // Tính AmountVND khi Amount hoặc CurrencyID thay đổi
@@ -183,6 +204,41 @@ export class ExpectedPayableDetailComponent implements OnInit {
     const selected = new Date(control.value);
     selected.setHours(0, 0, 0, 0);
     return selected >= invoiceDate ? null : { minDate: true };
+  }
+
+  dateRangeValidator(control: AbstractControl): ValidationErrors | null {
+    if (!control.value) return null;
+    const startDateVal = this.form?.get('WeekStartDate')?.value;
+    if (!startDateVal) return null;
+    const startDate = new Date(startDateVal);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(control.value);
+    endDate.setHours(0, 0, 0, 0);
+    return endDate >= startDate ? null : { dateRangeInvalid: true };
+  }
+
+  updateValidators(isAdditional: boolean): void {
+    const supplierCtrl = this.form.get('SupplierID');
+    const dueDateCtrl = this.form.get('DueDate');
+    const startDateCtrl = this.form.get('WeekStartDate');
+    const endDateCtrl = this.form.get('WeekEndDate');
+
+    if (isAdditional) {
+      supplierCtrl?.clearValidators();
+      dueDateCtrl?.clearValidators();
+      startDateCtrl?.setValidators(Validators.required);
+      endDateCtrl?.setValidators([Validators.required, (control: AbstractControl) => this.dateRangeValidator(control)]);
+    } else {
+      supplierCtrl?.setValidators(Validators.required);
+      dueDateCtrl?.setValidators([Validators.required, (control: AbstractControl) => this.minDateValidator(control)]);
+      startDateCtrl?.clearValidators();
+      endDateCtrl?.clearValidators();
+    }
+
+    supplierCtrl?.updateValueAndValidity();
+    dueDateCtrl?.updateValueAndValidity();
+    startDateCtrl?.updateValueAndValidity();
+    endDateCtrl?.updateValueAndValidity();
   }
 
   calcAmountVND(): void {
@@ -297,6 +353,9 @@ export class ExpectedPayableDetailComponent implements OnInit {
       Note: value?.Note || "",
       PaymentPercentage: value?.PaymentPercentage ?? 100,
       PONCCID: value?.PONCCID || null,
+      IsAdditional: value?.IsAdditional || false,
+      WeekStartDate: value?.WeekStartDate ? this.toLocalISOString(value.WeekStartDate) : null,
+      WeekEndDate: value?.WeekEndDate ? this.toLocalISOString(value.WeekEndDate) : null,
       IsDeleted: false
     }
     this.isSaving = true;

@@ -353,7 +353,7 @@ export class ExpectedPayableDetailComponent implements OnInit {
       Note: value?.Note || "",
       PaymentPercentage: value?.PaymentPercentage ?? 100,
       PONCCID: value?.PONCCID || null,
-      IsAdditional: value?.IsAdditional || false,
+      IsAdditional: !!value?.IsAdditional,
       WeekStartDate: value?.WeekStartDate ? this.toLocalISOString(value.WeekStartDate) : null,
       WeekEndDate: value?.WeekEndDate ? this.toLocalISOString(value.WeekEndDate) : null,
       IsDeleted: false

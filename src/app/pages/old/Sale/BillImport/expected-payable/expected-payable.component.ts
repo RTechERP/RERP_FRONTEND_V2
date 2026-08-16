@@ -921,6 +921,9 @@ export class ExpectedPayableComponent implements OnInit, AfterViewInit, OnDestro
       TaxAmount: selectedRow.TaxAmount,
       Note: selectedRow.Note,
       PONCCID: selectedRow.PONCCID,
+      IsAdditional: selectedRow.IsAdditional,
+      WeekStartDate: selectedRow.WeekStartDate,
+      WeekEndDate: selectedRow.WeekEndDate,
     }
 
     const modalRef = this.modalService.open(ExpectedPayableDetailComponent, {

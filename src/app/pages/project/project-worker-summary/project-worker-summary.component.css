@@ -1,0 +1,252 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+:host ::ng-deep .p-menubar {
+    padding: 2px 8px;
+}
+
+:host .ant-form-item {
+    margin-bottom: 0;
+}
+
+:host ::ng-deep .ant-card-body {
+    padding: 0 !important;
+}
+
+/* === Số liệu tổng hợp === */
+.summary-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 6px 8px;
+    background: #fafafa;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.summary-item {
+    flex: 1 1 160px;
+    display: flex;
+    flex-direction: column;
+    padding: 4px 10px;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+}
+
+.summary-label {
+    font-size: 11px;
+    color: #8c8c8c;
+    white-space: nowrap;
+}
+
+.summary-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1890ff;
+}
+
+/* === p-splitter === */
+:host ::ng-deep .p-splitter {
+    height: 100%;
+    border: none;
+    background: transparent;
+}
+
+:host ::ng-deep .p-splitter-panel {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Gutter dày và rõ để kéo được giữa 2 bảng */
+:host ::ng-deep .p-splitter-vertical > .p-splitter-gutter {
+    height: 8px;
+    cursor: row-resize;
+}
+
+:host ::ng-deep .p-splitter-gutter {
+    background: #dfe3e8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+:host ::ng-deep .p-splitter-gutter:hover {
+    background: #b9c0c8;
+}
+
+:host ::ng-deep .p-splitter-gutter-handle {
+    background: #8c949c;
+    border: none;
+    border-radius: 2px;
+    width: 44px;
+    height: 4px;
+}
+
+/* === p-table compact === */
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    padding: 4px 8px;
+    font-size: 12px;
+    background: #f8f9fa;
+    font-weight: 600;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    vertical-align: middle;
+    text-align: center;
+    border: 1px solid #dee2e6;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+    padding: 3px 8px;
+    font-size: 12px;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    vertical-align: top;
+    border: 1px solid #dee2e6;
+}
+
+/* Bảng nhân công không dùng virtual scroll: xuống dòng thoải mái, dòng cao theo nội dung */
+.cell-wrap {
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.4;
+}
+
+/*
+ * Bảng báo cáo công việc giữ virtual scroll vì dữ liệu nhiều (size = 999999).
+ * Virtual scroll bắt buộc mọi dòng cao bằng nhau, nên ở bảng này text vẫn
+ * wrap nhưng kẹp 3 dòng cho khớp virtualScrollItemSize = 60.
+ * Nội dung đầy đủ xem qua tooltip trên ô.
+ */
+.virtual-rows .cell-wrap {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-height: 4.2em;
+}
+
+:host ::ng-deep .virtual-rows .p-datatable-tbody>tr,
+:host ::ng-deep .virtual-rows .p-datatable-tbody>tr>td {
+    height: 60px;
+    box-sizing: border-box;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr:hover {
+    background: #e8f4fd;
+}
+
+:host ::ng-deep tr.row-parent>td {
+    background-color: lightyellow !important;
+    font-weight: 600;
+}
+
+:host ::ng-deep tr.row-deleted>td {
+    background-color: #ffcccc !important;
+}
+
+.table-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #f0f0f0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.title-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.title-actions button {
+    font-size: 11px;
+    font-weight: 400;
+}
+
+/* Toggler thu gọn / mở rộng cây nhân công */
+.tree-cell {
+    display: inline-flex;
+    align-items: center;
+}
+
+.tree-toggler {
+    width: 16px;
+    font-size: 11px;
+    cursor: pointer;
+    color: #595959;
+    flex: 0 0 auto;
+}
+
+.tree-toggler:hover {
+    color: #1890ff;
+}
+
+.tree-toggler-placeholder {
+    width: 16px;
+    flex: 0 0 auto;
+}
+
+.filter-header input,
+.filter-header .p-multiselect {
+    width: 100%;
+    font-size: 11px;
+}
+
+/* Thanh tổng nằm ngoài p-table nên đứng yên khi cuộn ngang lẫn cuộn dọc */
+.footer-total {
+    flex: 0 0 auto;
+    font-weight: 600;
+    text-align: left;
+    padding: 4px 8px;
+    font-size: 12px;
+    background: #f0f0f0;
+    border-top: 1px solid #dee2e6;
+    white-space: nowrap;
+}
+
+.spinner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.grid-wrapper {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.grid-wrapper p-table {
+    flex: 1;
+    min-height: 0;
+}
+
+:host ::ng-deep .grid-wrapper .p-datatable {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .grid-wrapper .p-datatable-wrapper {
+    flex: 1;
+    min-height: 0;
+}

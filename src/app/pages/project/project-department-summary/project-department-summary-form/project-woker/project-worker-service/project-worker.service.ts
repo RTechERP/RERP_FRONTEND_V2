@@ -36,6 +36,10 @@ export class ProjectWorkerService {
   saveSolutionVersion(data: any): Observable<any> {
     return this.http.post<any>(this._urlProjectWorkerVersion + 'save-worker-version', data);
   }
+  //chuyển phiên bản giải pháp thành phiên bản PO (copy toàn bộ nhân công sang)
+  convertVersionPO(payload: any): Observable<any> {
+    return this.http.post<any>(this._urlProjectWorkerVersion + 'convert-versionPO', payload);
+  }
   //get cbb project type
   getProjectSolutionCbb(projectId: number): Observable<any> {
     return this.http.get<any>(this._urlProjectWorkerVersion + 'get-project-solution-cbb/' + projectId);

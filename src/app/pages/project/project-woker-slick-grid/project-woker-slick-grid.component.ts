@@ -1231,6 +1231,64 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
   }
   //#endregion
 
+  //#region Chuyển phiên bản giải pháp thành phiên bản PO
+  convertVersionToPO(): void {
+    const selectedRows = this.angularGridSolutionVersion?.slickGrid?.getSelectedRows() || [];
+    if (selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản giải pháp để chuyển thành PO!');
+      return;
+    }
+
+    const rowData = this.angularGridSolutionVersion?.dataView?.getItem(selectedRows[0]);
+    if (!rowData || rowData.__group || rowData.__groupTotals) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn dòng phiên bản hợp lệ!');
+      return;
+    }
+
+    if (rowData.StatusVersion === 2) {
+      this.notification.info('Thông báo', 'Phiên bản này đã là PO.');
+      return;
+    }
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận chuyển PO',
+      nzContent: `Chuyển phiên bản giải pháp [${rowData.Code}] thành phiên bản PO? Toàn bộ nhân công của phiên bản này sẽ được tạo mới sang phiên bản PO.`,
+      nzOkText: 'Chuyển',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => this.doConvertVersionToPO(rowData),
+    });
+  }
+
+  private doConvertVersionToPO(rowData: any): void {
+    const payload = {
+      ID: rowData.ID,
+      ProjectTypeID: rowData.ProjectTypeID,
+      ProjectSolutionID: rowData.ProjectSolutionID,
+      ProjectTypeName: rowData.ProjectTypeName,
+      ProjectID: this.projectId,
+    };
+
+    this.startLoading();
+    this.projectWorkerService.convertVersionPO(payload).subscribe({
+      next: (res: any) => {
+        this.stopLoading();
+        if (res?.status === 1) {
+          this.notification.success('Thành công', res.message || 'Đã chuyển phiên bản thành PO');
+          this.loadDataSolutionVersion();
+          this.loadDataPOVersion();
+        } else {
+          this.notification.error('Lỗi', res?.message || 'Chuyển phiên bản thất bại');
+        }
+      },
+      error: (err: any) => {
+        this.stopLoading();
+        const msg = err?.error?.message || err?.message || 'Chuyển phiên bản thất bại';
+        this.notification.error('Lỗi', msg);
+      },
+    });
+  }
+  //#endregion
+
   toggleTBPColumn(): void {
     // SlickGrid column visibility handled differently - could hide/show column if needed
   }

@@ -58,6 +58,7 @@ import { ProjectPartlistPriceRequestFormComponent } from '../../../project-partl
 import { ProductLocationService } from '../../../../general-category/product-location/product-location-service/product-location.service';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { InventoryProjectDetailComponent } from '../../../../purchase/inventory-project/inventory-project-detail/inventory-project-detail.component';
+import { makeTextRowHeightProvider } from '../../../../../shared/utils/slickgrid-row-height.util';
 
 interface ProductGroup {
     ID?: number;
@@ -538,6 +539,17 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             enableHeaderMenu: false,
             enableContextMenu: true,
             rowHeight: 55, // Điều chỉnh row height cho 3 dòng text (khoảng 18px/dòng + padding)
+            // VARIABLE ROW HEIGHT (SlickGrid v10): thay cho cách để rowHeight cao
+            // cố định cho MỌI dòng - dòng nào dài hơn 3 dòng chữ vẫn bị cắt.
+            // Nay dòng tự giãn theo nội dung; min = 55 nên giao diện cũ không đổi.
+            // Đi kèm CSS wrap cho .slick-cell ở cuối file .css của component.
+            enableVariableRowHeight: true,
+            rowHeightProvider: makeTextRowHeightProvider('*', {
+                lineHeight: 18,
+                padding: 10,
+                min: 55,
+                max: 220,
+            }),
             contextMenu: {
                 commandItems: [
                     {

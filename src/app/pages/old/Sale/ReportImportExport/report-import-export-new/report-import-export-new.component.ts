@@ -33,6 +33,7 @@ import { ChiTietSanPhamSaleNewComponent } from '../../chi-tiet-san-pham-sale/chi
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { environment } from '../../../../../../environments/environment';
+import { generateUniqueId } from '../../../../../shared/utils/unique-id.util';
 import {
     AngularSlickgridComponent,
     AngularGridInstance,
@@ -91,7 +92,7 @@ interface ProductGroup {
 })
 export class ReportImportExportNewComponent implements OnInit, AfterViewInit, OnDestroy {
     // Unique grid identifiers using crypto
-    private readonly uniqueId = crypto.randomUUID();
+    private readonly uniqueId = generateUniqueId();
     private readonly gridIdProductGroupUnique = `gridreportimportexportproductgroup${this.uniqueId}`;
     private readonly gridIdReportUnique = `gridreportimportexportreport${this.uniqueId}`;
     private readonly containerProductGroupClass = `gridcontainerreportimportexportproductgroup${this.uniqueId}`;

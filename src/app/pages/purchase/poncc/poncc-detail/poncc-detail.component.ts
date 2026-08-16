@@ -1794,30 +1794,41 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
             next: (res) => {
                 if (res.data == 0) {
                     this.save(ponccData, closeAfterSave);
-                } else {
-                    this.modal.confirm({
-                        nzTitle: `Số đơn hàng [${poncc.BillCode}] đã tồn tại?\nBạn có muốn tự động tăng Số đơn hàng không.`,
-                        nzOkText: 'Ok',
-                        nzOkType: 'primary',
-                        nzCancelText: 'Hủy',
-                        nzOkDanger: false,
-                        nzClosable: false,
-                        nzOnOk: () => {
-                            this.ponccService.getBillCode(poncc.POType).subscribe({
-                                next: (res) => {
-                                    ponccData.poncc.BillCode = res.data;
-                                    this.save(ponccData, closeAfterSave);
-                                }, error: (error) => {
-                                    this.isSaving = false;
-                                    this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
-                                }
-                            });
-                        },
-                        nzOnCancel: () => {
-                            this.isSaving = false;
-                        },
-                    });
+                    return;
                 }
+
+                // Số đơn hàng bị trùng: tự động lấy số mới rồi lưu luôn,
+                // không hỏi lại người dùng nữa (trước đây là modal confirm).
+                // Vẫn báo rõ số cũ -> số mới để người dùng biết đơn đã đổi số.
+                const oldBillCode = poncc.BillCode;
+                this.ponccService.getBillCode(poncc.POType).subscribe({
+                    next: (resBillCode) => {
+                        const newBillCode = resBillCode?.data;
+                        if (!newBillCode) {
+                            this.isSaving = false;
+                            this.notification.error(
+                                NOTIFICATION_TITLE.error,
+                                `Số đơn hàng ${oldBillCode} đã tồn tại nhưng không lấy được số mới. Vui lòng thử lại!`
+                            );
+                            return;
+                        }
+
+                        ponccData.poncc.BillCode = newBillCode;
+                        // Cập nhật luôn lên form để ô "Số đơn hàng" hiển thị số mới
+                        this.companyForm.patchValue({ BillCode: newBillCode });
+
+                        this.notification.warning(
+                            NOTIFICATION_TITLE.warning,
+                            `Số đơn hàng [${oldBillCode}] đã tồn tại, tự động đổi sang số mới: [${newBillCode}]`
+                        );
+
+                        this.save(ponccData, closeAfterSave);
+                    },
+                    error: (error) => {
+                        this.isSaving = false;
+                        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
+                    }
+                });
             },
             error: (err) => {
                 this.isSaving = false;
@@ -1826,9 +1837,67 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         });
     }
 
-    save(data: any, closeAfterSave: boolean = true) {
+    /**
+     * Backend (PoNCCRepo.Validate) trả về đúng câu này khi Số đơn hàng bị trùng:
+     *   "Số đơn hàng [DMH24764] đã tồn tại!"
+     * Đây mới là chỗ phát hiện trùng ĐMH thật sự - endpoint check-po-code chỉ
+     * báo trùng khi TRÙNG CẢ mã PO NCC lẫn ĐMH nên hầu như không bắt được.
+     */
+    private isDuplicateBillCodeMessage(message: string | undefined | null): boolean {
+        if (!message) {
+            return false;
+        }
+        const normalized = String(message).toLowerCase();
+        return normalized.includes('số đơn hàng') && normalized.includes('đã tồn tại');
+    }
+
+    /**
+     * Khi lưu bị từ chối vì trùng Số đơn hàng: tự động lấy số mới, báo cho người
+     * dùng biết rồi lưu lại. Chỉ thử lại MỘT lần (retried) để tránh lặp vô hạn
+     * nếu vì lý do nào đó số mới vẫn bị trùng.
+     */
+    private retryWithNewBillCode(data: any, closeAfterSave: boolean, oldBillCode: string) {
+        this.ponccService.getBillCode(data?.poncc?.POType ?? 0).subscribe({
+            next: (res: any) => {
+                const newBillCode = res?.data;
+                if (!newBillCode || newBillCode === oldBillCode) {
+                    this.isSaving = false;
+                    this.notification.error(
+                        NOTIFICATION_TITLE.error,
+                        `Số đơn hàng [${oldBillCode}] đã tồn tại nhưng không lấy được số mới. Vui lòng bấm làm mới số đơn hàng rồi lưu lại!`
+                    );
+                    return;
+                }
+
+                data.poncc.BillCode = newBillCode;
+                // Cập nhật luôn lên form để ô "Số đơn hàng" hiển thị số mới
+                this.companyForm.patchValue({ BillCode: newBillCode });
+
+                this.notification.warning(
+                    NOTIFICATION_TITLE.warning,
+                    `Số đơn hàng [${oldBillCode}] đã tồn tại, tự động đổi sang số mới: [${newBillCode}]`
+                );
+
+                this.save(data, closeAfterSave, true);
+            },
+            error: (error: any) => {
+                this.isSaving = false;
+                this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
+            }
+        });
+    }
+
+    save(data: any, closeAfterSave: boolean = true, retried: boolean = false) {
         this.ponccService.saveData(data).subscribe({
             next: (res) => {
+                // Lưu hỏng vì trùng Số đơn hàng -> tự đổi số rồi lưu lại,
+                // KHÔNG bật thông báo lỗi và giữ nguyên isSaving cho lần lưu lại.
+                const failed = !(res && (res.status === 1 || res.success === true || res.status === true));
+                if (failed && !retried && this.isDuplicateBillCodeMessage(res?.message)) {
+                    this.retryWithNewBillCode(data, closeAfterSave, data?.poncc?.BillCode);
+                    return;
+                }
+
                 this.isSaving = false;
                 // Check if response indicates success
                 if (res && (res.status === 1 || res.success === true || res.status === true)) {
@@ -1859,8 +1928,16 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
                 }
             },
             error: (err) => {
+                // Backend có thể trả lỗi trùng ĐMH dưới dạng HTTP error thay vì
+                // status trong body -> vẫn tự đổi số và lưu lại như nhánh trên.
+                const errMessage = err?.error?.message || err?.message;
+                if (!retried && this.isDuplicateBillCodeMessage(errMessage)) {
+                    this.retryWithNewBillCode(data, closeAfterSave, data?.poncc?.BillCode);
+                    return;
+                }
+
                 this.isSaving = false;
-                this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || err.message);
+                this.notification.error(NOTIFICATION_TITLE.error, errMessage);
                 // Don't close modal on error
             }
         });

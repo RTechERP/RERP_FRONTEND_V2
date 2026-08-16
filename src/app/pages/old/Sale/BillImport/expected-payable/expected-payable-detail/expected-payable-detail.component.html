@@ -20,9 +20,9 @@
       <div nz-row [nzGutter]="16">
 
         <!-- Nhà cung cấp -->
-        <div nz-col [nzSpan]="24">
+        <div nz-col [nzSpan]="20">
           <nz-form-item>
-            <nz-form-label>Nhà cung cấp <span class="text-danger ps-1">(*)</span></nz-form-label>
+            <nz-form-label>Nhà cung cấp <span *ngIf="!form.get('IsAdditional')?.value" class="text-danger ps-1">(*)</span></nz-form-label>
             <nz-form-control nzErrorTip="Vui lòng chọn nhà cung cấp!">
               <nz-select formControlName="SupplierID" nzShowSearch nzAllowClear nzDropdownClassName="select-dropdown"
                 nzPlaceHolder="Chọn nhà cung cấp" class="w-100">
@@ -31,6 +31,42 @@
             </nz-form-control>
           </nz-form-item>
         </div>
+
+        <!-- Phát sinh -->
+        <div nz-col [nzSpan]="4">
+          <nz-form-item>
+            <nz-form-label nzNoColon>&nbsp;</nz-form-label>
+            <nz-form-control style="display: flex; align-items: center; height: 38px;">
+              <label nz-checkbox formControlName="IsAdditional">Dự trù phát sinh</label>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <!-- Từ ngày & Tới ngày (Hiện khi Phát sinh = true) -->
+        <ng-container *ngIf="form.get('IsAdditional')?.value">
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Từ ngày (theo tuần) <span class="text-danger ps-1">(*)</span></nz-form-label>
+              <nz-form-control nzErrorTip="Vui lòng chọn từ ngày!">
+                <nz-date-picker class="w-100" nzFormat="dd/MM/yyyy" formControlName="WeekStartDate"
+                  nzPlaceHolder="Chọn từ ngày"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Tới ngày (theo tuần) <span class="text-danger ps-1">(*)</span></nz-form-label>
+              <nz-form-control [nzErrorTip]="endDateErrorTip">
+                <nz-date-picker class="w-100" nzFormat="dd/MM/yyyy" formControlName="WeekEndDate"
+                  nzPlaceHolder="Chọn tới ngày"></nz-date-picker>
+                <ng-template #endDateErrorTip let-control>
+                  <ng-container *ngIf="control.hasError('required')">Vui lòng chọn tới ngày!</ng-container>
+                  <ng-container *ngIf="control.hasError('dateRangeInvalid')">Tới ngày phải lớn hơn hoặc bằng từ ngày!</ng-container>
+                </ng-template>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </ng-container>
 
         <!-- Người giao -->
         <div nz-col [nzSpan]="6">
@@ -89,7 +125,7 @@
         <!-- Ngày tới hạn -->
         <div nz-col [nzSpan]="5">
           <nz-form-item>
-            <nz-form-label>Ngày tới hạn <span class="text-danger ps-1">(*)</span></nz-form-label>
+            <nz-form-label>Ngày tới hạn <span *ngIf="!form.get('IsAdditional')?.value" class="text-danger ps-1">(*)</span></nz-form-label>
             <nz-form-control nzErrorTip="Ngày tới hạn lớn hơn bằng ngày hiện tại!">
               <nz-date-picker class="w-100" nzFormat="dd/MM/yyyy" formControlName="DueDate"
                 nzPlaceHolder="Chọn ngày tới hạn"></nz-date-picker>

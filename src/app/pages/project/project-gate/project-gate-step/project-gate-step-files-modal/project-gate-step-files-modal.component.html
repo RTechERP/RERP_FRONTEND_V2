@@ -92,7 +92,7 @@
               [class.cursor-pointer]="cl.IsFile" [class.invalid-file-qty-row]="invalidRuleIds.has(cl.ID)"
               style="transition: background 0.15s; font-size: 11px;">
               <td class="text-center" style="width: 40px;" (click)="$event.stopPropagation()">
-                <label nz-checkbox [(ngModel)]="cl._selected"></label>
+                <label nz-checkbox [(ngModel)]="cl._selected" (ngModelChange)="onChecklistCheckboxChange(cl, $event)"></label>
               </td>
               <td class="text-center text-muted fw-bold" style="width: 45px;">
                 {{ cl.STT || (rowIndex + 1) }}
@@ -101,7 +101,7 @@
                 <span class="text-danger fw-bold me-1" *ngIf="cl.IsRequired" title="Bắt buộc">*</span>
                 <span class="fw-bold text-dark">{{ cl.Description || 'Quy tắc công đoạn' }}</span>
               </td>
-              <td style="width: 130px;" class="word-break-all">
+              <td style="width: 130px;" class="word-break-all" [title]="cl.FileName ? ('Mẫu thực tế: ' + getResolvedStandardFileName(cl.FileName)) : ''">
                 <span class="text-muted" *ngIf="cl.FileName">{{ cl.FileName }}</span>
                 <span class="text-muted" *ngIf="!cl.FileName"></span>
               </td>

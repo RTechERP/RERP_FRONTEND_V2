@@ -27,6 +27,13 @@ export class ProjectTypeDepartmentService {
     return this.http.get<any>(`${this.url}/get-all`);
   }
 
+  // Danh sách dự án theo kiểu dự án / phòng ban (qua bảng nối ProjectTypeLink)
+  getProjectsByType(departmentId: number, projectTypeId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.url}/get-projects-by-type?departmentId=${departmentId}&projectTypeId=${projectTypeId}`
+    );
+  }
+
   saveByDepartment(payload: { DepartmentID: number; ProjectTypeIDs: number[] }): Observable<any> {
     return this.http.post<any>(`${this.url}/save-by-department`, payload);
   }

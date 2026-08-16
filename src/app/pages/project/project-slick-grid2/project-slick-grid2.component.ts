@@ -64,6 +64,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { TreeTableModule } from 'primeng/treetable';
 import { ProjectReportSlickGridComponent } from '../project-report-slick-grid/project-report-slick-grid.component';
 import { ProjectWokerSlickGridComponent } from '../project-woker-slick-grid/project-woker-slick-grid.component';
+import { ProjectWorkerSummaryComponent } from '../project-worker-summary/project-worker-summary.component';
 import { TabServiceService } from '../../../layouts/tab-service.service';
 import { ProjectHistoryProblemNewComponent } from '../project-history-problem-new/project-history-problem-new.component';
 import { ProjectHistoryProblemSyntheticComponent } from '../project-history-problem-new/project-history-problem-synthetic/project-history-problem-synthetic.component';
@@ -349,6 +350,11 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 label: 'Nhân công',
                 icon: 'fa-solid fa-users fa-lg text-primary',
                 command: () => this.openProjectWorkerModal(),
+            },
+            {
+                label: 'Tổng hợp nhân công',
+                icon: 'fa-solid fa-users-gear fa-lg text-info',
+                command: () => this.openProjectWorkerSummaryTab(),
             },
             {
                 label: 'Chi tiết dự án',
@@ -1740,6 +1746,28 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
             data: {
                 projectId: projectId,
                 projectCodex: projectCode,
+            }
+        });
+    }
+
+    openProjectWorkerSummaryTab() {
+        const selectedIDs = this.getSelectedIds();
+        const selectedRows = this.getSelectedRows();
+
+        if (selectedIDs.length != 1) {
+            this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+            return;
+        }
+
+        const projectId = selectedRows[0]?.ID;
+        const projectCode = selectedRows[0]?.ProjectCode;
+
+        this.tabService.openTabComp({
+            comp: ProjectWorkerSummaryComponent,
+            title: `Tổng hợp nhân công - ${projectCode}`,
+            key: `project-worker-summary-${projectId}`,
+            data: {
+                projectID: projectId,
             }
         });
     }

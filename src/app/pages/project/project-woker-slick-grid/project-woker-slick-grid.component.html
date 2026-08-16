@@ -39,9 +39,11 @@
                   Sửa
                 </button>
               </div>
-              <div [id]="solutionContainerId" class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-container" style="min-height: 0;">
-                <angular-slickgrid *ngIf="gridsInitialized" [gridId]="solutionGridId" [columns]="solutionColumns" [options]="solutionGridOptions"
-                  [dataset]="dataSolution" (onAngularGridCreated)="onSolutionGridReady($event)"
+              <div [id]="solutionContainerId" class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-container"
+                style="min-height: 0;">
+                <angular-slickgrid *ngIf="gridsInitialized" [gridId]="solutionGridId" [columns]="solutionColumns"
+                  [options]="solutionGridOptions" [dataset]="dataSolution"
+                  (onAngularGridCreated)="onSolutionGridReady($event)"
                   (onSelectedRowsChanged)="onSolutionRowClick($event)"></angular-slickgrid>
               </div>
             </div>
@@ -74,6 +76,9 @@
                   (click)="onExportExcelSolutionVersion()">
                   <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
                 </button>
+                <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="convertVersionToPO()">
+                  <i nz-icon nzType="swap"></i> Chuyển PO
+                </button>
                 <ng-container *hasPermission="'N38,N1'">
                   <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
                     [nzDropdownMenu]="menuTBPSolution">
@@ -94,7 +99,8 @@
                   </ul>
                 </nz-dropdown-menu>
               </div>
-              <div [id]="solutionVersionContainerId" class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-version-container"
+              <div [id]="solutionVersionContainerId"
+                class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-version-container"
                 style="min-height: 0;">
                 <angular-slickgrid *ngIf="gridsInitialized" [gridId]="solutionVersionGridId"
                   [columns]="solutionVersionColumns" [options]="solutionVersionGridOptions"
@@ -150,7 +156,8 @@
                   </ul>
                 </nz-dropdown-menu>
               </div>
-              <div [id]="poVersionContainerId" class="card-body p-0 flex-grow-1 overflow-hidden grid-po-version-container" style="min-height: 0;">
+              <div [id]="poVersionContainerId"
+                class="card-body p-0 flex-grow-1 overflow-hidden grid-po-version-container" style="min-height: 0;">
                 <angular-slickgrid *ngIf="gridsInitialized" [gridId]="poVersionGridId" [columns]="poVersionColumns"
                   [options]="poVersionGridOptions" [dataset]="dataPOVersion"
                   (onAngularGridCreated)="onPOVersionGridReady($event)"
@@ -243,7 +250,8 @@
             </div>
           </div>
 
-          <div [id]="projectWorkerContainerId" class="card-body p-0 flex-grow-1 overflow-hidden grid-project-worker-container"
+          <div [id]="projectWorkerContainerId"
+            class="card-body p-0 flex-grow-1 overflow-hidden grid-project-worker-container"
             style="min-height: 0; position: relative;">
             <!-- Loading cho bảng projectWorker -->
             <div *ngIf="isLoading"

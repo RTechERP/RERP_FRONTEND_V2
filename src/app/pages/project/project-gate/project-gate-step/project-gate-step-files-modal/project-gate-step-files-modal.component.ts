@@ -38,6 +38,8 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
   @Input() gateCode: string = '';
   @Input() gateName: string = '';
   @Input() projectCode: string = '';
+  @Input() projectName: string = '';
+  @Input() stepCode: string = '';
   @Input() stepLinkId!: number;
   @Input() selectedRuleId: number | null = null;
   @Input() isApproved: any = false;
@@ -195,9 +197,33 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
     this.allChecked = false;
     this.indeterminate = false;
     if (this.selectedRule) {
+      const checkedCount = this.checklists?.filter(c => c._selected).length || 0;
+      if (checkedCount <= 1) {
+        this.checklists?.forEach(c => c._selected = (c.ID === this.selectedRule.ID));
+      }
       this.loadFilesForRule(this.selectedRule);
     } else {
       this.refreshDisplayFiles();
+    }
+  }
+
+  onChecklistCheckboxChange(cl: any, checked: boolean): void {
+    cl._selected = checked;
+    if (checked && cl.IsFile) {
+      this.selectedRule = cl;
+      this.selectedFileIds.clear();
+      this.allChecked = false;
+      this.indeterminate = false;
+      this.loadFilesForRule(cl);
+    } else if (!checked && this.selectedRule?.ID === cl.ID) {
+      const remaining = this.checklists?.filter(c => c._selected && c.IsFile) || [];
+      if (remaining.length === 1) {
+        this.selectedRule = remaining[0];
+        this.loadFilesForRule(this.selectedRule);
+      } else if (remaining.length === 0) {
+        this.selectedRule = null;
+        this.refreshDisplayFiles();
+      }
     }
   }
 
@@ -546,8 +572,17 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
     }
 
     if (!this.selectedRule) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một dòng checklist từ bảng checklist phía trên để tải file lên!');
-      return;
+      const checkedFileRules = this.checklists?.filter(c => c._selected && c.IsFile) || [];
+      if (checkedFileRules.length === 1) {
+        this.selectedRule = checkedFileRules[0];
+        this.loadFilesForRule(this.selectedRule);
+      } else if (checkedFileRules.length > 1) {
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn đang tích chọn nhiều quy tắc. Vui lòng click chọn 1 dòng quy tắc cụ thể để tải file lên!');
+        return;
+      } else {
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng tích chọn checkbox hoặc click chọn một dòng checklist từ bảng phía trên để tải file lên!');
+        return;
+      }
     }
 
     if (this.fileInputHidden) {
@@ -555,6 +590,162 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
       this.fileInputHidden.nativeElement.value = '';
       this.fileInputHidden.nativeElement.click();
     }
+  }
+
+  /**
+   * Chuyển chuỗi tiếng Việt có dấu thành không dấu, viết hoa chữ cái đầu mỗi từ (PascalCase) và loại bỏ ký tự đặc biệt, dấu câu
+   * Ví dụ: "Máy đóng gói, tự động - 2026" -> "MayDongGoiTuDong2026"
+   */
+  sanitizeProjectName(str: string): string {
+    if (!str) return '';
+
+    // 1. Chuyển tiếng Việt có dấu thành không dấu
+    const nonAccent = str
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D');
+
+    // 2. Tách từ theo khoảng trắng và các ký tự đặc biệt/dấu câu
+    const words = nonAccent.split(/[^a-zA-Z0-9]+/);
+
+    // 3. Viết hoa chữ cái đầu mỗi từ và ghép lại
+    const pascalCase = words
+      .filter(w => w.length > 0)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join('');
+
+    return pascalCase || nonAccent.replace(/[^a-zA-Z0-9]/g, '');
+  }
+
+  /**
+   * Lấy phần tên cơ bản của file (loại bỏ đuôi mở rộng như .jpg, .png, .pdf nếu có, nhưng không cắt nhầm dấu chấm trong mã dự án như 1.25.023)
+   */
+  getFileNameBase(fileName: string): string {
+    if (!fileName) return '';
+    fileName = fileName.trim();
+
+    const lastDot = fileName.lastIndexOf('.');
+    if (lastDot > 0 && lastDot < fileName.length - 1) {
+      const potentialExt = fileName.substring(lastDot + 1);
+      if (potentialExt.length <= 6 && /^[a-zA-Z0-9]+$/.test(potentialExt) && isNaN(Number(potentialExt))) {
+        return fileName.substring(0, lastDot).trim();
+      }
+    }
+    return fileName;
+  }
+
+  /**
+   * Kiểm tra tên file upload có khớp với mẫu quy chuẩn (hỗ trợ cả chuỗi tĩnh lẫn template regex: {ProjectCode}, {ProjectName}, {Rv}, {StepCode}, *)
+   */
+  isFileNameMatchStandard(uploadFileName: string, templateFileName: string): boolean {
+    if (!templateFileName || !templateFileName.trim()) return true;
+
+    let uploadBase = this.getFileNameBase(uploadFileName);
+    const templateBase = this.getFileNameBase(templateFileName);
+
+    const projCode = this.projectCode || this.selectedRule?.ProjectCode || '';
+    const rawProjName = this.projectName || this.selectedRule?.ProjectName || '';
+
+    // Bóc tách hậu tố unique do server upload sinh ra (_yyyyMMddHHmmss_guid) nếu có
+    uploadBase = uploadBase.replace(/(_\d{14}_[a-fA-F0-9]{8})$/, '');
+    if (projCode) {
+      uploadBase = uploadBase.replace(new RegExp(`(_${projCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}_\\d{14}_[a-fA-F0-9]{8})$`), '');
+    }
+
+    if (!/\{.*?\}|\*/.test(templateBase)) {
+      return uploadBase.toLowerCase().includes(templateBase.toLowerCase());
+    }
+
+    const safeProjectCode = projCode ? projCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '[a-zA-Z0-9_\\-\\.]+';
+    const sanitizedProjName = this.sanitizeProjectName(rawProjName);
+    const rawCleanProjName = rawProjName ? rawProjName.replace(/\s+/g, '') : '';
+
+    let projNamePattern = '[a-zA-Z0-9_\\-\\.]+';
+    if (sanitizedProjName && rawCleanProjName && sanitizedProjName.toLowerCase() !== rawCleanProjName.toLowerCase()) {
+      projNamePattern = `(?:${sanitizedProjName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}|${rawCleanProjName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`;
+    } else if (sanitizedProjName) {
+      projNamePattern = sanitizedProjName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    let pattern = templateBase;
+    pattern = pattern.replace(/([-_])(?:rv|revision|ver|version)$/i, '$1{Rv}');
+
+    const parts = pattern.split(/(\{[^}]+\}|\*)/g);
+    let patternStr = '^';
+
+    for (const part of parts) {
+      if (!part) continue;
+
+      if (part === '*') {
+        patternStr += '.*';
+      } else if (part.startsWith('{') && part.endsWith('}')) {
+        const token = part.substring(1, part.length - 1).trim();
+        if (/^(?:projectcode|maduan)$/i.test(token)) {
+          patternStr += safeProjectCode;
+        } else if (/^(?:projectname|tenduan)$/i.test(token)) {
+          patternStr += projNamePattern;
+        } else if (/^(?:rv|revision|xx|ver|version)$/i.test(token)) {
+          patternStr += '(?:Rv|rv|RV|v|V)?\\d*';
+        } else if (/^(?:gatecode|magate)$/i.test(token)) {
+          patternStr += '[a-zA-Z0-9_\\-]+';
+        } else if (/^(?:stepcode|macongdoan)$/i.test(token)) {
+          patternStr += '[a-zA-Z0-9_\\-]+';
+        } else if (/^(?:any|text|all)$/i.test(token)) {
+          patternStr += '.*';
+        } else {
+          patternStr += '[a-zA-Z0-9_\\-\\.]+';
+        }
+      } else {
+        // Phần tĩnh: chỉ escape regex, giữ nguyên dấu - và _
+        const escapedStatic = part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        patternStr += escapedStatic;
+      }
+    }
+
+    patternStr += '$';
+
+    try {
+      const regex = new RegExp(patternStr, 'i');
+      return regex.test(uploadBase);
+    } catch (e) {
+      console.error('Lỗi regex quy chuẩn tên file:', e);
+      return uploadBase.toLowerCase().includes(templateBase.toLowerCase());
+    }
+  }
+
+  /**
+   * Sinh chuỗi tên file quy chuẩn mẫu với các biến động được thay thế bằng thông tin thực tế của dự án để người dùng dễ quan sát và copy
+   */
+  getResolvedStandardFileName(templateFileName: string, uploadFileName: string = ''): string {
+    if (!templateFileName || !templateFileName.trim()) return '';
+
+    const projCode = this.projectCode || this.selectedRule?.ProjectCode || 'MãDựÁn';
+    const rawProjName = this.projectName || this.selectedRule?.ProjectName || 'TênDựÁn';
+    const projName = this.sanitizeProjectName(rawProjName) || 'TenDuAn';
+    const gateCode = this.gateCode || 'MãGate';
+    const stepCode = this.stepCode || 'MãBước';
+
+    let resolved = templateFileName.trim();
+    resolved = resolved.replace(/\{(?:projectcode|maduan)\}/gi, projCode);
+    resolved = resolved.replace(/\{(?:projectname|tenduan)\}/gi, projName);
+    resolved = resolved.replace(/\{(?:gatecode|magate)\}/gi, gateCode);
+    resolved = resolved.replace(/\{(?:stepcode|macongdoan)\}/gi, stepCode);
+    resolved = resolved.replace(/\{(?:rv|revision|ver|version)\}/gi, 'Rv01');
+    resolved = resolved.replace(/\{xx\}/gi, '01');
+    resolved = resolved.replace(/\{(?:any|text|all)\}/gi, 'TenFile');
+    resolved = resolved.replace(/\*/g, '');
+    resolved = resolved.replace(/([-_])(?:rv|revision|ver|version)$/i, '$1RV01');
+
+    // Nếu template chưa có phần đuôi mở rộng file (.jpg, .pdf, ...) thì lấy phần mở rộng của file upload đính kèm vào cho trực quan
+    if (uploadFileName && !resolved.includes('.')) {
+      const ext = uploadFileName.split('.').pop();
+      if (ext && ext !== uploadFileName) {
+        resolved = `${resolved}.${ext}`;
+      }
+    }
+
+    return resolved;
   }
 
   onFileSelected(event: Event): void {
@@ -593,14 +784,13 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
       // 2. Kiểm tra tên quy chuẩn (FileName)
       const standardFileName = activeRule.FileName || activeRule.fileName;
       if (standardFileName) {
-        const lastDotIdxStd = standardFileName.lastIndexOf('.');
-        const standardBase = lastDotIdxStd !== -1 ? standardFileName.substring(0, lastDotIdxStd).trim().toLowerCase() : standardFileName.trim().toLowerCase();
-
-        const lastDotIdxFile = fileName.lastIndexOf('.');
-        const fileBase = lastDotIdxFile !== -1 ? fileName.substring(0, lastDotIdxFile).trim().toLowerCase() : fileName.trim().toLowerCase();
-
-        if (!fileBase.includes(standardBase)) {
-          this.notification.error(NOTIFICATION_TITLE.error, `Tên file "${fileName}" không đúng quy chuẩn. Tên file yêu cầu chứa từ khóa: "${standardBase}"`);
+        if (!this.isFileNameMatchStandard(fileName, standardFileName)) {
+          const resolvedName = this.getResolvedStandardFileName(standardFileName, fileName);
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            `Tên file "${fileName}" không đúng quy chuẩn.\nQuy chuẩn yêu cầu: "${resolvedName}" (Mẫu: ${standardFileName})`,
+            { nzDuration: 9000 }
+          );
           return;
         }
       }
@@ -626,7 +816,7 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
           if (uploadedFiles.length > 0) {
             const saveRequests: Observable<any>[] = uploadedFiles.map((fData: any) => {
               const fileDto = {
-                FileName: fData.savedFileName || fData.SavedFileName || fData.originalFileName || fData.OriginalFileName,
+                FileName: fData.originalFileName || fData.OriginalFileName || fData.fileName || fData.FileName || fData.savedFileName || fData.SavedFileName,
                 FilePath: fData.filePath || fData.FilePath,
                 FileSize: fData.fileSize || fData.FileSize,
                 ContentType: fData.contentType || fData.ContentType
@@ -641,7 +831,8 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
               },
               error: (saveErr: any) => {
                 console.error('Lỗi lưu file vào DB:', saveErr);
-                this.notification.error(NOTIFICATION_TITLE.error, 'Upload thành công nhưng lưu DB thất bại.');
+                const errMsg = saveErr?.error?.message || 'Upload thành công nhưng lưu DB thất bại.';
+                this.notification.error(NOTIFICATION_TITLE.error, errMsg);
                 this.loadFilesForRule(activeRule);
               }
             });

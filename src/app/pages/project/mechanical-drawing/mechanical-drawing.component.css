@@ -119,6 +119,16 @@
     white-space: nowrap;
 }
 
+.card-project-type {
+    font-size: 0.75rem;
+    color: #3b82f6;
+    margin: 0 0 8px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
 .card-meta {
     display: flex;
     gap: 12px;

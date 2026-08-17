@@ -2,13 +2,24 @@
   <div class="detail-body p-3">
   <form nz-form nzLayout="vertical">
     <div class="row">
-      <div class="col-md-12">
+      <div class="col-md-6">
         <nz-form-item>
           <nz-form-label nzRequired>Dự án</nz-form-label>
           <nz-form-control [nzErrorTip]="errors.projectId || ''">
             <nz-select [(ngModel)]="model.ProjectID" name="projectId" nzPlaceHolder="Chọn dự án..." nzAllowClear nzShowSearch>
               <nz-option *ngFor="let project of projects" [nzValue]="project.ID"
                 [nzLabel]="(project.ProjectCode ? '[' + project.ProjectCode + '] - ' : '') + (project.ProjectName || project.Name)"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div class="col-md-6">
+        <nz-form-item>
+          <nz-form-label>Loại dự án</nz-form-label>
+          <nz-form-control>
+            <nz-select [(ngModel)]="model.ProjectTypeID" name="projectTypeId" nzPlaceHolder="Chọn loại dự án..." nzAllowClear nzShowSearch>
+              <nz-option *ngFor="let type of projectTypes" [nzValue]="type.ID"
+                [nzLabel]="type.ProjectTypeName"></nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>

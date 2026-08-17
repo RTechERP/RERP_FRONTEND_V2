@@ -292,37 +292,14 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         return statusId === 1 && isApproved === 1;
     }
 
-    onFilesTabChange(tabIndex: number): void {
-        // Lazy render Contract File grid only when user opens the tab
-        if (tabIndex === 1 && !this.isContractFileGridRendered) {
-            setTimeout(() => {
-                this.isContractFileGridRendered = true;
-            }, 0);
-        }
-        // Lazy render POFile grid only when user opens the tab
-        if (tabIndex === 2 && !this.isPOFileGridRendered) {
-            setTimeout(() => {
-                this.isPOFileGridRendered = true;
-            }, 0);
-        }
+    activeFilesTab: number = 0;
 
-        // Resize grids after tab DOM becomes visible
-        setTimeout(() => {
-            if (tabIndex === 0 && this.angularGridFile?.resizerService) {
-                this.angularGridFile.resizerService.resizeGrid();
-                this.angularGridFile.slickGrid?.invalidate();
-            }
-            if (tabIndex === 1 && this.angularGridContractFile?.resizerService) {
-                this.angularGridContractFile.resizerService.resizeGrid();
-                this.angularGridContractFile.slickGrid?.invalidate();
-                this.angularGridContractFile.slickGrid?.render();
-            }
-            if (tabIndex === 2 && this.angularGridPOFile?.resizerService) {
-                this.angularGridPOFile.resizerService.resizeGrid();
-                this.angularGridPOFile.slickGrid?.invalidate();
-                this.angularGridPOFile.slickGrid?.render();
-            }
-        }, 150);
+    selectFilesTab(tabIndex: number): void {
+        this.activeFilesTab = tabIndex;
+    }
+
+    onFilesTabChange(tabIndex: number): void {
+        this.selectFilesTab(tabIndex);
     }
 
     ngOnInit(): void {
@@ -647,6 +624,11 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
 
     angularGridReadyFile(angularGrid: AngularGridInstance): void {
         this.angularGridFile = angularGrid;
+        if (this.datasetFile && this.datasetFile.length > 0) {
+            this.angularGridFile.dataView?.setItems(this.datasetFile);
+            this.angularGridFile.slickGrid?.invalidate();
+            this.angularGridFile.slickGrid?.render();
+        }
     }
 
     private getFileContextMenuOptions(): MenuCommandItem[] {
@@ -729,6 +711,11 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
 
     angularGridReadyContractFile(angularGrid: AngularGridInstance): void {
         this.angularGridContractFile = angularGrid;
+        if (this.datasetContractFile && this.datasetContractFile.length > 0) {
+            this.angularGridContractFile.dataView?.setItems(this.datasetContractFile);
+            this.angularGridContractFile.slickGrid?.invalidate();
+            this.angularGridContractFile.slickGrid?.render();
+        }
         setTimeout(() => {
             if (this.angularGridContractFile?.resizerService) {
                 this.angularGridContractFile.resizerService.resizeGrid();
@@ -816,6 +803,11 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
 
     angularGridReadyPOFile(angularGrid: AngularGridInstance): void {
         this.angularGridPOFile = angularGrid;
+        if (this.datasetPOFile && this.datasetPOFile.length > 0) {
+            this.angularGridPOFile.dataView?.setItems(this.datasetPOFile);
+            this.angularGridPOFile.slickGrid?.invalidate();
+            this.angularGridPOFile.slickGrid?.render();
+        }
         setTimeout(() => {
             if (this.angularGridPOFile?.resizerService) {
                 this.angularGridPOFile.resizerService.resizeGrid();

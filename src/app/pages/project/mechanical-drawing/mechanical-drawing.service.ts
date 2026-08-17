@@ -16,14 +16,23 @@ export class MechanicalDrawingService {
     return this.http.get(this._url + 'get-projects');
   }
 
+  // Lấy danh sách loại dự án cho dropdown
+  getProjectTypes(): Observable<any> {
+    return this.http.get(this._url + 'get-project-types');
+  }
+
   // Lấy danh sách mechanical drawings (phân trang, filter)
-  getMechanicalDrawings(page: number, size: number, projectId?: number, keyword?: string, isDeleted: boolean = false): Observable<any> {
+  getMechanicalDrawings(page: number, size: number, projectId?: number, projectTypeId?: number, keyword?: string, isDeleted: boolean = false): Observable<any> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
 
     if (projectId && projectId > 0) {
       params = params.set('projectId', projectId.toString());
+    }
+
+    if (projectTypeId && projectTypeId > 0) {
+      params = params.set('projectTypeId', projectTypeId.toString());
     }
 
     if (keyword && keyword.trim()) {

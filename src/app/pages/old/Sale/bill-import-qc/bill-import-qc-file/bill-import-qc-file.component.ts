@@ -129,7 +129,8 @@ export class BillImportQcFileComponent implements OnInit, AfterViewInit {
   }
 
   onGridMasterClick(e: Event, args: OnClickEventArgs) {
-    const column = args.grid.getVisibleColumns()[args.cell];
+    const column = args.grid.getColumns()[args.cell];
+    if (!column) return;
 
     if (column.id === 'action') {
       const clickedElement = e.target as HTMLElement;

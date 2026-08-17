@@ -43,6 +43,7 @@ import { PermissionService } from '../../../services/permission.service';
 import { ProjectPartlistPriceRequestLogComponent } from '../project-partlist-price-request-new/project-partlist-price-request-log/project-partlist-price-request-log.component';
 import { TabServiceService } from '../../../layouts/tab-service.service';
 import { PriceHistoryPartlistSlickGridComponent } from '../../price-history-partlist-slick-grid/price-history-partlist-slick-grid.component';
+import { makeTextRowHeightProvider } from '../../../shared/utils/slickgrid-row-height.util';
 
 @Component({
   selector: 'app-project-partlist-price-request-old',
@@ -1313,6 +1314,20 @@ export class ProjectPartlistPriceRequestOldComponent
       enableGrouping: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
+
+      // VARIABLE ROW HEIGHT (SlickGrid v10): dòng tự giãn theo cột có nội dung
+      // dài nhất thay vì bị cắt cụt. Phải đi kèm CSS wrap cho .slick-cell trong
+      // file .css (mặc định SlickGrid đặt white-space: nowrap), và lineHeight /
+      // padding ở đây phải khớp line-height khai báo trong CSS đó.
+      rowHeight: 30,
+      enableVariableRowHeight: true,
+      rowHeightProvider: makeTextRowHeightProvider('*', {
+        lineHeight: 18,
+        padding: 10,
+        min: 30, // bằng rowHeight ở trên
+        max: 220,
+      }),
+
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 30,

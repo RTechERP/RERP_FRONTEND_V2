@@ -2986,6 +2986,8 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     modalRef.componentInstance.gateCode = item.GateCode || '';
     modalRef.componentInstance.gateName = item.GateName || '';
     modalRef.componentInstance.projectCode = this.projectCode || item.ProjectCode || '';
+    modalRef.componentInstance.projectName = this.projectName || item.ProjectName || '';
+    modalRef.componentInstance.stepCode = item.StepCode || item.ProjectGateStepCode || '';
     modalRef.componentInstance.isApproved = item.IsApproved || item.isApproved || false;
 
     modalRef.result

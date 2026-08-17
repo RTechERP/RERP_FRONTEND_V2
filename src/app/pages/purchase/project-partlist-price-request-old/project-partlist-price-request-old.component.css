@@ -110,3 +110,52 @@
 ::ng-deep .slick-group-totals-hidden {
   display: none !important;
 }
+
+/* ---------------------------------------------------------------
+   WRAP TEXT TOÀN BỘ CỘT (đi kèm enableVariableRowHeight trong .ts)
+   SlickGrid mặc định đặt white-space: nowrap + text-overflow: ellipsis
+   nên phải ghi đè thì nội dung mới xuống dòng và mới thấy dòng giãn ra.
+   line-height 18px phải khớp `lineHeight` truyền cho makeTextRowHeightProvider.
+   Dùng :host để chỉ áp dụng trong component này, không rò sang grid khác.
+   --------------------------------------------------------------- */
+:host ::ng-deep .slick-cell {
+  white-space: normal !important;
+  text-overflow: clip !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  line-height: 18px !important;
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
+}
+
+/* Formatter nhúng thẳng `white-space:nowrap; text-overflow:ellipsis` vào
+   span/div BÊN TRONG cell; inline style không bị rule trên chạm tới nên phải
+   ghi đè riêng cho phần tử con. */
+:host ::ng-deep .slick-cell>span,
+:host ::ng-deep .slick-cell>div,
+:host ::ng-deep .slick-cell>span>span,
+:host ::ng-deep .slick-cell>div>div {
+  white-space: normal !important;
+  text-overflow: clip !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  /* hidden chứ không phải visible: nếu ước lượng chiều cao hụt thì cắt gọn
+     trong ô, tránh chữ tràn đè lên dòng dưới trông như lỗi hiển thị. */
+  overflow: hidden !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+}
+
+/* Editor và checkbox selector không được wrap, giữ nguyên hành vi cũ */
+:host ::ng-deep .slick-cell.editable,
+:host ::ng-deep .slick-cell.slick-cell-checkboxsel,
+:host ::ng-deep .slick-cell input,
+:host ::ng-deep .slick-cell select,
+:host ::ng-deep .slick-cell .ms-choice {
+  white-space: nowrap !important;
+}
+
+/* Header giữ một dòng để không lệch với chiều cao header cố định */
+:host ::ng-deep .slick-header-column {
+  white-space: nowrap !important;
+}

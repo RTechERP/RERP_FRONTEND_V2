@@ -274,7 +274,7 @@ export class BillImportTechnicalSummaryComponent
 
     // Lắng nghe sự kiện cell change để tự động tính DueDate
     this.gridObj.onCellChange.subscribe((_e: any, args: any) => {
-      const columnDef = this.gridObj.getVisibleColumns()[args.cell];
+      const columnDef = args.column ?? this.gridObj.getColumns()[args.cell];
       const field = columnDef?.field;
       const editedItem = args.item;
       const newValue = editedItem[field as string];

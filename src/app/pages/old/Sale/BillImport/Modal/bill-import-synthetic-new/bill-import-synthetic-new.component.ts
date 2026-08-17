@@ -829,7 +829,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
     // Listen to cell change event for updating DueDate and propagate to selected rows
     this.angularGrid.slickGrid.onCellChange.subscribe(
       (_e: any, args: any) => {
-        const columnDef = args.column || this.angularGrid.slickGrid.getVisibleColumns()[args.cell];
+        const columnDef = args.column || this.angularGrid.slickGrid.getColumns()[args.cell];
         const columnId = columnDef?.id;
         const field = columnDef?.field;
 

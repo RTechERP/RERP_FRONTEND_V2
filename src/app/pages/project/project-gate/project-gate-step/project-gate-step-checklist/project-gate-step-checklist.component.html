@@ -54,8 +54,11 @@
                 <th style="width:70px; text-align:center; font-size:12px;" pResizableColumn [pSortableColumn]="'STT'">
                   STT <p-sortIcon field="STT"></p-sortIcon>
                 </th>
-                <th style="width:200px; font-size:12px;" pResizableColumn [pSortableColumn]="'FileName'">
-                  Tên file quy chuẩn <p-sortIcon field="FileName"></p-sortIcon>
+                <th style="width:230px; font-size:12px;" pResizableColumn [pSortableColumn]="'FileName'">
+                  Tên file quy chuẩn
+                  <i class="fa-solid fa-circle-question text-primary ms-1" style="cursor: pointer;" nz-tooltip
+                    [nzTooltipTitle]="fileNameTooltip" nzTooltipPlacement="top"></i>
+                  <p-sortIcon field="FileName"></p-sortIcon>
                 </th>
                 <th style="width:300px; font-size:12px;" pResizableColumn [pSortableColumn]="'FileRule'">
                   Quy tắc/Yêu cầu file <p-sortIcon field="FileRule"></p-sortIcon>
@@ -102,8 +105,8 @@
                 <td style="padding:8px 8px; vertical-align: middle;">
                   <input nz-input nzSize="small" [(ngModel)]="row.FileName" (ngModelChange)="markDetailDirty(row)"
                     (keydown)="onKeyDown(rowIndex, 'FileName', $event)" [attr.data-row]="rowIndex"
-                    [attr.data-col]="'FileName'" placeholder="VD: ban_ve_2d.dwg" class="w-100"
-                    style="font-size:12px;" />
+                    [attr.data-col]="'FileName'" placeholder="VD: {ProjectCode}-DS-EL-Draw-{ProjectName}-Rv{XX}"
+                    class="w-100" style="font-size:12px;" />
                 </td>
 
                 <!-- FileRule (Description) -->
@@ -132,7 +135,8 @@
                         [nzLabel]="opt.label"></nz-option>
                     </nz-select>
                     <button nz-button nzType="default" nzSize="small" type="button" (click)="openAddFileFormatModal()"
-                      [disabled]="!row.IsFile" title="Khai báo thêm định dạng file" style="padding: 0 6px; height: 24px;">
+                      [disabled]="!row.IsFile" title="Khai báo thêm định dạng file"
+                      style="padding: 0 6px; height: 24px;">
                       <i class="fa-solid fa-plus text-primary"></i>
                     </button>
                   </div>
@@ -196,3 +200,17 @@
     </div>
   </nz-spin>
 </div>
+<!-- Tooltip hướng dẫn biến mẫu quy chuẩn tên file -->
+<ng-template #fileNameTooltip>
+  <div style="font-size: 11px; max-width: 300px; text-align: left; line-height: 1.5;">
+    <div class="fw-bold text-warning mb-1"><i class="fa-solid fa-lightbulb me-1"></i>Các biến mẫu hỗ trợ:</div>
+    <div>• <code>{{ '{ProjectCode}' }}</code> / <code>{{ '{MaDuAn}' }}</code>: Mã dự án (VD: DA26-001)</div>
+    <div>• <code>{{ '{ProjectName}' }}</code> / <code>{{ '{TenDuAn}' }}</code>: Tên dự án (VD: MayDongGoi)</div>
+    <div>• <code>{{ '{Rv}' }}</code> / <code>{{ '{XX}' }}</code> / <code>{{ '{Revision}' }}</code>: Phiên bản (VD: Rv01, Rv02)</div>
+    <div>• <code>{{ '{GateCode}' }}</code>, <code>{{ '{StepCode}' }}</code>: Mã Gate, Mã bước</div>
+    <div>• <code>*</code>: Ký tự bất kỳ</div>
+    <div class="mt-1 text-muted" style="border-top: 1px dashed #555; padding-top: 3px;">
+      VD mẫu: <code>{{ '{ProjectCode}-DS-EL-Draw-{ProjectName}-Rv{XX}' }}</code>
+    </div>
+  </div>
+</ng-template>

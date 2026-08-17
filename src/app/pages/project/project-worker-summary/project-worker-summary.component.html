@@ -1,0 +1,260 @@
+<p-menubar [model]="menuBars">
+  <ng-template pTemplate="item" let-item>
+    <a class="p-menuitem-link" (click)="item.command ? item.command($event) : null">
+      <i [class]="item.icon"></i>
+      <span class="p-menuitem-text">{{ item.label }}</span>
+    </a>
+  </ng-template>
+  <ng-template #end>
+    <button nz-button nzType="text" (click)="isAdvandShow = !isAdvandShow"
+      [title]="isAdvandShow ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'">
+      <i [class]="isAdvandShow ? 'fa-solid fa-chevron-up' : 'fa-solid fa-filter'"></i>
+    </button>
+  </ng-template>
+</p-menubar>
+
+<div style="display: flex; flex-direction: column; height: calc(100vh - 6rem); overflow: hidden;">
+
+  <!-- Bộ lọc -->
+  <nz-card class="w-100 p-0" *ngIf="isAdvandShow" style="border-bottom: 1px solid #f0f0f0;">
+    <form nz-form class="ant-advanced-search-form">
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="5">
+          <nz-form-item>
+            <nz-form-label>Phòng ban</nz-form-label>
+            <nz-form-control>
+              <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn phòng ban" [(ngModel)]="param.departmentID"
+                [ngModelOptions]="{ standalone: true }" nzSize="small" (ngModelChange)="onDepartmentChange()">
+                @for (item of departments; track item.ID) {
+                <nz-option [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzSpan]="6">
+          <nz-form-item>
+            <nz-form-label>Kiểu dự án</nz-form-label>
+            <nz-form-control>
+              <nz-select nzShowSearch nzPlaceHolder="Chọn kiểu dự án" [(ngModel)]="param.projectTypeID"
+                [ngModelOptions]="{ standalone: true }" nzSize="small" (ngModelChange)="onProjectTypeChange()">
+                @for (item of projectTypes; track item.ID) {
+                <nz-option [nzLabel]="item.ProjectTypeCode + ' - ' + item.ProjectTypeName" [nzValue]="item.ID"></nz-option>
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzSpan]="7">
+          <nz-form-item>
+            <nz-form-label>Dự án</nz-form-label>
+            <nz-form-control>
+              <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn dự án" [(ngModel)]="param.projectID"
+                [ngModelOptions]="{ standalone: true }" nzSize="small" (ngModelChange)="onProjectChange()">
+                @for (item of filteredProjects; track item.ID) {
+                <nz-option [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID"></nz-option>
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzSpan]="6">
+          <nz-form-item>
+            <nz-form-label>Từ khóa</nz-form-label>
+            <nz-form-control>
+              <nz-input-group nzSearch [nzAddOnAfter]="suffixIconButton" nzSize="small">
+                <input type="text" [(ngModel)]="param.keyword" nz-input placeholder="Nhập từ khóa"
+                  [ngModelOptions]="{ standalone: true }" (keyup.enter)="loadData()" />
+              </nz-input-group>
+              <ng-template #suffixIconButton>
+                <button nz-button nzType="primary" nzSearch nzSize="small" (click)="loadData()">
+                  <span nz-icon nzType="search"></span>
+                </button>
+              </ng-template>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    </form>
+  </nz-card>
+
+  <!-- Số liệu tổng hợp -->
+  <div class="summary-bar">
+    <div class="summary-item">
+      <span class="summary-label">Số báo cáo</span>
+      <span class="summary-value">{{ summary.reportCount | number:'1.0-0' }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">Tổng số ngày</span>
+      <span class="summary-value">{{ summary.totalDays | number:'1.0-2' }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">Tổng ngày (có hệ số)</span>
+      <span class="summary-value">{{ summary.totalDaysWithRatio | number:'1.0-2' }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">Tổng số ngày nhân công</span>
+      <span class="summary-value">{{ summary.totalWorkforce | number:'1.0-2' }}</span>
+    </div>
+  </div>
+
+  <p-splitter layout="vertical" [panelSizes]="[50, 50]" [minSizes]="[20, 20]" style="flex: 1; min-height: 0;">
+
+    <!-- Bảng báo cáo công việc -->
+    <ng-template pTemplate>
+      <div class="grid-wrapper prime-table virtual-rows">
+        <div class="table-title">DANH SÁCH BÁO CÁO CÔNG VIỆC</div>
+        <div class="spinner-overlay" *ngIf="isLoadingReport">
+          <i class="pi pi-spin pi-spinner" style="font-size:2rem"></i>
+        </div>
+        <p-table [value]="filteredReportData" [scrollable]="true" scrollHeight="flex" dataKey="ID" [rowHover]="true"
+          [virtualScroll]="true" [virtualScrollItemSize]="60" [tableStyle]="{'min-width':'2400px'}"
+          [resizableColumns]="true" columnResizeMode="expand">
+
+          <ng-template pTemplate="header">
+            <tr>
+              <th *ngFor="let col of reportColumns" [pSortableColumn]="col.field" [style.width]="col.width"
+                [style.min-width]="col.width" pResizableColumn pFrozenColumn
+                [frozen]="col.frozen || false">
+                {{ col.header }}
+                <p-sortIcon [field]="col.field" />
+              </th>
+            </tr>
+            <tr>
+              <th *ngFor="let col of reportColumns" class="filter-header" pFrozenColumn [frozen]="col.frozen || false">
+                <p-multiselect *ngIf="col.filterType==='multiselect'" [options]="col.filterOptions||[]"
+                  [(ngModel)]="col.filterValue" (onChange)="onReportFilterChange()" placeholder="Tất cả" [filter]="true"
+                  appendTo="body" [virtualScroll]="true" [virtualScrollItemSize]="30"
+                  [style]="{'width':'100%','font-size':'11px'}" [maxSelectedLabels]="1" selectedItemsLabel="{0} đã chọn">
+                </p-multiselect>
+                <input *ngIf="col.filterType==='text'" pInputText [(ngModel)]="col.filterValue"
+                  (input)="onReportFilterChange()" placeholder="Lọc..."
+                  style="width:100%;font-size:11px;padding:2px 4px">
+                <input *ngIf="col.filterType==='number'" pInputText type="number" [(ngModel)]="col.filterValue"
+                  (input)="onReportFilterChange()" placeholder="Lọc..."
+                  style="width:100%;font-size:11px;padding:2px 4px">
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td *ngFor="let col of reportColumns" [style.text-align]="cellAlign(col)" [style.width]="col.width"
+                [style.min-width]="col.width" pFrozenColumn [frozen]="col.frozen || false" [title]="row[col.field]">
+                <div class="cell-wrap">
+                  <ng-container [ngSwitch]="col.type">
+                    <span *ngSwitchCase="'date'">{{ row[col.field] | date:col.dateFormat }}</span>
+                    <span *ngSwitchCase="'number'">{{ row[col.field] | number:'1.0-2' }}</span>
+                    <span *ngSwitchDefault>{{ row[col.field] }}</span>
+                  </ng-container>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [colSpan]="reportColumns.length" style="text-align:center">Không có dữ liệu</td>
+            </tr>
+          </ng-template>
+        </p-table>
+
+        <div class="footer-total">
+          Số báo cáo = {{ summary.reportCount | number:'1.0-0' }} &nbsp;|&nbsp;
+          Tổng số ngày = {{ summary.totalDays | number:'1.0-2' }} &nbsp;|&nbsp;
+          Tổng ngày (có hệ số) = {{ summary.totalDaysWithRatio | number:'1.0-2' }}
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- Bảng nhân công dự án -->
+    <ng-template pTemplate>
+      <div class="grid-wrapper prime-table">
+        <div class="table-title">
+          <span>NHÂN CÔNG DỰ ÁN (PHIÊN BẢN PO)</span>
+          <span class="title-actions">
+            <button nz-button nzType="default" nzSize="small" (click)="expandAllWorker()">
+              <i class="pi pi-angle-double-down"></i> Mở rộng tất cả
+            </button>
+            <button nz-button nzType="default" nzSize="small" (click)="collapseAllWorker()">
+              <i class="pi pi-angle-double-up"></i> Thu gọn tất cả
+            </button>
+          </span>
+        </div>
+        <div class="spinner-overlay" *ngIf="isLoadingWorker">
+          <i class="pi pi-spin pi-spinner" style="font-size:2rem"></i>
+        </div>
+        <p-table [value]="filteredWorkerData" [scrollable]="true" scrollHeight="flex" dataKey="ID" [rowHover]="true" [tableStyle]="{'min-width':'1200px'}"
+          [resizableColumns]="true" columnResizeMode="expand">
+
+          <ng-template pTemplate="header">
+            <tr>
+              <th *ngFor="let col of workerColumns" [pSortableColumn]="col.field" [style.width]="col.width"
+                [style.min-width]="col.width" pResizableColumn pFrozenColumn
+                [frozen]="col.frozen || false">
+                {{ col.header }}
+                <p-sortIcon [field]="col.field" />
+              </th>
+            </tr>
+            <tr>
+              <th *ngFor="let col of workerColumns" class="filter-header" pFrozenColumn [frozen]="col.frozen || false">
+                <p-multiselect *ngIf="col.filterType==='multiselect'" [options]="col.filterOptions||[]"
+                  [(ngModel)]="col.filterValue" (onChange)="onWorkerFilterChange()" placeholder="Tất cả" [filter]="true"
+                  appendTo="body" [virtualScroll]="true" [virtualScrollItemSize]="30"
+                  [style]="{'width':'100%','font-size':'11px'}" [maxSelectedLabels]="1" selectedItemsLabel="{0} đã chọn">
+                </p-multiselect>
+                <input *ngIf="col.filterType==='text'" pInputText [(ngModel)]="col.filterValue"
+                  (input)="onWorkerFilterChange()" placeholder="Lọc..."
+                  style="width:100%;font-size:11px;padding:2px 4px">
+                <input *ngIf="col.filterType==='number'" pInputText type="number" [(ngModel)]="col.filterValue"
+                  (input)="onWorkerFilterChange()" placeholder="Lọc..."
+                  style="width:100%;font-size:11px;padding:2px 4px">
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-row>
+            <tr [ngClass]="getWorkerRowClass(row)">
+              <td *ngFor="let col of workerColumns" [style.text-align]="cellAlign(col)" [style.width]="col.width"
+                [style.min-width]="col.width" pFrozenColumn [frozen]="col.frozen || false" [title]="row[col.field]">
+                <ng-container *ngIf="col.field === 'TT'; else otherCell">
+                  <span class="tree-cell" [style.padding-left.px]="(row.__treeLevel || 0) * 16">
+                    <i *ngIf="row.__hasChildren" class="tree-toggler pi"
+                      [ngClass]="isWorkerRowCollapsed(row) ? 'pi-chevron-right' : 'pi-chevron-down'"
+                      (click)="toggleWorkerRow(row); $event.stopPropagation()"></i>
+                    <i *ngIf="!row.__hasChildren" class="tree-toggler-placeholder"></i>
+                    {{ row.TT }}
+                  </span>
+                </ng-container>
+                <ng-template #otherCell>
+                  <ng-container *ngIf="row.__hasChildren && isHiddenOnParent(col.field); else valueCell"></ng-container>
+                  <ng-template #valueCell>
+                    <div class="cell-wrap">
+                      <ng-container [ngSwitch]="col.type">
+                        <span *ngSwitchCase="'number'">{{ row[col.field] | number:'1.0-2' }}</span>
+                        <span *ngSwitchDefault>{{ row[col.field] }}</span>
+                      </ng-container>
+                    </div>
+                  </ng-template>
+                </ng-template>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [colSpan]="workerColumns.length" style="text-align:center">Không có dữ liệu</td>
+            </tr>
+          </ng-template>
+        </p-table>
+
+        <div class="footer-total">
+          Tổng số ngày nhân công = {{ summary.totalWorkforce | number:'1.0-2' }}
+        </div>
+      </div>
+    </ng-template>
+  </p-splitter>
+</div>

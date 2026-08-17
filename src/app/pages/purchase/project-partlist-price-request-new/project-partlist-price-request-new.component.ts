@@ -62,7 +62,8 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 import { SupplierSaleDetailComponent } from '../../purchase/supplier-sale/supplier-sale-detail/supplier-sale-detail.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { HorizontalScrollDirective } from '../../../directives/horizontalScroll.directive';
-import { forkJoin, Subscription } from 'rxjs';
+import { forkJoin, Subject, Subscription } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { HolidayServiceService } from '../../hrm/holiday/holiday-service/holiday-service.service';
 import { TabulatorPopupService } from '../../../shared/components/tabulator-popup/tabulator-popup.service';
 import { MenubarModule } from 'primeng/menubar';
@@ -72,6 +73,7 @@ import { PriceHistoryPartlistSlickGridComponent } from '../../price-history-part
 import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
 import { TabServiceService } from '../../../layouts/tab-service.service';
 import { HistoryPriceComponent } from '../../purchase/project-partlist-purchase-request/history-price/history-price.component';
+import { makeTextRowHeightProvider } from '../../../shared/utils/slickgrid-row-height.util';
 
 @Component({
   selector: 'app-project-partlist-price-request-new',
@@ -153,6 +155,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   selectedRowIdsSetMap: Map<number, Set<number>> = new Map();
   // Quản lý subscriptions để có thể hủy khi cần
   private dataLoadingSubscriptions: Subscription[] = [];
+  private destroy$ = new Subject<void>();
+  private slickEventHandlers: Array<{ event: any; handler: any }> = [];
   // Request ID để đảm bảo chỉ xử lý response từ request hiện tại
   private currentRequestId: number = 0;
   // Flag để track khi tab đã render
@@ -234,6 +238,11 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   }
 
   ngOnInit() {
+    console.log('[ProjectPartlistPriceRequestNewComponent] ngOnInit input', {
+      isPriceRequestDemo: this.isPriceRequestDemo,
+      projectPartlistPriceRequestTypeID: this.projectPartlistPriceRequestTypeID,
+      isFromPOKH: this.isFromPOKH,
+    });
     // Nếu có projectPartlistPriceRequestTypeID được truyền vào, set activeTabId tương ứng
     if (this.projectPartlistPriceRequestTypeID === 3) {
       this.activeTabId = -2; // HCNS tab
@@ -241,10 +250,13 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       this.activeTabId = -3; // Tab tương ứng với type 4
     } else if (this.isPriceRequestDemo && this.projectPartlistPriceRequestTypeID === 6) {
       this.activeTabId = -4; // Tab demo
+    } else if (this.isPriceRequestDemo && this.projectPartlistPriceRequestTypeID === 9) {
+      this.activeTabId = -5; // Tab AGV Demo
     }
     if (this.isFromPOKH) {
       this.activeTabId = -1; // Tab thương mại
     }
+    console.log('[ProjectPartlistPriceRequestNewComponent] resolved activeTabId', this.activeTabId);
 
     if (this.projectPartlistPriceRequestTypeID === -10) {
       this.activeTabId = 15; // Vtth tab
@@ -314,6 +326,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     if (this.isPriceRequestDemo && this.projectPartlistPriceRequestTypeID === 6) {
       return id === -4;
     }
+    // AGV Demo (type 9): chỉ hiển thị tab AGV (id === -5), fallback sang -4 nếu -5 chưa có trong SP
+    if (this.isPriceRequestDemo && this.projectPartlistPriceRequestTypeID === 9) {
+      return id === -5 || id === -4;
+    }
 
     if (this.poKHID > 0 && id !== -1) return false;
     if (this.projectPartlistPriceRequestTypeID === 3) return id === -2;
@@ -353,9 +369,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   OnAddClick() {
     this.modalData = [];
 
-    // Map projectTypeID (activeTabId) sang projectPartlistPriceRequestTypeID
-    const projectPartlistPriceRequestTypeID =
-      this.getProjectPartlistPriceRequestTypeID(this.activeTabId);
+    // Nếu component được mở với TypeID cụ thể (VD: AGV=9, Demo=6) thì dùng luôn, không map từ tab
+    const projectPartlistPriceRequestTypeID = this.projectPartlistPriceRequestTypeID > 0
+      ? this.projectPartlistPriceRequestTypeID
+      : this.getProjectPartlistPriceRequestTypeID(this.activeTabId);
 
     const modalRef = this.ngbModal.open(
       ProjectPartlistPriceRequestFormComponent,
@@ -393,6 +410,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       '-2': 3,
       '-3': 4,
       '-4': 6,
+      '-5': 9,
       '15': -10,
     };
 
@@ -406,7 +424,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   }
 
   OnEditClick() {
-    const lstTypeAccept = [-1, -2, -3, -4, 10];
+    const lstTypeAccept = [-1, -2, -3, -4, -5, 10];
     const angularGrid = this.angularGrids.get(this.activeTabId);
 
     if (!lstTypeAccept.includes(this.activeTabId)) {
@@ -496,7 +514,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
 
   private GetProductSale() {
     //NXL Update 29/11/25
-    this.PriceRequetsService.getProductSale().subscribe((response) => {
+    this.PriceRequetsService.getProductSale().pipe(takeUntil(this.destroy$)).subscribe((response) => {
       this.dtProductSale = response.data || [];
       console.log('ProductSale:', this.dtProductSale);
     });
@@ -545,7 +563,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   }
   private GetSupplierSale() {
     this.PriceRequetsService.getSuplierSale()
-      // .pipe(take(50))
+      .pipe(takeUntil(this.destroy$))
       .subscribe((response) => {
         this.dtSupplierSale = response.data;
         console.log('dtsuppliersale: ', this.dtSupplierSale);
@@ -557,9 +575,14 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     if (this.jobRequirementID > 0 || this.isVPP) projectTypeIdHR = -2;
 
     // Lấy danh sách types
-    this.PriceRequetsService.getTypes(employeeID, projectTypeIdHR).subscribe(
+    this.PriceRequetsService.getTypes(employeeID, projectTypeIdHR).pipe(takeUntil(this.destroy$)).subscribe(
       (response) => {
         this.projectTypes = response.data.dtType;
+
+        // Khi mở ở chế độ AGV Demo (TypeID=9), đảm bảo tab -5 luôn có (SP chưa trả về thì thêm thủ công)
+        if (this.projectPartlistPriceRequestTypeID === 9 && !this.projectTypes.find((t: any) => t.ProjectTypeID === -5)) {
+          this.projectTypes.push({ ProjectTypeID: -5, ProjectTypeName: 'AGV DEMO' });
+        }
 
         // Initialize grids for each project type
         setTimeout(() => {
@@ -720,6 +743,12 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       } else if (projectTypeID === -4) {
         // ✅ Demo
         projectPartlistPriceRequestTypeID = 6;
+        isCommercialProduct = 0;
+        isJobRequirement = 0;
+        poKHID = 0; // poKHID = 0 cho các type khác
+      } else if (projectTypeID === -5) {
+        // ✅ AGV Demo
+        projectPartlistPriceRequestTypeID = 9;
         isCommercialProduct = 0;
         isJobRequirement = 0;
         poKHID = 0; // poKHID = 0 cho các type khác
@@ -1008,20 +1037,20 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
   private GetallProject() {
-    this.PriceRequetsService.getProject().subscribe((response) => {
+    this.PriceRequetsService.getProject().pipe(takeUntil(this.destroy$)).subscribe((response) => {
       this.dtproject = response.data;
       console.log('PriceRequests:', this.dtproject);
     });
   }
   private GetCurrency() {
-    this.PriceRequetsService.getCurrency().subscribe((response) => {
+    this.PriceRequetsService.getCurrency().pipe(takeUntil(this.destroy$)).subscribe((response) => {
       this.dtcurrency = response.data;
       this.createLabelsFromData();
       console.log('dtcurrentcy: ', this.dtcurrency);
     });
   }
   private GetAllPOKH() {
-    this.PriceRequetsService.getPOKH().subscribe((response) => {
+    this.PriceRequetsService.getPOKH().pipe(takeUntil(this.destroy$)).subscribe((response) => {
       this.dtPOKH = response.data;
       console.log('POKH:', this.dtPOKH);
     });
@@ -2474,8 +2503,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       },
     ];
 
-    // Nếu là tab Hàng demo (typeId === -4), di chuyển cột Model lên sau ProductName
-    if (typeId === -4) {
+    // Nếu là tab Hàng demo hoặc AGV Demo (typeId === -4 hoặc -5), di chuyển cột Model lên sau ProductName
+    if (typeId === -4 || typeId === -5) {
       const modelColumnIndex = columns.findIndex(col => col.id === 'Model');
       const productNameIndex = columns.findIndex(col => col.id === 'ProductName');
 
@@ -2485,6 +2514,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         // Chèn cột Model vào ngay sau ProductName
         columns.splice(productNameIndex + 1, 0, modelColumn);
       }
+
+
     }
 
     return columns;
@@ -2563,6 +2594,17 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 28,
+
+      // VARIABLE ROW HEIGHT (SlickGrid v10): dòng tự giãn theo nội dung dài nhất.
+      // Phải đi kèm CSS wrap cho .slick-cell trong file .css (mặc định SlickGrid
+      // đặt white-space: nowrap), và lineHeight/padding ở đây phải khớp CSS đó.
+      enableVariableRowHeight: true,
+      rowHeightProvider: makeTextRowHeightProvider('*', {
+        lineHeight: 18,
+        padding: 10,
+        min: 30, // bằng rowHeight mặc định ở trên
+        max: 200,
+      }),
 
       editCommandHandler: (item: any, _column: any, editCommand: any) => {
         // Tab VTTH (typeId = 15) không cho phép sửa trực tiếp trên bảng
@@ -2738,17 +2780,18 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       const editorLock = grid.getEditorLock();
 
       // Override hành vi commit để không move down
-      grid.onKeyDown.subscribe((e: any) => {
+      const keyDownHandler = (e: any) => {
         if (e.which === 13) { // Enter key
           const activeCell = grid.getActiveCell();
           if (activeCell && editorLock.isActive()) {
-            // Commit edit nhưng không move
             editorLock.commitCurrentEdit();
             e.preventDefault();
             e.stopImmediatePropagation();
           }
         }
-      });
+      };
+      grid.onKeyDown.subscribe(keyDownHandler);
+      this.slickEventHandlers.push({ event: grid.onKeyDown, handler: keyDownHandler });
     }
 
     // Đảm bảo checkbox selector được enable ngay sau khi grid ready
@@ -2844,21 +2887,25 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       this.ensureCheckboxSelector(angularGrid, 50);
 
       // Subscribe to dataView.onRowCountChanged để update filter collections khi data thay đổi (bao gồm filter)
-      angularGrid.dataView.onRowCountChanged.subscribe(() => {
+      const rowCountHandler = () => {
         setTimeout(() => {
           this.applyDistinctFilters();
           this.updateFooterRow(typeId);
         }, 100);
-      });
+      };
+      angularGrid.dataView.onRowCountChanged.subscribe(rowCountHandler);
+      this.slickEventHandlers.push({ event: angularGrid.dataView.onRowCountChanged, handler: rowCountHandler });
     }
 
     // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
     if (angularGrid.slickGrid) {
-      angularGrid.slickGrid.onRendered.subscribe(() => {
+      const renderedHandler = () => {
         setTimeout(() => {
           this.updateFooterRow(typeId);
         }, 50);
-      });
+      };
+      angularGrid.slickGrid.onRendered.subscribe(renderedHandler);
+      this.slickEventHandlers.push({ event: angularGrid.slickGrid.onRendered, handler: renderedHandler });
     }
 
     // Resize grid after initialization và đảm bảo checkbox selector vẫn hiển thị
@@ -4808,8 +4855,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     //   }
     // }
 
-    // Kiểm tra thời gian báo giá lịch sử cho tab demo (activeTabId === -4 hoặc projectPartlistPriceRequestTypeID === 4)
-    if (this.activeTabId === -4 || this.projectPartlistPriceRequestTypeID === 4) {
+    // Kiểm tra thời gian báo giá lịch sử cho tab demo/AGV (activeTabId === -4/-5 hoặc projectPartlistPriceRequestTypeID === 4)
+    if (this.activeTabId === -4 || this.activeTabId === -5 || this.projectPartlistPriceRequestTypeID === 4) {
       const now = DateTime.now();
       const threeMonthsAgo = now.minus({ months: 3 });
 
@@ -4870,10 +4917,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         centered: true,
       }
     );
-    // Tab HCNS (activeTabId = -2) → typeID = 3, Tab Hàng demo (activeTabId = -4) → typeID = 6
-    let typeID = 0;
-    if (this.activeTabId === -2) typeID = 3;
-    else if (this.activeTabId === -4) typeID = 6;
+    // Nếu component được mở với TypeID cụ thể thì dùng luôn, không map từ tab
+    const typeID = this.projectPartlistPriceRequestTypeID > 0
+      ? this.projectPartlistPriceRequestTypeID
+      : this.getProjectPartlistPriceRequestTypeID(this.activeTabId);
     modalRef.componentInstance.projectPartlistPriceRequestTypeID = typeID;
   }
 
@@ -6613,6 +6660,12 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+
+    this.slickEventHandlers.forEach(({ event, handler }) => event.unsubscribe(handler));
+    this.slickEventHandlers = [];
+
     this.cancelAllDataLoading();
     if (this.filterPatchObserver) {
       this.filterPatchObserver.disconnect();

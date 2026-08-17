@@ -705,7 +705,7 @@ export class BillExportPrimeComponent {
 
       // Subscribe to onClick để cập nhật detail theo dòng được click
       angularGrid.slickGrid.onClick.subscribe((e: any, args: any) => {
-        const column = angularGrid.slickGrid.getVisibleColumns()[args.cell];
+        const column = angularGrid.slickGrid.getColumns()[args.cell];
 
         // Bỏ qua nếu click vào checkbox selector column
         if (column && column.id === '_checkbox_selector') {

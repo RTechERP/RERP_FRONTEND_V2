@@ -1319,7 +1319,9 @@ export class BillImportDetailNewComponent
     }
 
     onGridDetailClick(e: Event, args: OnClickEventArgs): void {
-        const column = args.grid.getVisibleColumns()[args.cell];
+        // args.cell là index trên mảng cột đầy đủ (kể cả cột hidden) nên phải dùng getColumns()
+        const column = args.grid.getColumns()[args.cell];
+        if (!column) return;
         const clickedElement = e.target as HTMLElement;
 
         if (column.id === 'action' && !this.isApproved) {
@@ -1352,7 +1354,8 @@ export class BillImportDetailNewComponent
     }
 
     onCellChange(args: any): void {
-        const columnDef = this.angularGridDetail.slickGrid.getVisibleColumns()[args.cell];
+        const columnDef = args.column ?? this.angularGridDetail.slickGrid.getColumns()[args.cell];
+        if (!columnDef) return;
 
         if (columnDef.field === 'ProductID') {
             const productIdValue = args.item.ProductID;

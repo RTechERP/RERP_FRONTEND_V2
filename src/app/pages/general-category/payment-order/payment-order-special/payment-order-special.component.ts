@@ -843,7 +843,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
     updateTotal(cell: number) {
 
         if (cell <= 0) return;
-        const columnId = this.angularGrid.slickGrid?.getVisibleColumns()[cell].id;
+        // cell là index trên mảng cột đầy đủ (args.cell của grid event), không phải mảng cột đang hiện
+        const columnId = this.angularGrid.slickGrid?.getColumns()[cell]?.id;
 
         if (columnId != PaymentOrderField.TotalMoney.field) return;
 
@@ -872,7 +873,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
     updateTotalByData(cell: number, data: any) {
 
         if (cell <= 0) return;
-        const columnId = this.angularGrid.slickGrid?.getVisibleColumns()[cell].id;
+        // cell là index trên mảng cột đầy đủ (args.cell của grid event), không phải mảng cột đang hiện
+        const columnId = this.angularGrid.slickGrid?.getColumns()[cell]?.id;
 
         if (columnId != PaymentOrderField.TotalMoney.field) return;
 

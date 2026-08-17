@@ -443,8 +443,8 @@ export class ProjectPartlistCloneComponent implements OnInit {
   }
 
   onCellChanged(args: any): void {
-    const column = args.column || this.angularGrid.slickGrid.getVisibleColumns()[args.cell];
-    if (column.id === 'TT') {
+    const column = args.column || this.angularGrid.slickGrid.getColumns()[args.cell];
+    if (column?.id === 'TT') {
       const changedRowIdx = args.row;
       const changedItem = args.item || this.angularGrid.dataView.getItem(changedRowIdx);
       if (!changedItem) return;

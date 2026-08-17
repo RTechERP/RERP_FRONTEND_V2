@@ -51,19 +51,31 @@ let measureCtx: CanvasRenderingContext2D | null | undefined;
 let resolvedFont = '';
 const widthCache = new Map<string, number>();
 
-/** Đọc font thật từ một ô grid. Chỉ chạm DOM đúng MỘT LẦN rồi cache. */
-function detectFont(): string {
+const FALLBACK_FONT = '12px sans-serif';
+
+/**
+ * Đọc font thật từ một ô của CHÍNH grid đang tính.
+ *
+ * Phải truyền `scope` là container của grid: mỗi grid có thể có font-size riêng
+ * (component đặt `:host { font-size: 12px }`), nếu quét cả document thì
+ * `querySelector('.slick-cell')` trả về ô của grid ĐẦU TIÊN trên trang - đo nhầm
+ * font là lệch số dòng và chữ bị cắt.
+ *
+ * Trả về '' khi chưa có ô nào để đo (lần render đầu grid còn rỗng) - phía gọi
+ * KHÔNG được cache giá trị tạm, xem lý do ở makeTextRowHeightProvider.
+ */
+function detectFont(scope?: Element | null): string {
   if (typeof document === 'undefined') {
-    return '12px sans-serif';
+    return FALLBACK_FONT;
   }
-  const cell = document.querySelector('.slick-cell');
+  const cell = (scope ?? document).querySelector('.slick-cell');
   if (cell) {
     const cs = getComputedStyle(cell);
     if (cs.fontSize) {
       return `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`.trim();
     }
   }
-  return '12px sans-serif';
+  return '';
 }
 
 function getCtx(font: string): CanvasRenderingContext2D | null {
@@ -204,6 +216,10 @@ export function makeTextRowHeightProvider(
   const allColumns = fields === '*';
   const wanted = allColumns ? null : new Set(fields as string[]);
   let font = opts.font;
+  /** đã đo được font THẬT chưa (khác với font tạm lúc grid còn rỗng) */
+  let fontResolved = !!opts.font;
+  /** đã hẹn dựng lại index sau khi grid vẽ xong lần đầu chưa */
+  let fontRetryScheduled = false;
   let spaceW = 0;
 
   return (grid: SlickGrid, _row: number, item: any): number | undefined => {
@@ -211,8 +227,35 @@ export function makeTextRowHeightProvider(
       return undefined;
     }
 
-    if (!font) {
-      font = detectFont();
+    // Lần dựng index đầu tiên grid chưa có ô nào nên chưa đo được font thật.
+    // KHÔNG được cache font tạm: nếu cache, cả vòng đời grid sẽ đo bằng
+    // '12px sans-serif' trong khi font thật khác -> hụt dòng -> cắt chữ.
+    // Khi đo được font thật thì yêu cầu SlickGrid dựng lại index chiều cao
+    // đúng MỘT lần (fontResolved chặn lặp vô hạn).
+    if (!fontResolved) {
+      const container = (grid as any)?.getContainerNode?.() as
+        | HTMLElement
+        | undefined;
+      const detected = detectFont(container);
+      if (detected) {
+        font = detected;
+        fontResolved = true;
+        spaceW = 0;
+        queueMicrotask(() => (grid as any)?.invalidateRowHeights?.());
+      } else {
+        font = FALLBACK_FONT;
+        // Lần dựng index ĐẦU TIÊN chạy trước khi grid vẽ ô nào nên chưa đo được
+        // font thật. Nếu không tự hẹn dựng lại thì sẽ không có gì gọi provider
+        // lần nữa: chiều cao giữ nguyên theo font tạm, dòng bị lệch (rõ nhất ở
+        // grid có frozenColumn vì 2 khung trái/phải cao khác nhau) cho tới khi
+        // người dùng click làm grid vẽ lại.
+        // setTimeout(0) chạy sau khi grid render xong lượt đầu -> lúc đó đã có
+        // .slick-cell để đo font, provider chạy lại và áp chiều cao đúng.
+        if (!fontRetryScheduled) {
+          fontRetryScheduled = true;
+          setTimeout(() => (grid as any)?.invalidateRowHeights?.(), 0);
+        }
+      }
     }
     if (!spaceW) {
       spaceW = textWidth(' ', font, opts.avgCharWidth);

@@ -4065,7 +4065,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     }, this.CALC_DEBOUNCE_MS);
 
     // 7. Highlight ô đã thay đổi (chỉ update cell vừa thay đổi)
-    const column = grid.getVisibleColumns()[args.cell];
+    // args.cell là index trên mảng cột đầy đủ (kể cả cột hidden) nên phải dùng getColumns()
+    const column = args.column ?? grid.getColumns()[args.cell];
     if (column) {
       this.renderUnsavedCellStyling(changedItem, column, { row: args.row } as EditCommand);
     }

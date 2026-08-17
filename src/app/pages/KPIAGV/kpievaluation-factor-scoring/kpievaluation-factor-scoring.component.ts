@@ -1997,7 +1997,7 @@ export class KPIAGVEvaluationFactorScoringComponent implements OnInit, AfterView
 
     const item = args.item;
     const columnId = args.cell !== undefined ?
-      (args.grid?.getVisibleColumns()[args.cell]?.id) : null;
+      (args.column?.id ?? args.grid?.getColumns()[args.cell]?.id) : null;
 
     // Xác định data array cần update
     let dataArray: any[];

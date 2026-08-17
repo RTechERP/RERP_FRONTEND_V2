@@ -1607,7 +1607,10 @@ export class BillExportDetailNewComponent
 
     /** Xử lý click cell (xóa dòng, thêm serial, download PO) */
     onGridDetailClick(e: Event, args: OnClickEventArgs): void {
-        const column = args.grid.getVisibleColumns()[args.cell];
+        // args.cell là index trong danh sách cột đầy đủ (SlickGrid vẫn giữ cột hidden trong mảng
+        // và chỉ bỏ qua khi render), nên phải dùng getColumns() thay vì getVisibleColumns()
+        const column = args.grid.getColumns()[args.cell];
+        if (!column) return;
         const clickedElement = e.target as HTMLElement;
 
         // Handle delete action (only if not approved)
@@ -1726,7 +1729,10 @@ export class BillExportDetailNewComponent
 
     /** Xử lý thay đổi giá trị cell (chọn sản phẩm, dự án, số lượng) */
     onCellChange(args: any): void {
-        const columnDef = this.angularGridDetail.slickGrid.getVisibleColumns()[args.cell];
+        // onCellChange đã trả sẵn column; fallback cũng phải dùng getColumns() vì args.cell
+        // là index trên mảng cột đầy đủ (kể cả cột hidden)
+        const columnDef = args.column ?? this.angularGridDetail.slickGrid.getColumns()[args.cell];
+        if (!columnDef) return;
 
         if (columnDef.field === 'ProductID') {
             // Handle both object (from autocompleter) and number (from other editors)

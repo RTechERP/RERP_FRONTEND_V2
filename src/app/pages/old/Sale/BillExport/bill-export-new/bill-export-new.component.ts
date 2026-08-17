@@ -1097,7 +1097,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
             angularGrid.slickGrid.onClick.subscribe((e: any, args: any) => {
                 const cell = args.cell;
                 const row = args.row;
-                const column = angularGrid.slickGrid.getVisibleColumns()[cell];
+                const column = angularGrid.slickGrid.getColumns()[cell];
 
                 // Bỏ qua click vào checkbox column
                 if (column?.id === '_checkbox_selector') return;

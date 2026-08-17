@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, Optional, Inject, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, Optional, Inject, ViewChild, ChangeDetectorRef, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,14 +7,20 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzSplitterModule } from 'ng-zorro-antd/splitter';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 import { TableModule } from 'primeng/table';
 import { PopoverModule } from 'primeng/popover';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MenubarModule } from 'primeng/menubar';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { MenuItem, TreeNode } from 'primeng/api';
 import { ContextMenuModule } from 'primeng/contextmenu';
 import { combineLatest, forkJoin, Observable } from 'rxjs';
@@ -34,6 +40,14 @@ import { AppUserService } from '../../../../../services/app-user.service';
 import { ProjectGateTaskDetailComponent } from '../../../project-gate-step/project-gate-task-detail/project-gate-task-detail.component';
 import { ProjectDetailComponent } from '../../../project-detail/project-detail.component';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { ProjectHistoryProblemService } from '../../../project-history-problem/project-history-problem-service/project-history-problem.service';
+import { ProjectTaskTimeLineTotalService, TimelineByTeamItem } from '../../../../project_task/project-task-time-line-total/project-task-time-line-total.service';
+import { WorkplanService } from '../../../../person/workplan/workplan.service';
+import { EmployeeService } from '../../../../hrm/employee/employee-service/employee.service';
+import { ProjectTaskDetailComponent } from '../../../../project_task/kanban/project-task-detail/project-task-detail.component';
+import { ProjectTaskTimeLineAllProjectComponent } from '../../../../project_task/project-task-time-line-all-project/project-task-time-line-all-project.component';
+import { ProjectTaskService } from '../../../../project_task/project-task/project-task.service';
+import * as ExcelJS from 'exceljs';
 
 @Component({
   selector: 'app-project-gate-step-by-project',
@@ -45,6 +59,9 @@ import { HasPermissionDirective } from '../../../../../directives/has-permission
     NzInputModule,
     NzSelectModule,
     NzInputNumberModule,
+    NzIconModule,
+    NzTooltipModule,
+    NzGridModule,
     TableModule,
     PopoverModule,
     CheckboxModule,
@@ -52,6 +69,8 @@ import { HasPermissionDirective } from '../../../../../directives/has-permission
     InputTextModule,
     MenubarModule,
     ContextMenuModule,
+    MultiSelectModule,
+    NzSplitterModule,
     ProjectGateStepFilesModalComponent,
     ProjectGateStepFormsModalComponent,
     ProjectRequestComponent,
@@ -60,7 +79,7 @@ import { HasPermissionDirective } from '../../../../../directives/has-permission
   ],
   templateUrl: './project-gate-step-by-project.component.html',
   styleUrls: ['./project-gate-step-by-project.component.css'],
-  providers: [NzNotificationService, NzModalService]
+  providers: [NzNotificationService, NzModalService, NzMessageService]
 })
 export class ProjectGateStepByProjectComponent implements OnInit {
   @ViewChild('cm') cm!: any;
@@ -114,8 +133,30 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   showDeletedModal: boolean = false;
   isLoadingDeleted: boolean = false;
   deletedSteps: any[] = [];
-  // Dành cho view tổng hợp
+  // Dành cho view tổng hợp & IssueLog
   isSummaryActive: boolean = true;
+  isIssueLogActive: boolean = false;
+
+  // Dành cho Issue Log (PrimeNG Table)
+  dataHistory: any[] = [];
+  dataDetail: any[] = [];
+  selectedHistoryRow: any = null;
+  deletedIdsHistory: number[] = [];
+  deletedIdsDetail: number[] = [];
+  deletedDetailHistoryIdMap: Map<number, number> = new Map();
+  nextRowIdHistory: number = 0;
+  nextRowIdDetail: number = 0;
+  isLoadHistory: boolean = false;
+  isLoadDetail: boolean = false;
+  projectInfoHistory: any = null;
+
+  cbbStatusHistory: any[] = [
+    { id: 1, name: "Phát sinh lỗi" },
+    { id: 2, name: "Không phát sinh lỗi" },
+    { id: 3, name: "Đang xử lý" },
+    { id: 4, name: "Đã xử lý" },
+    { id: 5, name: "Phát sinh mới" },
+  ];
   selectedSummaryGateId: number | null = null;
   selectedSummaryDepartmentId: number | null = null;
   summaryGates: any[] = [];
@@ -162,19 +203,27 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     private ngbModal: NgbModal,
     private cdr: ChangeDetectorRef,
     private permissionService: PermissionService,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    private message: NzMessageService,
+    private projectHistoryProblemService: ProjectHistoryProblemService,
+    private timelineTotalService: ProjectTaskTimeLineTotalService,
+    private workplanService: WorkplanService,
+    private employeeService: EmployeeService,
+    private projectTaskService: ProjectTaskService
   ) { }
   ngOnInit(): void {
     if (this.route && this.route.snapshot && this.route.snapshot.queryParams) {
       const q = this.route.snapshot.queryParams;
-      if (q['projectId']) this.projectId = Number(q['projectId']);
+      const qId = q['projectId'] ?? q['projectID'] ?? q['ProjectID'] ?? q['id'] ?? q['ID'];
+      if (qId !== undefined) this.projectId = Number(qId);
       if (q['projectCode']) this.projectCode = q['projectCode'];
       if (q['projectName']) this.projectName = q['projectName'];
       if (q['projectStatusName']) this.projectStatusName = q['projectStatusName'];
     }
     if (this.tabData) {
-      if (this.tabData.projectId !== undefined) {
-        this.projectId = Number(this.tabData.projectId);
+      const pId = this.tabData.projectId ?? this.tabData.projectID ?? this.tabData.ProjectID ?? this.tabData.id ?? this.tabData.ID;
+      if (pId !== undefined && pId !== null) {
+        this.projectId = Number(pId);
       }
       if (this.tabData.projectCode !== undefined) {
         this.projectCode = this.tabData.projectCode;
@@ -382,6 +431,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   }
 
   refreshData(): void {
+    if (this.isIssueLogActive) {
+      this.loadDataHistoryProblem();
+      return;
+    }
+    if (this.isMasterPlanActive) {
+      this.loadMasterPlanTimeline();
+      return;
+    }
     this.isLoading = true;
     this.selectedStepLinkIds.clear();
     this.projectTypeStepsMap = {};
@@ -702,7 +759,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   }
   updateMenuItems() {
     this.menuItems = this.checkedProjectTypes.map(pt => {
-      const isActive = !this.isSummaryActive && this.activeProjectTypeId === pt.ID;
+      const isActive = !this.isSummaryActive && !this.isIssueLogActive && this.activeProjectTypeId === pt.ID;
       return {
         label: `Nhân công - ${pt.ProjectTypeName}`,
         icon: 'fa-solid fa-users text-primary',
@@ -772,6 +829,8 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     }
 
     this.isSummaryActive = false;
+    this.isIssueLogActive = false;
+    this.isMasterPlanActive = false;
     this.isManpowerExpanded = true;
     this.activeProjectTypeId = ptId;
     this.activeDepartmentId = deptId;
@@ -1850,10 +1909,1655 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     }
 
     this.isSummaryActive = true;
+    this.isIssueLogActive = false;
+    this.isMasterPlanActive = false;
     this.activeProjectTypeId = null;
     this.activeDepartmentId = null;
     this.updateMenuItems();
     this.buildSummaryData();
+  }
+
+  // ========== ISSUE LOG LOGIC (PrimeNG Table) ==========
+  selectIssueLogView(): void {
+    if (
+      this.activeProjectTypeId !== null &&
+      this.activeDepartmentId !== undefined
+    ) {
+      const prevKey = `${this.activeProjectTypeId}_${this.activeDepartmentId}`;
+      if (this.projectTypeStepsMap[prevKey]) {
+        this.projectTypeStepsMap[prevKey] = this.projectTypeStepsMap[prevKey].filter((s: any) => !s.isNew);
+      }
+      if (this.hasNoSavedSteps(this.activeProjectTypeId, this.activeDepartmentId)) {
+        this.projectTypeStepsMap[prevKey] = [];
+        this.projectTypeTemplateMap[prevKey] = null;
+      }
+    }
+
+    this.isSummaryActive = false;
+    this.isIssueLogActive = true;
+    this.isMasterPlanActive = false;
+    this.activeProjectTypeId = null;
+    this.activeDepartmentId = null;
+    this.selectedHistoryRow = null;
+    this.updateMenuItems();
+    this.loadProjectInfoHistory();
+    this.loadDataHistoryProblem();
+  }
+
+  // ========== MASTER PLAN LOGIC (Gantt Timeline View) ==========
+  isMasterPlanActive: boolean = false;
+  mpInitialized: boolean = false;
+  mpDateStart: string = this.getDefaultDateStart();
+  mpDateEnd: string = this.getDefaultDateEnd();
+  mpDepartmentId: number = 0;
+  mpTeamId: number = 0;
+  mpUserId: number = 0;
+
+  mpDepartmentList: any[] = [];
+  mpTeamList: any[] = [];
+  mpUserList: any[] = [];
+
+  mpLoading = signal(false);
+  mpDateColumns: any[] = [];
+  mpGroupedData: any[] = [];
+  mpFilteredData = signal<any[]>([]);
+  mpVisibleData = signal<any[]>([]);
+  mpDayOffSet = new Set<string>();
+  mpAllStatuses: any[] = [];
+  private mpStatusMap = new Map<string, any>();
+  mpTotalTaskCount = signal(0);
+
+  mpFilterEmployeeColumn: number[] = [];
+  mpFilterTeamColumn: string[] = [];
+  mpFilterTaskKeyword = '';
+  mpFilterProjectKeyword = '';
+  mpSelectedStatuses: number[] = [0, 1];
+  mpFilterStatusColumn: number[] = [];
+
+  mpStatusOptions: any[] = [];
+  mpStatusType1Options: any[] = [];
+  mpStatusType2Options: any[] = [];
+  mpColumnStatusOptions: any[] = [];
+  mpEmployeeColumnOptions: any[] = [];
+  mpTeamColumnOptions: any[] = [];
+
+  private mpCHUNK_SIZE = 20;
+  private mpCurrentVisibleCount = 20;
+
+  mpContextMenuVisible = false;
+  mpContextMenuX = 0;
+  mpContextMenuY = 0;
+  mpContextMenuFocusTaskId: number = 0;
+  mpContextMenuProject: any = null;
+
+  private formatDateForInput(d: Date): string {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  getDefaultDateStart(): string {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return this.formatDateForInput(firstDay);
+  }
+
+  getDefaultDateEnd(): string {
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 2, 0);
+    return this.formatDateForInput(lastDay);
+  }
+
+  selectMasterPlanView(): void {
+    if (
+      this.activeProjectTypeId !== null &&
+      this.activeDepartmentId !== undefined
+    ) {
+      const prevKey = `${this.activeProjectTypeId}_${this.activeDepartmentId}`;
+      if (this.projectTypeStepsMap[prevKey]) {
+        this.projectTypeStepsMap[prevKey] = this.projectTypeStepsMap[prevKey].filter((s: any) => !s.isNew);
+      }
+      if (this.hasNoSavedSteps(this.activeProjectTypeId, this.activeDepartmentId)) {
+        this.projectTypeStepsMap[prevKey] = [];
+        this.projectTypeTemplateMap[prevKey] = null;
+      }
+    }
+
+    this.isSummaryActive = false;
+    this.isIssueLogActive = false;
+    this.isMasterPlanActive = true;
+    this.activeProjectTypeId = null;
+    this.activeDepartmentId = null;
+    this.updateMenuItems();
+    this.loadMasterPlanDropdownsAndInit();
+  }
+
+  loadMasterPlanDropdownsAndInit(): void {
+    if (!this.mpInitialized) {
+      this.mpInitialized = true;
+      this.loadMpProjectTaskStatuses();
+    } else {
+      this.loadMasterPlanTimeline();
+    }
+  }
+
+  loadMpDepartments(): void {
+    this.workplanService.getDepartments().subscribe({
+      next: (res: any) => {
+        if (res && res.status === 1 && res.data) {
+          this.mpDepartmentList = Array.isArray(res.data) ? res.data : [];
+        }
+      },
+      error: (err: any) => console.error('Error loading departments for Master Plan:', err)
+    });
+  }
+
+  loadMpTeamsByDepartment(deptId: number): void {
+    this.workplanService.getTeamByDepartmentId(deptId).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 1 && res.data) {
+          this.mpTeamList = (Array.isArray(res.data) ? res.data : []).filter((x: any) => !x.IsDeleted);
+        } else {
+          this.mpTeamList = [];
+        }
+      },
+      error: () => { this.mpTeamList = []; }
+    });
+  }
+
+  loadMpEmployees(): void {
+    this.employeeService.filterEmployee(0, this.mpDepartmentId, '').subscribe({
+      next: (res: any) => {
+        if (res && res.data) {
+          this.mpUserList = Array.isArray(res.data) ? res.data : [];
+        } else {
+          this.mpUserList = [];
+        }
+      },
+      error: () => { this.mpUserList = []; }
+    });
+  }
+
+  loadMpEmployeesByTeam(teamId: number): void {
+    this.projectService.getEmployeeByUserTeam(teamId).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 1 && res.data) {
+          this.mpUserList = Array.isArray(res.data) ? res.data : [];
+        } else {
+          this.mpUserList = [];
+        }
+      },
+      error: () => { this.mpUserList = []; }
+    });
+  }
+
+  loadMpProjectTaskStatuses(): void {
+    this.timelineTotalService.getProjectTaskStatuses().subscribe({
+      next: (statuses) => {
+        this.mpAllStatuses = statuses;
+        this.mpStatusMap.clear();
+        statuses.forEach((s: any) => {
+          this.mpStatusMap.set(`${s.Type}_${s.No}`, s);
+        });
+        const type1Statuses = statuses.filter((s: any) => s.Type === 1);
+        const type2Statuses = statuses.filter((s: any) => s.Type === 2);
+
+        this.mpStatusOptions = type1Statuses.map((s: any) => ({
+          label: s.Description || s.Title,
+          value: s.No
+        }));
+
+        this.mpStatusType1Options = type1Statuses.map((s: any) => ({
+          label: s.Description || s.Title,
+          value: `1_${s.No}`
+        }));
+        this.mpStatusType2Options = type2Statuses.map((s: any) => ({
+          label: s.Description || s.Title,
+          value: `2_${s.No}`
+        }));
+
+        this.mpColumnStatusOptions = [...this.mpStatusOptions];
+        const overdueValueByNo: Record<number, number> = { 0: 10, 1: 11, 2: 21 };
+        type1Statuses.forEach((s: any) => {
+          const overdueValue = overdueValueByNo[s.No];
+          if (overdueValue === undefined) return;
+          this.mpColumnStatusOptions.push({
+            label: `${s.Description || s.Title} quá hạn`,
+            value: overdueValue
+          });
+        });
+        type2Statuses.forEach((s: any) => {
+          const customValue = s.No === 1 ? 22 : 23;
+          this.mpColumnStatusOptions.push({
+            label: s.Description || s.Title,
+            value: customValue
+          });
+        });
+
+        this.loadMasterPlanTimeline();
+      },
+      error: (err) => console.error('Error loading project task statuses:', err)
+    });
+  }
+
+  onMpDepartmentChange(): void {
+    this.mpTeamId = 0;
+    this.mpUserId = 0;
+    this.mpTeamList = [];
+    this.loadMpEmployees();
+    this.loadMpTeamsByDepartment(this.mpDepartmentId || 0);
+    this.loadMasterPlanTimeline();
+  }
+
+  onMpTeamChange(): void {
+    this.mpUserId = 0;
+    if (this.mpTeamId > 0) {
+      this.loadMpEmployeesByTeam(this.mpTeamId);
+    } else {
+      this.loadMpEmployees();
+    }
+    this.loadMasterPlanTimeline();
+  }
+
+  resetMasterPlanSearch(): void {
+    this.mpDateStart = this.getDefaultDateStart();
+    this.mpDateEnd = this.getDefaultDateEnd();
+    this.mpSelectedStatuses = [0, 1];
+    this.mpFilterEmployeeColumn = [];
+    this.mpFilterTeamColumn = [];
+    this.mpFilterTaskKeyword = '';
+    this.mpFilterProjectKeyword = '';
+    this.mpFilterStatusColumn = [];
+    this.loadMasterPlanTimeline();
+  }
+
+  loadMasterPlanTimeline(): void {
+    if (!this.mpDateStart || !this.mpDateEnd || !this.projectId) return;
+
+    this.mpLoading.set(true);
+
+    setTimeout(() => {
+      const startDate = new Date(this.mpDateStart);
+      const endDate = new Date(this.mpDateEnd);
+
+      let statusStr = '';
+      if (this.mpSelectedStatuses.length === 0 || this.mpSelectedStatuses.length === this.mpStatusOptions.length) {
+        statusStr = '-1';
+      } else {
+        statusStr = this.mpSelectedStatuses.join(',');
+      }
+
+      forkJoin({
+        timelineData: this.projectGateStepService.getTimelineByProject({
+          dateStart: this.mpDateStart,
+          dateEnd: this.mpDateEnd,
+          projectID: this.projectId,
+          status: statusStr,
+          typeSearch: 1
+        }),
+        dayOffData: this.timelineTotalService.getProjectTaskGetDayOff(this.mpDateStart, this.mpDateEnd)
+      }).subscribe({
+        next: ({ timelineData, dayOffData }) => {
+          setTimeout(() => {
+            this.mpDayOffSet = new Set(dayOffData);
+            this.generateMasterPlanDateColumns(startDate, endDate);
+            this.transformMasterPlanData(timelineData);
+            this.applyMasterPlanFilters();
+            this.mpLoading.set(false);
+            this.cdr.detectChanges();
+          }, 10);
+        },
+        error: (err) => {
+          console.error('Error loading master plan timeline:', err);
+          this.mpLoading.set(false);
+          this.message.error('Không thể tải dữ liệu Master Plan timeline');
+          this.cdr.detectChanges();
+        }
+      });
+    }, 50);
+  }
+
+  generateMasterPlanDateColumns(start: Date, end: Date) {
+    const dates: any[] = [];
+    let current = new Date(start);
+    const todayStr = this.formatDate(new Date());
+    while (current <= end) {
+      const d = new Date(current);
+      const dateStr = this.formatDate(d);
+      const isDayOff = this.mpDayOffSet.has(dateStr);
+      dates.push({
+        fullDate: d,
+        dateStr: dateStr,
+        dayName: this.getDayShortName(d),
+        dateDisplay: d.getDate().toString().padStart(2, '0') + '/' + (d.getMonth() + 1).toString().padStart(2, '0'),
+        isWeekend: d.getDay() === 0 || d.getDay() === 6,
+        isSunday: d.getDay() === 0,
+        isToday: dateStr === todayStr,
+        isDayOff: isDayOff
+      });
+      current.setDate(current.getDate() + 1);
+    }
+    this.mpDateColumns = dates;
+  }
+
+  formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  formatMpDate(dateVal: any): string {
+    if (!dateVal) return '';
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return '';
+    const day = d.getDate().toString().padStart(2, '0');
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  getDayShortName(date: Date): string {
+    const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    return days[date.getDay()];
+  }
+
+  trackByGate(index: number, item: any): any {
+    return item.GateCode || index;
+  }
+
+  transformMasterPlanData(raw: TimelineByTeamItem[]) {
+    const gatesMap = new Map<string, any>();
+
+    raw.forEach(item => {
+      const gateCode = (item as any).GateCode || 'Khác';
+      const gateStt = (item as any).STTGate ?? 999;
+      const taskKey = `${item.ProjectTaskID}_${item.ID}`;
+
+      if (!gatesMap.has(gateCode)) {
+        gatesMap.set(gateCode, {
+          GateCode: gateCode,
+          STTGate: gateStt,
+          tasksMap: new Map<string, any>()
+        });
+      }
+
+      const gateRecord = gatesMap.get(gateCode);
+
+      if (!gateRecord.tasksMap.has(taskKey)) {
+        gateRecord.tasksMap.set(taskKey, {
+          ProjectTaskID: item.ProjectTaskID,
+          ProjectTaskCode: item.ProjectTaskCode || '',
+          ProjectTaskTitle: item.ProjectTaskTitle || '',
+          ProjectTaskParentID: item.ProjectTaskParentID,
+          ProjectTaskParentCode: item.ProjectTaskParentCode || '',
+          ProjectTaskParentTitle: item.ProjectTaskParentTitle || '',
+          ProjectID: item.ProjectID,
+          ProjectCode: item.ProjectCode || '',
+          ProjectName: item.ProjectName || '',
+          FullName: item.FullName || '',
+          TeamName: item.TeamName || '',
+          employeeId: item.ID,
+          GateCode: gateCode,
+          STTGate: gateStt,
+          PlanStartDate: item.PlanStartDate || item['StartDate'],
+          Status: item.Status,
+          IsApproved: item['IsApprove'] !== undefined && item['IsApprove'] !== null ? item['IsApprove'] : null,
+          isOverdue: this.isTaskOverdue(item),
+          StatusName: '',
+          planned: null,
+          actual: null
+        });
+        gateRecord.tasksMap.get(taskKey).StatusName = this.getStatusDisplayName(gateRecord.tasksMap.get(taskKey));
+      }
+
+      const taskEntry = gateRecord.tasksMap.get(taskKey);
+      if (item.TypeDate === 1) taskEntry.planned = item;
+      else if (item.TypeDate === 2) taskEntry.actual = item;
+    });
+
+    const helperGetTime = (item: any): number => {
+      const dStr = item.PlanStartDate || item['StartDate'] || (item.planned && (item.planned.PlanStartDate || item.planned['StartDate']));
+      if (!dStr) return 9999999999999;
+      const t = new Date(dStr).getTime();
+      return isNaN(t) ? 9999999999999 : t;
+    };
+
+    this.mpGroupedData = Array.from(gatesMap.values())
+      .sort((g1: any, g2: any) => {
+        if (g1.STTGate !== g2.STTGate) return g1.STTGate - g2.STTGate;
+        return g1.GateCode.localeCompare(g2.GateCode, 'vi');
+      })
+      .map(gt => {
+        const tasks = Array.from(gt.tasksMap.values())
+          .sort((t1: any, t2: any) => {
+            const time1 = helperGetTime(t1);
+            const time2 = helperGetTime(t2);
+            if (time1 !== time2) return time1 - time2;
+            return (t1.ProjectTaskCode || '').localeCompare(t2.ProjectTaskCode || '', 'vi');
+          })
+          .map((t: any) => ({
+            ...t,
+            _statusStyle: this.getStatusStyle(t),
+            rows: [
+              t.planned || { TypeDate: 1 },
+              t.actual || { TypeDate: 2 }
+            ]
+          }));
+
+        return {
+          GateCode: gt.GateCode,
+          STTGate: gt.STTGate,
+          tasks: tasks
+        };
+      });
+
+    this.preComputeMasterPlanCellData();
+
+    const allEmployees = new Map<number, string>();
+    const allTeams = new Set<string>();
+
+    raw.forEach(item => {
+      if (item.ID && item.FullName) {
+        allEmployees.set(item.ID, item.FullName);
+      }
+      if (item.TeamName) {
+        allTeams.add(item.TeamName);
+      }
+    });
+
+    this.mpEmployeeColumnOptions = Array.from(allEmployees.entries())
+      .map(([id, name]) => ({ value: id, label: name }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'vi'));
+
+    this.mpTeamColumnOptions = Array.from(allTeams)
+      .map(t => ({ value: t, label: t }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'vi'));
+  }
+
+  private preComputeMasterPlanCellData(): void {
+    const dateStrs = this.mpDateColumns.map(c => c.dateStr);
+    for (const gate of this.mpGroupedData) {
+      for (const task of gate.tasks) {
+        for (const row of task.rows) {
+          const cellData: Record<string, any> = {};
+          const isPlanned = row.TypeDate === 1;
+          const isActual = row.TypeDate === 2;
+
+          for (const dateStr of dateStrs) {
+            const cell: any = {};
+
+            if (isPlanned) {
+              const val = row[dateStr]?.toString() || '0';
+              cell.isPlannedFilled = val === '10' || val === '11' || val === '30' || val === '31';
+              cell.isOutsideWork = val === '11' || val === '31';
+              cell.hasCheckMark = val === '2' || val === '30' || val === '31';
+            }
+
+            if (isActual) {
+              const raw = row[dateStr];
+              let hours = 0, isOutside = 0, leaveTime = 0, leaveType = 0;
+              if (raw != null && raw !== '') {
+                const rawStr = raw.toString();
+                if (rawStr.includes('|')) {
+                  const parts = rawStr.split('|');
+                  hours = parseFloat(parts[0]) || 0;
+                  isOutside = parseInt(parts[1], 10) || 0;
+                  leaveTime = parseInt(parts[2], 10) || 0;
+                  leaveType = parseInt(parts[3], 10) || 0;
+                } else {
+                  hours = parseFloat(rawStr) || 0;
+                }
+              }
+              cell.actualHours = hours;
+              cell.actualIsOutside = isOutside;
+              cell.isFilledActual = hours > 0 && isOutside === 0;
+              cell.isFilledActualOutside = hours > 0 && isOutside === 1;
+              cell.leaveTime = leaveTime;
+              cell.leaveType = leaveType;
+              cell.hasLeave = leaveTime > 0 && leaveType > 0;
+              if (cell.hasLeave) {
+                cell.leaveLabel = this.getLeaveLabel(leaveType, leaveTime);
+                cell.tooltip = this.getLeaveTooltip(leaveTime, leaveType);
+              } else {
+                cell.tooltip = null;
+              }
+            }
+
+            cellData[dateStr] = cell;
+          }
+          row._cellData = cellData;
+        }
+      }
+    }
+  }
+
+  applyMasterPlanFilters() {
+    let gates = this.mpGroupedData.map(gt => ({
+      ...gt,
+      tasks: [...gt.tasks]
+    }));
+
+    if (this.mpFilterEmployeeColumn && this.mpFilterEmployeeColumn.length > 0) {
+      gates = gates.map(gt => ({
+        ...gt,
+        tasks: gt.tasks.filter((t: any) => this.mpFilterEmployeeColumn.includes(t.employeeId))
+      })).filter(gt => gt.tasks.length > 0);
+    }
+
+    if (this.mpFilterTeamColumn && this.mpFilterTeamColumn.length > 0) {
+      gates = gates.map(gt => ({
+        ...gt,
+        tasks: gt.tasks.filter((t: any) => this.mpFilterTeamColumn.includes(t.TeamName))
+      })).filter(gt => gt.tasks.length > 0);
+    }
+
+    if (this.mpFilterProjectKeyword) {
+      const fpk = this.mpFilterProjectKeyword.toLowerCase();
+      gates = gates.map(gt => ({
+        ...gt,
+        tasks: gt.tasks.filter((t: any) =>
+          (t.ProjectCode || '').toLowerCase().includes(fpk) ||
+          (t.ProjectName || '').toLowerCase().includes(fpk)
+        )
+      })).filter(gt => gt.tasks.length > 0);
+    }
+
+    if (this.mpFilterTaskKeyword) {
+      const fk = this.mpFilterTaskKeyword.toLowerCase();
+      gates = gates.map(gt => ({
+        ...gt,
+        tasks: gt.tasks.filter((t: any) =>
+          (t.ProjectTaskCode || '').toLowerCase().includes(fk) ||
+          (t.ProjectTaskTitle || '').toLowerCase().includes(fk) ||
+          (t.ProjectTaskParentCode || '').toLowerCase().includes(fk) ||
+          (t.ProjectTaskParentTitle || '').toLowerCase().includes(fk) ||
+          (t.GateCode || '').toLowerCase().includes(fk)
+        )
+      })).filter(gt => gt.tasks.length > 0);
+    }
+
+    if (this.mpFilterStatusColumn && this.mpFilterStatusColumn.length > 0) {
+      gates = gates.map(gt => ({
+        ...gt,
+        tasks: gt.tasks.filter((t: any) => {
+          if (this.mpFilterStatusColumn.includes(t.Status)) return true;
+
+          if (t.isOverdue) {
+            if (this.mpFilterStatusColumn.includes(10) && t.Status === 0) return true;
+            if (this.mpFilterStatusColumn.includes(11) && t.Status === 1) return true;
+            if (this.mpFilterStatusColumn.includes(21) && t.Status === 2) return true;
+          }
+
+          const approved = t.IsApproved;
+          const isApproveValue = approved === 1 || approved === true || approved === '1';
+          const isRejectValue = approved === 0 || approved === false || approved === '0';
+
+          if (this.mpFilterStatusColumn.includes(22) && isApproveValue) return true;
+          if (this.mpFilterStatusColumn.includes(23) && isRejectValue) return true;
+
+          return false;
+        })
+      })).filter(gt => gt.tasks.length > 0);
+    }
+
+    let totalTasks = 0;
+    let globalTaskIndex = 1;
+    gates.forEach(gt => {
+      gt._rowspan = gt.tasks.length * 2;
+      gt.tasks.forEach((t: any) => {
+        t.globalIndex = globalTaskIndex++;
+      });
+      totalTasks += gt.tasks.length;
+    });
+
+    this.mpTotalTaskCount.set(totalTasks);
+    this.mpFilteredData.set(gates);
+
+    this.mpCurrentVisibleCount = this.mpCHUNK_SIZE;
+    this.updateMasterPlanVisibleData();
+  }
+
+  private updateMasterPlanVisibleData() {
+    this.mpVisibleData.set(this.mpFilteredData().slice(0, this.mpCurrentVisibleCount));
+  }
+
+  onMasterPlanScroll(event: Event) {
+    const target = event.target as HTMLElement;
+    if (target.scrollHeight - target.scrollTop - target.clientHeight < 200) {
+      if (this.mpCurrentVisibleCount < this.mpFilteredData().length) {
+        this.mpCurrentVisibleCount += this.mpCHUNK_SIZE;
+        this.updateMasterPlanVisibleData();
+      }
+    }
+  }
+
+  onMpColumnFilter() {
+    this.applyMasterPlanFilters();
+  }
+
+  getLeaveLabel(leaveType: number, leaveTime: number): string {
+    const typeMap: Record<number, string> = { 1: 'Ro', 2: 'P', 3: 'R' };
+    const timeMap: Record<number, string> = { 1: 'S', 2: 'C' };
+    const typePart = typeMap[leaveType] || '';
+    if (!typePart) return '';
+    const timePart = timeMap[leaveTime] || '';
+    return timePart ? `${typePart}/${timePart}` : typePart;
+  }
+
+  getLeaveTooltip(leaveTime: number, leaveType: number): string {
+    const timeMap: Record<number, string> = { 1: 'Buổi sáng', 2: 'Buổi chiều', 3: 'Cả ngày' };
+    const typeMap: Record<number, string> = { 1: 'Nghỉ không lương (Ro)', 2: 'Nghỉ phép (P)', 3: 'Việc riêng có lương (R)' };
+    const parts = [];
+    if (timeMap[leaveTime]) parts.push(timeMap[leaveTime]);
+    if (typeMap[leaveType]) parts.push(typeMap[leaveType]);
+    return parts.join(' – ');
+  }
+
+  private isTaskOverdue(task: any): boolean {
+    const approved = task.IsApproved ?? task.IsApprove;
+    if (approved === 1 || approved === true || approved === '1') {
+      return false;
+    }
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
+    if (planEnd) planEnd.setHours(0, 0, 0, 0);
+
+    const dueDate = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
+    if (dueDate) dueDate.setHours(0, 0, 0, 0);
+
+    if (task.Status === 2) {
+      return !!(dueDate && planEnd && dueDate > planEnd);
+    }
+
+    if (task.Status === 0 || task.Status === 1) {
+      return !!(planEnd && planEnd < now);
+    }
+
+    return false;
+  }
+
+  getTaskStatusConfig(task: any): any {
+    const approved = task.IsApproved ?? task.IsApprove;
+    if (approved === 0 || approved === false || approved === '0') {
+      return this.mpStatusMap.get('2_0') || this.mpAllStatuses.find(s => s.Type === 2 && s.No === 0);
+    } else if (approved === 1 || approved === true || approved === '1') {
+      return this.mpStatusMap.get('2_1') || this.mpAllStatuses.find(s => s.Type === 2 && s.No === 1);
+    } else {
+      return this.mpStatusMap.get(`1_${task.Status}`) || this.mpAllStatuses.find(s => s.Type === 1 && s.No === task.Status);
+    }
+  }
+
+  getStatusDisplayName(task: any): string {
+    const statusConfig = this.getTaskStatusConfig(task);
+    const baseName = (statusConfig && statusConfig.Description) || this.getStatusName(task.Status);
+    const isOverdue = task.isOverdue ?? this.isTaskOverdue(task);
+
+    if (isOverdue) {
+      return baseName + '\nQuá hạn';
+    }
+
+    return baseName;
+  }
+
+  getStatusStyle(node: any): { [key: string]: string } {
+    if (node.isOverdue) {
+      return {};
+    }
+    const statusConfig = this.getTaskStatusConfig(node);
+    if (statusConfig) {
+      return {
+        'background-color': statusConfig.ColorBackground ? statusConfig.ColorBackground.trim() : '#f1f5f9',
+        'color': statusConfig.ColorFont ? statusConfig.ColorFont.trim() : '#475569'
+      };
+    }
+    return {};
+  }
+
+  getStatusName(status: number): string {
+    switch (status) {
+      case 0: return 'Chưa làm';
+      case 1: return 'Đang làm';
+      case 2: return 'Hoàn thành';
+      case 3: return 'Pending';
+      case 4: return 'Hủy';
+      default: return '';
+    }
+  }
+
+  openMasterPlanTaskDetail(task: any): void {
+    const taskId = typeof task === 'number' ? task : (task?.ProjectTaskID || task?.ID);
+    if (!taskId) {
+      console.error('Task ID not found', task);
+      return;
+    }
+
+    const taskCode = task?.ProjectTaskCode || task?.Code || `Task-${taskId}`;
+    const approvalStatus = task?.IsApproved !== undefined && task?.IsApproved !== null ? task.IsApproved : undefined;
+    this.tabService.openTabComp({
+      comp: ProjectTaskDetailComponent,
+      title: taskCode,
+      key: `project-task-detail-${taskId}`,
+      data: { id: taskId, ApprovalStatus: approvalStatus }
+    });
+  }
+
+  onMasterPlanContextMenu(event: MouseEvent, project: any, focusId: number): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.mpContextMenuProject = project;
+    this.mpContextMenuFocusTaskId = focusId;
+    this.mpContextMenuX = event.clientX;
+    this.mpContextMenuY = event.clientY;
+    this.mpContextMenuVisible = true;
+  }
+
+  closeMasterPlanContextMenu(): void {
+    this.mpContextMenuVisible = false;
+  }
+
+  openMasterPlanProjectReport(): void {
+    this.closeMasterPlanContextMenu();
+    const project = this.mpContextMenuProject;
+    if (!project?.ProjectID) {
+      this.message.warning('Không tìm thấy thông tin dự án');
+      return;
+    }
+
+    const focusTaskId = this.mpContextMenuFocusTaskId || 0;
+
+    this.tabService.openTabComp({
+      comp: ProjectTaskTimeLineAllProjectComponent,
+      title: project.ProjectCode || 'Báo cáo DA',
+      key: `project-task-all-project-${project.ProjectID}`,
+      data: {
+        projectId: project.ProjectID,
+        projectCode: project.ProjectCode,
+        projectName: project.ProjectName,
+        focusTaskId: focusTaskId
+      }
+    });
+  }
+
+  async exportMasterPlanToExcel() {
+    const plannedColor = '38BDF8';
+    const actualColor = 'F472B6';
+
+    const cols: any[] = [
+      { header: 'STT', field: 'globalIndex', width: 10, align: 'center' },
+      { header: 'Gate', field: 'GateCode', width: 12, align: 'center' },
+      { header: 'Người thực hiện', field: 'FullName', width: 25 },
+      { header: 'Mã Dự Án', field: 'ProjectCode', width: 15 },
+      { header: 'Tên Dự Án', field: 'ProjectName', width: 25 },
+      { header: 'Mã Công Việc', field: 'Code', width: 20 },
+      { header: 'Tên Công Việc', field: 'Title', width: 40 },
+      { header: 'Trạng Thái', field: 'StatusName', width: 15, align: 'center' },
+      { header: 'Start', field: 'StartDateDisplay', width: 16, align: 'center' },
+      { header: 'Working days', field: 'DurationDays', width: 14, align: 'center' },
+      { header: 'Finish', field: 'EndDateDisplay', width: 16, align: 'center' },
+      { header: 'Loại', field: 'TypeLabel', width: 12, align: 'center' }
+    ];
+
+    this.mpDateColumns.forEach(dateCol => {
+      cols.push({
+        header: `${dateCol.dayName}\n${dateCol.dateDisplay}`,
+        field: dateCol.dateStr,
+        width: 7.5,
+        align: 'center',
+        renderValue: (item: any) => {
+          if (item.TypeDate === 1 && (item[dateCol.dateStr] === '2' || item[dateCol.dateStr] === '30' || item[dateCol.dateStr] === '31')) {
+            return '✔';
+          }
+          if (item.TypeDate === 2 && item[dateCol.dateStr] != null) {
+            const val = item[dateCol.dateStr].toString();
+            if (val !== '0') {
+              let label = '';
+              const act = val.includes('|') ? val.split('|') : [val];
+              const hours = parseFloat(act[0]) || 0;
+              const leaveTime = act.length > 2 ? parseInt(act[2], 10) || 0 : 0;
+              const leaveType = act.length > 3 ? parseInt(act[3], 10) || 0 : 0;
+              if (hours > 0) {
+                label = hours.toString();
+              }
+              if (leaveTime > 0 && leaveType > 0) {
+                const typeMap: Record<number, string> = { 1: 'Ro', 2: 'P', 3: 'R' };
+                const timeMap: Record<number, string> = { 1: 'S', 2: 'C' };
+                const typePart = typeMap[leaveType] || '';
+                if (typePart) {
+                  const timePart = timeMap[leaveTime] || '';
+                  const leaveLabel = timePart ? `${typePart}/${timePart}` : typePart;
+                  label = label ? `${label} (${leaveLabel})` : leaveLabel;
+                }
+              }
+              return label;
+            }
+          }
+          return '';
+        },
+        cellStyle: (item: any) => {
+          if (item.TypeDate === 1 && item[dateCol.dateStr] != null) {
+            const val = item[dateCol.dateStr].toString();
+            const isPlanned = ['10', '11', '30', '31'].includes(val);
+            const isOutside = ['11', '31'].includes(val);
+            if (isPlanned) {
+              const fontStyle = ['2', '30', '31'].includes(val) ? { color: { argb: 'FFFFFFFF' }, bold: true } : undefined;
+              if (isOutside) {
+                return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFB066' } }, font: fontStyle };
+              }
+              return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + plannedColor } }, font: fontStyle };
+            }
+          }
+          if (item.TypeDate === 2 && item[dateCol.dateStr] != null) {
+            const val = item[dateCol.dateStr].toString();
+            if (val !== '0') {
+              const act = val.includes('|') ? val.split('|') : [val];
+              const hours = parseFloat(act[0]) || 0;
+              const isOutside = act.length > 1 ? parseInt(act[1], 10) || 0 : 0;
+              if (hours > 0) {
+                if (isOutside === 1) {
+                  return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF97316' } } };
+                }
+                return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + actualColor } } };
+              }
+            }
+          }
+          if (dateCol.isToday) {
+            return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F7FF' } } };
+          }
+          if (dateCol.isSunday || dateCol.isDayOff) {
+            return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } } };
+          }
+          return {};
+        }
+      });
+    });
+
+    const flattenedData: any[] = [];
+    const mergeRanges: any[] = [];
+
+    this.mpFilteredData().forEach((gate: any) => {
+      const gateStartRow = flattenedData.length + 2;
+
+      gate.tasks.forEach((task: any) => {
+        const taskStartRow = flattenedData.length + 2;
+
+        const row0 = task.rows[0];
+        const row1 = task.rows[1];
+
+        flattenedData.push({
+          ...row0,
+          globalIndex: task.globalIndex,
+          GateCode: gate.GateCode,
+          FullName: task.FullName,
+          ProjectCode: task.ProjectCode,
+          ProjectName: task.ProjectName,
+          Code: task.ProjectTaskCode,
+          Title: task.ProjectTaskTitle,
+          StatusName: task.StatusName,
+          StartDateDisplay: this.formatMpDate(row0?.PlanStartDate || row0?.StartDate),
+          DurationDays: row0?.DurationDays != null ? row0.DurationDays : '',
+          EndDateDisplay: this.formatMpDate(row0?.PlanEndDate || row0?.EndDate),
+          TypeLabel: 'Dự kiến'
+        });
+
+        flattenedData.push({
+          ...row1,
+          globalIndex: task.globalIndex,
+          GateCode: gate.GateCode,
+          FullName: task.FullName,
+          ProjectCode: task.ProjectCode,
+          ProjectName: task.ProjectName,
+          Code: task.ProjectTaskCode,
+          Title: task.ProjectTaskTitle,
+          StatusName: task.StatusName,
+          StartDateDisplay: this.formatMpDate(row1?.PlanStartDate || row1?.StartDate),
+          DurationDays: row1?.DurationDays != null ? row1.DurationDays : '',
+          EndDateDisplay: this.formatMpDate(row1?.PlanEndDate || row1?.EndDate),
+          TypeLabel: 'Thực tế'
+        });
+
+        mergeRanges.push({ s: { r: taskStartRow, c: 1 }, e: { r: taskStartRow + 1, c: 1 } });
+        mergeRanges.push({ s: { r: taskStartRow, c: 3 }, e: { r: taskStartRow + 1, c: 3 } });
+        mergeRanges.push({ s: { r: taskStartRow, c: 4 }, e: { r: taskStartRow + 1, c: 4 } });
+        mergeRanges.push({ s: { r: taskStartRow, c: 5 }, e: { r: taskStartRow + 1, c: 5 } });
+        mergeRanges.push({ s: { r: taskStartRow, c: 6 }, e: { r: taskStartRow + 1, c: 6 } });
+        mergeRanges.push({ s: { r: taskStartRow, c: 7 }, e: { r: taskStartRow + 1, c: 7 } });
+        mergeRanges.push({ s: { r: taskStartRow, c: 8 }, e: { r: taskStartRow + 1, c: 8 } });
+      });
+
+      const gateEndRow = flattenedData.length + 1;
+      mergeRanges.push({ s: { r: gateStartRow, c: 2 }, e: { r: gateEndRow, c: 2 } });
+    });
+
+    const tempTable = {
+      value: flattenedData,
+      filteredValue: null
+    } as any;
+
+    await this.projectTaskService.exportExcelPrimeNG(
+      tempTable,
+      cols,
+      'Master Plan Dự Án',
+      `MasterPlan_${this.projectCode || this.projectId}`,
+      (ws) => {
+        mergeRanges.forEach(range => {
+          ws.mergeCells(range.s.r, range.s.c, range.e.r, range.e.c);
+          const cell = ws.getCell(range.s.r, range.s.c);
+          cell.alignment = { vertical: 'middle', horizontal: range.s.c === 1 ? 'center' : 'left', wrapText: true };
+        });
+
+        const fixedHeadersLen = 9;
+        const todayColIdx = this.mpDateColumns.findIndex((c: any) => c.isToday);
+        const excelTodayColNum = todayColIdx >= 0 ? fixedHeadersLen + todayColIdx + 1 : -1;
+
+        ws.eachRow((row: any, rowNumber: number) => {
+          row.eachCell({ includeEmpty: true }, (cell: any, colNumber: number) => {
+            if (excelTodayColNum > 0) {
+              let leftBorder: any = undefined;
+              let rightBorder: any = undefined;
+
+              if (colNumber === excelTodayColNum) {
+                leftBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+                rightBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+              } else if (colNumber === excelTodayColNum + 1) {
+                leftBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+              } else if (colNumber === excelTodayColNum - 1) {
+                rightBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+              }
+
+              if (leftBorder || rightBorder) {
+                cell.border = {
+                  top: cell.border?.top || { style: 'thin', color: { argb: 'FFD9D9D9' } },
+                  bottom: cell.border?.bottom || { style: 'thin', color: { argb: 'FFD9D9D9' } },
+                  left: leftBorder || cell.border?.left || { style: 'thin', color: { argb: 'FFD9D9D9' } },
+                  right: rightBorder || cell.border?.right || { style: 'thin', color: { argb: 'FFD9D9D9' } }
+                };
+              }
+            }
+
+            if (rowNumber === 1 && colNumber > fixedHeadersLen) {
+              const dCol = this.mpDateColumns[colNumber - fixedHeadersLen - 1];
+              if (dCol) {
+                if (dCol.isSunday || dCol.isDayOff) {
+                  cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+                  cell.font = { ...cell.font, color: { argb: 'FFE11D48' } };
+                } else if (dCol.isToday) {
+                  cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F7FF' } };
+                }
+              }
+            }
+          });
+        });
+      }
+    );
+  }
+
+  trackByGroup(index: number, group: any): any {
+    return group.employeeId;
+  }
+
+  trackByProject(index: number, project: any): any {
+    return project.ProjectID;
+  }
+
+  trackByTask(index: number, task: any): any {
+    return task.ProjectTaskID;
+  }
+
+  trackByRow(index: number, row: any): any {
+    return row.TypeDate || index;
+  }
+
+  trackByColumn(index: number, col: any): any {
+    return col.dateStr;
+  }
+
+  loadProjectInfoHistory(): void {
+    if (this.projectId > 0) {
+      this.projectService.getProject(this.projectId).subscribe({
+        next: (response: any) => {
+          if (response.status === 1 && response.data) {
+            this.projectInfoHistory = response.data;
+            this.projectCode = this.projectInfoHistory.ProjectCode || this.projectCode;
+          }
+        },
+        error: (error: any) => {
+          console.error('Error loading project info:', error);
+        }
+      });
+    }
+  }
+
+  loadDataHistoryProblem(): void {
+    if (this.projectId <= 0) {
+      this.dataHistory = [];
+      this.dataDetail = [];
+      return;
+    }
+
+    this.isLoadHistory = true;
+    this.projectHistoryProblemService.getDataHistoryProblem(this.projectId).subscribe({
+      next: (response: any) => {
+        this.isLoadHistory = false;
+        if (response.status === 1) {
+          let responseData = response.data;
+          let dtMaster = responseData?.dtMaster;
+          if (!dtMaster) {
+            this.dataHistory = [];
+          } else if (Array.isArray(dtMaster)) {
+            this.dataHistory = dtMaster.map((item: any) => this.mapMasterDataToTableHistory(item));
+          } else {
+            this.dataHistory = [];
+          }
+
+          if (this.dataHistory && this.dataHistory.length > 0) {
+            this.selectHistoryRow(this.dataHistory[0]);
+          } else {
+            this.selectedHistoryRow = null;
+            this.dataDetail = [];
+          }
+        } else {
+          this.notification.warning(NOTIFICATION_TITLE.warning, response.message || 'Không có dữ liệu lịch sử phát sinh!');
+          this.dataHistory = [];
+          this.dataDetail = [];
+        }
+      },
+      error: (error: any) => {
+        this.isLoadHistory = false;
+        console.error('Error loading history problem:', error);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu lịch sử phát sinh!');
+        this.dataHistory = [];
+        this.dataDetail = [];
+      },
+    });
+  }
+
+  selectHistoryRow(row: any): void {
+    this.selectedHistoryRow = row;
+    if (row && row.ID > 0) {
+      this.loadDetailByHistoryId(row.ID);
+    } else {
+      this.dataDetail = [];
+    }
+  }
+
+  loadDetailByHistoryId(historyId: number): void {
+    if (!historyId || historyId <= 0) {
+      this.dataDetail = [];
+      return;
+    }
+
+    this.isLoadDetail = true;
+    this.projectHistoryProblemService.getDataHistoryProblemDetail(historyId).subscribe({
+      next: (response: any) => {
+        this.isLoadDetail = false;
+        if (response.status === 1) {
+          let detailData = response.data;
+          if (!detailData) {
+            this.dataDetail = [];
+          } else if (Array.isArray(detailData)) {
+            this.dataDetail = detailData.map((item: any) => ({
+              ...item,
+              ID: item.ID || 0,
+              HistoryID: item.ProjectHistoryProblemID || historyId,
+              ProjectHistoryProblemID: item.ProjectHistoryProblemID || historyId,
+              STT: item.STT || 1,
+              Description: item.Description || '',
+              Status: item.Status || null,
+              Note: item.Note || '',
+              IsDeleted: item.IsDeleted || false
+            }));
+          } else if (typeof detailData === 'object' && Object.keys(detailData).length > 0) {
+            this.dataDetail = [{
+              ...detailData,
+              ID: detailData.ID || 0,
+              HistoryID: detailData.ProjectHistoryProblemID || historyId,
+              ProjectHistoryProblemID: detailData.ProjectHistoryProblemID || historyId,
+              STT: detailData.STT || 1,
+              Description: detailData.Description || '',
+              Status: detailData.Status || null,
+              Note: detailData.Note || '',
+              IsDeleted: detailData.IsDeleted || false
+            }];
+          } else {
+            this.dataDetail = [];
+          }
+        } else {
+          this.dataDetail = [];
+        }
+      },
+      error: (error: any) => {
+        this.isLoadDetail = false;
+        console.error('Error loading detail:', error);
+        this.dataDetail = [];
+      },
+    });
+  }
+
+  mapMasterDataToTableHistory(item: any): any {
+    return {
+      ID: item.ID || 0,
+      STT: item.STT || 1,
+      ProblemType: item.TypeProblem || '',
+      ErrorContent: item.ContentError || '',
+      Reason: item.Reason || '',
+      Solution: item.Remedies || '',
+      Method: item.TestMethod || '',
+      Image: item.Image || '',
+      ProblemDate: item.DateProblem ? DateTime.fromISO(item.DateProblem).toFormat('yyyy-MM-dd') : null,
+      ExecuteDate: item.DateImplementation ? DateTime.fromISO(item.DateImplementation).toFormat('yyyy-MM-dd') : null,
+      PIC: item.PIC || '',
+      ProjectID: item.ProjectID || this.projectId,
+      EmployeeID: item.EmployeeID || null,
+      IsDeleted: item.IsDeleted || false,
+    };
+  }
+
+  addHistoryRow(): void {
+    this.nextRowIdHistory = this.nextRowIdHistory - 1;
+    const maxSTT = this.getMaxSTT(this.dataHistory);
+
+    const newRow = {
+      ID: this.nextRowIdHistory,
+      STT: maxSTT + 1,
+      ProblemType: '',
+      ErrorContent: '',
+      Reason: '',
+      Solution: '',
+      Method: '',
+      Image: '',
+      ProblemDate: null,
+      ExecuteDate: null,
+      PIC: '',
+      IsDeleted: false
+    };
+
+    this.dataHistory = [...this.dataHistory, newRow];
+    this.selectHistoryRow(newRow);
+  }
+
+  deleteHistoryRow(row: any, event?: Event): void {
+    if (event) event.stopPropagation();
+
+    this.modalService.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: 'Bạn có chắc chắn muốn xóa dòng lịch sử phát sinh này?',
+      nzOkText: 'Xóa',
+      nzCancelText: 'Hủy',
+      nzOkDanger: true,
+      nzOnOk: () => {
+        if (row.ID > 0) {
+          this.deletedIdsHistory.push(row.ID);
+        }
+        this.dataHistory = this.dataHistory.filter(item => item !== row);
+        this.updateSTT(this.dataHistory);
+
+        if (this.selectedHistoryRow === row) {
+          if (this.dataHistory.length > 0) {
+            this.selectHistoryRow(this.dataHistory[0]);
+          } else {
+            this.selectedHistoryRow = null;
+            this.dataDetail = [];
+          }
+        }
+      }
+    });
+  }
+
+  addDetailRow(): void {
+    if (!this.selectedHistoryRow) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một dòng từ bảng lịch sử phát sinh trước!');
+      return;
+    }
+
+    if (!this.selectedHistoryRow.ID || this.selectedHistoryRow.ID <= 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng lưu dòng lịch sử phát sinh trước khi thêm chi tiết!');
+      return;
+    }
+
+    this.nextRowIdDetail = this.nextRowIdDetail - 1;
+    const maxSTT = this.getMaxSTT(this.dataDetail);
+
+    const newRow = {
+      ID: this.nextRowIdDetail,
+      HistoryID: this.selectedHistoryRow.ID || 0,
+      ProjectHistoryProblemID: this.selectedHistoryRow.ID || 0,
+      STT: maxSTT + 1,
+      Description: '',
+      Status: null,
+      Note: '',
+      IsDeleted: false
+    };
+
+    this.dataDetail = [...this.dataDetail, newRow];
+  }
+
+  deleteDetailRow(row: any, event?: Event): void {
+    if (event) event.stopPropagation();
+
+    this.modalService.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: 'Bạn có chắc chắn muốn xóa dòng chi tiết này?',
+      nzOkText: 'Xóa',
+      nzCancelText: 'Hủy',
+      nzOkDanger: true,
+      nzOnOk: () => {
+        if (row.ID > 0) {
+          this.deletedIdsDetail.push(row.ID);
+          const historyId = row.HistoryID || row.ProjectHistoryProblemID || 0;
+          this.deletedDetailHistoryIdMap.set(row.ID, historyId);
+        }
+        this.dataDetail = this.dataDetail.filter(item => item !== row);
+        this.updateSTT(this.dataDetail);
+      }
+    });
+  }
+
+  getMaxSTT(data: any[]): number {
+    if (!data || data.length === 0) return 0;
+    const sttValues = data
+      .map((item: any) => parseInt(item.STT, 10))
+      .filter((stt: number) => !isNaN(stt) && stt > 0);
+    return sttValues.length > 0 ? Math.max(...sttValues) : 0;
+  }
+
+  updateSTT(data: any[]): void {
+    if (!data) return;
+    data.forEach((item: any, index: number) => {
+      item.STT = index + 1;
+    });
+  }
+
+  formatDateInput(dateVal: any): string {
+    if (!dateVal) return '';
+    const str = dateVal.toString().trim();
+    if (str.length >= 10 && str.includes('-')) {
+      const parts = str.substring(0, 10).split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+    }
+    if (dateVal instanceof Date) {
+      return DateTime.fromJSDate(dateVal).toFormat('dd/MM/yyyy');
+    }
+    return str;
+  }
+
+  validateDataHistory(historyData: any[]): { isValid: boolean; message: string } {
+    for (let i = 0; i < historyData.length; i++) {
+      const item = historyData[i];
+      const rowNumber = i + 1;
+
+      if (!item.ProblemType || item.ProblemType.trim() === '') {
+        return {
+          isValid: false,
+          message: `Vui lòng nhập Loại cho dòng thứ [${rowNumber}]`
+        };
+      }
+
+      if (!item.ErrorContent || item.ErrorContent.trim() === '') {
+        return {
+          isValid: false,
+          message: `Vui lòng nhập Nội dung cho dòng thứ [${rowNumber}]`
+        };
+      }
+
+      if (!item.Reason || item.Reason.trim() === '') {
+        return {
+          isValid: false,
+          message: `Vui lòng nhập Nguyên nhân cho dòng thứ [${rowNumber}]`
+        };
+      }
+    }
+    return { isValid: true, message: '' };
+  }
+
+  saveHistoryProblemData(): void {
+    const historyData = this.dataHistory.filter((item: any) => !item.IsDeleted);
+
+    const validation = this.validateDataHistory(historyData);
+    if (!validation.isValid) {
+      this.notification.error(NOTIFICATION_TITLE.error, validation.message);
+      return;
+    }
+
+    const filesToUpload: File[] = this.dataHistory
+      .filter((row: any) => row.ImageFile && !row.IsDeleted)
+      .map((row: any) => row.ImageFile);
+
+    const subPath = this.getSubPathHistoryProblem();
+
+    if (filesToUpload.length > 0 && !subPath) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không thể xác định đường dẫn lưu file. Vui lòng kiểm tra thông tin dự án!'
+      );
+      return;
+    }
+
+    if (filesToUpload.length > 0 && subPath) {
+      this.notification.info('Thông báo', 'Đang tải file lên...');
+      this.projectWorkerService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
+        next: (res: any) => {
+          if (res?.status === 1 && res?.data?.length > 0) {
+            let fileIndex = 0;
+            this.dataHistory.forEach((row: any) => {
+              if (row.ImageFile && !row.IsDeleted && res.data[fileIndex]) {
+                const filePath = res.data[fileIndex].FilePath || res.data[fileIndex].ServerPath || '';
+                row.Image = filePath;
+                delete row.ImageFile;
+                fileIndex++;
+              }
+            });
+          }
+          this.callSaveHistoryProblemData();
+        },
+        error: (error: any) => {
+          console.error('Lỗi upload file:', error);
+          this.notification.error(NOTIFICATION_TITLE.error, 'Upload file thất bại. Vui lòng thử lại!');
+        }
+      });
+    } else {
+      this.callSaveHistoryProblemData();
+    }
+  }
+
+  callSaveHistoryProblemData(): void {
+    const payload = this.mapTableDataToApiFormatHistory(this.dataHistory, this.dataDetail);
+
+    this.projectHistoryProblemService.saveData(payload).subscribe({
+      next: (response: any) => {
+        if (response.status === 1) {
+          this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Lưu dữ liệu thành công!');
+          this.deletedIdsHistory = [];
+          this.deletedIdsDetail = [];
+          this.deletedDetailHistoryIdMap.clear();
+          this.loadDataHistoryProblem();
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Có lỗi xảy ra khi lưu dữ liệu!');
+        }
+      },
+      error: (error: any) => {
+        console.error('Error saving data:', error);
+        const errorMessage = error.error?.message || error.message || 'Có lỗi xảy ra khi lưu dữ liệu!';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+      }
+    });
+  }
+
+  mapTableDataToApiFormatHistory(historyData: any[], detailData: any[]): any[] {
+    const result: any[] = [];
+    const activeMasters = historyData.filter((h: any) => !h.IsDeleted);
+    const detailByHistoryId = new Map<number, any[]>();
+    const deletedDetailIdsByHistoryId = new Map<number, number[]>();
+
+    detailData.forEach((detail: any) => {
+      const historyId = detail.HistoryID || detail.ProjectHistoryProblemID || 0;
+
+      if (detail.IsDeleted && detail.ID > 0) {
+        if (!deletedDetailIdsByHistoryId.has(historyId)) {
+          deletedDetailIdsByHistoryId.set(historyId, []);
+        }
+        deletedDetailIdsByHistoryId.get(historyId)!.push(detail.ID);
+      } else if (!detail.IsDeleted) {
+        if (!detailByHistoryId.has(historyId)) {
+          detailByHistoryId.set(historyId, []);
+        }
+        detailByHistoryId.get(historyId)!.push(this.mapDetailDataToApiHistory(detail));
+      }
+    });
+
+    this.deletedIdsDetail.forEach((deletedDetailId: number) => {
+      const historyId = this.deletedDetailHistoryIdMap.get(deletedDetailId) || 0;
+      if (historyId > 0) {
+        if (!deletedDetailIdsByHistoryId.has(historyId)) {
+          deletedDetailIdsByHistoryId.set(historyId, []);
+        }
+        deletedDetailIdsByHistoryId.get(historyId)!.push(deletedDetailId);
+      }
+    });
+
+    activeMasters.forEach((history: any) => {
+      const historyId = history.ID || 0;
+      const details = detailByHistoryId.get(historyId) || [];
+      const deletedIdsDetail = deletedDetailIdsByHistoryId.get(historyId) || [];
+
+      result.push({
+        projectHistoryProblem: this.mapMasterDataToApiHistory(history),
+        detail: details.length > 0 ? details : [],
+        deleteIdsMaster: [],
+        deletedIdsDetail: deletedIdsDetail.length > 0 ? deletedIdsDetail : []
+      });
+    });
+
+    this.deletedIdsHistory.forEach((deletedId: number) => {
+      result.push({
+        projectHistoryProblem: null,
+        detail: [],
+        deleteIdsMaster: [deletedId],
+        deletedIdsDetail: []
+      });
+    });
+
+    return result;
+  }
+
+  mapMasterDataToApiHistory(item: any): any {
+    return {
+      ID: item.ID && item.ID > 0 ? item.ID : 0,
+      ProjectID: item.ProjectID || this.projectId,
+      STT: item.STT || 1,
+      TypeProblem: item.ProblemType || '',
+      ContentError: item.ErrorContent || '',
+      Reason: item.Reason || '',
+      Remedies: item.Solution || '',
+      TestMethod: item.Method || '',
+      Image: item.Image || '',
+      DateProblem: item.ProblemDate || null,
+      DateImplementation: item.ExecuteDate || null,
+      PIC: item.PIC || '',
+      EmployeeID: item.EmployeeID || null,
+      IsDeleted: item.IsDeleted || false,
+    };
+  }
+
+  mapDetailDataToApiHistory(item: any): any {
+    return {
+      ID: item.ID && item.ID > 0 ? item.ID : 0,
+      ProjectHistoryProblemID: item.ProjectHistoryProblemID || item.HistoryID || null,
+      STT: item.STT || 1,
+      Description: item.Description || '',
+      Status: item.Status || null,
+      Note: item.Note || '',
+      IsDeleted: item.IsDeleted || false,
+    };
+  }
+
+  openFileSelectorForImageHistory(row: any): void {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.multiple = false;
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+
+    fileInput.addEventListener('change', (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      const files = target.files;
+      if (!files || files.length === 0) {
+        document.body.removeChild(fileInput);
+        return;
+      }
+
+      const file = files[0];
+      row.Image = file.name;
+      row.ImageFile = file;
+
+      document.body.removeChild(fileInput);
+    });
+
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    setTimeout(() => {
+      if (document.body.contains(fileInput)) {
+        document.body.removeChild(fileInput);
+      }
+    }, 100);
+  }
+
+  getSubPathHistoryProblem(): string {
+    if (!this.projectInfoHistory) {
+      return '';
+    }
+    const year = this.projectInfoHistory.CreatedDate
+      ? new Date(this.projectInfoHistory.CreatedDate).getFullYear()
+      : new Date().getFullYear();
+    const projectCode = this.projectInfoHistory.ProjectCode || this.projectCode || '';
+    if (!projectCode) {
+      return '';
+    }
+    return `${year}\\${projectCode}\\TaiLieuChung\\TongHopPhatSinh\\Image`;
+  }
+
+  downloadImageHistory(filePath: string): void {
+    if (!filePath || filePath.trim() === '') {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có đường dẫn file để tải xuống!');
+      return;
+    }
+
+    const loadingMsg = this.message ? this.message.loading('Đang tải xuống file...', { nzDuration: 0 }).messageId : null;
+
+    this.projectHistoryProblemService.downloadFile(filePath).subscribe({
+      next: (blob: Blob) => {
+        if (loadingMsg && this.message) this.message.remove(loadingMsg);
+        if (blob && blob.size > 0) {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          const fileName = filePath.split('\\').pop() || filePath.split('/').pop() || 'downloaded_file';
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          this.notification.success(NOTIFICATION_TITLE.success, 'Tải xuống thành công!');
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, 'File tải về không hợp lệ!');
+        }
+      },
+      error: (res: any) => {
+        if (loadingMsg && this.message) this.message.remove(loadingMsg);
+        console.error('Lỗi khi tải file:', res);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Tải xuống thất bại!');
+      }
+    });
+  }
+
+  exportExcelHistoryProblem(): void {
+    if (!this.dataHistory || this.dataHistory.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+
+    if (this.dataHistory && this.dataHistory.length > 0) {
+      const wsHistory = workbook.addWorksheet('Lịch sử phát sinh');
+      wsHistory.columns = [
+        { header: 'STT', key: 'STT', width: 10 },
+        { header: 'Loại', key: 'ProblemType', width: 20 },
+        { header: 'Nội dung lỗi', key: 'ErrorContent', width: 40 },
+        { header: 'Nguyên nhân', key: 'Reason', width: 40 },
+        { header: 'Biện pháp khắc phục', key: 'Solution', width: 40 },
+        { header: 'Phương pháp khắc phục', key: 'Method', width: 40 },
+        { header: 'Hình ảnh', key: 'Image', width: 30 },
+        { header: 'Ngày phát sinh', key: 'ProblemDate', width: 15 },
+        { header: 'Ngày thực hiện', key: 'ExecuteDate', width: 15 },
+        { header: 'PIC', key: 'PIC', width: 20 }
+      ];
+
+      wsHistory.getRow(1).font = { bold: true, color: { argb: 'FFFFFF' } };
+      wsHistory.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD700' } };
+      wsHistory.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+
+      this.dataHistory.forEach((row: any, index: number) => {
+        const wsRow = wsHistory.addRow({
+          STT: row.STT || index + 1,
+          ProblemType: row.ProblemType || '',
+          ErrorContent: row.ErrorContent || '',
+          Reason: row.Reason || '',
+          Solution: row.Solution || '',
+          Method: row.Method || '',
+          Image: row.Image || '',
+          ProblemDate: row.ProblemDate ? this.formatDateForExcel(row.ProblemDate) : '',
+          ExecuteDate: row.ExecuteDate ? this.formatDateForExcel(row.ExecuteDate) : '',
+          PIC: row.PIC || ''
+        });
+
+        if (row.ProblemDate) wsRow.getCell('ProblemDate').numFmt = 'dd/mm/yyyy';
+        if (row.ExecuteDate) wsRow.getCell('ExecuteDate').numFmt = 'dd/mm/yyyy';
+      });
+    }
+
+    if (this.dataDetail && this.dataDetail.length > 0) {
+      const wsDetail = workbook.addWorksheet('Chi tiết phát sinh');
+      wsDetail.columns = [
+        { header: 'STT', key: 'STT', width: 10 },
+        { header: 'Mô tả', key: 'Description', width: 50 },
+        { header: 'Trạng thái', key: 'Status', width: 20 },
+        { header: 'Ghi chú', key: 'Note', width: 40 }
+      ];
+
+      wsDetail.getRow(1).font = { bold: true, color: { argb: 'FFFFFF' } };
+      wsDetail.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD700' } };
+      wsDetail.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+
+      this.dataDetail.forEach((row: any, index: number) => {
+        wsDetail.addRow({
+          STT: row.STT || index + 1,
+          Description: row.Description || '',
+          Status: this.getStatusNameHistory(row.Status),
+          Note: row.Note || ''
+        });
+      });
+    }
+
+    workbook.xlsx.writeBuffer().then(buffer => {
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `LichSuPhatSinh_${this.projectCode || 'DuAn'}_${DateTime.now().toFormat('yyyyMMdd_HHmmss')}.xlsx`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      this.notification.success(NOTIFICATION_TITLE.success, 'Xuất Excel thành công!');
+    }).catch((error) => {
+      console.error('Error exporting Excel:', error);
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất Excel!');
+    });
+  }
+
+  getStatusNameHistory(id: number | null): string {
+    if (!id) return '';
+    const status = this.cbbStatusHistory.find((s: any) => s.id === id);
+    return status ? status.name : '';
+  }
+
+  formatDateForExcel(date: string | Date): Date | null {
+    if (!date) return null;
+    try {
+      const dt = typeof date === 'string' ? DateTime.fromISO(date) : DateTime.fromJSDate(date as Date);
+      if (dt.isValid) {
+        return dt.toJSDate();
+      }
+    } catch (e) {
+      console.error('Error formatting date:', e);
+    }
+    return null;
   }
 
   buildSummaryData(): void {
@@ -3224,4 +4928,5 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       }
     });
   }
+
 }

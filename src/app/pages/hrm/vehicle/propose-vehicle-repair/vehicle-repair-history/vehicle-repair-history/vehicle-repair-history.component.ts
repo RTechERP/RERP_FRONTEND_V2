@@ -55,6 +55,7 @@ const COL = {
   date: 'date',
   money: 'money',
   multiline: 'multiline',
+  link: 'link',
 } as const;
 type ColumnType = (typeof COL)[keyof typeof COL];
 type ColumnDef = { key: string; type?: ColumnType };
@@ -661,8 +662,8 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
         pattern: 'solid',
         fgColor: { argb: 'D9D9D9' }, // Màu xám nhạt
       };
-      cell.font = { bold: true };
-      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      cell.font = { name: 'Times New Roman', size: 11, bold: true };
+      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
     });
 
     data.forEach((row: any) => {
@@ -730,10 +731,16 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
 
     worksheet.eachRow((row, rowNumber) => {
       row.eachCell((cell: any, colNumber) => {
+        const curFont = cell.font || {};
+        cell.font = {
+          ...curFont,
+          name: 'Times New Roman',
+          size: 11,
+        };
         cell.alignment = {
           ...cell.alignment,
           wrapText: true,
-          vertical: 'middle', // tùy chọn: căn giữa theo chiều dọc
+          vertical: cell.alignment?.vertical || 'middle',
         };
       });
     });
@@ -941,8 +948,8 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
         { key: 'DriverName' },
         { key: 'DateReport', type: COL.date },
         { key: 'EmployeeRepairName' },
-        { key: 'ProposeContent' },
-        { key: 'Reason' },
+        { key: 'ProposeContent', type: COL.multiline },
+        { key: 'Reason', type: COL.multiline },
         { key: 'DateApprove', type: COL.date },
         { key: 'TimePrevious', type: COL.date },
         { key: 'KmPreviousPeriod', type: COL.number },
@@ -951,11 +958,11 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
         { key: 'Unit' },
         { key: 'TotalPrice', type: COL.money },
         { key: 'TimeEndRepair', type: COL.date },
-        { key: 'LinkChungTu', type: COL.multiline },
+        { key: 'LinkChungTu', type: COL.link },
         { key: 'GaraName' },
         { key: 'AddressGara' },
         { key: 'SDTGara' },
-        { key: 'Note' },
+        { key: 'Note', type: COL.multiline },
       ];
       // chuẩn hóa data theo mapping
       const data = rows.map((r: any, i: number) => {
@@ -1088,7 +1095,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
         if (s.fill) d.fill = { ...s.fill };
         if (s.numFmt) d.numFmt = s.numFmt;
         const cur = (d.alignment ?? {}) as Partial<ExcelJS.Alignment>;
-        d.alignment = { ...cur, wrapText: !!cur.wrapText };
+        d.alignment = { ...cur, wrapText: true };
       }
       dRow.commit?.();
     }
@@ -1127,6 +1134,8 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
     for (let r = 0; r < rows.length; r++) {
       const rowObj = rows[r];
       const excelRow = ws.getRow(startRow + r);
+      let maxRequiredLines = 1;
+
       for (let c = 0; c < columns.length; c++) {
         const col = columns[c];
         const cell = excelRow.getCell(startCol + c);
@@ -1146,7 +1155,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
           const n = Number(raw);
           cell.value = isNaN(n) ? null : n;
           cell.numFmt = '#,##0" đ"';
-        } else if (col.type === COL.multiline) {
+        } else if (col.type === COL.link) {
           const text = String(raw || '').trim();
 
           // tách nhiều dòng
@@ -1162,7 +1171,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
               tooltip: 'Mở file đính kèm đầu tiên',
             } as any;
             // thêm format màu xanh + gạch chân
-            cell.font = { color: { argb: '0000FF' }, underline: true };
+            cell.font = { name: 'Times New Roman', size: 11, color: { argb: '0000FF' }, underline: true };
           } else {
             cell.value = text;
           }
@@ -1173,16 +1182,60 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
             horizontal: 'left',
             wrapText: true,
           };
+        } else if (col.type === COL.multiline) {
+          const text = String(raw || '').trim();
+          cell.value = text;
 
-          // tính chiều cao động (ước lượng)
-          const approxLines = Math.ceil(text.length / 70) + lines.length - 1;
-          excelRow.height = Math.min(approxLines * 20, 400);
+          // bật xuống dòng + căn lề top-left (chữ thường, không tạo hyperlink)
+          cell.alignment = {
+            vertical: 'top',
+            horizontal: 'left',
+            wrapText: true,
+          };
         } else {
           cell.value = raw ?? '';
         }
 
+        // Tính toán số dòng thực tế cần hiển thị của ô để tự động chỉnh chiều cao dòng (row height)
+        if (cell.value != null) {
+          let cellStr = '';
+          if (typeof cell.value === 'string') {
+            cellStr = cell.value;
+          } else if (typeof cell.value === 'object' && (cell.value as any).text) {
+            cellStr = String((cell.value as any).text);
+          }
+
+          if (cellStr) {
+            const excelCol = ws.getColumn(startCol + c);
+            const colWidth = excelCol.width || 15;
+            const effectiveWidth = Math.max(10, Math.floor(colWidth) - 2);
+
+            const lines = cellStr.split(/\r?\n/);
+            let cellLines = 0;
+            for (const line of lines) {
+              cellLines += Math.max(1, Math.ceil(line.length / effectiveWidth));
+            }
+            if (cellLines > maxRequiredLines) {
+              maxRequiredLines = cellLines;
+            }
+          }
+        }
+
         const cur = (cell.alignment ?? {}) as Partial<ExcelJS.Alignment>;
-        cell.alignment = { ...cur, vertical: 'middle', wrapText: true };
+        const isSpecialCol = col.type === COL.multiline || col.type === COL.link;
+        cell.alignment = { 
+          vertical: isSpecialCol ? 'top' : (cur.vertical || 'middle'), 
+          ...cur, 
+          wrapText: true 
+        };
+        const curFont = cell.font || {};
+        if (col.type !== COL.link || !cell.font?.color) {
+          cell.font = {
+            ...curFont,
+            name: 'Times New Roman',
+            size: 11,
+          };
+        }
         cell.border = {
           top: { style: 'thin' },
           left: { style: 'thin' },
@@ -1190,6 +1243,13 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
           bottom: { style: 'thin' },
         };
       }
+
+      if (maxRequiredLines > 1) {
+        excelRow.height = Math.min(maxRequiredLines * 19 + 6, 400);
+      } else {
+        excelRow.height = excelRow.height ? Math.max(excelRow.height, 20) : 20;
+      }
+
       excelRow.commit?.();
     }
   }

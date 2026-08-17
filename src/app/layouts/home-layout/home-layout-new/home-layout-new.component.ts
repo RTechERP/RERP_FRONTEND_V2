@@ -56,7 +56,7 @@ import { ProjectTaskService } from '../../../pages/project_task/project-task/pro
 import { PollFormService } from '../../../pages/poll-form/poll-form.service';
 import { ConfigNotificationService } from '../../../pages/systems/app-user/config-notification-key/config-notification-service/config-notification.service';
 import { TravelRegistrationServiceService } from '../../../pages/hrm/travel-registration/travel-registration-service/travel-registration-service.service';
-
+import { AssetPersonalService } from '../../../pages/hrm/asset/asset/asset-personal/asset-personal.service';
 @Component({
   selector: 'app-home-layout-new',
   imports: [
@@ -135,6 +135,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
   quantityOverdue3Months: any = {};
   quantityBorrowExpriedSale: any = {};
   quantityOverdueProjectTask: number = 0;
+  quantityUnApproveAsset: number = 0;
   hasBorrowSale: boolean = true;
   hasBorrowDemo: boolean = true;
   contractExpiryInfo: { daysLeft: number | null; contractEndDate: string | null } = { daysLeft: null, contractEndDate: null };
@@ -192,7 +193,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     private projectTaskAttendanceService: ProjectTaskSumaryAttendanceService,
     private pollFormService: PollFormService,
     private configNotificationService: ConfigNotificationService,
-    private travelRegistrationService: TravelRegistrationServiceService
+    private travelRegistrationService: TravelRegistrationServiceService,
+    private assetPersonalService: AssetPersonalService
   ) { }
 
   get notifItems(): NotifyItem[] { return this.notifService.items; }
@@ -237,6 +239,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
       this.getProjectTaskAttendance(),
       this.getPendingPollCount(),
       this.getUnconfirmedTravelRegistrations(),
+      this.getQuantityUnApproveAsset(),
     ]).subscribe({
       next: () => {
         console.log('Tất cả API quan trọng đã load xong. Khởi tạo SSE và check version...');
@@ -709,6 +712,11 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     });
   }
 
+  openAssetConfirmModal() {
+    this.isNotifModalVisible = false;
+    this.newTab('asset-personal', 'Tài sản cá nhân', { activeTab: 0 });
+  }
+
   getPendingPollCount() {
     return this.pollFormService.getPendingCount().pipe(
       tap((res: any) => {
@@ -747,9 +755,10 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     const hasSemiExpiredSale = this.quantityBorrowSale > 0;
     const hasPendingPolls = this.pendingPolls && this.pendingPolls.length > 0;
     const hasUnconfirmedTravel = this.unconfirmedTravelRegistrations && this.unconfirmedTravelRegistrations.length > 0;
+    const hasUnapproveAsset = this.quantityUnApproveAsset > 0;
 
     if (hasOverdueDemo || hasSemiExpiredDemo || hasOverdueSale || hasSemiExpiredSale
-      || hasPendingPolls || hasUnconfirmedTravel) {
+      || hasPendingPolls || hasUnconfirmedTravel || hasUnapproveAsset) {
       this.isNotifModalVisible = true;
     }
   }
@@ -1097,4 +1106,47 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
       // Modal dismissed
     });
   }
+  //Lấy số lượng biên bản tài sản chưa duyệt
+  getQuantityUnApproveAsset() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const params = {
+      dateStart: '2017-01-01',
+      dateEnd: tomorrow.toISOString().split('T')[0],
+      receiverID: 0,
+      assetCategory: -1
+    };
+    return this.assetPersonalService.getQuantityAssetUnApprove(params).pipe(
+      tap((res: any) => {
+        const dataObj = Array.isArray(res?.data) ? res.data[0] : res?.data;
+        this.quantityUnApproveAsset = dataObj?.TotalUnapproved ?? dataObj?.quantityUnApproveAsset ?? 0;
+
+        if (this.quantityUnApproveAsset > 0) {
+          this.hasBorrowSale = false;
+        }
+        if (this.quantityUnApproveAsset > 0) {
+          this.notifService.addItem({
+            id: 3,
+            time: new Date().toISOString(),
+            title: 'Biên bản tài sản chưa xác nhận',
+            text: `Bạn đang có ${this.quantityUnApproveAsset} biên bản tài sản chưa xác nhận`,
+            group: 'today',
+            icon: 'property-safety',
+            route: 'asset-personal',
+            queryParams: { activeTab: 0 }
+          });
+        }
+      }),
+      catchError((err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
+        return of(null);
+      })
+    );
+  }
+
 }

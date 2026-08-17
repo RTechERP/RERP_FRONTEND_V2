@@ -100,13 +100,25 @@
                                             style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
                                             Mã tài sản <p-sortIcon field="TSCodeNCC"></p-sortIcon>
                                         </th>
-                                        <th pSortableColumn="OfficeActiveStatusText"
-                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
-                                            Office Active <p-sortIcon field="OfficeActiveStatusText"></p-sortIcon>
+                                        <th pSortableColumn="KeyWin"
+                                            style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
+                                            Key Windows <p-sortIcon field="KeyWin"></p-sortIcon>
                                         </th>
-                                        <th pSortableColumn="WindowActiveStatusText"
-                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
-                                            Windows Active <p-sortIcon field="WindowActiveStatusText"></p-sortIcon>
+                                        <th pSortableColumn="DateActiveWin"
+                                            style="width: 130px; min-width: 130px; max-width: 130px; text-align: center;">
+                                            Ngày KH Win <p-sortIcon field="DateActiveWin"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="KeyOffice"
+                                            style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
+                                            Key Office <p-sortIcon field="KeyOffice"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="DateActiveOffice"
+                                            style="width: 130px; min-width: 130px; max-width: 130px; text-align: center;">
+                                            Ngày KH Office <p-sortIcon field="DateActiveOffice"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="DateExpireOffice"
+                                            style="width: 130px; min-width: 130px; max-width: 130px; text-align: center;">
+                                            Ngày HH Office <p-sortIcon field="DateExpireOffice"></p-sortIcon>
                                         </th>
                                         <th pSortableColumn="TSAssetName"
                                             style="width: 200px; min-width: 200px; max-width: 200px; text-align: center;">
@@ -204,8 +216,8 @@
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
-                                        <th style="width: 120px; min-width: 120px; max-width: 120px;">
-                                            <p-columnFilter field="OfficeActiveStatusText" matchMode="contains"
+                                        <th style="width: 150px; min-width: 150px; max-width: 150px;">
+                                            <p-columnFilter field="KeyWin" matchMode="contains"
                                                 [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                                                     <input pInputText type="text" [ngModel]="value"
@@ -214,8 +226,38 @@
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
-                                        <th style="width: 120px; min-width: 120px; max-width: 120px;">
-                                            <p-columnFilter field="WindowActiveStatusText" matchMode="contains"
+                                        <th style="width: 130px; min-width: 130px; max-width: 130px;">
+                                            <p-columnFilter field="DateActiveWin" matchMode="contains"
+                                                [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 150px; min-width: 150px; max-width: 150px;">
+                                            <p-columnFilter field="KeyOffice" matchMode="contains"
+                                                [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 130px; min-width: 130px; max-width: 130px;">
+                                            <p-columnFilter field="DateActiveOffice" matchMode="contains"
+                                                [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 130px; min-width: 130px; max-width: 130px;">
+                                            <p-columnFilter field="DateExpireOffice" matchMode="contains"
                                                 [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                                                     <input pInputText type="text" [ngModel]="value"
@@ -415,10 +457,16 @@
                                             {{ rowIndex + 1 }}</td>
                                         <td style="width: 120px; min-width: 120px; max-width: 120px;" class="text-wrap">
                                             {{ row.TSCodeNCC }}</td>
-                                        <td style="width: 120px; min-width: 120px; max-width: 120px;" class="text-wrap">
-                                            {{ row.OfficeActiveStatusText }}</td>
-                                        <td style="width: 120px; min-width: 120px; max-width: 120px;" class="text-wrap">
-                                            {{ row.WindowActiveStatusText }}</td>
+                                        <td style="width: 150px; min-width: 150px; max-width: 150px;" class="text-wrap">
+                                            {{ row.KeyWin }}</td>
+                                        <td style="width: 130px; min-width: 130px; max-width: 130px;" class="text-wrap text-center">
+                                            {{ row.DateActiveWin ? (row.DateActiveWin | date: 'dd/MM/yyyy') : '' }}</td>
+                                        <td style="width: 150px; min-width: 150px; max-width: 150px;" class="text-wrap">
+                                            {{ row.KeyOffice || row.keyOffice }}</td>
+                                        <td style="width: 130px; min-width: 130px; max-width: 130px;" class="text-wrap text-center">
+                                            {{ row.DateActiveOffice ? (row.DateActiveOffice | date: 'dd/MM/yyyy') : '' }}</td>
+                                        <td style="width: 130px; min-width: 130px; max-width: 130px;" class="text-wrap text-center">
+                                            {{ row.DateExpireOffice ? (row.DateExpireOffice | date: 'dd/MM/yyyy') : '' }}</td>
                                         <td style="width: 200px; min-width: 200px; max-width: 200px;" class="text-wrap">
                                             {{ row.TSAssetName }}</td>
                                         <td style="width: 120px; min-width: 120px; max-width: 120px;" class="text-wrap">

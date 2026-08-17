@@ -500,8 +500,11 @@ export class TsAssetChooseAssetsComponent implements OnInit {
       UpdatedBy: row.UpdatedBy,
       UpdatedDate: row.UpdatedDate,
       IsAllocation: row.IsAllocation,
-      OfficeActiveStatus: row.OfficeActiveStatus,
-      WindowActiveStatus: row.WindowActiveStatus,
+      KeyWin: row.KeyWin,
+      KeyOffice: row.KeyOffice || row.keyOffice,
+      DateActiveWin: row.DateActiveWin,
+      DateActiveOffice: row.DateActiveOffice,
+      DateExpireOffice: row.DateExpireOffice,
     }));
 
     this.formSubmitted.emit(newRows);

@@ -188,16 +188,20 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
         columns: [
           { title: 'STT', field: 'STT', hozAlign: 'center', width: 70 },
           { title: 'Mã tài sản', field: 'TSCodeNCC', hozAlign: 'left' },
+          { title: 'Key Windows', field: 'KeyWin', hozAlign: 'left' },
+          { title: 'Ngày kích hoạt Windows', field: 'DateActiveWin', hozAlign: 'center', formatter: formatDateCell },
+          { title: 'Key Office', field: 'KeyOffice', hozAlign: 'left' },
+          { title: 'Ngày kích hoạt Office', field: 'DateActiveOffice', hozAlign: 'center', formatter: formatDateCell },
+          { title: 'Ngày hết hạn Office', field: 'DateExpireOffice', hozAlign: 'center', formatter: formatDateCell },
           { title: 'Tên tài sản', field: 'TSAssetName', hozAlign: 'left' },
-          { title: 'Mã loại tài sản', field: 'AssetCode', hozAlign: 'left' },
+          { title: 'Mã loại', field: 'AssetCode', hozAlign: 'left' },
           { title: 'Tên loại', field: 'AssetType', hozAlign: 'left' },
-          { title: 'Mã nguồn gốc tài sản', field: 'SourceCode', hozAlign: 'left' },
+          { title: 'Mã nguồn gốc', field: 'SourceCode', hozAlign: 'left' },
           { title: 'Tên nguồn gốc', field: 'SourceName', hozAlign: 'left' },
-
-
-          { title: 'Mô tả chi tiết (Model, thông số kỹ thuật…)', field: 'SpecificationsAsset', hozAlign: 'left' },
-          { title: 'Seri', field: 'Seri', hozAlign: 'left' },
-          { title: 'Đơn vị tính', field: 'UnitName', hozAlign: 'left' },
+          { title: 'Mã NCC', field: 'SupplierCode', hozAlign: 'left' },
+          { title: 'Tên NCC', field: 'SupplierName', hozAlign: 'left' },
+          { title: 'Số Seri', field: 'Seri', hozAlign: 'left' },
+          { title: 'Model', field: 'Model', hozAlign: 'left' },
           { title: 'Số lượng', field: 'Quantity', hozAlign: 'right' },
           {
             title: 'Trạng thái',
@@ -215,15 +219,16 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
               return val;
             }
           },
+          { title: 'Mô tả chi tiết', field: 'SpecificationsAsset', hozAlign: 'left' },
+          { title: 'Đơn vị tính', field: 'UnitName', hozAlign: 'left' },
           { title: 'Mã phòng ban', field: 'DepartmentCode', hozAlign: 'left' },
-          { title: 'Tên phòng ban', field: 'DepartmentName', hozAlign: 'left' },
+          { title: 'Tên phòng ban', field: 'Name', hozAlign: 'left' },
           { title: 'Mã nhân viên', field: 'EmployeeCode', hozAlign: 'left' },
-          { title: 'Người sử dụng', field: 'EmployeeName', hozAlign: 'left' },
-          { title: 'Thời gian ghi tăng', field: 'DateBuy', hozAlign: 'center', formatter: formatDateCell },
+          { title: 'Người quản lý', field: 'FullName', hozAlign: 'left' },
+          { title: 'Thời gian mua', field: 'DateBuy', hozAlign: 'center', formatter: formatDateCell },
           { title: 'Thời gian bảo hành (tháng)', field: 'Insurance', hozAlign: 'right' },
-          { title: 'Hiệu lực từ', field: 'DateEffect', hozAlign: 'center', formatter: formatDateCell },
+          { title: 'Ngày hiệu lực', field: 'DateEffect', hozAlign: 'center', formatter: formatDateCell },
           { title: 'Ghi chú', field: 'Note', hozAlign: 'left' },
-
         ],
       });
     } else {
@@ -331,8 +336,11 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     if (normalized.includes('mã ncc')) return 'SupplierCode';
     if (normalized === 'mã tài sản') return 'TSCodeNCC';
 
-    if (normalized.includes('office active')) return 'OfficeActiveStatusText';
-    if (normalized.includes('windows active')) return 'WindowActiveStatusText';
+    if (normalized.includes('key win') || normalized.includes('key windows')) return 'KeyWin';
+    if (normalized.includes('ngày kh win') || normalized.includes('ngày kích hoạt win') || normalized.includes('ngay kich hoat win') || normalized.includes('ngày active win')) return 'DateActiveWin';
+    if (normalized.includes('key office')) return 'KeyOffice';
+    if (normalized.includes('ngày kh office') || normalized.includes('ngày kích hoạt office') || normalized.includes('ngay kich hoat office') || normalized.includes('ngày active office')) return 'DateActiveOffice';
+    if (normalized.includes('ngày hh office') || normalized.includes('ngày hết hạn office') || normalized.includes('ngay het han office') || normalized.includes('ngày hết hạn')) return 'DateExpireOffice';
     if (normalized.includes('tên tài sản')) return 'TSAssetName';
     if (normalized.includes('seri')) return 'Seri';
     if (normalized.includes('đơn vị') || normalized === 'đvt') return 'UnitName';
@@ -360,17 +368,32 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       const worksheet = workbook.getWorksheet(sheetName);
       if (!worksheet) throw new Error(`Sheet "${sheetName}" không tồn tại.`);
 
-      // Đọc header từ dòng đầu tiên (row 1)
-      const headerRow = worksheet.getRow(1);
+      // Kiểm tra xem Excel có 2 dòng header không (như file export từ hệ thống)
+      const r2c1 = this.normalizeHeader(getCellText(worksheet.getRow(2).getCell(1)));
+      const r2c2 = this.normalizeHeader(getCellText(worksheet.getRow(2).getCell(2)));
+      const r2c3 = this.normalizeHeader(getCellText(worksheet.getRow(2).getCell(3)));
+
+      const isTwoHeaderRows = (r2c1 === 'stt' || r2c1.includes('stt') || r2c2.includes('mã tài sản') || r2c3.includes('key win'));
+      const headerRowNumber = isTwoHeaderRows ? 2 : 1;
+      const startDataRow = isTwoHeaderRows ? 3 : 2;
+
+      const headerRow = worksheet.getRow(headerRowNumber);
+      const row1 = worksheet.getRow(1);
+      const maxCols = Math.max(headerRow.cellCount, row1.cellCount);
       const headers: string[] = [];
       const headerToFieldMap: Map<number, string> = new Map();
 
-      headerRow.eachCell((cell, colNumber) => {
-        const headerText = getCellText(cell);
-        headers[colNumber - 1] = headerText;
-        const fieldName = this.getFieldFromHeader(headerText);
-        headerToFieldMap.set(colNumber, fieldName);
-      });
+      for (let colNumber = 1; colNumber <= maxCols; colNumber++) {
+        let headerText = getCellText(headerRow.getCell(colNumber));
+        if (!headerText && isTwoHeaderRows) {
+          headerText = getCellText(row1.getCell(colNumber));
+        }
+        if (headerText) {
+          headers[colNumber - 1] = headerText;
+          const fieldName = this.getFieldFromHeader(headerText);
+          headerToFieldMap.set(colNumber, fieldName);
+        }
+      }
 
       // Tạo columns cho Tabulator dựa trên header
       const columns: ColumnDefinition[] = headers.map((header, index) => {
@@ -380,7 +403,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
           field: fieldName,
           hozAlign: 'left',
           headerHozAlign: 'center',
-          formatter: (fieldName === 'DateBuy' || fieldName === 'DateEffect') ? formatDateCell : undefined
+          formatter: (fieldName === 'DateBuy' || fieldName === 'DateEffect' || fieldName === 'DateActiveWin' || fieldName === 'DateActiveOffice' || fieldName === 'DateExpireOffice') ? formatDateCell : undefined
         };
       });
 
@@ -391,9 +414,9 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       const data: any[] = [];
       let validRecords = 0;
 
-      // Data bắt đầu từ hàng thứ 2 (sau header)
+      // Data bắt đầu từ hàng startDataRow
       worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber > 1) {
+        if (rowNumber >= startDataRow) {
           // Kiểm tra xem dòng có rỗng không
           let isEmptyRow = true;
           for (let i = 1; i <= headers.length; i++) {
@@ -432,7 +455,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
               // Xử lý đặc biệt cho một số trường
               if (fieldName === 'IsAllocation') {
                 rowData[fieldName] = (cellValue === 'Có' || cellValue === 'Yes' || cellValue === '1' || cellValue === 'true');
-              } else if (fieldName === 'DateBuy' || fieldName === 'DateEffect') {
+              } else if (fieldName === 'DateBuy' || fieldName === 'DateEffect' || fieldName === 'DateActiveWin' || fieldName === 'DateActiveOffice' || fieldName === 'DateExpireOffice') {
                 // Chuyển đổi date từ format Excel
                 rowData[fieldName] = formatDate(cellValue) || cellValue;
               } else if (fieldName === 'Insurance' || fieldName === 'STT') {
@@ -464,7 +487,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
         this.drawtable();
       }
     } catch (error) {
-      this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc dữ liệu từ sheet!');
       this.resetExcelImportState();
     }
   }
@@ -573,7 +596,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   }
   async saveExcelData() {
     if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để lưu!');
       return;
     }
 
@@ -584,7 +607,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     });
 
     if (validDataToSave.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ (STT là số) để lưu!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu hợp lệ (STT là số) để lưu!');
       this.displayProgress = 0;
       this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
       return;
@@ -614,7 +637,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
 
     const groupEntries = Array.from(groups.entries());
     if (groupEntries.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ để lưu!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu hợp lệ để lưu!');
       return;
     }
 
@@ -625,7 +648,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     const { code: firstBaseCode, maxSTT } = await this.getAssetCodeInfo(firstIsoDate);
 
     if (!firstBaseCode) {
-      this.notification.error('Thông báo', 'Không lấy được mã tài sản từ server.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không lấy được mã tài sản từ server.');
       return;
     }
 
@@ -667,30 +690,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
           }
         }
 
-        // Xử lý Office/Windows Active Status
-        let officeActiveStatus = null;
-        let windowActiveStatus = null;
-        if (row.OfficeActiveStatusText) {
-          const officeText = String(row.OfficeActiveStatusText).toLowerCase();
-          if (officeText.includes('đã active') || officeText.includes('đã kích hoạt')) {
-            officeActiveStatus = 2;
-          } else if (officeText.includes('chưa active') || officeText.includes('chưa kích hoạt')) {
-            officeActiveStatus = 1;
-          } else if (officeText.includes('crack')) {
-            officeActiveStatus = 3;
-          }
-        }
-        if (row.WindowActiveStatusText) {
-          const windowText = String(row.WindowActiveStatusText).toLowerCase();
-          if (windowText.includes('đã active') || windowText.includes('đã kích hoạt')) {
-            windowActiveStatus = 2;
-          } else if (windowText.includes('chưa active') || windowText.includes('chưa kích hoạt')) {
-            windowActiveStatus = 1;
-          } else if (windowText.includes('crack')) {
-            windowActiveStatus = 3;
-          }
-        }
-
         // Lấy các ID từ tên
         const unitName = row.UnitName || '';
         const sourceName = row.SourceName || '';
@@ -712,8 +711,11 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
           DateEffect: formatDate(row.DateEffect),
           Insurance: Number(row.Insurance) || 0,
           TSCodeNCC: row.TSCodeNCC || '',
-          OfficeActiveStatus: officeActiveStatus,
-          WindowActiveStatus: windowActiveStatus,
+          KeyWin: row.KeyWin || '',
+          KeyOffice: row.KeyOffice || row.keyOffice || '',
+          DateActiveWin: formatDate(row.DateActiveWin),
+          DateActiveOffice: formatDate(row.DateActiveOffice),
+          DateExpireOffice: formatDate(row.DateExpireOffice),
           Note: row.Note || '',
           StatusID: statusID,
           SourceID: this.getSourceIdByName(sourceName),

@@ -1456,6 +1456,15 @@ nz-date-picker ::ng-deep .ant-picker-input>input {
     flex-direction: column;
 }
 
+/* BẮT BUỘC phải đứng sau rule .ant-tabs-tabpane ở trên.
+   ng-zorro chỉ ẩn tab không active bằng class .ant-tabs-tabpane-hidden { display: none }
+   (specificity 0-1-0), trong khi rule .main-tabs ::ng-deep .ant-tabs-tabpane phía trên có
+   specificity 0-3-0 nên đè mất display:none -> tất cả pane cùng hiển thị, xếp chồng dọc và bị
+   .ant-tabs-content-holder { overflow: hidden } cắt, khiến bấm tab nào cũng chỉ thấy tab đầu. */
+.main-tabs ::ng-deep .ant-tabs-tabpane-hidden {
+    display: none;
+}
+
 .main-tabs ::ng-deep .ant-tabs-nav {
     margin-bottom: 0;
     padding: 0 16px;

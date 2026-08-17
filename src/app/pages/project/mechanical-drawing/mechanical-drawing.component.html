@@ -26,6 +26,18 @@
                 </nz-form-item>
 
                 <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12" style="font-size: 12px;">Loại dự án</nz-form-label>
+                    <nz-form-control>
+                        <nz-select [(ngModel)]="projectTypeId" name="projectTypeId" nzSize="small" nzPlaceHolder="Chọn loại dự án"
+                            nzAllowClear nzShowSearch nzDropdownClassName="select-dropdown" style="width: 200px;"
+                            (ngModelChange)="search()">
+                            <nz-option *ngFor="let item of projectTypes" [nzValue]="item.ID"
+                                [nzLabel]="item.ProjectTypeName"></nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
                     <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
                     <nz-form-control>
                         <input nz-input placeholder="Tìm kiếm..." nzSize="small" [(ngModel)]="keyword" name="keyword"
@@ -107,6 +119,11 @@
                         <p class="card-project" [title]="item.ProjectName">
                             <i class="fa-solid fa-building me-1"></i>{{ item.ProjectName }}
                         </p>
+                        @if (item.ProjectTypeName) {
+                        <p class="card-project-type" [title]="item.ProjectTypeName">
+                            <i class="fa-solid fa-tag me-1"></i>{{ item.ProjectTypeName }}
+                        </p>
+                        }
                         <div class="card-meta">
                             <span><i class="fa-solid fa-user me-1"></i>{{ item.CreatedBy }}</span>
                             <span><i class="fa-solid fa-calendar me-1"></i>{{ formatDate(item.CreatedDate) }}</span>
@@ -131,7 +148,7 @@
                             (click)="downloadFile($event, item)" pTooltip="Tải file"></button>
                         <button pButton type="button" icon="pi pi-copy"
                             class="p-button-rounded p-button-text p-button-sm"
-                            (click)="copyFilePath($event, item)" pTooltip="Copy đường dẫn file"></button>
+                            (click)="copyFolderPath($event, item)" pTooltip="Copy đường dẫn thư mục"></button>
                         }
                     </div>
                 </div>

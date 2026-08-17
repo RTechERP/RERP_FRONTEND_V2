@@ -657,7 +657,7 @@ export class HistoryMoneyPrimengComponent implements OnInit {
           POCode: row.POCode || '',
           ProductNewCode: row.ProductNewCode || '',
           PONumber: row.PONumber || '',
-          MoneyDate: row.MoneyDate ? new Date(row.MoneyDate).toLocaleDateString('vi-VN') : '',
+          MoneyDate: row.MoneyDate ? new Date(row.MoneyDate) : null,
           Money: row.Money || 0,
           Note: row.Note || '',
           BankName: row.BankName || '',
@@ -671,7 +671,8 @@ export class HistoryMoneyPrimengComponent implements OnInit {
       }
     });
 
-    // Format tiền
+    // Format ngày và tiền
+    worksheet.getColumn(4).numFmt = 'dd/mm/yyyy';
     worksheet.getColumn(5).numFmt = '#,##0';
     worksheet.getColumn(10).numFmt = '#,##0';
 

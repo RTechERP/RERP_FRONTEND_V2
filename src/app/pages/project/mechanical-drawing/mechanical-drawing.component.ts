@@ -58,9 +58,11 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
 
   keyword: string = '';
   projectId: number | null = null;
+  projectTypeId: number | null = null;
   isDeleted: boolean = false;
   isRestoring: boolean = false;
   projects: any[] = [];
+  projectTypes: any[] = [];
 
   selectedId: number = 0;
   selectedRow: any = null;
@@ -95,6 +97,7 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initMenuBar();
     this.loadProjects();
+    this.loadProjectTypes();
     this.search();
   }
 
@@ -136,6 +139,17 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadProjectTypes(): void {
+    this.mechanicalDrawingService.getProjectTypes().subscribe({
+      next: (response: any) => {
+        if (response.status === 1) {
+          this.projectTypes = response.data || [];
+        }
+      },
+      error: (error: any) => console.error('Error loading project types:', error),
+    });
+  }
+
   search(): void {
     this.page = 1;
     this.loadData();
@@ -151,6 +165,7 @@ export class MechanicalDrawingComponent implements OnInit, OnDestroy {
       this.page,
       this.pageSize,
       this.projectId || undefined,
+      this.projectTypeId || undefined,
       this.keyword || undefined,
       this.isDeleted
     ).pipe(finalize(() => this.isLoading = false)).subscribe({

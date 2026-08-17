@@ -59,6 +59,7 @@ export class MechanicalDrawingDetailComponent implements OnInit, OnDestroy {
 
     model: any = {};
     projects: any[] = [];
+    projectTypes: any[] = [];
     errors: any = {};
     isLoading = false;
     isSubmitting = false;
@@ -85,6 +86,7 @@ export class MechanicalDrawingDetailComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         this.initModel();
         this.loadProjects();
+        this.loadProjectTypes();
 
         if (this.isEditMode && this.id > 0) {
             this.loadDetail();
@@ -101,6 +103,7 @@ export class MechanicalDrawingDetailComponent implements OnInit, OnDestroy {
             ID: this.id || 0,
             Name: '',
             ProjectID: null,
+            ProjectTypeID: null,
             FilePath: ''
         };
     }
@@ -118,6 +121,19 @@ export class MechanicalDrawingDetailComponent implements OnInit, OnDestroy {
         });
     }
 
+    loadProjectTypes(): void {
+        this.mechanicalDrawingService.getProjectTypes().subscribe({
+            next: (response: any) => {
+                if (response?.status === 1) {
+                    this.projectTypes = response.data || [];
+                }
+            },
+            error: (error: any) => {
+                console.error('Error loading project types:', error);
+            }
+        });
+    }
+
     private loadDetail(): void {
         this.isLoading = true;
         this.mechanicalDrawingService.getMechanicalDrawingDetail(this.id).subscribe({
@@ -128,6 +144,7 @@ export class MechanicalDrawingDetailComponent implements OnInit, OnDestroy {
                     this.model.ID = data.ID || 0;
                     this.model.Name = data.Name || '';
                     this.model.ProjectID = data.ProjectID || null;
+                    this.model.ProjectTypeID = data.ProjectTypeID || null;
                     this.model.FilePath = data.FilePath || '';
                     this.model.ThumbnailPath = data.ThumbnailPath || null;
                     this.thumbnailSaved = !!data.ThumbnailPath;
@@ -544,6 +561,7 @@ export class MechanicalDrawingDetailComponent implements OnInit, OnDestroy {
             ID: this.model.ID || 0,
             Name: (this.model.Name || '').trim(),
             ProjectID: this.model.ProjectID,
+            ProjectTypeID: this.model.ProjectTypeID,
             FilePath: (this.model.FilePath || '').trim()
         };
 

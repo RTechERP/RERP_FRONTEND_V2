@@ -695,7 +695,51 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                         iconCssClass: 'mdi mdi-content-copy',
                         positionOrder: 50,
                         action: (_e, args) => {
-                            const value = args.cell?.toString() || '';
+                            const columnDef = args.column;
+                            const dataContext = args.dataContext;
+                            const fieldName = columnDef?.field;
+                            
+                            let value = '';
+                            if (fieldName && dataContext) {
+                                const rawValue = dataContext[fieldName];
+                                
+                                // If column has formatter, use it to get formatted value
+                                if (columnDef.formatter && typeof columnDef.formatter === 'function') {
+                                    try {
+                                        const formatterResult = columnDef.formatter(
+                                            args.row ?? 0, 
+                                            args.cell ?? 0, 
+                                            rawValue, 
+                                            columnDef, 
+                                            dataContext,
+                                            this.angularGrid?.slickGrid
+                                        );
+                                        
+                                        // Handle different formatter return types
+                                        if (typeof formatterResult === 'string') {
+                                            value = formatterResult;
+                                        } else if (formatterResult && typeof formatterResult === 'object') {
+                                            // FormatterResultWithText or FormatterResultWithHtml
+                                            value = (formatterResult as any).text || String(formatterResult);
+                                        } else {
+                                            value = String(formatterResult || '');
+                                        }
+                                        
+                                        // Strip HTML tags if value contains HTML
+                                        if (value.includes('<')) {
+                                            const div = document.createElement('div');
+                                            div.innerHTML = value;
+                                            value = div.textContent || div.innerText || '';
+                                        }
+                                    } catch (e) {
+                                        // If formatter fails, fall back to raw value
+                                        value = rawValue != null ? String(rawValue) : '';
+                                    }
+                                } else {
+                                    value = rawValue != null ? String(rawValue) : '';
+                                }
+                            }
+                            
                             navigator.clipboard.writeText(value).catch(() => {
                                 this.notification.error(NOTIFICATION_TITLE.error, 'Không thể copy!');
                             });

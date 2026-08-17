@@ -139,6 +139,7 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
   randomCode: string = '';
   private isNotEnoughMetadataApplied = false;
   private selectedProductGroupRowIndex: number = 0;
+  isPermission: boolean = false;
   //#endregion
 
   //#region hàm khởi tạo
@@ -151,7 +152,7 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-
+    this.isPermission = this.permissionService.hasPermission('N64') || this.appUserService.isAdmin;
     this.route.queryParams.subscribe(params => {
       this.warehouseCode =
         params['warehouseCode']
@@ -214,7 +215,7 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
       {
         label: 'Thêm sản phẩm',
         icon: 'fa-solid fa-circle-plus fa-lg text-success',
-        visible: this.permissionService.hasPermission('N64'),
+        visible: this.isPermission,
         command: () => {
           console.log('Thêm sản phẩm');
           this.onAddProduct();
@@ -223,7 +224,7 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
       {
         label: 'Sửa sản phẩm',
         icon: 'fa-solid fa-file-pen fa-lg text-primary',
-        visible: this.permissionService.hasPermission('N64'),
+        visible: this.isPermission,
         command: () => {
           this.onEditProduct();
         },
@@ -231,7 +232,7 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
       {
         label: 'Xóa sản phẩm',
         icon: 'fa-solid fa-trash fa-lg text-danger',
-        visible: this.permissionService.hasPermission('N64'),
+        visible: this.isPermission,
         command: () => {
           this.onDeleted();
         },
@@ -246,7 +247,7 @@ export class InventoryStockComponent implements OnInit, AfterViewInit {
       {
         label: 'Nhập excel',
         icon: 'fa-solid fa-file-arrow-up fa-lg text-success',
-        visible: this.permissionService.hasPermission('N64'),
+        visible: this.isPermission,
         command: () => {
           this.onImportExcel();
         },

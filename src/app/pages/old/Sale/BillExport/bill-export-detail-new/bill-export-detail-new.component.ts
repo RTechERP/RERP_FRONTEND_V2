@@ -41,7 +41,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { Subject, firstValueFrom } from 'rxjs';
+import { Subject, firstValueFrom, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
@@ -58,6 +58,7 @@ import { BillImportChoseSerialComponent } from '../../../bill-import-technical/b
 import { AppUserService } from '../../../../../services/app-user.service';
 import { BillImportDetailNewComponent } from '../../BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
 import { BillExportDetailFileComponent } from '../bill-export-detail-file/bill-export-detail-file.component';
+import { HolidayServiceService } from '../../../../hrm/holiday/holiday-service/holiday-service.service';
 
 
 interface ProductSale {
@@ -224,8 +225,8 @@ export class BillExportDetailNewComponent
         IsTransfer: false,
         IsTransferInternal: false,
         KhoTypeTransferID: null,
-        DeliveryTime: new Date(new Date().getTime() + (4 * 60 + 30) * 60 * 1000),
-        IsAfterHours: (new Date().getHours() < 8 || new Date().getHours() > 16 || (new Date().getHours() === 16 && new Date().getMinutes() > 0)),
+        DeliveryTime: new Date(),
+        IsAfterHours: false,
     };
 
     @Input() dataTableBillExportDetail: any[] = [];
@@ -262,6 +263,9 @@ export class BillExportDetailNewComponent
     showErrorPopup: boolean = false;
     errorMessage: string = '';
 
+    private isDeliveryTimeManuallyChanged: boolean = false;
+    private holidaySet = new Set<string>();
+
     //#endregion
 
     constructor(
@@ -275,7 +279,8 @@ export class BillExportDetailNewComponent
         private productSaleService: ProductsaleServiceService,
         private permissionService: PermissionService,
         private clipboardService: ClipboardService,
-        private appUserService: AppUserService
+        private appUserService: AppUserService,
+        private holidayService: HolidayServiceService
     ) {
         this.validateForm = this.fb.group({
             Code: [''],
@@ -296,7 +301,7 @@ export class BillExportDetailNewComponent
             WareHouseTranferID: [null],
             KhoTypeTransferID: [null],
             DeliveryTime: [this.getDefaultDeliveryTime(), [Validators.required]],
-            IsAfterHours: [new Date().getHours() < 8 || new Date().getHours() > 16 || (new Date().getHours() === 16 && new Date().getMinutes() > 0)],
+            IsAfterHours: [new Date().getDay() === 0 || new Date().getHours() < 8 || new Date().getHours() > 17 || (new Date().getHours() === 17 && new Date().getMinutes() > 30)],
             ReceiverID: [null]
         });
 
@@ -325,6 +330,7 @@ export class BillExportDetailNewComponent
         this.getDataCbbSupplierSale();
         this.getDataCbbWareHouseTransfer();
         this.loadOptionProject();
+        this.loadHolidays();
 
         this.setupFormSubscriptions();
         this.initializeFormData();
@@ -418,36 +424,131 @@ export class BillExportDetailNewComponent
                         this.validateForm.get('DeliveryTime')?.setValue(dateVal, { emitEvent: false });
                     }
                 }
+                if (this.validateForm.get('DeliveryTime')?.dirty) {
+                    this.isDeliveryTimeManuallyChanged = true;
+                }
                 this.checkIsAfterHours(dateVal);
             });
     }
 
-    /** Lấy thời gian nhận hàng mặc định (giờ hiện tại + 4 giờ 30 phút) */
-    getDefaultDeliveryTime(): Date {
-        const d = new Date();
-        d.setMinutes(d.getMinutes() + 4 * 60 + 30);
-        d.setSeconds(0, 0);
-        return d;
+    /** Tải danh sách ngày nghỉ lễ */
+    private loadHolidays(): void {
+        const year = new Date().getFullYear();
+        const calls = [
+            ...Array.from({ length: 12 }, (_, i) => this.holidayService.getHolidays(i + 1, year)),
+            ...Array.from({ length: 12 }, (_, i) => this.holidayService.getHolidays(i + 1, year + 1))
+        ];
+        forkJoin(calls).pipe(takeUntil(this.destroy$)).subscribe({
+            next: (results: any[]) => {
+                this.holidaySet = new Set<string>();
+                results.forEach((response) => {
+                    const list = response?.data?.holidays ?? [];
+                    list.forEach((h: any) => {
+                        if (h.HolidayDate) {
+                            const d = new Date(h.HolidayDate);
+                            if (!isNaN(d.getTime())) {
+                                const pad = (n: number) => String(n).padStart(2, '0');
+                                this.holidaySet.add(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
+                            }
+                        } else if (h.HolidayYear && h.HolidayMonth && h.HolidayDay) {
+                            const pad = (n: number) => String(n).padStart(2, '0');
+                            this.holidaySet.add(`${h.HolidayYear}-${pad(h.HolidayMonth)}-${pad(h.HolidayDay)}`);
+                        }
+                    });
+                });
+            },
+            error: () => {}
+        });
+    }
+
+    /** Kiểm tra ngày không làm việc (Chủ Nhật hoặc Ngày nghỉ lễ) */
+    isNonWorkingDay(date: Date): boolean {
+        if (date.getDay() === 0) return true; // Chủ Nhật
+        const pad = (n: number) => String(n).padStart(2, '0');
+        const key = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+        return this.holidaySet.has(key);
+    }
+
+    /**
+     * Cộng thêm số phút làm việc (trong khung 8h00 - 17h30, bỏ qua Chủ Nhật và Ngày lễ)
+     */
+    addWorkingMinutes(startDate: Date, minutesToAdd: number): Date {
+        const result = new Date(startDate.getTime());
+        result.setSeconds(0, 0);
+
+        let remainingMinutes = minutesToAdd;
+
+        while (remainingMinutes > 0) {
+            // Nếu rơi vào ngày nghỉ (Chủ Nhật hoặc ngày lễ), chuyển sang 8h00 sáng ngày tiếp theo
+            if (this.isNonWorkingDay(result)) {
+                result.setDate(result.getDate() + 1);
+                result.setHours(8, 0, 0, 0);
+                continue;
+            }
+
+            const currentHour = result.getHours();
+            const currentMin = result.getMinutes();
+            const currentTotalMin = currentHour * 60 + currentMin;
+
+            const workStartTotalMin = 8 * 60; // 08:00 -> 480
+            const workEndTotalMin = 17 * 60 + 30; // 17:30 -> 1050
+
+            // Nếu trước 8h00 sáng -> chuyển về 8h00
+            if (currentTotalMin < workStartTotalMin) {
+                result.setHours(8, 0, 0, 0);
+                continue;
+            }
+
+            // Nếu sau 17h30 chiều -> chuyển sang 8h00 sáng ngày hôm sau
+            if (currentTotalMin >= workEndTotalMin) {
+                result.setDate(result.getDate() + 1);
+                result.setHours(8, 0, 0, 0);
+                continue;
+            }
+
+            // Số phút làm việc còn lại trong ngày hôm nay
+            const availableMinutesToday = workEndTotalMin - (result.getHours() * 60 + result.getMinutes());
+
+            if (remainingMinutes <= availableMinutesToday) {
+                result.setMinutes(result.getMinutes() + remainingMinutes);
+                remainingMinutes = 0;
+            } else {
+                remainingMinutes -= availableMinutesToday;
+                result.setDate(result.getDate() + 1);
+                result.setHours(8, 0, 0, 0);
+            }
+        }
+
+        return result;
+    }
+
+    /** Lấy thời gian nhận hàng mặc định (giờ tạo phiếu/hiện tại + 4 giờ làm việc trong khung 8h00 - 17h30) */
+    getDefaultDeliveryTime(baseDate?: Date): Date {
+        return this.addWorkingMinutes(baseDate || new Date(), 4 * 60);
     }
 
     /** Kiểm tra tính phát sinh:
-     * 1. Giờ hiện tại (tạo/thực hiện) nằm ngoài 8h-16h.
-     * 2. Thời gian nhận hàng (DeliveryTime) nhỏ hơn 4h so với giờ hiện tại.
+     * 1. Giờ hiện tại (tạo/thực hiện) nằm ngoài khung 8h00 - 17h30 hoặc rơi vào ngày nghỉ (Chủ Nhật, ngày lễ).
+     * 2. Thời gian nhận hàng (DeliveryTime) nhỏ hơn 4 giờ làm việc so với giờ hiện tại.
      */
     checkIsAfterHours(deliveryTime?: Date | null): void {
         const dTime = deliveryTime !== undefined ? deliveryTime : this.validateForm.get('DeliveryTime')?.value;
         let isAfterHours = false;
         const now = new Date();
 
-        // 1. Kiểm tra giờ hiện tại có ngoài khung 8h - 16h hay không
+        // 1. Kiểm tra giờ hiện tại có ngoài khung 8h00 - 17h30 hoặc rơi vào ngày nghỉ không
         const currentHour = now.getHours();
         const currentMin = now.getMinutes();
-        const isCurrentOutsideBusinessHours = currentHour < 8 || currentHour > 16 || (currentHour === 16 && currentMin > 0);
+        const isCurrentOutsideBusinessHours =
+            this.isNonWorkingDay(now) ||
+            currentHour < 8 ||
+            currentHour > 17 ||
+            (currentHour === 17 && currentMin > 30);
 
         if (isCurrentOutsideBusinessHours) {
             isAfterHours = true;
         } else if (dTime) {
-            // 2. Kiểm tra thời gian nhận hàng có nhỏ hơn 4h so với giờ hiện tại hay không
+            // 2. Kiểm tra thời gian nhận hàng có nhỏ hơn 4h làm việc so với giờ hiện tại hay không
             let dateVal: Date | null = null;
             if (dTime instanceof Date) {
                 dateVal = dTime;
@@ -456,9 +557,8 @@ export class BillExportDetailNewComponent
             }
 
             if (dateVal && !isNaN(dateVal.getTime())) {
-                const diffMs = dateVal.getTime() - now.getTime();
-                const isLessThan4Hours = diffMs < 4 * 60 * 60 * 1000;
-                if (isLessThan4Hours) {
+                const minStandardDeliveryTime = this.addWorkingMinutes(now, 4 * 60);
+                if (dateVal.getTime() < minStandardDeliveryTime.getTime()) {
                     isAfterHours = true;
                 }
             }
@@ -531,6 +631,7 @@ export class BillExportDetailNewComponent
         if (val) {
             const parsed = this.parseDateTimeString(val);
             if (parsed) {
+                this.isDeliveryTimeManuallyChanged = true;
                 this.validateForm.get('DeliveryTime')?.setValue(parsed);
                 this.validateForm.get('DeliveryTime')?.markAsDirty();
                 this.checkIsAfterHours(parsed);
@@ -540,6 +641,7 @@ export class BillExportDetailNewComponent
 
     /** Khởi tạo dữ liệu form ban đầu (thêm mới hoặc chỉnh sửa) */
     private initializeFormData(): void {
+        this.isDeliveryTimeManuallyChanged = false;
         if (this.isCheckmode) {
             this.getBillExportByID();
         } else if (
@@ -3383,8 +3485,27 @@ export class BillExportDetailNewComponent
 
     /** Lưu phiếu xuất: kiểm tra serial, quyền, form, tồn kho, trùng mã phiếu rồi gửi API */
     async saveDataBillExport(): Promise<void> {
-        // Cập nhật lại IsAfterHours theo thời điểm thực tế bấm lưu
-        this.checkIsAfterHours();
+        // Nếu người dùng KHÔNG chủ động sửa giờ nhận hàng và đang là tạo mới,
+        // tự động cập nhật lại giờ nhận = giờ_lưu + 4h làm việc để kho đủ thời gian chuẩn bị và không bị tính phát sinh
+        const isDeliveryTimeDirty = this.validateForm.get('DeliveryTime')?.dirty || this.isDeliveryTimeManuallyChanged;
+        const now = new Date();
+        const isOutsideWorkHours =
+            this.isNonWorkingDay(now) ||
+            now.getHours() < 8 ||
+            now.getHours() > 17 ||
+            (now.getHours() === 17 && now.getMinutes() > 30);
+
+        if (!this.isCheckmode && !isDeliveryTimeDirty) {
+            const updatedDeliveryTime = this.getDefaultDeliveryTime(now);
+            this.validateForm.patchValue({
+                DeliveryTime: updatedDeliveryTime,
+                IsAfterHours: isOutsideWorkHours
+            }, { emitEvent: false });
+            this.newBillExport.DeliveryTime = updatedDeliveryTime;
+            this.newBillExport.IsAfterHours = isOutsideWorkHours;
+        } else {
+            this.checkIsAfterHours();
+        }
 
         // --- 1. KIỂM TRA SERIAL ---
         const isSerialValid = await this.checkSerial();

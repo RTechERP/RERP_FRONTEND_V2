@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -15,6 +14,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { TableModule } from 'primeng/table';
 import { ChartModule } from 'primeng/chart';
+import { TabsModule } from 'primeng/tabs';
 import { finalize } from 'rxjs';
 import * as ExcelJS from 'exceljs';
 import { SummaryKpiErrorEmployeeService } from '../summary-kpi-error-employee/summary-kpi-error-employee-service/summary-kpi-error-employee.service';
@@ -43,7 +43,7 @@ interface KpiTableColumn {
     imports: [
         CommonModule,
         FormsModule,
-        NzTabsModule,
+        TabsModule,
         NzSelectModule,
         NzButtonModule,
         NzIconModule,
@@ -517,9 +517,10 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
         this.saveFile(buffer, `ThongKeLoi_${this.month}_${this.year}.xlsx`);
     }
 
-    onTabSelect(event: any): void {
-        if (event.index === 1) this.searchTab2();
-        if (event.index === 2) this.searchTab3();
+    onTabChange(event: any): void {
+        const index = typeof event === 'object' && event !== null && 'index' in event ? event.index : Number(event);
+        if (index === 1) this.searchTab2();
+        if (index === 2) this.searchTab3();
     }
 
     onSubTabSelect(_event: any): void { }

@@ -173,24 +173,47 @@ export class ExpectedPayableDetailComponent implements OnInit {
 
     this.form.get('PONCCID')!.valueChanges.subscribe((v) => {
       if (v) {
-        const po = this.poNCCsAll.find((x: any) => x.ID == v);
-        if (po) {
-          if (po.SupplierSaleID) {
-            const supplierCtrl = this.form.get('SupplierID');
-            if (supplierCtrl) {
-              supplierCtrl.setValue(po.SupplierSaleID);
-              supplierCtrl.markAsUntouched();
-              supplierCtrl.markAsPristine();
-              supplierCtrl.updateValueAndValidity();
+        this.expectedPayableService.getPONCCInfor(v).subscribe({
+          next: (res: any) => {
+            const info = Array.isArray(res?.data) ? res.data[0] : (res?.data || (Array.isArray(res) ? res[0] : res));
+            if (info) {
+              if (info.SupplierID) {
+                const supplierCtrl = this.form.get('SupplierID');
+                if (supplierCtrl) {
+                  supplierCtrl.setValue(info.SupplierID, { emitEvent: false });
+                  this.filterPOs(info.SupplierID);
+                  supplierCtrl.markAsUntouched();
+                  supplierCtrl.markAsPristine();
+                  supplierCtrl.updateValueAndValidity();
+                }
+              }
+              if (info.SomeBill !== undefined && info.SomeBill !== null) {
+                this.form.get('InvoiceCode')?.setValue(info.SomeBill);
+              }
+              if (info.DateSomeBill) {
+                this.form.get('InvoiceDate')?.setValue(new Date(info.DateSomeBill));
+              }
+              if (info.DueDate) {
+                this.form.get('DueDate')?.setValue(new Date(info.DueDate));
+              }
+              if (info.CurrencyID) {
+                this.form.get('CurrencyID')?.setValue(info.CurrencyID);
+              }
+              if (info.AmountVnd !== undefined && info.AmountVnd !== null) {
+                this.form.get('Amount')?.setValue(info.AmountVnd);
+              } else if (info.Amount !== undefined && info.Amount !== null) {
+                this.form.get('Amount')?.setValue(info.Amount);
+              }
+              this.calcAmountVND();
             }
+          },
+          error: (error: any) => {
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              'Lỗi khi tải thông tin PONCC: ' + (error.message || error)
+            );
           }
-          if (po.CurrencyID) {
-            this.form.get('CurrencyID')?.setValue(po.CurrencyID);
-          }
-          if (po.TotalMoneyPO !== undefined && po.TotalMoneyPO !== null) {
-            this.form.get('Amount')?.setValue(po.TotalMoneyPO);
-          }
-        }
+        });
       }
     });
   }

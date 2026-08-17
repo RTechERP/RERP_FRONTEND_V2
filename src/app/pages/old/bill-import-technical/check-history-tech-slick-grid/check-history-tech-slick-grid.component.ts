@@ -448,7 +448,8 @@ export class CheckHistoryTechSlickGridComponent implements OnInit, OnDestroy {
     // Handle cell click for copy
     this.angularGrid.slickGrid.onClick.subscribe((_e, args) => {
       const item = this.angularGrid.dataView.getItem(args.row);
-      const column = this.columnDefinitions[args.cell];
+      // Phải lấy từ grid: mảng cột của grid có thêm _checkbox_selector nên lệch index với columnDefinitions
+      const column = this.angularGrid.slickGrid.getColumns()[args.cell];
       if (item && column) {
         const value = item[column.field as string];
         if (value !== null && value !== undefined) {

@@ -2789,7 +2789,8 @@ export class KPIAGVEvaluationFactorScoringDetailsComponent implements OnInit, Af
     }
 
     // 8. Highlight ô đã thay đổi
-    const column = grid.getVisibleColumns()[args.cell];
+    // args.cell là index trên mảng cột đầy đủ (kể cả cột hidden) nên phải dùng getColumns()
+    const column = args.column ?? grid.getColumns()[args.cell];
     if (column) {
       this.renderUnsavedCellStyling(changedItem, column, { row: args.row } as EditCommand);
     }

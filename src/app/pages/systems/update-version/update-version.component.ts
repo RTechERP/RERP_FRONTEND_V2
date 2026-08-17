@@ -499,8 +499,8 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
     const dataView = this.angularGrid.dataView;
     let clickTimeout: any = null;
     slickGrid.onClick.subscribe((e: any, args: any) => {
-      const column = slickGrid.getVisibleColumns()[args.cell];
-      if (column.id === '_checkbox_selector') return;
+      const column = slickGrid.getColumns()[args.cell];
+      if (!column || column.id === '_checkbox_selector') return;
       if (clickTimeout) {
         clearTimeout(clickTimeout);
         clickTimeout = null;

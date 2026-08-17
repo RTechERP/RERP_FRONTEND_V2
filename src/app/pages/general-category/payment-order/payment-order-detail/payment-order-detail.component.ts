@@ -307,7 +307,8 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     }
     getColumnIndex(fieldName: string): number {
         let gridInstance = this.paymentOrder.TypeOrder == 2 ? this.angularGrid2 : this.angularGrid;
-        return gridInstance?.slickGrid?.getVisibleColumns().findIndex(x => x.id == fieldName) ?? -1;
+        // Dùng getColumns() để cùng hệ index với args.cell của event grid (mảng cột đầy đủ, kể cả cột hidden)
+        return gridInstance?.slickGrid?.getColumns().findIndex(x => x.id == fieldName) ?? -1;
     }
     ngAfterViewInit(): void {
         // this.angularGrid?.slickGrid.onRendered.subscribe(() => {
@@ -1127,7 +1128,9 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         let gridInstance = this.angularGrid;
         if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
 
-        const columnId = gridInstance.slickGrid?.getVisibleColumns()[cell].id;
+        // cell là index trên mảng cột đầy đủ (args.cell của grid event), không phải mảng cột đang hiện
+        const columnId = gridInstance.slickGrid?.getColumns()[cell]?.id;
+        if (!columnId) return;
 
         // console.log('columnId:', columnId);
 
@@ -1247,7 +1250,9 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         let gridInstance = this.angularGrid;
         if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
 
-        const columnId = gridInstance.slickGrid?.getVisibleColumns()[cell].id;
+        // cell là index trên mảng cột đầy đủ (args.cell của grid event), không phải mảng cột đang hiện
+        const columnId = gridInstance.slickGrid?.getColumns()[cell]?.id;
+        if (!columnId) return;
 
         // console.log('columnId:', columnId);
 
@@ -1370,7 +1375,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
         if (!grid || !dataView) return;
 
-        const columnId = gridInstance.slickGrid?.getVisibleColumns()[cell].id;
+        const columnId = gridInstance.slickGrid?.getColumns()[cell]?.id;
 
         if (columnId != PaymentOrderDetailField.Quantity.field &&
             columnId != PaymentOrderDetailField.UnitPrice.field
@@ -1387,7 +1392,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         gridInstance.gridService.updateItem(item);
 
         this.updateTotalPaymentAmount(cell, row);
-        this.updateTotal(gridInstance.slickGrid?.getVisibleColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field));
+        this.updateTotal(gridInstance.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field));
     }
 
     updateTotalPaymentAmount(cell: number, row: number) {
@@ -1400,7 +1405,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
         if (!grid || !dataView) return;
 
-        const columnId = gridInstance.slickGrid?.getVisibleColumns()[cell].id;
+        const columnId = gridInstance.slickGrid?.getColumns()[cell]?.id;
 
         // if (columnId != PaymentOrderDetailField.PaymentPercentage.field) return;
 
@@ -1415,7 +1420,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         item[PaymentOrderDetailField.TotalPaymentAmount.field] = totalPaymentAmount;
         gridInstance.gridService.updateItem(item);
 
-        this.updateTotal(gridInstance.slickGrid?.getVisibleColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalPaymentAmount.field));
+        this.updateTotal(gridInstance.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalPaymentAmount.field));
     }
 
 }

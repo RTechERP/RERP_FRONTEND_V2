@@ -3609,7 +3609,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       const angularGrid = this.angularGrids.get(typeId);
       if (!angularGrid) return;
 
-      const column = angularGrid.slickGrid.getVisibleColumns()[args.cell];
+      const column = angularGrid.slickGrid.getColumns()[args.cell];
       if (column?.field === 'ProductCode') {
         const item = angularGrid.dataView.getItem(args.row);
         if (item?.ProductCode) {

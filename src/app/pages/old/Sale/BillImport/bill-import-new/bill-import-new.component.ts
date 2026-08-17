@@ -1244,7 +1244,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
             const cell = args.cell;
 
             // Lấy column definition của cell được click
-            const column = this.angularGridMaster.slickGrid.getVisibleColumns()[cell];
+            const column = this.angularGridMaster.slickGrid.getColumns()[cell];
 
             // Nếu click vào checkbox column thì không làm gì (để checkbox handle)
             if (column?.id === '_checkbox_selector') {

@@ -1922,7 +1922,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       this.angularGridRule.slickGrid.onClick.subscribe((e: any, args: any) => {
         const grid = args.grid;
         const rowData = grid.getDataItem(args.row);
-        const column = grid.getVisibleColumns()[args.cell];
+        const column = grid.getColumns()[args.cell];
 
         if (rowData && column && ['FirstMonth', 'SecondMonth', 'ThirdMonth'].includes(column.id)) {
           const evaluationCode = rowData.EvaluationCode;

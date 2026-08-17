@@ -479,7 +479,8 @@ export class BillImportQcDetailComponent
 
     // Subscribe vào event onBeforeEditCell để kiểm tra quyền
     angularGrid.slickGrid.onBeforeEditCell.subscribe((_e: any, args: any) => {
-      const columnDef = angularGrid.slickGrid.getVisibleColumns()[args.cell];
+      const columnDef = args.column ?? angularGrid.slickGrid.getColumns()[args.cell];
+      if (!columnDef) return true;
       const item = args.item;
       const fieldName = columnDef.field;
 
@@ -554,7 +555,8 @@ export class BillImportQcDetailComponent
 
     // Subscribe vào event onCellChange
     angularGrid.slickGrid.onCellChange.subscribe((_e: any, args: any) => {
-      const columnDef = angularGrid.slickGrid.getVisibleColumns()[args.cell];
+      const columnDef = args.column ?? angularGrid.slickGrid.getColumns()[args.cell];
+      if (!columnDef) return;
 
       if (columnDef.field === 'ProductSaleID') {
         const selectedProduct = this.productSaleGrid.find(
@@ -601,7 +603,8 @@ export class BillImportQcDetailComponent
     });
 
     angularGrid.slickGrid.onDblClick.subscribe((_e: any, args: any) => {
-      const columnDef = angularGrid.slickGrid.getVisibleColumns()[args.cell];
+      const columnDef = angularGrid.slickGrid.getColumns()[args.cell];
+      if (!columnDef) return;
       const item = args.grid.getDataItem(args.row);
       if (item?.ID !== undefined && item?.ID !== null) {
         this.currentRowId = item.ID;
@@ -768,7 +771,8 @@ export class BillImportQcDetailComponent
     )
       return;
 
-    const column = args.grid.getVisibleColumns()[args.cell];
+    const column = args.grid.getColumns()[args.cell];
+    if (!column) return;
 
     if (column.id === 'action') {
       const clickedElement = e.target as HTMLElement;

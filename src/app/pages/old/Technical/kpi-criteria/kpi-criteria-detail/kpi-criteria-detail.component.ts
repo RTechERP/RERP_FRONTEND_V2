@@ -194,7 +194,8 @@ export class KpiCriteriaDetailComponent implements OnInit {
   }
 
   onDetailCellClick(e: any, args: any): void {
-    const column = args.grid.getVisibleColumns()[args.cell];
+    const column = args.grid.getColumns()[args.cell];
+    if (!column) return;
     const item = args.grid.getDataItem(args.row);
 
     // Check if clicking on action column cell (delete row)

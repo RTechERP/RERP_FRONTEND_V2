@@ -44,5 +44,9 @@ export class ExpectedPayableService {
   getLogActivityExpectedPayable(expectedPayableId: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/log-activity?expectedPayableId=${expectedPayableId}`);
   }
+
+  getPONCCInfor(ponccID: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/poncc-infor?ponccID=${ponccID}`);
+  }
 }
 

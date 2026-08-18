@@ -462,9 +462,18 @@ export class CheckHistoryTechComponent implements OnInit, AfterViewInit {
         }
     }
 
+    private readonly hostEl = inject<ElementRef<HTMLElement>>(ElementRef);
+
+    // Các tab đang mở đều còn nằm trong DOM (chỉ bị [hidden]) nên listener document:keydown
+    // của mọi tab đều chạy khi bấm Ctrl+C -> chỉ xử lý khi tab này đang hiển thị.
+    private get isTabActive(): boolean {
+      const host = this.hostEl.nativeElement as HTMLElement;
+      return host.isConnected && host.offsetParent !== null;
+    }
+
     @HostListener('document:keydown.control.c')
     copyCell() {
-        if (this.currentCellValue) {
+        if (this.currentCellValue && this.isTabActive) {
             navigator.clipboard.writeText(this.currentCellValue).then(() => {
             });
         }

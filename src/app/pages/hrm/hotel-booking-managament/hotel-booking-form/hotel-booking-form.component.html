@@ -201,8 +201,8 @@
               </button>
             </ng-template>
 
-            <div nz-row [nzGutter]="[16, 8]">
-              <!-- Dòng 1: Tên khách sạn, Loại phòng, Số lượng, Đơn giá, Thành tiền -->
+            <div nz-row [nzGutter]="[12, 8]">
+              <!-- Dòng 1: Tên khách sạn, Loại phòng, Khoảng cách, Diện tích, Số lượng -->
               <div nz-col [nzXs]="24" [nzSm]="6">
                 <nz-form-item class="mb-0">
                   <nz-form-label [nzSpan]="24" class="fw-semibold">Tên khách sạn</nz-form-label>
@@ -235,7 +235,28 @@
                 </nz-form-item>
               </div>
 
-              <div nz-col [nzXs]="24" [nzSm]="3">
+              <div nz-col [nzXs]="24" [nzSm]="4">
+                <nz-form-item class="mb-0">
+                  <nz-form-label [nzSpan]="24" class="fw-semibold">Khoảng cách</nz-form-label>
+                  <nz-form-control>
+                    <input nz-input formControlName="Distance" placeholder="Khoảng cách (500m, 1.5km...)" nzSize="small"
+                      class="fs-12" autocomplete="off" />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+
+              <div nz-col [nzXs]="24" [nzSm]="4">
+                <nz-form-item class="mb-0">
+                  <nz-form-label [nzSpan]="24" class="fw-semibold">Diện tích (m²)</nz-form-label>
+                  <nz-form-control>
+                    <nz-input-number formControlName="Area" [nzMin]="0" [nzStep]="5" class="w-100 fs-12"
+                      nzSize="small" nzPlaceHolder="Diện tích...">
+                    </nz-input-number>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+
+              <div nz-col [nzXs]="24" [nzSm]="4">
                 <nz-form-item class="mb-0">
                   <nz-form-label [nzSpan]="24" class="fw-semibold">Số lượng <span
                       class="text-danger ms-1">(*)</span></nz-form-label>
@@ -247,7 +268,8 @@
                 </nz-form-item>
               </div>
 
-              <div nz-col [nzXs]="24" [nzSm]="4">
+              <!-- Dòng 2: Đơn giá, Thành tiền, Tiện ích, Ghi chú -->
+              <div nz-col [nzXs]="24" [nzSm]="5">
                 <nz-form-item class="mb-0">
                   <nz-form-label [nzSpan]="24" class="fw-semibold">Đơn giá / Đêm <span
                       class="text-danger ms-1">(*)</span></nz-form-label>
@@ -271,8 +293,28 @@
                 </nz-form-item>
               </div>
 
-              <!-- Dòng 2: HCNS đề xuất, Lý do đề xuất, Ghi chú -->
-              <div nz-col [nzXs]="24" [nzSm]="18">
+              <div nz-col [nzXs]="24" [nzSm]="8">
+                <nz-form-item class="mb-0">
+                  <nz-form-label [nzSpan]="24" class="fw-semibold">Tiện ích</nz-form-label>
+                  <nz-form-control>
+                    <input nz-input formControlName="Convenience" placeholder="Bao gồm bữa sáng, wifi..." nzSize="small"
+                      class="fs-12" autocomplete="off" />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+
+              <div nz-col [nzXs]="24" [nzSm]="6">
+                <nz-form-item class="mb-0">
+                  <nz-form-label [nzSpan]="24" class="fw-semibold">Ghi chú phòng</nz-form-label>
+                  <nz-form-control>
+                    <input nz-input formControlName="Note" placeholder="Ghi chú thêm..." nzSize="small"
+                      class="fs-12" autocomplete="off" />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+
+              <!-- Dòng 3: HCNS đề xuất & Lý do -->
+              <div nz-col [nzXs]="24" [nzSm]="24">
                 <div class="d-flex gap-2 align-items-end h-100">
                   <nz-form-item class="mb-0">
                     <nz-form-label [nzSpan]="24" class="fw-semibold">HCNS đề xuất</nz-form-label>
@@ -289,16 +331,6 @@
                     </nz-form-control>
                   </nz-form-item>
                 </div>
-              </div>
-
-              <div nz-col [nzXs]="24" [nzSm]="6">
-                <nz-form-item class="mb-0">
-                  <nz-form-label [nzSpan]="24" class="fw-semibold">Ghi chú phòng</nz-form-label>
-                  <nz-form-control>
-                    <input nz-input formControlName="Note" placeholder="Ghi chú thêm cho phòng này..." nzSize="small"
-                      class="fs-12" autocomplete="off" />
-                  </nz-form-control>
-                </nz-form-item>
               </div>
 
             </div>

@@ -43,4 +43,8 @@ export class HotelBookingManagementService {
   exportExcel(params: HotelBookingRequestParam): Observable<any> {
     return this.http.post(`${this.apiUrl}/ExportExcel`, params, { responseType: 'blob' });
   }
+
+  exportExcelDetail(id: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/ExportExcelDetail?id=${id}`, {}, { responseType: 'blob' });
+  }
 }

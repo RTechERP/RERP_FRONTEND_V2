@@ -272,7 +272,10 @@
                         <th style="width: 100px; text-align: center;">Thao tác</th>
                         <th style="width: 50px; text-align: center;">STT</th>
                         <th style="width: 150px; text-align: center;">Tên khách sạn</th>
+                        <th style="width: 130px; text-align: center;">Khoảng cách</th>
                         <th style="width: 150px; text-align: center;">Loại phòng</th>
+                        <th style="width: 110px; text-align: center;">Diện tích (m²)</th>
+                        <th style="width: 150px; text-align: center;">Tiện ích</th>
                         <th style="width: 80px; text-align: center;">Số lượng</th>
                         <th style="width: 120px; text-align: center;">Đơn giá</th>
                         <th style="width: 120px; text-align: center;">Thành tiền</th>
@@ -304,7 +307,10 @@
                         </td>
                         <td style="text-align: center;">{{ idx + 1 }}</td>
                         <td>{{ prop.HotelName }}</td>
+                        <td style="text-align: center;">{{ prop.Distance }}</td>
                         <td>{{ prop.TypeRoom }}</td>
+                        <td style="text-align: center;">{{ prop.Area }}</td>
+                        <td>{{ prop.Convenience }}</td>
                         <td style="text-align: center;">{{ prop.Quantity }}</td>
                         <td style="text-align: right;">{{ prop.UnitPrice | number: '1.0-0' }}</td>
                         <td style="text-align: right; font-weight: 600;">{{ prop.TotalAmount | number: '1.0-0' }}</td>

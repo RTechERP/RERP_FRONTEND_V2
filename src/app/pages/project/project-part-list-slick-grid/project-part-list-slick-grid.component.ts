@@ -2431,65 +2431,123 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         };
     }
 
+    // Cờ chống đệ quy: setSelectedRows() gọi bên trong onSelectedRowsChanged sẽ bắn lại chính event này
+    private isSyncingPartListSelection = false;
+
+    // Hàng đợi áp selection: phải chạy SAU chuỗi xử lý click của slickgrid v10
+    private pendingPartListSelectionTimer: any = null;
+
+    // Node cha = node có con. Ưu tiên IsLeaf (do convertToTreeData tự tính), fallback sang __hasChildren
+    // của TreeDataService vì từ slickgrid-universal v10 dataView chứa bản sao nông của item (flattenToParentChildArray)
+    private isPartListParentRow(item: any): boolean {
+        if (!item) return false;
+        if (item.IsLeaf === false) return true;
+        if (item.IsLeaf === true) return false;
+        return item.__hasChildren === true;
+    }
+
+    // parentId do component tự gán, __parentId là prop mặc định của TreeDataService
+    private getPartListParentId(item: any): any {
+        return item?.parentId ?? item?.__parentId ?? null;
+    }
+
     // Handler cho checkbox selection - TỰ ĐỘNG CHỌN CON KHI CHỌN CHA (giống component cũ)
     // Logic: Khi chọn cha → tự động chọn tất cả con, khi bỏ chọn cha → bỏ chọn tất cả con
     onPartListRowSelectionChanged(e: any, args: any): void {
 
-        if (!this.angularGridPartList) {
+        if (!this.angularGridPartList || this.isSyncingPartListSelection) {
             return;
         }
 
         const dataView = this.angularGridPartList.dataView;
         const slickGrid = this.angularGridPartList.slickGrid;
+        if (!dataView || !slickGrid) {
+            return;
+        }
 
-        // Lấy danh sách các row được chọn và trước đó
-        const currentSelectedRows = new Set<number>(args.rows || []);
-        const previousSelectedRows = new Set<number>(args.previousSelectedRows || []);
+        const currentSelectedRows: number[] = args?.rows || [];
 
-        // Xác định các row thay đổi (được chọn/bỏ chọn)
-        const changedRows = new Set<number>();
+        // slickgrid-universal v10 đưa sẵn changedSelectedRows/changedUnselectedRows;
+        // bản cũ thì phải tự tính từ previousSelectedRows
+        let addedRows: number[] = args?.changedSelectedRows;
+        let removedRows: number[] = args?.changedUnselectedRows;
+        if (!Array.isArray(addedRows) || !Array.isArray(removedRows)) {
+            const previousSet = new Set<number>(args?.previousSelectedRows || []);
+            const currentSet = new Set<number>(currentSelectedRows);
+            addedRows = currentSelectedRows.filter(rowNum => !previousSet.has(rowNum));
+            removedRows = Array.from(previousSet).filter(rowNum => !currentSet.has(rowNum));
+        }
 
-        // Tìm các row được thêm vào selection
-        currentSelectedRows.forEach(rowNum => {
-            if (!previousSelectedRows.has(rowNum)) {
-                changedRows.add(rowNum);
-            }
-        });
+        const finalSelection = new Set<number>(currentSelectedRows);
+        const childrenMap = this.buildPartListChildrenMap(dataView);
 
-        // Tìm các row bị bỏ khỏi selection
-        previousSelectedRows.forEach(rowNum => {
-            if (!currentSelectedRows.has(rowNum)) {
-                changedRows.add(rowNum);
-            }
-        });
-
-
-        // Xử lý từng row thay đổi
-        const finalSelection = new Set(currentSelectedRows);
-
-        changedRows.forEach((rowNum: number) => {
+        addedRows.forEach((rowNum: number) => {
             const item = dataView.getItem(rowNum);
-            if (!item) return;
-
-            const isSelecting = currentSelectedRows.has(rowNum);
-            const isParent = item.IsLeaf === false; // Node cha = IsLeaf = false
-
-            if (isParent) {
-                // Nếu là node cha, xử lý tất cả các con
-                this.processChildrenSelection(item, dataView, slickGrid, isSelecting, finalSelection);
+            if (this.isPartListParentRow(item)) {
+                this.processChildrenSelection(item, childrenMap, dataView, true, finalSelection);
             }
         });
 
-        // Set selection mới
-        const newSelectedRows = Array.from(finalSelection);
+        removedRows.forEach((rowNum: number) => {
+            const item = dataView.getItem(rowNum);
+            if (this.isPartListParentRow(item)) {
+                this.processChildrenSelection(item, childrenMap, dataView, false, finalSelection);
+            }
+        });
+
+        const newSelectedRows = Array.from(finalSelection).sort((a, b) => a - b);
 
         const allSelectedData = newSelectedRows.map(rowNum => dataView.getItem(rowNum)).filter(item => item !== null && item !== undefined);
-        this.selectedPartListCount = allSelectedData.filter(item => item.IsLeaf === true).length;
+        this.selectedPartListCount = allSelectedData.filter(item => !this.isPartListParentRow(item)).length;
 
         this.updateCheckboxHeaderSelectedCount();
 
-        // Cập nhật selection (sẽ trigger event nhưng chúng ta sẽ xử lý lại)
-        slickGrid.setSelectedRows(newSelectedRows);
+        // Không có gì phải bổ sung -> khỏi ghi lại selection (tránh vòng lặp event thừa).
+        // Lưu ý: KHÔNG huỷ timer đang chờ ở nhánh này, vì chính event ghi đè của v10 rơi vào đây.
+        const currentSorted = [...currentSelectedRows].sort((a, b) => a - b);
+        if (currentSorted.length === newSelectedRows.length && currentSorted.every((rowNum, i) => rowNum === newSelectedRows[i])) {
+            return;
+        }
+
+        // Từ slickgrid-universal v10, trong cùng chuỗi xử lý click còn một bước ghi đè selection
+        // về đúng dòng vừa bấm. Nếu set đồng bộ ngay đây thì kết quả bị nuốt mất (đã xác nhận qua log:
+        // set [11,12,13] thành công rồi ngay sau đó có event caller=click.toggle kéo về [11]).
+        // Vì vậy hoãn việc áp selection sang macrotask kế tiếp để mình là người ghi sau cùng.
+        if (this.pendingPartListSelectionTimer) {
+            clearTimeout(this.pendingPartListSelectionTimer);
+        }
+        this.pendingPartListSelectionTimer = setTimeout(() => {
+            this.pendingPartListSelectionTimer = null;
+
+            this.isSyncingPartListSelection = true;
+            try {
+                slickGrid.setSelectedRows(newSelectedRows, 'partlist.parent-child-sync');
+            } finally {
+                this.isSyncingPartListSelection = false;
+            }
+
+            // selection thực tế vừa đổi -> tính lại số lượng cho badge
+            const appliedData = (slickGrid.getSelectedRows() || [])
+                .map((rowNum: number) => dataView.getItem(rowNum))
+                .filter((item: any) => item !== null && item !== undefined);
+            this.selectedPartListCount = appliedData.filter((item: any) => !this.isPartListParentRow(item)).length;
+            this.updateCheckboxHeaderSelectedCount();
+        }, 0);
+    }
+
+    // Gom con theo parentId một lần cho cả lượt xử lý (thay vì filter lại toàn bộ items cho từng node cha)
+    private buildPartListChildrenMap(dataView: any): Map<any, any[]> {
+        const childrenMap = new Map<any, any[]>();
+        const allItems = dataView.getItems() || [];
+        allItems.forEach((item: any) => {
+            const parentId = this.getPartListParentId(item);
+            if (parentId === null || parentId === undefined) return;
+            if (!childrenMap.has(parentId)) {
+                childrenMap.set(parentId, []);
+            }
+            childrenMap.get(parentId)!.push(item);
+        });
+        return childrenMap;
     }
 
     updateCheckboxHeaderSelectedCount(): void {
@@ -2559,26 +2617,26 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     }
 
     // Xử lý chọn/bỏ chọn tất cả children của một parent (đệ quy)
-    private processChildrenSelection(parentItem: any, dataView: any, slickGrid: any, isSelecting: boolean, finalSelection: Set<number>, visited = new Set<number>()): void {
-        if (visited.has(parentItem.id)) return;
+    private processChildrenSelection(parentItem: any, childrenMap: Map<any, any[]>, dataView: any, isSelecting: boolean, finalSelection: Set<number>, visited = new Set<number>()): void {
+        if (!parentItem || visited.has(parentItem.id)) return;
         visited.add(parentItem.id);
 
-        const allItems = dataView.getItems();
-        const children = allItems.filter((item: any) => item.parentId === parentItem.id);
+        const children = childrenMap.get(parentItem.id) || [];
 
         children.forEach((child: any) => {
             const childRowNum = dataView.getRowById(child.id);
-            if (childRowNum !== undefined) {
+            if (childRowNum !== undefined && childRowNum !== null) {
                 if (isSelecting) {
                     finalSelection.add(childRowNum as number);
                 } else {
                     finalSelection.delete(childRowNum as number);
                 }
+            }
 
-                // Đệ quy cho các con của child (multi-level) - Sử dụng IsLeaf để tối ưu
-                if (!child.IsLeaf) {
-                    this.processChildrenSelection(child, dataView, slickGrid, isSelecting, finalSelection, visited);
-                }
+            // Đệ quy kể cả khi dòng con đang bị ẩn (node cha đang collapse hoặc bị filter),
+            // nếu không thì các cháu hiển thị bên dưới sẽ bị bỏ sót
+            if (this.isPartListParentRow(child)) {
+                this.processChildrenSelection(child, childrenMap, dataView, isSelecting, finalSelection, visited);
             }
         });
     }
@@ -5901,7 +5959,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     const warningMessage = response.data.Warning || '';
                     // Hiển thị cảnh báo nếu có
                     if (warningMessage) {
-                        this.notification.warning('Thông báo', warningMessage);
+                        this.notification.warning('Thông báo', warningMessage, { nzDuration: 0, nzStyle: { 'white-space': 'pre-line' } });
                     }
                     // Kiểm tra có bills để mở modal không
                     if (billsData.length === 0) {
@@ -6007,7 +6065,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     const warningMessage = response.data.Warning || '';
                     // Hiển thị cảnh báo nếu có
                     if (warningMessage) {
-                        this.notification.warning('Thông báo', warningMessage);
+                        this.notification.warning('Thông báo', warningMessage, { nzDuration: 0, nzStyle: { 'white-space': 'pre-line' } });
                     }
                     // Kiểm tra có bills để mở modal không
                     if (billsData.length === 0) {
@@ -6077,7 +6135,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 Unit: detail.Unit || '',
                 Qty: detail.Qty || 0,
                 TotalQty: detail.TotalQty || 0,
-                QuantityRemain: detail.Qty || 0,
+                // SL còn lại theo yêu cầu của partlist (QtyFull - đã xuất), KHÔNG phải SL xuất của phiếu
+                QuantityRemain: detail.QuantityRemain || 0,
                 ProjectID: detail.ProjectID || 0,
                 ProjectName: detail.ProjectName || '',
                 ProjectCodeText: detail.ProjectCodeText || '',

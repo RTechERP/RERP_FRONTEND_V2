@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, Optional, ViewChild, HostListener } from '@angular/core';
+import { Component, ElementRef, Inject, OnInit, Optional, ViewChild, HostListener } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
@@ -129,7 +129,8 @@ export class PaymentOrderPrimeComponent implements OnInit {
     private appUserService: AppUserService,
     private http: HttpClient,
     private route: ActivatedRoute,
-    @Optional() @Inject('tabData') private tabData: any
+    @Optional() @Inject('tabData') private tabData: any,
+    private el: ElementRef<HTMLElement>
   ) { }
 
   ngOnInit(): void {
@@ -326,9 +327,16 @@ export class PaymentOrderPrimeComponent implements OnInit {
     this.activeColumnField = field;
   }
 
+  // Tab được mở đồng thời vẫn nằm trong DOM (chỉ bị [hidden]), nên listener document:keydown
+  // của mọi tab đều chạy khi bấm Ctrl+C -> tab ẩn ghi đè clipboard của tab đang xem.
+  private get isTabActive(): boolean {
+    const host = this.el.nativeElement;
+    return host.isConnected && host.offsetParent !== null;
+  }
+
   @HostListener('document:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
-    if (event.ctrlKey && (event.key === 'c' || event.key === 'C') && this.activeRowData && this.activeColumnField) {
+    if (event.ctrlKey && (event.key === 'c' || event.key === 'C') && this.activeRowData && this.activeColumnField && this.isTabActive) {
       const text = this.activeRowData[this.activeColumnField];
       if (text !== undefined && text !== null) {
         navigator.clipboard.writeText(text.toString());

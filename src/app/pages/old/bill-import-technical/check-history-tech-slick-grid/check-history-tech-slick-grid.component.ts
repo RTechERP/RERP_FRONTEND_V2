@@ -7,6 +7,7 @@ import {
   EventEmitter,
   inject,
   OnDestroy,
+  ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -591,9 +592,18 @@ export class CheckHistoryTechSlickGridComponent implements OnInit, OnDestroy {
     }
   }
 
+  private readonly hostEl = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  // Các tab đang mở đều còn nằm trong DOM (chỉ bị [hidden]) nên listener document:keydown
+  // của mọi tab đều chạy khi bấm Ctrl+C -> chỉ xử lý khi tab này đang hiển thị.
+  private get isTabActive(): boolean {
+    const host = this.hostEl.nativeElement as HTMLElement;
+    return host.isConnected && host.offsetParent !== null;
+  }
+
   @HostListener('document:keydown.control.c')
   copyCell() {
-    if (this.currentCellValue) {
+    if (this.currentCellValue && this.isTabActive) {
       navigator.clipboard.writeText(this.currentCellValue).then(() => {
         this.notification.success(NOTIFICATION_TITLE.success, 'Đã sao chép');
       });

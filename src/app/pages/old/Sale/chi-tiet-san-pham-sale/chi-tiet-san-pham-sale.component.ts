@@ -9,6 +9,8 @@ import {
   Inject,
   Optional,
   HostListener,
+  ElementRef,
+  inject,
 } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -138,9 +140,18 @@ export class ChiTietSanPhamSaleComponent
   private selectedCellValue: string | null = null;
 
   // HostListener for Ctrl+C to copy selected cell value
+  private readonly hostEl = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  // Các tab đang mở đều còn nằm trong DOM (chỉ bị [hidden]) nên listener document:keydown
+  // của mọi tab đều chạy khi bấm Ctrl+C -> chỉ xử lý khi tab này đang hiển thị.
+  private get isTabActive(): boolean {
+    const host = this.hostEl.nativeElement as HTMLElement;
+    return host.isConnected && host.offsetParent !== null;
+  }
+
   @HostListener('document:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
-    if (event.ctrlKey && event.key === 'c' && this.selectedCellValue !== null) {
+    if (event.ctrlKey && event.key === 'c' && this.selectedCellValue !== null && this.isTabActive) {
       // Prevent default browser copy behavior only if we have a selected cell
       event.preventDefault();
       this.clipboardService.copy(this.selectedCellValue);

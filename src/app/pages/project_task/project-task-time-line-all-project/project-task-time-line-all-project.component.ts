@@ -79,7 +79,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
     dateEnd: string = '';
     departmentId: number = 0;
     teamId: number = 0;
-    projectId: number = 0;
+    projectId: number | null = null;
 
     // ===== Dropdown data =====
     departmentList: any[] = [];
@@ -143,12 +143,11 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
 
         // Nhận data từ tab trước truyền sang
         if (this.tabData) {
-            this.projectId = this.tabData.projectId || 0;
+            this.projectId = this.tabData.projectId || null;
             this.focusTaskId = this.tabData.focusTaskId || 0;
             this.projectCode = this.tabData.projectCode || '';
             this.projectName = this.tabData.projectName || '';
         }
-
         this.loadDepartments();
         this.loadProjects();
         this.loadProjectTaskStatuses();
@@ -157,7 +156,39 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
             this.loadTeamsByDepartment(this.departmentId);
         }
 
-        this.loadTimeline();
+        // Chỉ tải dữ liệu khi đã có dự án; chưa chọn dự án thì không gọi API
+        if (this.hasProjectSelected()) {
+            this.loadTimeline();
+        }
+    }
+
+    /** Đã chọn dự án hay chưa (bỏ chọn / clear => chưa chọn) */
+    hasProjectSelected(): boolean {
+        return !!this.projectId && this.projectId > 0;
+    }
+
+    /** Chọn dự án => tải dữ liệu; bỏ chọn (clear) => xoá dữ liệu, không gọi API */
+    onProjectChange(): void {
+        if (this.hasProjectSelected()) {
+            this.loadTimeline();
+        } else {
+            this.clearTimelineData();
+        }
+    }
+
+    /** Xoá toàn bộ dữ liệu đang hiển thị trên lưới */
+    private clearTimelineData(): void {
+        this.treeData = [];
+        this.filteredTreeData = [];
+        this.flatVisibleData = [];
+        this.visibleData.set([]);
+        this.dateColumns = [];
+        this.memberOptions = [];
+        this.deptOptions = [];
+        this.categoryOptions = [];
+        this.projectCode = '';
+        this.projectName = '';
+        this.loading.set(false);
     }
 
     loadProjectTaskStatuses(): void {
@@ -184,9 +215,29 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
                         value: customValue
                     });
                 });
+
+                // Cây có thể đã dựng xong trước khi danh sách trạng thái về
+                // → tính lại tên & màu trạng thái, nếu không sẽ kẹt ở tên hard-code và mất màu.
+                if (this.treeData.length > 0) {
+                    this.refreshStatusDisplay(this.treeData);
+                    this.applyFilters(false);
+                }
             },
             error: (err) => console.error('Error loading project task statuses:', err)
         });
+    }
+
+    /** Tính lại StatusName + _statusStyle cho toàn bộ cây (dùng khi statusMap về sau lúc dựng cây) */
+    private refreshStatusDisplay(nodes: TreeTaskNode[]): void {
+        for (const node of nodes) {
+            const statusConfig = this.getTaskStatusConfig(node);
+            const baseName = statusConfig ? statusConfig.Title : this.getStatusName(node.Status);
+            node.StatusName = node.isOverdue ? baseName + '\nOverdue' : baseName;
+            node._statusStyle = this.getStatusStyle(node);
+            if (node.children.length > 0) {
+                this.refreshStatusDisplay(node.children);
+            }
+        }
     }
 
     ngAfterViewChecked() {
@@ -287,13 +338,26 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
         if (this.departmentId > 0) {
             this.loadTeamsByDepartment(this.departmentId);
         }
-        this.loadTimeline();
+        if (this.hasProjectSelected()) {
+            this.loadTimeline();
+        }
     }
 
     // ===== LOAD TIMELINE =====
 
     loadTimeline() {
-        if (!this.dateStart || !this.dateEnd || !this.projectId) return;
+        if (!this.hasProjectSelected()) {
+            this.clearTimelineData();
+            this.message.warning('Vui lòng chọn dự án trước khi tải dữ liệu');
+            return;
+        }
+
+        if (!this.dateStart || !this.dateEnd) return;
+
+        if (new Date(this.dateStart) > new Date(this.dateEnd)) {
+            this.message.warning('"Từ ngày" không được lớn hơn "Đến ngày"');
+            return;
+        }
 
         this.loading.set(true);
 
@@ -314,7 +378,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
                     dateEnd: this.dateEnd,
                     departmentID: this.departmentId || 0,
                     teamID: this.teamId || 0,
-                    projectID: this.projectId || 0,
+                    projectID: this.projectId!,
                     status: statusStr
                 }),
                 dayOffData: this.timelineService.getProjectTaskGetDayOff(this.dateStart, this.dateEnd)

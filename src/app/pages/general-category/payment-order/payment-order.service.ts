@@ -317,5 +317,5 @@ export const CURRENCY_CONFIGS: CurrencyConfig[] = [
   { id: 'myr', text: 'MYR', unit: 'ringgit', subUnit: 'sen' },
   { id: 'idr', text: 'IDR', unit: 'rupiah', subUnit: 'sen' },
   { id: 'chf', text: 'CHF', unit: 'franc', subUnit: 'rappen' },
-
+  { id: 'thb', text: 'THB', unit: 'bạt', subUnit: 'satang' },
 ];

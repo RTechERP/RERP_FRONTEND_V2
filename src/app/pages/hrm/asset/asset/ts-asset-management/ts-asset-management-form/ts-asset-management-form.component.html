@@ -1,4 +1,4 @@
-<div class="modal-header bg-primary p-2">
+<div class="modal-header bg-primary py-2">
   <h6 class="modal-title text-white" id="assetModalLabel">QUẢN LÝ TÀI SẢN</h6>
   <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
 </div>
@@ -36,8 +36,7 @@
           Model<span class="text-danger ps-1 me-1"> (*)</span>
         </nz-form-label>
         <nz-form-control [nzErrorTip]="getFieldError('Model')">
-          <input nz-input formControlName="Model" rows="3" placeholder="Model tài sản"
-            style="width: 100%">
+          <input nz-input formControlName="Model" rows="3" placeholder="Model tài sản" style="width: 100%">
         </nz-form-control>
       </nz-col>
 
@@ -48,8 +47,7 @@
           Tên tài sản<span class="text-danger ps-1 me-1"> (*)</span>
         </nz-form-label>
         <nz-form-control [nzErrorTip]="getFieldError('TSAssetName')">
-          <textarea nz-input formControlName="TSAssetName" rows="3" placeholder="Tên tài sản"
-            style="width: 100%">
+          <textarea nz-input formControlName="TSAssetName" rows="3" placeholder="Tên tài sản" style="width: 100%">
           </textarea>
         </nz-form-control>
       </nz-col>
@@ -163,55 +161,64 @@
       <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12">
         <nz-form-label>Mô tả chi tiết</nz-form-label>
         <nz-form-control>
-          <textarea nz-input formControlName="SpecificationsAsset" rows="3"
-            placeholder="Mô tả chi tiết" style="width: 100%">
+          <textarea nz-input formControlName="SpecificationsAsset" rows="3" placeholder="Mô tả chi tiết"
+            style="width: 100%">
           </textarea>
         </nz-form-control>
       </nz-col>
       <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12">
         <nz-form-label>Ghi chú</nz-form-label>
         <nz-form-control>
-          <textarea nz-input formControlName="Note" rows="3" placeholder="Ghi chú"
-            style="width: 100%">
+          <textarea nz-input formControlName="Note" rows="3" placeholder="Ghi chú" style="width: 100%">
           </textarea>
         </nz-form-control>
       </nz-col>
     </nz-row>
 
-    <!-- Cấp phát / Active Windows / Active Office -->
+    <!-- Windows / Office -->
     <nz-row [nzGutter]="16" class="mb-3">
-      <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" class="d-flex align-items-center">
+      <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="6" class="d-flex align-items-center">
         <nz-form-control>
-          <input type="checkbox" formControlName="IsAllocation" class="form-check-input me-2"
-            id="isAllocationCheck" />
-          <label for="isAllocationCheck">Cấp phát</label>
+          <input type="checkbox" formControlName="IsAllocation" class="form-check-input me-2" id="isAllocationCheck" />
+          <label for="isAllocationCheck" class="fs-12">Cấp phát</label>
+        </nz-form-control>
+      </nz-col>
+
+      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="9">
+        <nz-form-label class="fs-12">Key Windows</nz-form-label>
+        <nz-form-control>
+          <input nz-input type="text" formControlName="KeyWin" placeholder="Nhập Key Windows" />
+        </nz-form-control>
+      </nz-col>
+
+      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="9">
+        <nz-form-label class="fs-12">Ngày kích hoạt Windows</nz-form-label>
+        <nz-form-control>
+          <input nz-input type="date" formControlName="DateActiveWin" />
+        </nz-form-control>
+      </nz-col>
+    </nz-row>
+
+    <nz-row [nzGutter]="16" class="mb-3">
+      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
+        <nz-form-label class="fs-12">Key Office</nz-form-label>
+        <nz-form-control>
+          <input nz-input type="text" formControlName="KeyOffice" placeholder="Nhập Key Office" />
         </nz-form-control>
       </nz-col>
 
       <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24" class="fs-12">Active Windows</nz-form-label>
-          <nz-form-control [nzSpan]="24">
-            <nz-select class="w-100 fs-12" nzSize="small" nzAllowClear nzPlaceHolder="Chọn trạng thái"
-              formControlName="WindowActiveStatus">
-              <nz-option *ngFor="let s of activeStatusList" [nzValue]="s.value" [nzLabel]="s.label">
-              </nz-option>
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
+        <nz-form-label class="fs-12">Ngày kích hoạt Office</nz-form-label>
+        <nz-form-control>
+          <input nz-input type="date" formControlName="DateActiveOffice" />
+        </nz-form-control>
       </nz-col>
 
       <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24" class="fs-12">Active Office</nz-form-label>
-          <nz-form-control [nzSpan]="24">
-            <nz-select class="w-100 fs-12" nzSize="small" nzAllowClear nzPlaceHolder="Chọn trạng thái"
-              formControlName="OfficeActiveStatus">
-              <nz-option *ngFor="let s of activeStatusList" [nzValue]="s.value" [nzLabel]="s.label">
-              </nz-option>
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
+        <nz-form-label class="fs-12">Ngày hết hạn Office</nz-form-label>
+        <nz-form-control>
+          <input nz-input type="date" formControlName="DateExpireOffice" />
+        </nz-form-control>
       </nz-col>
     </nz-row>
   </form>

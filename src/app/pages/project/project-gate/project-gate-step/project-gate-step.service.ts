@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+import { IAPIResponse } from '../../../../models/kanban.interface';
 import { environment } from '../../../../../environments/environment';
+import { TimelineByTeamItem } from '../../../project_task/project-task-time-line-total/project-task-time-line-total.service';
+import { TimelineByProjectParams } from '../../../project_task/project-task-time-line-project/project-task-time-line-project.service';
 
 @Injectable({
     providedIn: 'root'
@@ -213,5 +216,26 @@ export class ProjectGateStepService {
 
     getWorkersByStepLink(stepLinkId: number): Observable<any> {
         return this.http.get<any>(`${environment.host}api/ProjectGateStepLink/get-workers-by-step-link/${stepLinkId}`);
+    }
+    getTimelineByProject(params: TimelineByProjectParams): Observable<TimelineByTeamItem[]> {
+        let httpParams = new HttpParams()
+            .set('dateStart', params.dateStart)
+            .set('dateEnd', params.dateEnd);
+
+        if (params.projectID !== undefined) {
+            httpParams = httpParams.set('projectID', params.projectID.toString());
+        }
+        if (params.status !== undefined && params.status !== '') {
+            httpParams = httpParams.set('status', params.status);
+        }
+        if (params.typeSearch !== undefined) {
+            httpParams = httpParams.set('typeSearch', params.typeSearch.toString());
+        }
+
+        return this.http.get<IAPIResponse<TimelineByTeamItem[]>>(
+            `${environment.host}api/ProjectGateStepLink/project-task-timeline-by-team-project-gate`, { params: httpParams }
+        ).pipe(
+            map(response => response.data || [])
+        );
     }
 }

@@ -93,16 +93,14 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
         if (this.dataInput.DateEffect) {
             this.dataInput.DateEffect = this.formatDateForInput(this.dataInput.DateEffect);
         }
-
-        // 🔥 Chuẩn hóa Office/Win Active khi sửa
-        if (isEdit) {
-            if (this.dataInput.OfficeActiveStatus !== null && this.dataInput.OfficeActiveStatus !== undefined) {
-                this.dataInput.OfficeActiveStatus = Number(this.dataInput.OfficeActiveStatus);
-            }
-
-            if (this.dataInput.WindowActiveStatus !== null && this.dataInput.WindowActiveStatus !== undefined) {
-                this.dataInput.WindowActiveStatus = Number(this.dataInput.WindowActiveStatus);
-            }
+        if (this.dataInput.DateActiveWin) {
+            this.dataInput.DateActiveWin = this.formatDateForInput(this.dataInput.DateActiveWin);
+        }
+        if (this.dataInput.DateActiveOffice) {
+            this.dataInput.DateActiveOffice = this.formatDateForInput(this.dataInput.DateActiveOffice);
+        }
+        if (this.dataInput.DateExpireOffice) {
+            this.dataInput.DateExpireOffice = this.formatDateForInput(this.dataInput.DateExpireOffice);
         }
 
         // Khởi tạo form sau khi format dữ liệu
@@ -139,8 +137,11 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
             SpecificationsAsset: [this.dataInput?.SpecificationsAsset || ''],
             Note: [this.dataInput?.Note || ''],
             IsAllocation: [this.dataInput?.IsAllocation || false],
-            WindowActiveStatus: [this.dataInput?.WindowActiveStatus || null],
-            OfficeActiveStatus: [this.dataInput?.OfficeActiveStatus || null]
+            KeyWin: [this.dataInput?.KeyWin || ''],
+            KeyOffice: [this.dataInput?.KeyOffice || this.dataInput?.keyOffice || ''],
+            DateActiveWin: [this.dataInput?.DateActiveWin || null],
+            DateActiveOffice: [this.dataInput?.DateActiveOffice || null],
+            DateExpireOffice: [this.dataInput?.DateExpireOffice || null]
         });
 
         // Subscribe to EmployeeID changes
@@ -375,8 +376,11 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
                     Status: statusValue,
                     UnitID: formValue.UnitID || 0,
                     TSCodeNCC: formValue.TSCodeNCC || '',
-                    OfficeActiveStatus: formValue.OfficeActiveStatus ?? null,
-                    WindowActiveStatus: formValue.WindowActiveStatus ?? null,
+                    KeyWin: formValue.KeyWin || '',
+                    KeyOffice: formValue.KeyOffice || '',
+                    DateActiveWin: formValue.DateActiveWin || null,
+                    DateActiveOffice: formValue.DateActiveOffice || null,
+                    DateExpireOffice: formValue.DateExpireOffice || null,
                     isDeleted: false,
 
                 }
@@ -393,7 +397,7 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
                 this.activeModal.close(true);
             },
             error: (res: any) => {
-                this.notification.error("Thông báo", res.error.message || "Lỗi");
+                this.notification.error(NOTIFICATION_TITLE.error, res?.error?.message || "Lỗi");
             }
         });
     }

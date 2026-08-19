@@ -29,7 +29,20 @@ export class AssetPersonalService {
 
         return this.http.get<any>(`${this.url}/get-personal-properties`, { params: queryParams });
     }
+    getQuantityAssetUnApprove(params: {
+        dateStart: string;
+        dateEnd: string;
+        receiverID?: number;
+        assetCategory?: number;
+    }): Observable<any> {
+        const queryParams = new HttpParams()
+            .set('dateStart', params.dateStart)
+            .set('dateEnd', params.dateEnd)
+            .set('receiverID', (params.receiverID || 0).toString())
+            .set('assetCategory', (params.assetCategory ?? -1).toString());
 
+        return this.http.get<any>(`${this.url}/get-quantity-unapprove`, { params: queryParams });
+    }
     getPersonalPropertyDetails(assetID: number, assetCategory: number): Observable<any> {
         const queryParams = new HttpParams()
             .set('assetID', assetID.toString())

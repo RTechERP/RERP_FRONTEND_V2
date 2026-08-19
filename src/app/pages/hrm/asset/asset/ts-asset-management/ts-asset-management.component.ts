@@ -591,8 +591,11 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             Seri: '',
             SpecificationsAsset: '',
             TSCodeNCC: '',
-            WindowActiveStatus: null,
-            OfficeActiveStatus: null,
+            KeyWin: '',
+            KeyOffice: '',
+            DateActiveWin: null,
+            DateActiveOffice: null,
+            DateExpireOffice: null,
             STT: null,
             // cái gì cần default nữa thì add vào
         };
@@ -877,7 +880,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
 
                 // Header Row 1
                 const row1Values = [
-                    'STT', 'Mã tài sản', 'Office Active', 'Windows Active', 'Tên tài sản',
+                    'STT', 'Mã tài sản', 'Key Windows', 'Ngày KH Win', 'Key Office', 'Ngày KH Office', 'Ngày HH Office', 'Tên tài sản',
                     'Mã loại', 'Tên loại', 'Mã nguồn gốc', 'Tên nguồn gốc', 'Mã NCC',
                     'Tên NCC', 'Số Seri', 'Model', 'Số lượng', 'Tình trạng',
                     'Mô tả chi tiết', 'Đơn vị', 'Mã phòng ban', 'Phòng ban', 'Mã nhân viên',
@@ -888,7 +891,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
 
                 // Header Row 2 (5 sub-columns for Lịch sử cấp phát)
                 const row2Values = [
-                    'STT', 'Mã tài sản', 'Office Active', 'Windows Active', 'Tên tài sản',
+                    'STT', 'Mã tài sản', 'Key Windows', 'Ngày KH Win', 'Key Office', 'Ngày KH Office', 'Ngày HH Office', 'Tên tài sản',
                     'Mã loại', 'Tên loại', 'Mã nguồn gốc', 'Tên nguồn gốc', 'Mã NCC',
                     'Tên NCC', 'Số Seri', 'Model', 'Số lượng', 'Tình trạng',
                     'Mô tả chi tiết', 'Đơn vị', 'Mã phòng ban', 'Phòng ban', 'Mã nhân viên',
@@ -901,19 +904,17 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
                 worksheet.addRow(row2Values);
 
                 // Merge single columns vertically (Row 1 & Row 2)
-                const singleCols = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 30];
+                const singleCols = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 33];
                 singleCols.forEach(colIndex => {
                     worksheet.mergeCells(1, colIndex, 2, colIndex);
                 });
 
-                // Merge "Lịch sử cấp phát" horizontally across columns 25..29 in Row 1
-                worksheet.mergeCells(1, 25, 1, 29);
+                // Merge "Lịch sử cấp phát" horizontally across columns 28..32 in Row 1
+                worksheet.mergeCells(1, 28, 1, 32);
 
                 // Column widths
                 const colWidths = [
-                    8, 20, 15, 15, 30, 15, 20, 15, 20, 15,
-                    20, 15, 20, 10, 18, 30, 10, 15, 20, 15,
-                    20, 15, 15, 15, 18, 25, 25, 15, 20, 30
+                    8, 20, 20, 15, 20, 15, 15, 30, 15, 20, 15, 20, 15, 20, 15, 20, 10, 18, 30, 10, 15, 20, 15, 20, 15, 15, 15, 18, 25, 25, 15, 20, 30
                 ];
                 colWidths.forEach((w, idx) => {
                     worksheet.getColumn(idx + 1).width = w;
@@ -939,110 +940,63 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
                     });
                 });
 
-                // Add data rows starting at Row 3
-                let currentRowIndex = 3;
+                // Add all data rows in bulk (super fast, no mergeCells bottleneck)
+                const allRowsData = exportData.map((row: any, index: number) => [
+                    index + 1,
+                    row.TSCodeNCC || '',
+                    row.KeyWin || '',
+                    row.DateActiveWin ? DateTime.fromISO(row.DateActiveWin).toFormat('dd/MM/yyyy') : '',
+                    row.KeyOffice || row.keyOffice || '',
+                    row.DateActiveOffice ? DateTime.fromISO(row.DateActiveOffice).toFormat('dd/MM/yyyy') : '',
+                    row.DateExpireOffice ? DateTime.fromISO(row.DateExpireOffice).toFormat('dd/MM/yyyy') : '',
+                    row.TSAssetName || '',
+                    row.AssetCode || '',
+                    row.AssetType || '',
+                    row.SourceCode || '',
+                    row.SourceName || '',
+                    row.SupplierCode || '',
+                    row.SupplierName || '',
+                    row.Seri || '',
+                    row.Model || '',
+                    row.Quantity ?? '',
+                    row.Status || '',
+                    row.SpecificationsAsset || '',
+                    row.UnitName || '',
+                    row.DepartmentCode || '',
+                    row.Name || '',
+                    row.EmployeeCode || '',
+                    row.FullName || '',
+                    row.DateBuy ? DateTime.fromISO(row.DateBuy).toFormat('dd/MM/yyyy') : '',
+                    row.Insurance || '',
+                    row.DateEffect ? DateTime.fromISO(row.DateEffect).toFormat('dd/MM/yyyy') : '',
+                    row.AllocationAction || '',
+                    row.AllocationDeliver || '',
+                    row.AllocationReceiver || '',
+                    row.AllocationDate || '',
+                    row.AllocationStatus || '',
+                    row.Note || ''
+                ]);
 
-                exportData.forEach((row: any, index: number) => {
-                    const parseLines = (val: string) => {
-                        if (!val) return [];
-                        return val.split('\n').map(x => x.trim());
-                    };
+                worksheet.addRows(allRowsData);
 
-                    const actions = parseLines(row.AllocationAction);
-                    const delivers = parseLines(row.AllocationDeliver);
-                    const receivers = parseLines(row.AllocationReceiver);
-                    const dates = parseLines(row.AllocationDate);
-                    const statuses = parseLines(row.AllocationStatus);
+                // Style data rows in bulk
+                const borderStyle = {
+                    top: { style: 'thin' as const },
+                    left: { style: 'thin' as const },
+                    bottom: { style: 'thin' as const },
+                    right: { style: 'thin' as const },
+                };
+                const fontStyle = { name: 'Times New Roman', size: 11 };
 
-                    const maxLines = Math.max(
-                        actions.length,
-                        delivers.length,
-                        receivers.length,
-                        dates.length,
-                        statuses.length
-                    );
-
-                    // Filter out invalid SQL dummy rows
-                    const validEvents: Array<{ action: string; deliver: string; receiver: string; date: string; status: string }> = [];
-
-                    for (let i = 0; i < maxLines; i++) {
-                        const act = actions[i] || '';
-                        const del = delivers[i] || '';
-                        const rec = receivers[i] || '';
-                        const dat = dates[i] || '';
-                        const sta = statuses[i] || '';
-
-                        if (act || del || rec || dat) {
-                            validEvents.push({ action: act, deliver: del, receiver: rec, date: dat, status: sta });
-                        }
-                    }
-
-                    const numRows = Math.max(validEvents.length, 1);
-                    const startRow = currentRowIndex;
-                    const endRow = startRow + numRows - 1;
-
-                    for (let i = 0; i < numRows; i++) {
-                        const isFirst = i === 0;
-                        const ev = validEvents[i] || { action: '', deliver: '', receiver: '', date: '', status: '' };
-
-                        const rowValues = [
-                            isFirst ? index + 1 : '',
-                            isFirst ? (row.TSCodeNCC || '') : '',
-                            isFirst ? (row.OfficeActiveStatus === 1 ? 'Đã kích hoạt' : (row.OfficeActiveStatus === 0 ? 'Chưa kích hoạt' : '')) : '',
-                            isFirst ? (row.WindowActiveStatus === 1 ? 'Đã kích hoạt' : (row.WindowActiveStatus === 0 ? 'Chưa kích hoạt' : '')) : '',
-                            isFirst ? (row.TSAssetName || '') : '',
-                            isFirst ? (row.AssetCode || '') : '',
-                            isFirst ? (row.AssetType || '') : '',
-                            isFirst ? (row.SourceCode || '') : '',
-                            isFirst ? (row.SourceName || '') : '',
-                            isFirst ? (row.SupplierCode || '') : '',
-                            isFirst ? (row.SupplierName || '') : '',
-                            isFirst ? (row.Seri || '') : '',
-                            isFirst ? (row.Model || '') : '',
-                            isFirst ? (row.Quantity ?? '') : '',
-                            isFirst ? (row.Status || '') : '',
-                            isFirst ? (row.SpecificationsAsset || '') : '',
-                            isFirst ? (row.UnitName || '') : '',
-                            isFirst ? (row.DepartmentCode || '') : '',
-                            isFirst ? (row.Name || '') : '',
-                            isFirst ? (row.EmployeeCode || '') : '',
-                            isFirst ? (row.FullName || '') : '',
-                            isFirst ? (row.DateBuy ? DateTime.fromISO(row.DateBuy).toFormat('dd/MM/yyyy') : '') : '',
-                            isFirst ? (row.Insurance || '') : '',
-                            isFirst ? (row.DateEffect ? DateTime.fromISO(row.DateEffect).toFormat('dd/MM/yyyy') : '') : '',
-                            ev.action,
-                            ev.deliver,
-                            ev.receiver,
-                            ev.date,
-                            ev.status,
-                            isFirst ? (row.Note || '') : ''
-                        ];
-
-                        const addedRow = worksheet.addRow(rowValues);
-                        addedRow.eachCell({ includeEmpty: true }, (cell) => {
-                            cell.font = { name: 'Times New Roman', size: 11 };
-                            cell.border = {
-                                top: { style: 'thin' },
-                                left: { style: 'thin' },
-                                bottom: { style: 'thin' },
-                                right: { style: 'thin' },
-                            };
-                            cell.alignment = { wrapText: true, vertical: 'top' };
-                        });
-
-                        currentRowIndex++;
-                    }
-
-                    // Merge main asset columns only if numRows > 1
-                    if (numRows > 1) {
-                        const mainCols = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 30];
-                        mainCols.forEach(colIndex => {
-                            worksheet.mergeCells(startRow, colIndex, endRow, colIndex);
-                            const masterCell = worksheet.getCell(startRow, colIndex);
-                            masterCell.alignment = { wrapText: true, vertical: 'middle' };
-                        });
-                    }
-                });
+                const endRowNum = worksheet.rowCount;
+                for (let rNum = 3; rNum <= endRowNum; rNum++) {
+                    const row = worksheet.getRow(rNum);
+                    row.font = fontStyle;
+                    row.eachCell({ includeEmpty: true }, (cell) => {
+                        cell.border = borderStyle;
+                        cell.alignment = { wrapText: true, vertical: 'top' };
+                    });
+                }
 
                 const buffer = await workbook.xlsx.writeBuffer();
                 const blob = new Blob([buffer], {

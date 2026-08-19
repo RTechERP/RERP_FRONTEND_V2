@@ -79,8 +79,7 @@
                     <div class="form-field-vertical">
                         <label>Dự án</label>
                         <nz-select nzPlaceHolder="Chọn dự án" [(ngModel)]="projectId" nzSize="small" nzShowSearch
-                            nzAllowClear style="width: 100%;">
-                            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                            nzAllowClear (ngModelChange)="onProjectChange()" style="width: 100%;">
                             <nz-option *ngFor="let item of projectList"
                                 nzCustomContent
                                 [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID">
@@ -280,7 +279,7 @@
                     <!-- Trống -->
                     <tr *ngIf="visibleData().length === 0 && !loading()">
                         <td [attr.colspan]="6 + dateColumns.length" class="text-center py-4">
-                            Không có dữ liệu
+                            {{ hasProjectSelected() ? 'Không có dữ liệu' : 'Vui lòng chọn dự án để xem timeline' }}
                         </td>
                     </tr>
                 </tbody>

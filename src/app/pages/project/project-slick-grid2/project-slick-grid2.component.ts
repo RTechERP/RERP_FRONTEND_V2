@@ -66,10 +66,12 @@ import { ProjectReportSlickGridComponent } from '../project-report-slick-grid/pr
 import { ProjectWokerSlickGridComponent } from '../project-woker-slick-grid/project-woker-slick-grid.component';
 import { ProjectWorkerSummaryComponent } from '../project-worker-summary/project-worker-summary.component';
 import { TabServiceService } from '../../../layouts/tab-service.service';
+import { DeepLinkService } from '../../../services/deep-link/deep-link.service';
 import { ProjectHistoryProblemNewComponent } from '../project-history-problem-new/project-history-problem-new.component';
 import { ProjectHistoryProblemSyntheticComponent } from '../project-history-problem-new/project-history-problem-synthetic/project-history-problem-synthetic.component';
 import { DrawingProjectComponent } from '../drawing-project/drawing-project.component';
 import { ProjectGateStepByProjectComponent } from '../project-gate/project-gate-step/project-gate-step-by-project/project-gate-step-by-project.component';
+import { ProjectGateStepMasterPlanComponent } from '../project-gate/project-gate-step/project-gate-step-master-plan/project-gate-step-master-plan.component';
 
 @Component({
     selector: 'app-project-prime-ng2',
@@ -160,6 +162,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         private permissionService: PermissionService,
         private tabService: TabServiceService,
         private filterService: FilterService,
+        private deepLinkService: DeepLinkService,
     ) {
         this.searchSubject
             .subscribe(() => {
@@ -362,6 +365,11 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 command: () => this.openProjectGateStepByProjectModal(),
             },
             {
+                label: 'Master Plan',
+                icon: 'fa-solid fa-calendar-days fa-lg text-primary',
+                command: () => this.openProjectGateStepMasterPlanModal(),
+            },
+            {
                 label: 'Danh mục vật tư',
                 icon: 'fa-solid fa-box fa-lg text-warning',
                 command: () => this.openProjectPartListTab(),
@@ -550,6 +558,11 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 icon: 'pi pi-copy',
                 visible: this.permissionService.hasAnyPermission(['N1', 'N13', 'N27']),
                 command: () => this.createDemoProject()
+            },
+            {
+                label: 'Tạo link công khai Master Plan',
+                icon: 'pi pi-share-alt',
+                command: () => this.shareMasterPlanPublicLink()
             },
             {
                 label: 'Cập nhật trạng thái',
@@ -1797,6 +1810,60 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 projectName: projectName,
                 projectStatusName: projectStatusName,
                 _tabKey: key
+            }
+        });
+    }
+    openProjectGateStepMasterPlanModal() {
+        const selectedIDs = this.getSelectedIds();
+        const selectedRows = this.getSelectedRows();
+
+        if (selectedIDs.length != 1) {
+            this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+            return;
+        }
+
+        const projectId = selectedIDs[0];
+        const projectCode = selectedRows[0]?.ProjectCode;
+        const projectName = selectedRows[0]?.ProjectName;
+        const projectStatusName = selectedRows[0]?.ProjectStatusName || selectedRows[0]?.ProjectStatusText || selectedRows[0]?.ProjectStatus || '';
+        const key = `project-gate-step-master-plan/${projectId}`;
+
+        this.tabService.openTabComp({
+            comp: ProjectGateStepMasterPlanComponent,
+            title: `Master Plan - ${projectCode}`,
+            key: key,
+            data: {
+                projectId: projectId,
+                projectCode: projectCode,
+                projectName: projectName,
+                projectStatusName: projectStatusName,
+                _tabKey: key
+            }
+        });
+    }
+
+    shareMasterPlanPublicLink() {
+        const selectedIDs = this.getSelectedIds();
+        const selectedRows = this.getSelectedRows();
+
+        if (selectedIDs.length != 1) {
+            this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+            return;
+        }
+
+        const projectId = selectedIDs[0];
+        const projectCode = selectedRows[0]?.ProjectCode || '';
+
+        this.deepLinkService.sharePublic('project-gate-step-master-plan', { projectId: projectId }).subscribe({
+            next: (url: string) => {
+                navigator.clipboard.writeText(url).then(() => {
+                    this.notification.success('Thông báo', `Đã sao chép đường dẫn xem công khai Master Plan dự án ${projectCode} vào bộ nhớ tạm!`);
+                }).catch(() => {
+                    this.notification.info('Link chia sẻ Master Plan', url);
+                });
+            },
+            error: (err: any) => {
+                this.notification.error('Thông báo', err?.message || 'Không thể tạo link chia sẻ.');
             }
         });
     }

@@ -1,0 +1,282 @@
+<div class="timeline-container d-flex flex-column flex-grow-1 overflow-hidden" style="height: 100% !important;">
+
+  <!-- HEADER DỰ ÁN & THAO TÁC MAIN -->
+  <div class="master-plan-header flex-shrink-0 d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <i class="fa-solid fa-calendar-days text-primary fs-16"></i>
+      <span class="fw-bold fs-14 text-dark">
+        Master Plan {{ projectCode ? ('- ' + projectCode) : '' }} {{ projectName ? ('(' + projectName + ')') : '' }}
+      </span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button nz-button nzType="default" nzSize="small" (click)="loadMasterPlanTimeline()" style="font-size: 12px;">
+        <i class="fa-solid fa-rotate me-1"></i> Tải lại
+      </button>
+      <button nz-button nzType="primary" nzSize="small" (click)="exportMasterPlanToExcel()" style="font-size: 12px;">
+        <i class="fa-solid fa-file-excel me-1"></i> Xuất Excel Master Plan
+      </button>
+    </div>
+  </div>
+
+  <!-- PHẦN TÌM KIẾM MASTER PLAN -->
+  <div class="card border-0 rounded-0 sticky-header mb-2 flex-shrink-0">
+    <div class="card-header bg-white p-2">
+      <div class="legend-bar mb-2">
+        <div class="legend-item">
+          <span class="box planned"></span> Dự kiến
+        </div>
+        <div class="legend-item">
+          <span class="box actual"></span> Thực tế
+        </div>
+        <div class="legend-item">
+          <span class="box outside-work-planned"></span> Công tác dự kiến
+        </div>
+        <div class="legend-item">
+          <span class="box outside-work-actual"></span> Công tác thực tế
+        </div>
+        <div class="legend-item"><span class="legend-sep">|</span></div>
+        <div class="legend-item"><strong>Ro</strong>&nbsp;= Nghỉ không lương</div>
+        <div class="legend-item"><strong>P</strong>&nbsp;= Nghỉ phép</div>
+        <div class="legend-item"><strong>R</strong>&nbsp;= Việc riêng có lương</div>
+        <div class="legend-item"><span class="legend-sep">|</span></div>
+        <div class="legend-item"><strong>/S</strong>&nbsp;= Buổi sáng &nbsp; <strong>/C</strong>&nbsp;= Buổi chiều</div>
+      </div>
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <!-- Từ ngày -->
+        <div class="d-flex align-items-center gap-1">
+          <span class="text-secondary fw-bold text-nowrap" style="font-size: 12px;">Từ ngày:</span>
+          <input type="date" [(ngModel)]="mpDateStart" name="mpDateStart"
+            (ngModelChange)="loadMasterPlanTimeline()"
+            style="padding: 3px 8px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 12px;" />
+        </div>
+
+        <!-- Đến ngày -->
+        <div class="d-flex align-items-center gap-1">
+          <span class="text-secondary fw-bold text-nowrap" style="font-size: 12px;">Đến ngày:</span>
+          <input type="date" [(ngModel)]="mpDateEnd" name="mpDateEnd" (ngModelChange)="loadMasterPlanTimeline()"
+            style="padding: 3px 8px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 12px;" />
+        </div>
+
+        <!-- Trạng thái -->
+        <div class="d-flex align-items-center gap-1" style="min-width: 250px;">
+          <span class="text-secondary fw-bold text-nowrap" style="font-size: 12px;">Trạng thái:</span>
+          <nz-select class="timeline-combo-select flex-grow-1" nzDropdownClassName="timeline-combo-dropdown"
+            nzPlaceHolder="Chọn trạng thái" [(ngModel)]="mpSelectedStatuses" nzSize="small" nzMode="multiple"
+            [nzMaxTagCount]="2" nzAllowClear (ngModelChange)="loadMasterPlanTimeline()" style="width: 100%;">
+            <nz-option *ngFor="let opt of mpStatusOptions" [nzLabel]="opt.label" [nzValue]="opt.value">
+            </nz-option>
+          </nz-select>
+        </div>
+
+        <!-- Nút thao tác -->
+        <div class="d-flex align-items-center gap-2">
+          <button nz-button nzType="primary" nzSize="small" (click)="loadMasterPlanTimeline()"
+            style="font-size: 12px;" nz-tooltip nzTooltipTitle="Tìm kiếm">
+            <i class="fa-solid fa-magnifying-glass me-1"></i> Tìm
+          </button>
+          <button nz-button nzType="default" nzSize="small" (click)="resetMasterPlanSearch()"
+            style="font-size: 12px;" nz-tooltip nzTooltipTitle="Đặt lại">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BẢNG TIMELINE TABLE -->
+  <div class="timeline-content flex-grow-1 overflow-hidden" [class.loading]="mpLoading()">
+    <div class="table-container" (scroll)="onMasterPlanScroll($event)">
+      <table class="grid-table">
+        <thead>
+          <!-- Hàng 1: Tên cột + Tên ngày -->
+          <tr>
+            <th rowspan="2" class="sticky-col col-stt">STT</th>
+            <th rowspan="2" class="sticky-col col-gate">Gate</th>
+            <th rowspan="2" class="sticky-col col-name">
+              Người thực hiện
+              <p-multiSelect [options]="mpEmployeeColumnOptions" [(ngModel)]="mpFilterEmployeeColumn"
+                placeholder="Tất cả" [filter]="true" filterPlaceHolder="Tìm..." (onChange)="onMpColumnFilter()"
+                styleClass="timeline-status-multi" panelStyleClass="timeline-status-panel-global"
+                [maxSelectedLabels]="1" selectedItemsLabel="{0} người" appendTo="body" />
+            </th>
+
+            <th rowspan="2" class="sticky-col col-job">
+              Công việc
+              <input type="text" class="filter-input" [(ngModel)]="mpFilterTaskKeyword"
+                (keyup)="onMpColumnFilter()" placeholder="Tìm mã/tên...">
+            </th>
+
+            <th rowspan="2" class="sticky-col col-status">
+              Trạng Thái
+              <p-multiSelect [options]="mpColumnStatusOptions" [(ngModel)]="mpFilterStatusColumn"
+                placeholder="Tất cả" [showHeader]="false" [filter]="false" (onChange)="onMpColumnFilter()"
+                styleClass="timeline-status-multi" [maxSelectedLabels]="3"
+                panelStyleClass="timeline-status-multi-panel" selectedItemsLabel="{0} trạng thái"
+                appendTo="body" />
+            </th>
+            <!-- Nhóm cột Plan -->
+            <th colspan="3" class="sticky-col col-plan-group text-center fw-bold">Plan</th>
+
+            <th rowspan="2" class="sticky-col col-type">Loại</th>
+            <th *ngFor="let col of mpDateColumns; trackBy: trackByColumn"
+              [class.sunday]="col.isSunday || col.isDayOff" [class.today-col]="col.isToday" class="date-header">
+              {{ col.dayName }}
+            </th>
+          </tr>
+          <tr>
+            <th class="sticky-col col-plan-start text-center">Start</th>
+            <th class="sticky-col col-plan-work text-center">Working days</th>
+            <th class="sticky-col col-plan-finish text-center">Finish</th>
+
+            <th *ngFor="let col of mpDateColumns; trackBy: trackByColumn"
+              [class.sunday]="col.isSunday || col.isDayOff" [class.today-col]="col.isToday"
+              class="date-subheader">
+              {{ col.dateDisplay }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let gate of mpVisibleData(); let gi = index; trackBy: trackByGate">
+            <ng-container *ngFor="let task of gate.tasks; let ti = index; trackBy: trackByTask">
+              <ng-container *ngFor="let row of task.rows; let ri = index; trackBy: trackByRow">
+                <tr [class.row-actual]="ri === 1" [class.row-overdue]="task.isOverdue"
+                  [class.row-gate-end]="ri === 1 && ti === gate.tasks.length - 1">
+                  <!-- STT của từng công việc -->
+                  <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-stt text-center cell-group"
+                    [class.cell-gate-end]="ti === gate.tasks.length - 1">
+                    {{ task.globalIndex }}
+                  </td>
+
+                  <!-- Gate (Gộp theo cả nhóm Gate) -->
+                  <td *ngIf="ti === 0 && ri === 0" [attr.rowspan]="gate._rowspan"
+                    class="sticky-col col-gate text-center cell-group cell-gate-end fw-bold"
+                    style="background-color: #fafafa; vertical-align: middle;">
+                    {{ gate.GateCode || 'Khác' }}
+                  </td>
+
+                  <!-- Người thực hiện -->
+                  <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-name cell-name-text"
+                    [class.cell-gate-end]="ti === gate.tasks.length - 1">
+                    {{ task.FullName }}
+                  </td>
+
+                  <!-- Công việc -->
+                  <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-job"
+                    [class.cell-gate-end]="ti === gate.tasks.length - 1">
+                    <div class="task-info">
+                      <div class="d-flex align-items-center gap-1 text-nowrap w-100 overflow-hidden">
+                        <a class="task-code-link"
+                          (click)="openMasterPlanTaskDetail(task); $event.stopPropagation()"
+                          (contextmenu)="onMasterPlanContextMenu($event, task, task.ProjectTaskID)">
+                          {{ task.ProjectTaskCode || '' }}
+                        </a>
+                        <span *ngIf="task.ProjectTaskParentCode" class="text-muted d-inline-block text-truncate"
+                          [title]="task.ProjectTaskParentTitle" style="max-width: 130px;">
+                          - <a class="task-code-link"
+                            (click)="openMasterPlanTaskDetail(task.ProjectTaskParentID); $event.stopPropagation()"
+                            (contextmenu)="onMasterPlanContextMenu($event, task, task.ProjectTaskParentID)">{{
+                            task.ProjectTaskParentCode || '' }}</a>
+                        </span>
+                      </div>
+                      <div class="task-title mt-1" [title]="task.ProjectTaskTitle">
+                        {{ task.ProjectTaskTitle }}
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Trạng thái -->
+                  <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-status text-center"
+                    [class.cell-gate-end]="ti === gate.tasks.length - 1">
+                    <span class="status-tag" [attr.data-status]="task.Status" [class.overdue]="task.isOverdue"
+                      [ngStyle]="task._statusStyle">
+                      {{ task.StatusName }}
+                    </span>
+                  </td>
+
+                  <!-- Start -->
+                  <td class="sticky-col col-plan-start text-center"
+                    [class.cell-gate-end]="ri === 1 && ti === gate.tasks.length - 1">
+                    {{ formatMpDate(row.PlanStartDate || row.StartDate) }}
+                  </td>
+
+                  <!-- Working days -->
+                  <td class="sticky-col col-plan-work text-center fw-bold"
+                    [class.cell-gate-end]="ri === 1 && ti === gate.tasks.length - 1">
+                    {{ row.DurationDays != null ? row.DurationDays : '' }}
+                  </td>
+
+                  <!-- Finish -->
+                  <td class="sticky-col col-plan-finish text-center"
+                    [class.cell-gate-end]="ri === 1 && ti === gate.tasks.length - 1">
+                    {{ formatMpDate(row.PlanEndDate || row.EndDate) }}
+                  </td>
+
+                  <!-- Loại -->
+                  <td class="sticky-col col-type text-center"
+                    [class.cell-gate-end]="ri === 1 && ti === gate.tasks.length - 1">
+                    {{ row.TypeDate === 1 ? 'Dự kiến' : 'Thực tế' }}
+                  </td>
+
+                  <!-- Ô ngày -->
+                  <td *ngFor="let col of mpDateColumns; trackBy: trackByColumn" class="gantt-cell"
+                    [class.cell-gate-end]="ri === 1 && ti === gate.tasks.length - 1"
+                    [class.sunday]="col.isSunday || col.isDayOff" [class.today-col]="col.isToday"
+                    [class.filled-planned]="row.TypeDate === 1 && row._cellData[col.dateStr]?.isPlannedFilled && !row._cellData[col.dateStr]?.isOutsideWork"
+                    [class.filled-planned-outside]="row.TypeDate === 1 && row._cellData[col.dateStr]?.isPlannedFilled && row._cellData[col.dateStr]?.isOutsideWork"
+                    [class.filled-actual]="row.TypeDate === 2 && row._cellData[col.dateStr]?.isFilledActual"
+                    [class.filled-actual-outside]="row.TypeDate === 2 && row._cellData[col.dateStr]?.isFilledActualOutside"
+                    [title]="row._cellData[col.dateStr]?.tooltip || ''">
+                    <ng-container *ngIf="row.TypeDate === 1 && row._cellData[col.dateStr]?.hasCheckMark">
+                      <i class="fa-solid fa-check text-success fs-14"></i>
+                    </ng-container>
+                    <ng-container *ngIf="row.TypeDate === 2">
+                      <span *ngIf="row._cellData[col.dateStr]?.actualHours > 0" class="actual-hours">
+                        {{ row._cellData[col.dateStr].actualHours }}
+                      </span>
+                      <span *ngIf="row._cellData[col.dateStr]?.hasLeave" class="leave-label">
+                        {{ row._cellData[col.dateStr].leaveLabel }}
+                      </span>
+                    </ng-container>
+                  </td>
+                </tr>
+              </ng-container>
+            </ng-container>
+          </ng-container>
+
+          <!-- Trống -->
+          <tr *ngIf="mpFilteredData().length === 0 && !mpLoading()">
+            <td [attr.colspan]="10 + mpDateColumns.length" class="empty-cell">
+              Không có dữ liệu cho khoảng thời gian này
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td [attr.colspan]="10 + mpDateColumns.length" class="table-footer-total">
+              Tổng số công việc: <span class="total-count">{{ mpTotalTaskCount() }}</span>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" *ngIf="mpLoading()">
+      <i class="fa-solid fa-spinner fa-spin fa-2x text-primary mb-2"></i>
+      <p>Đang tải dữ liệu timeline...</p>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Context Menu cho Master Plan -->
+<div class="custom-context-menu" *ngIf="mpContextMenuVisible" [style.left.px]="mpContextMenuX"
+  [style.top.px]="mpContextMenuY">
+  <ul>
+    <li (click)="openMasterPlanProjectReport()">
+      <i class="fa-solid fa-diagram-project me-2"></i>
+      Báo cáo công việc dự án
+    </li>
+  </ul>
+</div>
+<div class="context-menu-backdrop" *ngIf="mpContextMenuVisible" (click)="closeMasterPlanContextMenu()"
+  (contextmenu)="closeMasterPlanContextMenu()"></div>

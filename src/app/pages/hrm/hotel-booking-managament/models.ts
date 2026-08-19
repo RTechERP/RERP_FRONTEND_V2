@@ -40,7 +40,12 @@ export interface HotelBookingProposal {
     UpdatedBy?: string;
     UpdatedDate?: Date;
     IsDeleted?: boolean;
-    
+
+    // Additional fields
+    Distance?: string;
+    Area?: number;
+    Convenience?: string;
+
     // Approval
     IsApprove?: number; // 0: Chờ duyệt, 1: Duyệt, 2: Không duyệt
     ApproveID?: number | null;

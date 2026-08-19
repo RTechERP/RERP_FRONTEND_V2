@@ -231,11 +231,11 @@ export class EmployeeBussinessSummaryComponent
 
       this.tb_work = new Tabulator(this.tbWorkContainer.nativeElement, {
         data: [],
+        ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
         height: '80vh',
         placeholder: 'Không có dữ liệu',
         groupBy: "DepartmentName",
-
 
         groupHeader: (value, count, data, group) => {
           return `<span>Phòng ban: ${value} (${count})</span>`;
@@ -330,8 +330,8 @@ export class EmployeeBussinessSummaryComponent
               ? `<span style="background-color: #e9b003; padding: 2px 4px; border-radius: 2px; font-weight: bold;">${day}</span>`
               : day.toString(),
             field: fieldName,
-            width: 100,
-            hozAlign: ALIGN_LEFT,
+            width: 20,
+            hozAlign: ALIGN_CENTER,
             headerHozAlign: ALIGN_CENTER,
             headerSort: false,
             formatter: createDayFormatter(isWeekend),
@@ -356,14 +356,14 @@ export class EmployeeBussinessSummaryComponent
           {
             title: 'Mã nhân viên',
             field: 'Code',
-            width: 100,
+            width: 50,
             hozAlign: ALIGN_LEFT,
             headerHozAlign: ALIGN_CENTER,
           },
           {
             title: 'Tên nhân viên',
             field: 'FullName',
-            width: 200,
+            width: 140,
             hozAlign: ALIGN_LEFT,
             headerHozAlign: ALIGN_CENTER,
             formatter: 'textarea',
@@ -371,7 +371,7 @@ export class EmployeeBussinessSummaryComponent
           {
             title: 'Chức vụ',
             field: 'Name',
-            width: 200,
+            width: 170,
             hozAlign: ALIGN_LEFT,
             headerHozAlign: ALIGN_CENTER,
             formatter: 'textarea',
@@ -390,7 +390,7 @@ export class EmployeeBussinessSummaryComponent
           {
             title: 'Công tác ngày',
             field: 'countCTN',
-            width: 120,
+            width: 80,
             hozAlign: ALIGN_CENTER,
             headerHozAlign: ALIGN_CENTER,
             formatter: (cell) => {
@@ -406,7 +406,7 @@ export class EmployeeBussinessSummaryComponent
           {
             title: 'Công tác đêm',
             field: 'countCTD',
-            width: 120,
+            width: 80,
             hozAlign: ALIGN_CENTER,
             headerHozAlign: ALIGN_CENTER,
             formatter: (cell) => {
@@ -422,7 +422,7 @@ export class EmployeeBussinessSummaryComponent
           {
             title: 'Công tác gần',
             field: 'countCTG',
-            width: 120,
+            width: 80,
             hozAlign: ALIGN_CENTER,
             headerHozAlign: ALIGN_CENTER,
             formatter: (cell) => {
@@ -438,7 +438,7 @@ export class EmployeeBussinessSummaryComponent
           {
             title: 'Công tác xa',
             field: 'countCTX',
-            width: 120,
+            width: 80,
             hozAlign: ALIGN_CENTER,
             headerHozAlign: ALIGN_CENTER,
             formatter: (cell) => {
@@ -454,7 +454,7 @@ export class EmployeeBussinessSummaryComponent
           {
             title: 'Công tác nước ngoài',
             field: 'countCTNN',
-            width: 150,
+            width: 80,
             hozAlign: ALIGN_CENTER,
             headerHozAlign: ALIGN_CENTER,
             formatter: (cell) => {
@@ -470,7 +470,7 @@ export class EmployeeBussinessSummaryComponent
           {
             title: 'Công tác',
             field: 'countCT',
-            width: 120,
+            width: 80,
             hozAlign: ALIGN_CENTER,
             headerHozAlign: ALIGN_CENTER,
             formatter: (cell) => {

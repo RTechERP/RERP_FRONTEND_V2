@@ -53,7 +53,8 @@ import { AppUserService } from '../../../../../../services/app-user.service';
 import { DateTime } from 'luxon';
 import { updateCSS } from 'ng-zorro-antd/core/util';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
-import { HasPermissionDirective } from '../../../../../../directives/has-permission.directive';
+import { PermissionService } from '../../../../../../services/permission.service';
+import { isBillViewOnly } from '../../../../../../shared/utils/bill-permission.util';
 
 interface DocumentImportPoNCC {
   ID: number;
@@ -90,7 +91,6 @@ interface DocumentImportPoNCC {
     NzDatePickerModule,
     // ProductSaleDetailComponent,
     // SelectControlComponent,
-    HasPermissionDirective,
     AngularSlickgridComponent
   ],
   templateUrl: './bill-document-import.component.html',
@@ -143,8 +143,19 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
     private appRef: ApplicationRef,
     public activeModal: NgbActiveModal,
     private modalServiceConfirm: NzModalService,
-    private appUserService: AppUserService
-  ) { }
+    private appUserService: AppUserService,
+    private permissionService: PermissionService
+  ) {
+    this.isBillViewOnly = isBillViewOnly(this.appUserService);
+    this.canEditDocument =
+      !this.isBillViewOnly &&
+      this.permissionService.hasPermission('N52,N36,N1,N34');
+  }
+
+  /** Nhóm quyền N118 - chỉ được xem hồ sơ chứng từ, không sửa/lưu. */
+  isBillViewOnly: boolean = false;
+  /** Được sửa và lưu hồ sơ chứng từ. */
+  canEditDocument: boolean = false;
 
   ngOnInit(): void {
     this.billImportID = this.id;
@@ -217,7 +228,8 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
   }
 
   closeModal() {
-    if (!this.flag) {
+    // Chỉ xem thì không có gì để mất, khỏi hỏi xác nhận thoát.
+    if (!this.flag && this.canEditDocument) {
       this.modalServiceConfirm.confirm({
         nzTitle: 'Xác nhận thoát',
         nzContent:
@@ -234,6 +246,8 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
   }
 
   saveDataAndClose() {
+    if (!this.canEditDocument) return;
+
     // Commit any pending edits before saving
     try {
       const slickGrid = (this.angularGridMaster as any).grid || (this.angularGridMaster as any).slickGrid;
@@ -313,6 +327,8 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
   }
 
   saveOnly() {
+    if (!this.canEditDocument) return;
+
     // Commit any pending edits before saving
     try {
       const slickGrid = (this.angularGridMaster as any).grid || (this.angularGridMaster as any).slickGrid;
@@ -556,7 +572,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
       enableAutoSizeColumns: false,
       createPreHeaderPanel: false,
       showPreHeaderPanel: false,
-      editable: true,
+      editable: !this.isBillViewOnly,
       autoEdit: true,
     };
   }

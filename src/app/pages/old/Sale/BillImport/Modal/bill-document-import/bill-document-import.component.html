@@ -37,8 +37,8 @@
 </div>
 <div class="modal-footer flex-shrink-0">
     <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
-    <button class="fs-12 btn" nz-button nzType="default" *hasPermission="'N52,N36,N1,N34'"
+    <button class="fs-12 btn" nz-button nzType="default" *ngIf="canEditDocument"
         (click)="saveOnly()">Lưu</button>
-    <button class="fs-12 btn" nz-button nzType="primary" *hasPermission="'N52,N36,N1,N34'"
+    <button class="fs-12 btn" nz-button nzType="primary" *ngIf="canEditDocument"
         (click)="saveDataAndClose()">Lưu và đóng</button>
 </div>

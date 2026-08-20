@@ -210,7 +210,7 @@
             <nz-splitter nzLayout="vertical" class="master-detail-splitter">
                 <!-- Panel trên: bảng master -->
                 <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" nzDefaultSize="60%">
-                    <div #masterPaneRef class="splitter-pane-content">
+                    <div class="splitter-pane-content">
                         <div [id]="'grid-container-master-' + componentId"
                             [ngClass]="'grid-container-master-' + componentId" class="grid-pane">
                             <angular-slickgrid [gridId]="'gridMaster-' + componentId"
@@ -226,7 +226,7 @@
 
                 <!-- Panel dưới: bảng chi tiết -->
                 <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
-                    <div #detailPaneRef class="splitter-pane-content">
+                    <div class="splitter-pane-content">
                         <fieldset class="detail-fieldset bill-import-new-detail-fieldset">
                             <legend class="detail-legend bill-import-new-detail-legend">
                                 {{ tabDetailTitle }}

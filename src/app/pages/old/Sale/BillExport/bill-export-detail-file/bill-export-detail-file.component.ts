@@ -39,6 +39,13 @@ export class BillExportDetailFileComponent implements OnInit {
   @Input() fileName: string = ''; // Tên sản phẩm hoặc mã để hiển thị tiêu đề
   @Input() billExportDetailId: number = 0;
   @Input() isHistoryBorrow = false;
+  /** Nhóm quyền chỉ xem phiếu nhập/xuất: được xem + preview ảnh, không upload/xóa. */
+  @Input() isViewOnly = false;
+
+  /** Chỉ khi true mới hiện vùng upload, nút xóa ảnh và nút Lưu. */
+  get canEditFiles(): boolean {
+    return !this.isHistoryBorrow && !this.isViewOnly;
+  }
 
   isUploading = false;
   isDragOver = false;
@@ -124,6 +131,8 @@ export class BillExportDetailFileComponent implements OnInit {
 
   // Xử lý tệp đã chọn
   handleFileSelection(files: FileList): void {
+    if (!this.canEditFiles) return;
+
     const newFiles: FileItem[] = [];
     const duplicateNames: string[] = [];
     const invalidTypes: string[] = [];
@@ -216,6 +225,8 @@ export class BillExportDetailFileComponent implements OnInit {
 
   // Xóa tệp khỏi danh sách
   removeFile(index: number): void {
+    if (!this.canEditFiles) return;
+
     const file = this.fileData[index];
     if (file && file.ID && file.ID > 0) {
       this.deletedFileIds.push(file.ID);
@@ -292,6 +303,8 @@ export class BillExportDetailFileComponent implements OnInit {
 
   // Lưu file - truyền fileData (chứa FileObject) và danh sách file bị xóa về màn chi tiết
   save(): void {
+    if (!this.canEditFiles) return;
+
     this.activeModal.close({ fileData: this.fileData, deletedFileIds: this.deletedFileIds });
   }
 }

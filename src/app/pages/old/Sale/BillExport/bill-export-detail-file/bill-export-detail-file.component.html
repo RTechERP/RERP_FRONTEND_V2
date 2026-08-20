@@ -7,7 +7,7 @@
 <div class="modal-body p-3" style="height: 50vh !important;">
   <nz-spin [nzSpinning]="isUploading" nzTip="Đang tải tệp tin lên máy chủ...">
     <!-- Drag & Drop Zone -->
-    <div *ngIf="!isHistoryBorrow" class="upload-dropzone" [class.dragover]="isDragOver" (dragover)="onDragOver($event)"
+    <div *ngIf="canEditFiles" class="upload-dropzone" [class.dragover]="isDragOver" (dragover)="onDragOver($event)"
       (dragleave)="onDragLeave($event)" (drop)="onDrop($event)" (click)="triggerFileSelect(fileInput)">
       <input type="file" #fileInput multiple accept="image/*" style="display: none;" (change)="onFileSelected($event)" />
       <div class="dropzone-content text-center">
@@ -52,7 +52,7 @@
             <i nz-icon nzType="eye" nzTheme="outline"></i>
           </button>
           <!-- Nút xóa -->
-          <button *ngIf="!isHistoryBorrow" type="button"
+          <button *ngIf="canEditFiles" type="button"
             class="btn btn-sm btn-delete-file ms-2 flex-shrink-0 align-self-start d-flex align-items-center justify-content-center"
             (click)="removeFile(i)" title="Xóa tệp">
             <i nz-icon nzType="delete" nzTheme="outline"></i>
@@ -68,7 +68,7 @@
   <button type="button" class="btn btn-secondary fs-12" (click)="activeModal.dismiss()" [disabled]="isUploading">
     Đóng
   </button>
-  <button *ngIf="!isHistoryBorrow" type="button" class="btn btn-primary fs-12 d-flex align-items-center" (click)="save()"
+  <button *ngIf="canEditFiles" type="button" class="btn btn-primary fs-12 d-flex align-items-center" (click)="save()"
     [disabled]="isUploading">
     <i nz-icon nzType="save" class="me-1"></i> Lưu
   </button>

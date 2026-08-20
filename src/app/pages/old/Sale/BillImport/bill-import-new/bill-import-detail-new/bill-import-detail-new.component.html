@@ -10,29 +10,29 @@
         <div class="d-flex gap-2 pb-2 border-bottom bill-import-detail-new-d-flex bill-import-detail-new-gap-2 bill-import-detail-new-pb-2 bill-import-detail-new-border-bottom"
             *ngIf="!isApproved">
             <button type="button" class="fs-12 btn bill-import-detail-new-fs-12 bill-import-detail-new-btn" nz-button
-                nzType="default" nzSize="small" title="Thêm sản phẩm" *hasPermission="'N27,N1,N33,N34,N69'"
+                nzType="default" nzSize="small" title="Thêm sản phẩm" *ngIf="canEditBillDetail"
                 (click)="openModalNewProduct()">
                 <nz-icon nzType="file-text"></nz-icon> Thêm sản phẩm
             </button>
             <button type="button" class="fs-12 btn bill-import-detail-new-fs-12 bill-import-detail-new-btn" nz-button
-                nzType="default" nzSize="small" *hasPermission="'N27,N1,N33,N34,N69'" title="Thêm dự án">
+                nzType="default" nzSize="small" *ngIf="canEditBillDetail" title="Thêm dự án">
                 <nz-icon nzType="exception"></nz-icon> Thêm dự án
             </button>
             <button type="button" class="fs-12 btn bill-import-detail-new-fs-12 bill-import-detail-new-btn" nz-button
-                nzType="default" nzSize="small" *hasPermission="'N27,N1,N33,N34,N69'" title="Chọn PO">
+                nzType="default" nzSize="small" *ngIf="canEditBillDetail" title="Chọn PO">
                 <nz-icon nzType="file-excel"></nz-icon> Chọn PO
             </button>
             <button type="button" class="fs-12 btn bill-import-detail-new-fs-12 bill-import-detail-new-btn" nz-button
-                nzType="default" nzSize="small" title="Yêu cầu QC" *hasPermission="'N27,N1,N33,N34,N69'"
+                nzType="default" nzSize="small" title="Yêu cầu QC" *ngIf="canEditBillDetail"
                 (click)="openModalRequestQC()">
                 <nz-icon nzType="experiment"></nz-icon> Yêu cầu QC
             </button>
             <button type="button" class="fs-12 btn bill-import-detail-new-fs-12 bill-import-detail-new-btn" nz-button
-                nzType="default" nzSize="small" title="Xem QC" *hasPermission="'N27,N1,N33,N34,N69'"
+                nzType="default" nzSize="small" title="Xem QC" *ngIf="canEditBillDetail"
                 (click)="onViewBillImportQC()">
                 <nz-icon nzType="eye"></nz-icon> Xem QC
             </button>
-            <button *ngIf="isEmbedded" type="button"
+            <button *ngIf="isEmbedded && !isBillViewOnly" type="button"
                 class="fs-12 btn bill-import-detail-new-fs-12 bill-import-detail-new-btn" nz-button nzType="primary"
                 nzSize="small" [nzLoading]="isSaving" [disabled]="isSaving" (click)="saveDataBillImport()">
                 <nz-icon nzType="save"></nz-icon> Lưu
@@ -296,7 +296,7 @@
 <div class="modal-footer bill-import-detail-new-modal-footer" *ngIf="!isEmbedded">
     <button type="button" class="fs-12 btn bill-import-detail-new-fs-12 bill-import-detail-new-btn" nz-button nzDanger
         (click)="closeModal()">Đóng</button>
-    <ng-container *ngIf="!isApproved">
+    <ng-container *ngIf="!isApproved && !isBillViewOnly">
         <button type="button" class="fs-12 btn bill-import-detail-new-fs-12 bill-import-detail-new-btn" nz-button
             nzType="primary" [nzLoading]="isSaving" [disabled]="isSaving" (click)="saveDataBillImport()">Lưu</button>
     </ng-container>

@@ -36,6 +36,8 @@ import { SelectControlComponent } from '../select-control/select-control.compone
 // import { ProductSaleDetailComponent } from '../../../ProductSale/product-sale-detail/product-sale-detail.component';
 import { BillExportService } from '../../bill-export-service/bill-export.service';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
+import { AppUserService } from '../../../../../../services/app-user.service';
+import { isBillViewOnly } from '../../../../../../shared/utils/bill-permission.util';
 
 @Component({
   selector: 'app-bill-document-export',
@@ -90,8 +92,14 @@ export class BillDocumentExportComponent implements OnInit, AfterViewInit {
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
     public activeModal: NgbActiveModal,
-    private modalServiceConfirm: NzModalService // inject thêm
-  ) {}
+    private modalServiceConfirm: NzModalService, // inject thêm
+    private appUserService: AppUserService
+  ) {
+    this.isBillViewOnly = isBillViewOnly(this.appUserService);
+  }
+
+  /** Nhóm quyền N118 - chỉ được xem hồ sơ chứng từ, không sửa/lưu. */
+  isBillViewOnly: boolean = false;
 
   ngOnInit(): void {
     this.getBillDocumentExport();
@@ -130,7 +138,8 @@ export class BillDocumentExportComponent implements OnInit, AfterViewInit {
   }
 
   closeModal() {
-    if (this.flag === false) {
+    // Chỉ xem thì không có gì để mất, khỏi hỏi xác nhận thoát.
+    if (this.flag === false && !this.isBillViewOnly) {
       this.modalServiceConfirm.confirm({
         nzTitle: 'Xác nhận thoát',
         nzContent:
@@ -177,6 +186,8 @@ export class BillDocumentExportComponent implements OnInit, AfterViewInit {
   }
 
   saveData() {
+    if (this.isBillViewOnly) return;
+
     const updatedData = this.table_billDocumentExport.getData(); // Lấy dữ liệu mới nhất
     debugger;
     for (const item of updatedData) {
@@ -259,6 +270,7 @@ export class BillDocumentExportComponent implements OnInit, AfterViewInit {
               hozAlign: 'left',
               headerHozAlign: 'center',
               width: 200,
+              editable: () => !this.isBillViewOnly,
               editor: this.createdControl(
                 SelectControlComponent,
                 this.injector,
@@ -293,6 +305,7 @@ export class BillDocumentExportComponent implements OnInit, AfterViewInit {
               field: 'Note',
               hozAlign: 'left',
               headerHozAlign: 'center',
+              editable: () => !this.isBillViewOnly,
               editor: 'input',
             },
             {

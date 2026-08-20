@@ -279,14 +279,42 @@ export class CourseExamPracticeComponent implements OnInit, AfterViewInit {
   }
   loadCourses(employeeId: number) {
     this.isLoadingCourses = true;
+    const previousCourseId = this.selectedCourseId;
+
     this.service.getCourseData(employeeId).subscribe(
       (response) => {
         this.isLoadingCourses = false;
         if (response && response.status === 1) {
           this.courseData = response.data || [];
+
+          if (previousCourseId > 0) {
+            const matchedCourse = this.courseData.find((c: any) => c.ID === previousCourseId);
+            if (matchedCourse) {
+              // Khóa học đang xem vẫn nằm trong danh sách của nhân viên này -> giữ nguyên lựa chọn
+              this.selectedCourseId = matchedCourse.ID;
+              this.selectedCourse = matchedCourse;
+              this.loadLessons(matchedCourse.ID);
+              this.loadCourseExamResults(matchedCourse.ID, this.selectedEmployeeId);
+              return;
+            }
+          }
+
+          // Nếu khóa học cũ không còn trong danh sách (hoặc chưa chọn khóa học nào)
+          this.selectedCourseId = 0;
+          this.selectedCourse = null;
+          this.selectedLessonId = 0;
+          this.selectedLesson = null;
+          this.clearCourseExamResults();
+          this.clearLessonExamResults();
         } else {
           this.notification.warning(NOTIFICATION_TITLE.warning, response?.message || 'Không thể tải danh sách khóa học!');
           this.courseData = [];
+          this.selectedCourseId = 0;
+          this.selectedCourse = null;
+          this.selectedLessonId = 0;
+          this.selectedLesson = null;
+          this.clearCourseExamResults();
+          this.clearLessonExamResults();
         }
       },
       (error) => {
@@ -442,13 +470,6 @@ export class CourseExamPracticeComponent implements OnInit, AfterViewInit {
 
   onEmployeeChange() {
     this.loadCourses(this.selectedEmployeeId);
-    // Clear previous selections
-    this.selectedCourseId = 0;
-    this.selectedCourse = null;
-    this.selectedLessonId = 0;
-    this.selectedLesson = null;
-    this.clearCourseExamResults();
-    this.clearLessonExamResults();
   }
 
   onCourseSelected(course: CourseData) {

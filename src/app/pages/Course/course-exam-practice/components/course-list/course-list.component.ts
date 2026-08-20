@@ -24,10 +24,10 @@ export class CourseListComponent implements OnInit, OnChanges {
     @Input() data: CourseData[] = [];
     @Input() isLoading: boolean = false;
     @Input() autoSelectFirst: boolean = false;
+    @Input() selectedCourseId: number | null = null;
     @Output() courseSelected = new EventEmitter<CourseData>();
 
     treeData: TreeNode[] = [];
-    selectedCourseId: number | null = null;
 
     constructor() { }
 
@@ -36,9 +36,14 @@ export class CourseListComponent implements OnInit, OnChanges {
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['data'] && this.data) {
             this.buildTreeData(this.data);
-            if (this.autoSelectFirst && this.data.length > 0 && this.selectedCourseId === null) {
+            if (this.selectedCourseId && this.data.some(c => c.ID === this.selectedCourseId)) {
+                this.expandToCourse(this.selectedCourseId);
+            } else if (this.autoSelectFirst && this.data.length > 0 && !this.selectedCourseId) {
                 this.selectFirstCourse();
             }
+        }
+        if (changes['selectedCourseId'] && this.selectedCourseId) {
+            this.expandToCourse(this.selectedCourseId);
         }
     }
 
@@ -135,6 +140,22 @@ export class CourseListComponent implements OnInit, OnChanges {
                             this.courseSelected.emit(firstCourse.course);
                             return;
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    private expandToCourse(courseId: number): void {
+        for (const deptNode of this.treeData) {
+            for (const catTypeNode of deptNode.children) {
+                for (const catNode of catTypeNode.children) {
+                    const found = catNode.children.some(c => c.course?.ID === courseId);
+                    if (found) {
+                        deptNode.isCollapsed = false;
+                        catTypeNode.isCollapsed = false;
+                        catNode.isCollapsed = false;
+                        return;
                     }
                 }
             }

@@ -6,11 +6,12 @@
 .kpi-summary-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 93dvh;
   padding: 16px;
   gap: 12px;
   overflow-y: auto;
   overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* ===== Toolbar ===== */

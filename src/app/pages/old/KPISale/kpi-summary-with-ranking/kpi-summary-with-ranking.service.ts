@@ -478,6 +478,21 @@ export class KpiSummaryWithRankingService {
     return this.http.get<KpiApiResponse<any[]>>(`${this.apiUrl}/ranking/results`, { params: httpParams });
   }
 
+  /**
+   * Tính lại ranking cho cả kỳ (tất cả team) trên backend.
+   * Lưu ý: backend `CalculateRanking` hiện bỏ qua `teamCode` - luôn tính cho toàn kỳ.
+   * Endpoint: POST /ranking/calculate
+   */
+  calculateRanking(params: { periodId: number; templateId: number; teamCode?: string }): Observable<KpiApiResponse<any>> {
+    return this.http
+      .post<KpiApiResponse<any>>(`${this.apiUrl}/ranking/calculate`, params)
+      .pipe(catchError(err => of({
+        status: 0 as const,
+        data: null as any,
+        message: err?.error?.message || err?.message || 'Lỗi khi tính ranking',
+      })));
+  }
+
   getRewardConfig(templateId?: number): Observable<KpiApiResponse<any>> {
     let params = new HttpParams();
     if (templateId) params = params.set('templateId', templateId.toString());

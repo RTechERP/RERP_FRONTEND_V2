@@ -1,0 +1,896 @@
+<div class="kpi-summary-container">
+
+  <!-- TOOLBAR (y hệt kpi-summary) -->
+  <div class="kpi-summary-toolbar">
+    <div class="toolbar-row">
+      <div class="toolbar-field">
+        <label>Chế độ</label>
+        <nz-radio-group [(ngModel)]="isTeamMode" (ngModelChange)="onSummaryModeChange()">
+          <label nz-radio-button [nzValue]="false">Cá nhân</label>
+          <label nz-radio-button [nzValue]="true">Team</label>
+        </nz-radio-group>
+      </div>
+
+      <div class="toolbar-field" *ngIf="!isTeamMode">
+        <label>Nhân viên</label>
+        <nz-select
+          [(ngModel)]="selectedEmployeeId"
+          (ngModelChange)="onEmployeeChange()"
+          nzPlaceHolder="Chọn nhân viên"
+          nzShowSearch
+          nzAllowClear
+          style="width: 220px">
+          <nz-option
+            *ngFor="let emp of employees"
+            [nzValue]="emp.UserID"
+            [nzLabel]="(emp.Code || '') + ' - ' + (emp.FullName || emp.fullName || emp.name || emp.loginName || emp.userName || emp.id)">
+          </nz-option>
+        </nz-select>
+      </div>
+
+      <!-- Team mode: auto-select ALL_TEAMS, no dropdown needed -->
+      <div class="toolbar-field" *ngIf="isTeamMode">
+        <label>Nhóm</label>
+        <nz-select
+          [ngModel]="'ALL_TEAMS'"
+          [nzDisabled]="true"
+          style="width: 220px">
+          <nz-option nzValue="ALL_TEAMS" nzLabel="Tất cả nhóm"></nz-option>
+        </nz-select>
+      </div>
+
+      <div class="toolbar-field">
+        <label>Quý / Năm</label>
+        <nz-select
+          [(ngModel)]="selectedQuarterId"
+          (ngModelChange)="onQuarterChange($event)"
+          nzPlaceHolder="Chọn quý hoặc năm"
+          nzShowSearch
+          nzAllowClear
+          style="width: 220px">
+          <nz-option
+            *ngFor="let period of quarterPeriods"
+            [nzValue]="period.id"
+            [nzLabel]="period.periodName || period.periodCode">
+          </nz-option>
+        </nz-select>
+      </div>
+
+      <div class="toolbar-field" *ngIf="!isAllTeamsMode">
+        <button nz-button nzType="default" (click)="exportToExcel()" [disabled]="!summaryData">
+          <span nz-icon nzType="file-excel"></span> Xuất Excel
+        </button>
+      </div>
+
+      <div class="toolbar-field toolbar-badge" *ngIf="summaryData">
+        <nz-badge [nzStatus]="'success'" nzText="Đã tải"></nz-badge>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== -->
+  <!-- SINGLE-SUBJECT VIEW (Cá nhân hoặc Team đơn)         -->
+  <!-- ================================================== -->
+  <ng-container *ngIf="!isAllTeamsMode">
+
+    <!-- Approval Workflow Bar - Only show for TEAM mode -->
+    <div class="approval-workflow-bar" *ngIf="summaryData && isTeamMode">
+      <div class="approval-workflow-bar__head">
+        <span class="approval-workflow-bar__title">
+          <span nz-icon nzType="audit"></span>
+          Quy trình phê duyệt KPI
+          <nz-tag nzColor="geekblue">Theo TEAM</nz-tag>
+        </span>
+        <div class="approval-workflow-bar__current">
+          <ng-container *ngIf="currentApproval; else pendingActions">
+            <ng-container *ngIf="currentApproval.CurrentStep !== 'P5_HR_DISBURSE'">
+              <button
+                nz-button
+                nzType="primary"
+                nzSize="small"
+                [nzLoading]="approving"
+                [disabled]="!canApprove()"
+                [nz-tooltip]="getApproveDisabledReason() || null"
+                (click)="openApproveConfirm()">
+                <span nz-icon nzType="check-circle"></span>
+                {{ getNextStepLabel() }}
+              </button>
+              <button
+                nz-button
+                nzDanger
+                nzSize="small"
+                [nzLoading]="approving"
+                [disabled]="!canUnapprove()"
+                [nz-tooltip]="getUnapproveDisabledReason() || null"
+                nz-popconfirm
+                nzPopconfirmTitle="Hủy duyệt về bước trước?"
+                (nzOnConfirm)="onUnapprove()">
+                <span nz-icon nzType="rollback"></span>
+                Hủy duyệt
+              </button>
+              <button
+                nz-button
+                nzSize="small"
+                [style.background]="'#fa8c16'"
+                [style.border-color]="'#fa8c16'"
+                [style.color]="'#fff'"
+                [nzLoading]="sendingEmail"
+                [disabled]="!canSendEmail()"
+                [nz-tooltip]="getSendEmailDisabledReason() || null"
+                (click)="openEmailConfirm()">
+                <span nz-icon nzType="mail"></span>
+                Gửi mail
+              </button>
+            </ng-container>
+            <nz-tag *ngIf="currentApproval.CurrentStep === 'P5_HR_DISBURSE'" nzColor="success">
+              <span nz-icon nzType="check"></span> HR đã nhận thông tin
+            </nz-tag>
+          </ng-container>
+          <ng-template #pendingActions>
+            <button
+              nz-button
+              nzType="primary"
+              nzSize="small"
+              [nzLoading]="approving"
+              [disabled]="!canApprove()"
+              [nz-tooltip]="getApproveDisabledReason() || null"
+              (click)="openApproveConfirm()">
+              <span nz-icon nzType="play-circle"></span>
+              Duyệt (Admin)
+            </button>
+            <button
+              nz-button
+              nzSize="small"
+              [style.background]="'#fa8c16'"
+              [style.border-color]="'#fa8c16'"
+              [style.color]="'#fff'"
+              [nzLoading]="sendingEmail"
+              [disabled]="!canSendEmail()"
+              [nz-tooltip]="getSendEmailDisabledReason() || null"
+              (click)="openEmailConfirm()">
+              <span nz-icon nzType="mail"></span>
+              Gửi mail
+            </button>
+          </ng-template>
+        </div>
+      </div>
+
+      <nz-steps
+        [nzCurrent]="currentStepIndex"
+        [nzStatus]="currentApproval?.CurrentStep === 'P5_HR_DISBURSE' ? 'finish' : (currentApproval?.CurrentStep === 'PENDING' ? 'wait' : 'process')"
+        nzSize="small"
+        class="approval-workflow-bar__steps">
+        <nz-step
+          *ngFor="let step of approvalSteps; let i = index"
+          [nzTitle]="step.shortLabel"
+          [nzDescription]="getStepStatusText(i)"
+          [nzIcon]="step.icon">
+        </nz-step>
+      </nz-steps>
+    </div>
+
+    <!-- Summary Table -->
+    <div class="table-wrapper" *ngIf="summaryData && regularTreeRows.length > 0; else emptyTpl">
+      <nz-spin [nzSpinning]="loading" nzSize="large">
+        <div class="table-scroll">
+          <table class="kpi-summary-table">
+            <thead>
+              <tr class="header-row-1">
+                <th class="col-index" rowspan="2">Chỉ số KPI</th>
+                <ng-container *ngFor="let p of summaryData.periods">
+                  <th class="col-period-group" colspan="3">{{ p.periodName || p.periodCode }}</th>
+                </ng-container>
+                <th class="col-period-group col-quarter" colspan="3">
+                  {{ summaryData.quarterName || summaryData.quarterCode }}
+                </th>
+              </tr>
+              <tr class="header-row-2">
+                <ng-container *ngFor="let p of summaryData.periods">
+                  <th class="col-goal">Mục tiêu</th>
+                  <th class="col-result">Kết quả</th>
+                  <th class="col-score">Điểm</th>
+                </ng-container>
+                <th class="col-goal col-quarter">Mục tiêu</th>
+                <th class="col-result col-quarter">Kết quả</th>
+                <th class="col-score col-quarter">Điểm</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr
+                *ngFor="let node of regularTreeRows; let rowIndex = index; trackBy: trackByIndex"
+                [ngClass]="getRowClasses(node.row, rowIndex)"
+                [class.row-group]="isGroupRow(node.row)"
+                [class.row-leaf]="!isGroupRow(node.row)">
+                <td class="col-index">
+                  <div class="index-cell" [style.padding-left.px]="node.level * 18">
+                    <ng-container *ngIf="node.expandable; else leafSpacer">
+                      <button
+                        type="button"
+                        class="tree-toggle"
+                        (click)="toggleGroupExpanded(node.row.indexId)"
+                        [attr.aria-label]="node.expanded ? 'Thu gọn' : 'Mở rộng'">
+                        <span class="caret" [class.caret-down]="node.expanded" [class.caret-right]="!node.expanded">▶</span>
+                      </button>
+                    </ng-container>
+                    <ng-template #leafSpacer>
+                      <span class="tree-leaf-spacer"></span>
+                    </ng-template>
+                    <span class="index-name" [nz-tooltip]="node.row.indexName">{{ node.row.indexName }}</span>
+                    <span class="weight-badge" *ngIf="node.row.weightPercent > 0">{{ node.row.weightPercent }}%</span>
+                  </div>
+                </td>
+
+                <ng-container *ngFor="let mv of node.row.monthlyValues">
+                  <td class="col-goal">
+                    <span class="val-text">{{ formatVal(mv.goal) }}</span>
+                  </td>
+                  <td class="col-result">
+                    <span class="val-text">{{ formatVal(mv.result) }}</span>
+                  </td>
+                  <td class="col-score" [class]="getScoreClass(mv.score, mv.goal, node.row.weightPercent)">
+                    <span class="score-text">{{ round(mv.score) }}%</span>
+                  </td>
+                </ng-container>
+
+                <td class="col-goal col-quarter">
+                  <span class="val-text">{{ formatVal(node.row.quarterValue.goal) }}</span>
+                </td>
+                <td class="col-result col-quarter">
+                  <span class="val-text">{{ formatVal(node.row.quarterValue.result) }}</span>
+                </td>
+                <td class="col-score col-quarter" [class]="getScoreClass(node.row.quarterValue.score, node.row.quarterValue.goal, node.row.weightPercent)">
+                  <span class="score-text">{{ round(node.row.quarterValue.score) }}%</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </nz-spin>
+    </div>
+
+    <!-- Total Performance -->
+    <div class="report-table-wrapper" *ngIf="summaryData && summaryData.summary">
+      <div class="report-table-header">
+        <span class="report-title">
+          <span nz-icon nzType="trophy" nzTheme="outline"></span>
+          Total Performance
+        </span>
+      </div>
+      <nz-spin [nzSpinning]="loading" nzSize="large">
+        <div class="report-table-scroll">
+          <table class="kpi-report-table kpi-total-table">
+            <thead>
+              <tr class="report-header-row-1">
+                <ng-container *ngFor="let p of summaryData.periods">
+                  <th class="col-report-period-group">{{ p.periodName || p.periodCode }}</th>
+                </ng-container>
+                <th class="col-report-period-group col-report-quarter">
+                  {{ summaryData.quarterName || summaryData.quarterCode }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <ng-container *ngFor="let p of summaryData.periods; let i = index">
+                  <td class="col-report-score" [class]="getScoreClass(getMonthScore(i), 100)">
+                    <span class="score-text">{{ round(getMonthScore(i)) }}%</span>
+                  </td>
+                </ng-container>
+                <td class="col-report-score col-report-quarter" [class]="getScoreClass(summaryData.summary.quarterScore, 100)">
+                  <span class="score-text">{{ round(summaryData.summary.quarterScore) }}%</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </nz-spin>
+    </div>
+
+    <!-- Ranking Table (y hệt kpi-ranking-tab, read-only) -->
+    <ng-container *ngIf="summaryData">
+      <ng-container *ngTemplateOutlet="rankingTableTemplate; context: {
+        data: rankingData,
+        config: rewardConfig,
+        loading: rankingLoading,
+        teamName: ''
+      }"></ng-container>
+    </ng-container>
+
+    <!-- Empty State -->
+    <ng-template #emptyTpl>
+      <div class="empty-state" *ngIf="!loading">
+        <div *ngIf="isMissingSelection()">
+          <span nz-icon nzType="info-circle" nzTheme="outline" class="empty-icon"></span>
+          <p *ngIf="isTeamMode">Vui lòng chọn <strong>nhóm KPI</strong> và <strong>quý</strong> để xem dữ liệu tổng hợp.</p>
+          <p *ngIf="!isTeamMode">Vui lòng chọn <strong>nhân viên</strong> và <strong>quý</strong> để xem dữ liệu tổng hợp.</p>
+        </div>
+        <div *ngIf="!isMissingSelection() && !summaryData && !loading">
+          <span nz-icon nzType="loading" nzTheme="outline" class="empty-icon"></span>
+          <p>Đang tải dữ liệu...</p>
+        </div>
+        <div *ngIf="!isMissingSelection() && summaryData && regularTreeRows.length === 0">
+          <span nz-icon nzType="file-search" nzTheme="outline" class="empty-icon"></span>
+          <p>Không có dữ liệu KPI cho kỳ đã chọn.</p>
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- Loading overlay -->
+    <div class="loading-overlay" *ngIf="loading">
+      <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+      <p>Đang tải dữ liệu tổng hợp KPI...</p>
+    </div>
+
+  </ng-container>
+
+  <!-- ================================================== -->
+  <!-- ALL-TEAMS TAB VIEW (nz-tabset, mỗi tab 1 team)      -->
+  <!-- ================================================== -->
+  <ng-container *ngIf="isAllTeamsMode">
+
+    <!-- ====== GLOBAL APPROVAL BAR (ngoài tabset, áp dụng cho TẤT CẢ team) ====== -->
+    <ng-container *ngIf="teamTabs.length > 0 && hasAnyTabLoaded()">
+      <div class="approval-workflow-bar" style="margin-bottom: 16px;">
+        <div class="approval-workflow-bar__head">
+          <span class="approval-workflow-bar__title">
+            <span nz-icon nzType="audit"></span>
+            Quy trình phê duyệt KPI
+            <nz-tag nzColor="geekblue">Tất cả Team ({{teamTabs.length}})</nz-tag>
+          </span>
+          <div class="approval-workflow-bar__current">
+            <!-- PENDING (bước thấp nhất = 0): chỉ hiện nút duyệt đầu tiên -->
+            <ng-container *ngIf="getAllTeamsMinStepIndex() === 0">
+              <button
+                nz-button
+                nzType="primary"
+                nzSize="small"
+                [nzLoading]="approvingAllTeams"
+                [disabled]="!canApproveAllTeams()"
+                [nz-tooltip]="getApproveAllTeamsDisabledReason() || null"
+                (click)="openApproveAllTeamsConfirm()">
+                <span nz-icon nzType="play-circle"></span>
+                {{ getAllTeamsNextStepLabel() }}
+              </button>
+              <button
+                nz-button
+                nzSize="small"
+                [style.background]="'#fa8c16'"
+                [style.border-color]="'#fa8c16'"
+                [style.color]="'#fff'"
+                [disabled]="!canSendEmailAllTeams()"
+                [nz-tooltip]="getSendEmailAllTeamsDisabledReason() || null"
+                (click)="openEmailAllTeamsConfirm()">
+                <span nz-icon nzType="mail"></span>
+                Gửi mail
+              </button>
+            </ng-container>
+            <!-- Đã có team được duyệt ít nhất 1 bước: hiện cả duyệt và hủy -->
+            <ng-container *ngIf="getAllTeamsMinStepIndex() > 0 && getAllTeamsMinStepIndex() < approvalStepOrder.length - 1">
+              <button
+                nz-button
+                nzType="primary"
+                nzSize="small"
+                [nzLoading]="approvingAllTeams"
+                [disabled]="!canApproveAllTeams()"
+                [nz-tooltip]="getApproveAllTeamsDisabledReason() || null"
+                (click)="openApproveAllTeamsConfirm()">
+                <span nz-icon nzType="check-circle"></span>
+                {{ getAllTeamsNextStepLabel() }}
+              </button>
+              <button
+                nz-button
+                nzDanger
+                nzSize="small"
+                [nzLoading]="approvingAllTeams"
+                [disabled]="!canUnapproveAllTeams()"
+                [nz-tooltip]="getUnapproveAllTeamsDisabledReason() || null"
+                nz-popconfirm
+                nzPopconfirmTitle="Hủy duyệt về bước trước cho tất cả team đang ở bước thấp nhất?"
+                (nzOnConfirm)="onUnapproveAllTeams()">
+                <span nz-icon nzType="rollback"></span>
+                Hủy duyệt ({{getUnapproveableTeamCount()}})
+              </button>
+              <button
+                nz-button
+                nzSize="small"
+                [style.background]="'#fa8c16'"
+                [style.border-color]="'#fa8c16'"
+                [style.color]="'#fff'"
+                [disabled]="!canSendEmailAllTeams()"
+                [nz-tooltip]="getSendEmailAllTeamsDisabledReason() || null"
+                (click)="openEmailAllTeamsConfirm()">
+                <span nz-icon nzType="mail"></span>
+                Gửi mail
+              </button>
+            </ng-container>
+            <!-- Tất cả team HR đã nhận -->
+            <nz-tag *ngIf="getAllTeamsMinStepIndex() >= approvalStepOrder.length - 1" nzColor="success">
+              <span nz-icon nzType="check"></span> Tất cả team: HR đã nhận thông tin
+            </nz-tag>
+          </div>
+        </div>
+
+        <!-- Steps indicator (global) -->
+        <nz-steps
+          [nzCurrent]="getAllTeamsStepIndex() - 1"
+          [nzStatus]="getAllTeamsMinStepIndex() >= approvalStepOrder.length - 1 ? 'finish' : (getAllTeamsMinStepIndex() === 0 ? 'wait' : 'process')"
+          nzSize="small"
+          class="approval-workflow-bar__steps">
+          <nz-step
+            *ngFor="let step of approvalSteps; let sidx = index"
+            [nzTitle]="step.shortLabel"
+            [nzDescription]="getAllTeamsStepStatusText(sidx)"
+            [nzIcon]="step.icon">
+          </nz-step>
+        </nz-steps>
+      </div>
+    </ng-container>
+
+    <!-- ====== TEAM TABS (PrimeNG) ====== -->
+    <p-tabs
+      *ngIf="teamTabs.length > 0; else noTeamTabsTpl"
+      [(value)]="activeTeamTabIndex"
+      class="team-tabset">
+      <p-tablist>
+        <p-tab *ngFor="let tab of teamTabs; let idx = index" [value]="idx">
+          {{ tab.teamName }}
+        </p-tab>
+      </p-tablist>
+      <p-tabpanels>
+        <p-tabpanel *ngFor="let tab of teamTabs; let idx = index" [value]="idx">
+          <nz-spin [nzSpinning]="tab.loading" nzTip="Đang tải dữ liệu team...">
+            <ng-container *ngIf="tab.loaded && tab.summaryData">
+
+            <!-- Tab Ranking (y hệt kpi-ranking-tab, read-only) -->
+            <ng-container *ngTemplateOutlet="rankingTableTemplate; context: {
+              data: tab.rankingData,
+              config: tab.rewardConfig,
+              loading: false,
+              teamName: tab.teamName
+            }"></ng-container>
+
+            <!-- Tab Summary Table (không còn approval bar riêng trong tab) -->
+            <div class="table-wrapper" *ngIf="getTabTreeRows(idx).length > 0">
+              <div class="table-scroll">
+                <table class="kpi-summary-table">
+                  <thead>
+                    <tr class="header-row-1">
+                      <th class="col-index" rowspan="2">Chỉ số KPI</th>
+                      <ng-container *ngFor="let p of tab.summaryData.periods">
+                        <th class="col-period-group" colspan="3">{{ p.periodName || p.periodCode }}</th>
+                      </ng-container>
+                      <th class="col-period-group col-quarter" colspan="3">
+                        {{ tab.summaryData.quarterName || tab.summaryData.quarterCode }}
+                      </th>
+                    </tr>
+                    <tr class="header-row-2">
+                      <ng-container *ngFor="let p of tab.summaryData.periods">
+                        <th class="col-goal">Mục tiêu</th>
+                        <th class="col-result">Kết quả</th>
+                        <th class="col-score">Điểm</th>
+                      </ng-container>
+                      <th class="col-goal col-quarter">Mục tiêu</th>
+                      <th class="col-result col-quarter">Kết quả</th>
+                      <th class="col-score col-quarter">Điểm</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      *ngFor="let node of getTabTreeRows(idx); let rowIndex = index; trackBy: trackByIndex"
+                      [ngClass]="getRowClasses(node.row, rowIndex)"
+                      [class.row-group]="isGroupRow(node.row)"
+                      [class.row-leaf]="!isGroupRow(node.row)">
+                      <td class="col-index">
+                        <div class="index-cell" [style.padding-left.px]="node.level * 18">
+                          <ng-container *ngIf="node.expandable; else leafSpacerTab">
+                            <button
+                              type="button"
+                              class="tree-toggle"
+                              (click)="toggleGroupExpandedForTab(tab, node.row.indexId)"
+                              [attr.aria-label]="node.expanded ? 'Thu gọn' : 'Mở rộng'">
+                              <span class="caret" [class.caret-down]="node.expanded" [class.caret-right]="!node.expanded">▶</span>
+                            </button>
+                          </ng-container>
+                          <ng-template #leafSpacerTab>
+                            <span class="tree-leaf-spacer"></span>
+                          </ng-template>
+                          <span class="index-name" [nz-tooltip]="node.row.indexName">{{ node.row.indexName }}</span>
+                          <span class="weight-badge" *ngIf="node.row.weightPercent > 0">{{ node.row.weightPercent }}%</span>
+                        </div>
+                      </td>
+
+                      <ng-container *ngFor="let mv of node.row.monthlyValues">
+                        <td class="col-goal">
+                          <span class="val-text">{{ formatVal(mv.goal) }}</span>
+                        </td>
+                        <td class="col-result">
+                          <span class="val-text">{{ formatVal(mv.result) }}</span>
+                        </td>
+                        <td class="col-score" [class]="getScoreClass(mv.score, mv.goal, node.row.weightPercent)">
+                          <span class="score-text">{{ round(mv.score) }}%</span>
+                        </td>
+                      </ng-container>
+
+                      <td class="col-goal col-quarter">
+                        <span class="val-text">{{ formatVal(node.row.quarterValue.goal) }}</span>
+                      </td>
+                      <td class="col-result col-quarter">
+                        <span class="val-text">{{ formatVal(node.row.quarterValue.result) }}</span>
+                      </td>
+                      <td class="col-score col-quarter" [class]="getScoreClass(node.row.quarterValue.score, node.row.quarterValue.goal, node.row.weightPercent)">
+                        <span class="score-text">{{ round(node.row.quarterValue.score) }}%</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Tab Total Performance -->
+            <div class="report-table-wrapper" *ngIf="tab.summaryData.summary">
+              <div class="report-table-header">
+                <span class="report-title">
+                  <span nz-icon nzType="trophy" nzTheme="outline"></span>
+                  Total Performance
+                </span>
+              </div>
+              <div class="report-table-scroll">
+                <table class="kpi-report-table kpi-total-table">
+                  <thead>
+                    <tr class="report-header-row-1">
+                      <ng-container *ngFor="let p of tab.summaryData.periods">
+                        <th class="col-report-period-group">{{ p.periodName || p.periodCode }}</th>
+                      </ng-container>
+                      <th class="col-report-period-group col-report-quarter">
+                        {{ tab.summaryData.quarterName || tab.summaryData.quarterCode }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <ng-container *ngFor="let p of tab.summaryData.periods; let pi = index">
+                        <td class="col-report-score" [class]="getScoreClass(getTabMonthScore(idx, pi), 100)">
+                          <span class="score-text">{{ round(getTabMonthScore(idx, pi)) }}%</span>
+                        </td>
+                      </ng-container>
+                      <td class="col-report-score col-report-quarter" [class]="getScoreClass(tab.summaryData.summary.quarterScore, 100)">
+                        <span class="score-text">{{ round(tab.summaryData.summary.quarterScore) }}%</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </ng-container>
+        </nz-spin>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+
+    <ng-template #noTeamTabsTpl>
+      <div class="empty-state">
+        <span nz-icon nzType="info-circle" nzTheme="outline" class="empty-icon"></span>
+        <p>Vui lòng chọn <strong>quý</strong> để xem dữ liệu tất cả team.</p>
+      </div>
+    </ng-template>
+  </ng-container>
+
+</div>
+
+<!-- ========================================================== -->
+<!-- TEMPLATE: RANKING TABLE (y hệt kpi-ranking-tab, read-only) -->
+<!-- ========================================================== -->
+<ng-template #rankingTableTemplate let-data="data" let-config="config" let-loading="loading" let-teamName="teamName">
+  <div class="kpi-ranking-page" style="padding: 0; margin-top: 24px;">
+
+    <!-- Reward Config Info -->
+    <!-- <div class="reward-config-info" *ngIf="config">
+      <span class="config-item">
+        <strong>Cấu hình:</strong> {{ config.configName }}
+      </span>
+      <span class="config-item">
+        <strong>Tỷ lệ thưởng:</strong> {{ (config.rewardRate * 100).toFixed(1) }}%
+      </span>
+      <span class="config-item">
+        <strong>Thưởng Rank 1:</strong> {{ formatMoney(config.rank1BonusAmount) }}
+      </span>
+      <span class="config-item" [pTooltip]="
+          config.employeeType === 'PM' || config.employeeType === 'ADMIN'
+            ? 'Cột Tiền về — chỉ PM và Admin dùng để tính thưởng'
+            : 'Cột Tiền về — không áp dụng cho Sales/Leader (dùng cột Doanh số tiền về)'"
+        tooltipPosition="top">
+        <strong>Tiền về <small class="config-hint">(dùng cho PM/Admin)</small>:</strong>
+        <ng-container *ngIf="config.salesAmountKpiIndexId; else noSA">
+          <nz-tag nzColor="blue">{{ config.salesAmountKpiIndexCode }}</nz-tag>
+        </ng-container>
+        <ng-template #noSA>
+          <span class="auto-label">(không sử dụng)</span>
+        </ng-template>
+      </span>
+      <span class="config-item" [pTooltip]="
+          config.employeeType === 'SALES' || config.employeeType === 'SALES_LEADER'
+            ? 'Cột Doanh số tiền về — Sales và Sales Leader dùng để tính thưởng'
+            : 'Cột Doanh số tiền về — không áp dụng cho PM/Admin (dùng cột Tiền về)'"
+        tooltipPosition="top">
+        <strong>Doanh số tiền về <small class="config-hint">(dùng cho Sales/Leader)</small>:</strong>
+        <ng-container *ngIf="config.revenueKpiIndexId; else noRV">
+          <nz-tag nzColor="cyan">{{ config.revenueKpiIndexCode }}</nz-tag>
+        </ng-container>
+        <ng-template #noRV>
+          <span class="auto-label">(không sử dụng)</span>
+        </ng-template>
+      </span>
+      <span class="config-item">
+        <strong>Thưởng New Account:</strong> {{ formatMoney(config.newAccountBonusAmount) }}/account
+        <ng-container *ngIf="config.newAccountKpiIndexId; else autoNA">
+          &nbsp;<nz-tag nzColor="purple">{{ config.newAccountKpiIndexCode }}</nz-tag>
+        </ng-container>
+        <ng-template #autoNA>
+          &nbsp;<span class="auto-label">(tự động theo tên)</span>
+        </ng-template>
+      </span>
+    </div> -->
+
+    <!-- Tổng doanh số & Tổng thưởng doanh số cả team -->
+    <div class="ranking-section-wrapper">
+    <!-- Ranking Table -->
+    <!-- <div class="section-label" style="margin: 0 0 8px 0; font-weight: 600; font-size: 14px; color: #1890ff;">
+      <span nz-icon nzType="trophy" nzTheme="outline" style="margin-right: 6px;"></span>
+      {{ teamName }}
+    </div> -->
+    <div class="reward-config-info team-revenue-summary" *ngIf="config && config.revenueKpiIndexId && data.length > 0">
+      <span class="config-item">
+        <strong>Tổng doanh số cả team: </strong>
+        <span class="money-value">{{ formatMoney(getTeamTotalRevenue(data)) }}</span>
+      </span>
+      <span class="config-item">
+        <strong>Tổng thưởng doanh số cả team: </strong>
+        <strong class="money-value highlight">{{ formatMoney(getTeamRevenueBonus(data, config)) }}</strong>
+      </span>
+    </div>
+
+    <nz-spin [nzSpinning]="loading" nzTip="Đang tải ranking...">
+      <div class="ranking-table-container">
+        <p-table #rankingTable [value]="data" [paginator]="false"
+          [scrollable]="true" scrollHeight="flex"
+          [tableStyle]="{ 'min-width': '1800px' }"
+          styleClass="p-datatable-sm reward-ranking-grid"
+          [loading]="loading"
+          [resizableColumns]="true"
+          [reorderableColumns]="false">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width:50px" class="col-center">STT</th>
+              <th style="width:80px">Mã NV</th>
+              <th style="width:160px">Tên nhân viên</th>
+              <th style="width:120px" class="col-center">Vị trí</th>
+              <th *ngIf="hasPmOrAdminRow(data)" style="width:130px" class="col-money">
+                <span pTooltip="Cột Tiền về — dùng để tính thưởng cho PM và Admin theo công thức: RewardRate × Hệ số × Tiền về"
+                      tooltipPosition="top">
+                  Tiền về <i nz-icon nzType="info-circle" nzTheme="outline" class="header-hint"></i>
+                </span>
+              </th>
+              <th *ngIf="hasSalesRow(data)" style="width:140px" class="col-money">
+                <span pTooltip="Cột Doanh số tiền về — dùng để tính thưởng cho Sales &amp; Sales Leader theo công thức: Hệ số × (Tổng thưởng DS cả team / Tổng hệ số cả team)"
+                      tooltipPosition="top">
+                  Doanh số tiền về <i nz-icon nzType="info-circle" nzTheme="outline" class="header-hint"></i>
+                </span>
+              </th>
+              <th style="width:100px" class="col-money">Performance</th>
+              <th style="width:80px" class="col-center">Hệ số</th>
+              <th style="width:110px" class="col-center">Rank</th>
+              <th style="width:130px" class="col-money">Thưởng DS</th>
+              <th style="width:130px" class="col-money">Thưởng Rank</th>
+              <th style="width:90px" class="col-center">New AC</th>
+              <th style="width:130px" class="col-money">Thưởng N.A</th>
+              <th style="width:150px" class="col-money">Tổng thưởng</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row let-i="rowIndex">
+            <tr [class.leader-row]="row.positionType === 'SALES_LEADER' || row.positionType === 'LEADER'">
+              <td class="col-center">{{ i + 1 + (rankingTable.first ?? 0) }}</td>
+              <td>{{ row.employeeCode }}</td>
+              <td><strong>{{ row.employeeName }}</strong></td>
+              <td class="col-center">
+                <p-tag [value]="row.positionType" [severity]="getPrimeSeverity(row.positionType)"></p-tag>
+              </td>
+              <td *ngIf="hasPmOrAdminRow(data)" class="col-money">
+                <span class="money-value">{{ formatMoney(row.totalSalesAmount) }}</span>
+              </td>
+              <td *ngIf="hasSalesRow(data)" class="col-money">
+                <span class="money-value">{{ formatMoney(row.totalRevenue) }}</span>
+              </td>
+              <td class="col-money">
+                <span class="percent-value"
+                  [class.high-achievement]="row.achievementPercent >= 100"
+                  [class.mid-achievement]="row.achievementPercent >= 80 && row.achievementPercent < 100"
+                  [class.low-achievement]="row.achievementPercent < 80">
+                  {{ formatPercent(row.achievementPercent) }}
+                </span>
+              </td>
+              <td class="col-center">
+                <p-tag [value]="formatCoefficient(row.coefficient)" severity="info"></p-tag>
+              </td>
+              <td class="col-center">
+                <p-tag *ngIf="row.rank" [value]="getRankTagText(row.rank)"
+                  [severity]="getPrimeRankSeverity(row.rank)"></p-tag>
+                <span *ngIf="!row.rank" class="text-muted">-</span>
+              </td>
+              <td class="col-money">
+                <span class="bonus-value">{{ formatMoney(row.salesBonusAmount) }}</span>
+              </td>
+              <td class="col-money">
+                <span class="bonus-value ranking-bonus"
+                  [class.has-bonus]="row.rankingBonusAmount > 0">
+                  {{ formatMoney(row.rankingBonusAmount) }}
+                </span>
+              </td>
+              <td class="col-center">
+                <span *ngIf="row.newAccountCount > 0" class="new-account-count">
+                  {{ row.newAccountCount }}
+                </span>
+                <span *ngIf="row.newAccountCount === 0" class="text-muted">-</span>
+              </td>
+              <td class="col-money">
+                <span class="bonus-value">{{ formatMoney(row.newAccountBonus) }}</span>
+              </td>
+              <td class="col-money">
+                <strong class="total-bonus">{{ formatMoney(row.totalBonus) }}</strong>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="footer">
+            <tr>
+              <td [attr.colspan]="getFooterColspan(data)" class="col-money"><strong>Tổng cộng:</strong></td>
+              <td class="col-money">
+                <strong class="money-value">{{ formatMoney(getTotalSalesBonus(data)) }}</strong>
+              </td>
+              <td class="col-money">
+                <strong class="money-value">{{ formatMoney(getTotalRankingBonus(data)) }}</strong>
+              </td>
+              <td></td>
+              <td class="col-money">
+                <strong class="money-value">{{ formatMoney(getTotalNewAccountBonus(data)) }}</strong>
+              </td>
+              <td class="col-money">
+                <strong class="total-bonus">{{ formatMoney(getTotalBonus(data)) }}</strong>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [attr.colspan]="getVisibleColumnCount(data)" class="empty-row">
+                Chưa có dữ liệu ranking cho kỳ này.
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </nz-spin>
+    </div>
+  </div>
+</ng-template>
+
+<!-- ========================================================== -->
+<!-- MODAL: XÁC NHẬN DUYỆT (single mode) -->
+<!-- ========================================================== -->
+<nz-modal
+  [(nzVisible)]="approveModalVisible"
+  nzTitle="Xác nhận phê duyệt"
+  [nzOkLoading]="approving"
+  (nzOnCancel)="approveModalVisible = false"
+  (nzOnOk)="onApprove()"
+  [nzOkText]="'Xác nhận duyệt'"
+  [nzCancelText]="'Hủy'">
+  <ng-container *nzModalContent>
+    <p>
+      Bạn đang duyệt bước
+      <strong>{{ getNextStepLabel() }}</strong>
+      cho
+      <strong>{{ isTeamMode ? 'Team: ' + getTeamName() : 'Nhân viên: ' + getEmployeeName() }}</strong>
+      - Kỳ: <strong>{{ summaryData?.quarterName || summaryData?.quarterCode }}</strong>
+    </p>
+    <nz-form-item>
+      <nz-form-label>Ghi chú (tùy chọn)</nz-form-label>
+      <nz-form-control>
+        <textarea
+          nz-input
+          [(ngModel)]="approveNote"
+          rows="3"
+          placeholder="Nhập ghi chú cho bước duyệt này..."></textarea>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-alert
+      *ngIf="currentScope === 'TEAM'"
+      nzType="info"
+      nzMessage="Duyệt Team"
+      nzDescription="Khi duyệt, tất cả thành viên hiện tại của team sẽ được duyệt theo."></nz-alert>
+    <nz-alert
+      *ngIf="getNextStepLabel() === 'Admin' && currentApproval === null"
+      nzType="warning"
+      nzMessage="Lưu ý"
+      nzDescription="Sau khi Admin duyệt, toàn bộ tính KPI và sửa Target cho quý này sẽ bị khóa (theo cả 3 tháng trong quý)."></nz-alert>
+  </ng-container>
+</nz-modal>
+
+<!-- ========================================================== -->
+<!-- MODAL: GỬI EMAIL YÊU CẦU DUYỆT (single mode) -->
+<!-- ========================================================== -->
+<nz-modal
+  [(nzVisible)]="emailModalVisible"
+  nzTitle="Gửi email yêu cầu duyệt KPI"
+  [nzOkLoading]="sendingEmail"
+  (nzOnCancel)="emailModalVisible = false"
+  (nzOnOk)="onSendEmail()"
+  [nzOkText]="'Gửi email'"
+  [nzCancelText]="'Hủy'">
+  <ng-container *nzModalContent>
+    <nz-alert nzType="info" nzMessage="Gửi email yêu cầu duyệt"
+      [nzDescription]="'Hệ thống sẽ gửi email thông báo đến người có quyền duyệt bước tiếp theo: ' + getNextStepLabelForEmail()"></nz-alert>
+    <br>
+    <p>
+      Gửi email yêu cầu duyệt bước
+      <strong>{{ getNextStepLabelForEmail() }}</strong>
+      cho
+      <strong>{{ isTeamMode ? 'Team: ' + getTeamName() : 'Nhân viên: ' + getEmployeeName() }}</strong>
+      - Kỳ: <strong>{{ summaryData?.quarterName || summaryData?.quarterCode }}</strong>
+    </p>
+    <nz-form-item>
+      <nz-form-label>Ghi chú (tùy chọn)</nz-form-label>
+      <nz-form-control>
+        <textarea
+          nz-input
+          [(ngModel)]="emailNote"
+          rows="3"
+          placeholder="Nhập ghi chú cho email..."></textarea>
+      </nz-form-control>
+    </nz-form-item>
+  </ng-container>
+</nz-modal>
+
+<!-- ========================================================== -->
+<!-- MODAL: XÁC NHẬN DUYỆT TẤT CẢ TEAM -->
+<!-- ========================================================== -->
+<nz-modal
+  [(nzVisible)]="tabApproveModalVisible"
+  nzTitle="Xác nhận phê duyệt tất cả team"
+  [nzOkLoading]="approvingAllTeams"
+  (nzOnCancel)="tabApproveModalVisible = false"
+  (nzOnOk)="onApproveAllTeams()"
+  [nzOkText]="'Duyệt tất cả team'"
+  [nzCancelText]="'Hủy'">
+  <ng-container *nzModalContent>
+    <nz-alert nzType="warning" nzMessage="Duyệt tất cả team" nzDescription="Bạn đang duyệt cùng lúc cho các team đang ở bước thấp nhất. Thao tác sẽ đồng bộ dần các team."></nz-alert>
+    <br>
+    <p>
+      Bước hiện tại: <strong>{{ getAllTeamsNextStepLabel() }}</strong>
+      &nbsp;&mdash;&nbsp;
+      Số team sẽ duyệt: <strong>{{ getApproveableTeamCount() }}</strong>
+    </p>
+    <p>Danh sách team:</p>
+    <ul>
+      <li *ngFor="let tab of teamTabs" [style.color]="getTeamWillApproveColor(tab)">
+        <strong>{{ tab.teamName }}</strong>
+        <nz-tag *ngIf="tab.currentApproval?.CurrentStep === 'P5_HR_DISBURSE'" nzColor="success" style="margin-left: 8px;">HR đã nhận TT</nz-tag>
+        <nz-tag *ngIf="tab.currentApproval?.CurrentStep !== 'P5_HR_DISBURSE' && getTeamWillApprove(tab)" nzColor="blue" style="margin-left: 8px;">Sẽ duyệt</nz-tag>
+        <nz-tag *ngIf="tab.currentApproval?.CurrentStep !== 'P5_HR_DISBURSE' && !getTeamWillApprove(tab)" nzColor="default" style="margin-left: 8px;">
+          {{ getCurrentStepLabel(getTeamStepIndex(tab) > 0 ? tab.currentApproval?.CurrentStep : null) }}
+        </nz-tag>
+        <span *ngIf="!tab.currentApproval" style="margin-left: 8px; color: #888;">(chưa bắt đầu)</span>
+      </li>
+    </ul>
+    <nz-alert nzType="info" nzMessage="Duyệt Team" nzDescription="Khi duyệt, tất cả thành viên hiện tại của mỗi team sẽ được duyệt theo."></nz-alert>
+    <br>
+    <nz-form-item>
+      <nz-form-label>Ghi chú (tùy chọn)</nz-form-label>
+      <nz-form-control>
+        <textarea
+          nz-input
+          [(ngModel)]="tabApproveNote"
+          rows="3"
+          placeholder="Nhập ghi chú cho bước duyệt này..."></textarea>
+      </nz-form-control>
+    </nz-form-item>
+  </ng-container>
+</nz-modal>

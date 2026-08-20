@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -126,14 +127,26 @@ export class KpiSummaryComponent implements OnInit {
   // Mặc định mở rộng tất cả.
   private expandedGroups = new Set<number>();
 
+  // Query params from route
+  private _queryParams: { periodId: number | null; teamId: number | null } = { periodId: null, teamId: null };
+
   constructor(
     private kpiSummaryService: KpiSummaryService,
     private notification: NzNotificationService,
     private permissionService: PermissionService,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
+    // Lưu query params để apply sau khi loadInitialData xong
+    this.route.queryParams.subscribe(params => {
+      this._queryParams = {
+        periodId: params['periodId'] ? parseInt(params['periodId'], 10) : null,
+        teamId: params['teamId'] ? parseInt(params['teamId'], 10) : null
+      };
+    });
+
     this.loadInitialData();
   }
 
@@ -147,6 +160,20 @@ export class KpiSummaryComponent implements OnInit {
         if (result.employees.status === 1) this.employees = result.employees.data || [];
         if (result.periods.status === 1) this.periods = result.periods.data || [];
         if (result.teams.status === 1) this.teams = result.teams.data || [];
+
+        // Apply query params from route (email deep link): auto-select period and team
+        if (this._queryParams.periodId && this.periods.some(p => p.id === this._queryParams.periodId)) {
+          this.selectedQuarterId = this._queryParams.periodId;
+        }
+        if (this._queryParams.teamId && this.teams.some(t => t.id === this._queryParams.teamId)) {
+          this.selectedTeamId = this._queryParams.teamId;
+          this.isTeamMode = true; // Bật team mode khi có teamId
+        }
+
+        // Auto load summary nếu đã có đủ params từ query
+        if (this.selectedQuarterId && (this.selectedEmployeeId || this.selectedTeamId)) {
+          this.loadSummary();
+        }
       },
       error: () => this.notification.error('Lỗi', 'Không tải được dữ liệu ban đầu')
     });

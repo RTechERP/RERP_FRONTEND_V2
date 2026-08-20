@@ -1277,7 +1277,8 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     if (this.selectedVehicles && this.selectedVehicles.length > 0) {
       const firstVehicle = this.selectedVehicles[0];
       dto.employeeBussinessVehicle = {
-        ID: 0,
+        // NDNhat Update 04/08/2026 (fix bug): trước đây hardcode ID: 0,
+        ID: firstVehicle.vehicleItemID || 0,
         EmployeeBussinesID: data[0].ID || 0,
         EmployeeVehicleBussinessID: firstVehicle.vehicleId || 0,
         Cost: firstVehicle.cost || 0,
@@ -1355,7 +1356,10 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
         employeeBussiness: null,
         employeeBussinessFiles: null,
         employeeBussinessVehicle: {
-          ID: 0,
+          // NDNhat Update 04/08/2026 (fix bug): dùng lại vehicleItemID nếu có, giống fix ở
+          // saveDataEmployeeWithFile() — tránh tạo trùng bản ghi khi sửa công tác đã có sẵn
+          // nhiều phương tiện.
+          ID: vehicle.vehicleItemID || 0,
           EmployeeBussinesID: bussinessID,
           EmployeeVehicleBussinessID: vehicle.vehicleId || 0,
           Cost: vehicle.cost || 0,

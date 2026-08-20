@@ -63,7 +63,37 @@
 
 :host ::ng-deep .slick-cell {
   font-size: 12px;
-  padding: 4px 6px;
+  white-space: normal !important;
+  text-overflow: clip !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  line-height: 18px !important;
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
+  padding-left: 6px !important;
+  padding-right: 6px !important;
+}
+
+:host ::ng-deep .slick-cell>span,
+:host ::ng-deep .slick-cell>div,
+:host ::ng-deep .slick-cell>span>span,
+:host ::ng-deep .slick-cell>div>div {
+  white-space: normal !important;
+  text-overflow: clip !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  overflow: hidden !important;
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+}
+
+/* Editor và checkbox selector không được wrap, giữ nguyên hành vi cũ */
+:host ::ng-deep .slick-cell.editable,
+:host ::ng-deep .slick-cell.slick-cell-checkboxsel,
+:host ::ng-deep .slick-cell input,
+:host ::ng-deep .slick-cell select,
+:host ::ng-deep .slick-cell .ms-choice {
+  white-space: nowrap !important;
 }
 
 :host ::ng-deep .slick-cell.text-right {

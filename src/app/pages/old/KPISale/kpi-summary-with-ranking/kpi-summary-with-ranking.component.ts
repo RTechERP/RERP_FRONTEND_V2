@@ -564,9 +564,10 @@ export class KpiSummaryWithRankingComponent implements OnInit {
       approveNote: '',
     }));
     this.activeTeamTabIndex = 0;
-    
-    // Load ALL data for ALL teams immediately (no lazy loading)
-    this.loadAllTeamsData();
+
+    // Auto-recalc ranking cho cả kỳ rồi load ALL teams data
+    // → đảm bảo bảng ranking của mỗi team tab luôn hiển thị data mới nhất
+    void this.ensureRankingLoadedForAllTeamsMode();
   }
 
   onTeamTabChange(index: number): void {
@@ -778,7 +779,8 @@ export class KpiSummaryWithRankingComponent implements OnInit {
             res.data.warnings.slice(0, 3).forEach((w: string) => this.notification.warning('Cảnh báo', w));
           }
           this.loadApprovalStatus();
-          this.loadRankingForCurrentSelection();
+          // Auto-recalc ranking cho kỳ này (F5 / đổi NV) rồi load data mới nhất
+          void this.ensureRankingLoadedForSingleMode();
         } else {
           this.notification.error('Lỗi', res.message || 'Không lấy được dữ liệu tổng hợp');
         }
@@ -808,7 +810,8 @@ export class KpiSummaryWithRankingComponent implements OnInit {
           this.summaryData = res.data;
           this.resetExpandedGroups();
           this.loadApprovalStatus();
-          this.loadRankingForCurrentSelection();
+          // Auto-recalc ranking cho kỳ này (F5 / đổi team) rồi load data mới nhất
+          void this.ensureRankingLoadedForSingleMode();
         } else {
           this.notification.error('Lỗi', res.message || 'Không lấy được dữ liệu tổng hợp nhóm');
         }
@@ -824,7 +827,7 @@ export class KpiSummaryWithRankingComponent implements OnInit {
     console.log('🔍 loadRankingForCurrentSelection called');
     console.log('selectedQuarterId:', this.selectedQuarterId);
     console.log('boundTemplateId:', this.boundTemplateId);
-    
+
     if (!this.selectedQuarterId || !this.boundTemplateId) {
       console.log('❌ Missing quarterId or boundTemplateId');
       this.rankingData = [];
@@ -864,8 +867,8 @@ export class KpiSummaryWithRankingComponent implements OnInit {
       ]);
 
       console.log('📊 getRankingResult response:', rankingRes);
-      console.log('🎁 getRewardConfig response:', rewardRes);
-      
+      console.log('� getRewardConfig response:', rewardRes);
+
       if (rankingRes.status === 1 && rankingRes.data) {
         console.log('✅ Ranking data received:', rankingRes.data.length, 'rows');
         this.rankingData = this.svc.mapRankingRows(rankingRes.data);
@@ -885,6 +888,130 @@ export class KpiSummaryWithRankingComponent implements OnInit {
     } finally {
       this.rankingLoading = false;
     }
+  }
+
+  /**
+   * Auto-recalc ranking cho cả kỳ rồi load lại data cho single mode
+   * (chọn 1 nhân viên hoặc 1 team cụ thể).
+   * Gọi khi: F5/lần đầu vào trang, đổi quý, đ�i NV/team.
+   * Lưu ý: backend `CalculateRanking` tính cho toàn kỳ (bỏ qua teamCode),
+   * nên dù chọn 1 team/employee FE vẫn nhận đúng data của họ.
+   */
+  async ensureRankingLoadedForSingleMode(): Promise<void> {
+    if (!this.selectedQuarterId || !this.boundTemplateId) {
+      return;
+    }
+
+    let teamCode: string | null = null;
+    if (this.isTeamMode && this.selectedTeamId && this.selectedTeamId !== ALL_TEAMS) {
+      teamCode = this.svc.resolveTeamCodeById(this.selectedTeamId, this.teams);
+    } else if (!this.isTeamMode && this.selectedEmployeeId) {
+      const teamInfo = this.svc.findTeamOfEmployee(this.selectedEmployeeId, this.teams);
+      teamCode = teamInfo?.teamCode ?? null;
+    }
+
+    if (!teamCode) {
+      return;
+    }
+
+    const params = {
+      periodId: this.selectedQuarterId,
+      templateId: this.boundTemplateId,
+      teamCode,
+    };
+
+    try {
+      const res = await firstValueFrom(this.svc.calculateRanking(params));
+      if (res?.status === 1) {
+        // Recalc thành công → load lại data mới nhất
+        await this.loadRankingForCurrentSelection();
+      } else {
+        const msg = res?.message || 'Tính ranking thất bại';
+        if (msg.includes('Không có dữ liệu KPI')) {
+          this.notification.warning(
+            'Cảnh báo',
+            `Kỳ ${this.selectedQuarterId} chưa có dữ liệu KPI — vui lòng tính KPI ở tab Target trước`
+          );
+        } else {
+          this.notification.warning('Cảnh báo', `Không tự động tính được ranking: ${msg}`);
+        }
+        // V�n load thử data cũ để không làm trống bảng đột ngột
+        await this.loadRankingForCurrentSelection();
+      }
+    } catch (err: any) {
+      console.error('Auto-recalc ranking (single mode) error:', err);
+      const msg = err?.message || 'Lỗi không xác định';
+      if (msg.includes('Không có dữ liệu KPI')) {
+        this.notification.warning(
+          'Cảnh báo',
+          `Kỳ ${this.selectedQuarterId} chưa có dữ liệu KPI — vui lòng tính KPI � tab Target trước`
+        );
+      } else {
+        this.notification.warning('Cảnh báo', `Không tự động tính được ranking: ${msg}`);
+      }
+      // Vẫn load thử data cũ
+      await this.loadRankingForCurrentSelection();
+    }
+  }
+
+  /**
+   * Auto-recalc ranking cho cả kỳ rồi reload lại data cho all-teams tab mode.
+   * Mỗi tab sẽ tự load ranking của team mình từ DB sau khi recalc xong.
+   */
+  async ensureRankingLoadedForAllTeamsMode(): Promise<void> {
+    if (!this.selectedQuarterId || this.teamTabs.length === 0) {
+      return;
+    }
+
+    const period = this.periods.find(p => p.id === this.selectedQuarterId);
+    const periodValue = period?.periodCode || '';
+
+    // Lấy templateId đầu tiên trong teamTemplates (vì backend tính cho toàn kỳ, không cần chính xác template)
+    const firstTemplate = this.teamTemplates.find((tt: any) => {
+      const active = tt.IsActive ?? tt.isActive;
+      return active !== false;
+    });
+    const fallbackTemplateId = firstTemplate
+      ? (firstTemplate.TemplateID ?? firstTemplate.templateId ?? firstTemplate.ID ?? 0)
+      : 0;
+
+    // Recalc 1 lần cho toàn kỳ (backend bỏ qua teamCode) - dùng templateId bất kỳ của kỳ này
+    if (fallbackTemplateId > 0) {
+      try {
+        const res = await firstValueFrom(
+          this.svc.calculateRanking({
+            periodId: this.selectedQuarterId,
+            templateId: fallbackTemplateId,
+            teamCode: undefined,
+          })
+        );
+        if (res?.status !== 1) {
+          const msg = res?.message || '';
+          if (msg.includes('Không có dữ liệu KPI')) {
+            this.notification.warning(
+              'Cảnh báo',
+              `Kỳ ${this.selectedQuarterId} chưa có dữ liệu KPI — vui lòng tính KPI ở tab Target trước`
+            );
+          } else if (msg) {
+            this.notification.warning('Cảnh báo', `Không tự động tính được ranking: ${msg}`);
+          }
+        }
+      } catch (err: any) {
+        console.error('Auto-recalc ranking (all-teams mode) error:', err);
+        const msg = err?.message || 'Lỗi không xác định';
+        if (msg.includes('Không có dữ liệu KPI')) {
+          this.notification.warning(
+            'Cảnh báo',
+            `Kỳ ${this.selectedQuarterId} chưa có dữ liệu KPI — vui lòng tính KPI ở tab Target trước`
+          );
+        } else {
+          this.notification.warning('Cảnh báo', `Không tự động tính được ranking: ${msg}`);
+        }
+      }
+    }
+
+    // Sau khi recalc (hoặc nếu không có template nào), reload từng tab để lấy data mới nhất
+    await this.loadAllTeamsData();
   }
 
   private calculateRankings(): void {

@@ -120,6 +120,11 @@ export class KpiRankingTabComponent implements OnInit {
       if (this.selectedPeriodId) {
         await this.resolveTeamTemplate();
       }
+      // Auto-recalc ranking cho kỳ mặc định (F5 / lần đầu vào tab)
+      // → đảm bảo bảng luôn hiển thị data mới nhất, không cần bấm nút
+      if (this.selectedPeriodId && this.selectedTemplateId) {
+        await this.ensureRankingLoaded();
+      }
     } finally {
       this.isLoading = false;
     }
@@ -318,6 +323,60 @@ export class KpiRankingTabComponent implements OnInit {
     }
   }
 
+  /**
+   * Auto-recalc ranking cho cả kỳ (tất cả team) rồi reload lại data.
+   * Dùng khi đổi Kỳ/Team, lần đầu vào tab, hoặc F5 — đảm bảo bảng luôn
+   * hiển thị dữ liệu mới nhất mà không cần bấm nút "Tính Ranking".
+   *
+   * Lưu ý: backend `CalculateRanking` hiện tính cho toàn bộ kỳ (bỏ qua teamCode),
+   * nên dù đổi team FE vẫn nhận đúng dữ liệu của team đó khi load lại.
+   */
+  async ensureRankingLoaded(): Promise<void> {
+    if (!this.selectedPeriodId || !this.selectedTemplateId) {
+      return;
+    }
+
+    // Nếu đã có ranking cho kỳ này → chỉ cần load lại, không tính lại
+    // (tránh recalc liên tục khi user chỉ đổi team nhưng data không đổi).
+    // Tuy nhiên, để đảm bảo luôn có data mới nhất khi F5 → luôn recalc.
+    this.isLoading = true;
+    try {
+      const response = await firstValueFrom(
+        this.kpiSaleService.calculateRanking({
+          periodId: this.selectedPeriodId,
+          templateId: this.selectedTemplateId,
+          teamCode: this.selectedTeamCode || undefined,
+        })
+      );
+      if (response?.status === 1) {
+        await this.loadRankingData();
+      } else {
+        // Backend trả về status != 1 (vd: "Không có dữ liệu KPI để tính ranking")
+        // → giữ nguyên dữ liệu cũ (nếu có) hoặc load rỗng
+        this.isLoading = false;
+        const msg = response?.message || 'Tính ranking thất bại';
+        if (msg.includes('Không có dữ liệu KPI')) {
+          this.notification.warning('Cảnh báo', `Kỳ ${this.selectedPeriodId} chưa có dữ liệu KPI — vui lòng tính KPI ở tab Target trước`);
+        } else {
+          this.notification.error('Lỗi', msg);
+        }
+        // Vẫn load thử để hiển thị data cũ (nếu có)
+        await this.loadRankingData();
+      }
+    } catch (error: any) {
+      console.error('Auto calculate ranking error:', error);
+      this.isLoading = false;
+      const msg = error?.error?.message || error?.message || 'Không thể tính Ranking';
+      if (msg.includes('Không có dữ liệu KPI')) {
+        this.notification.warning('Cảnh báo', `Kỳ ${this.selectedPeriodId} chưa có dữ liệu KPI — vui lòng tính KPI ở tab Target trước`);
+      } else {
+        this.notification.error('Lỗi', msg);
+      }
+      // Vẫn thử load data cũ
+      await this.loadRankingData();
+    }
+  }
+
   calculateRankings(): void {
     const salesStaff = this.rankingData.filter((r) => r.positionType === 'SALES_STAFF');
     salesStaff.sort((a, b) => b.achievementPercent - a.achievementPercent);
@@ -442,13 +501,14 @@ export class KpiRankingTabComponent implements OnInit {
   }
 
   /**
-   * Gọi khi user đổi Kỳ KPI hoặc Team → tự động resolve template phù hợp và load data
+   * Gọi khi user đổi Kỳ KPI hoặc Team → tự động resolve template phù hợp và auto-recalc ranking.
+   * Auto-recalc đảm bảo bảng luôn hiển thị data mới nhất cho kỳ/team đang chọn
+   * mà không cần user bấm "Tính Ranking" thủ công.
    */
   async onPeriodOrTeamChange(): Promise<void> {
     await this.resolveTeamTemplate();
-    // Auto load ranking data sau khi resolve template
     if (this.selectedPeriodId && this.selectedTemplateId) {
-      await this.loadRankingData();
+      await this.ensureRankingLoaded();
     }
   }
 

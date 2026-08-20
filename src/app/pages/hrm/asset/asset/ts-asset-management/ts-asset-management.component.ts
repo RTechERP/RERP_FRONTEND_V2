@@ -860,13 +860,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             this.department.length > 0
                 ? this.department.join(',')
                 : '';
-
+        const statusString =
+            this.status.length > 0 ? this.status.join(',') : '0,1,2,3,4,5,6,7,8';
         const request = {
             filterText: this.filterText || '',
             pageNumber: 1,
             pageSize: 9999999,
             dateStart: this.dateStart || '2024-05-22',
             dateEnd: this.dateEnd || '2027-05-22',
+            status: statusString,
             department: departmentString,
         };
 

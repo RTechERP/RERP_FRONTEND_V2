@@ -122,7 +122,8 @@
                                                             <nz-list nzSize="small">
                                                                 @for (project of filteredProjectsForPopover; track
                                                                 project.ID) {
-                                                                <nz-list-item [id]="'project-item-' + project.ID" class="employee-item"
+                                                                <nz-list-item [id]="'project-item-' + project.ID"
+                                                                    class="employee-item"
                                                                     (click)="selectProject(project)"
                                                                     [class.selected-project]="selectedProjectId === project.ID"
                                                                     style="cursor: pointer; padding: 8px 12px;">
@@ -178,10 +179,6 @@
                                                                             style="width: 18px;"
                                                                             class="flex-shrink-0"></span>
 
-                                                                        <!-- Node type icon -->
-                                                                        <i class="fa-regular fa-folder-open text-warning flex-shrink-0 mt-0.5 me-1"
-                                                                            *ngIf="pt.hasChildren"
-                                                                            style="font-size: 12px;"></i>
                                                                         <div
                                                                             class="d-flex align-items-center flex-grow-1 min-w-0 justify-content-between">
                                                                             <div
@@ -190,7 +187,7 @@
                                                                                 <i *ngIf="!pt.ParentID"
                                                                                     class="fa-regular fa-folder-open text-primary me-2 flex-shrink-0"
                                                                                     style="font-size: 13px;"
-                                                                                    title="Công việc gốc"></i>
+                                                                                    title="Công việc cha"></i>
                                                                                 <i *ngIf="pt.ParentID"
                                                                                     class="fa-regular fa-circle-dot text-muted me-2 flex-shrink-0"
                                                                                     style="font-size: 11px;"

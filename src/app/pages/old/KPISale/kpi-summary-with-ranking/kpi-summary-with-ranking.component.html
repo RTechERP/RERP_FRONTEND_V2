@@ -109,6 +109,7 @@
                 Hủy duyệt
               </button>
               <button
+                *ngIf="currentApproval.CurrentStep !== 'PENDING'"
                 nz-button
                 nzSize="small"
                 [style.background]="'#fa8c16'"
@@ -137,19 +138,6 @@
               (click)="openApproveConfirm()">
               <span nz-icon nzType="play-circle"></span>
               Duyệt (Admin)
-            </button>
-            <button
-              nz-button
-              nzSize="small"
-              [style.background]="'#fa8c16'"
-              [style.border-color]="'#fa8c16'"
-              [style.color]="'#fff'"
-              [nzLoading]="sendingEmail"
-              [disabled]="!canSendEmail()"
-              [nz-tooltip]="getSendEmailDisabledReason() || null"
-              (click)="openEmailConfirm()">
-              <span nz-icon nzType="mail"></span>
-              Gửi mail
             </button>
           </ng-template>
         </div>
@@ -351,18 +339,6 @@
                 (click)="openApproveAllTeamsConfirm()">
                 <span nz-icon nzType="play-circle"></span>
                 {{ getAllTeamsNextStepLabel() }}
-              </button>
-              <button
-                nz-button
-                nzSize="small"
-                [style.background]="'#fa8c16'"
-                [style.border-color]="'#fa8c16'"
-                [style.color]="'#fff'"
-                [disabled]="!canSendEmailAllTeams()"
-                [nz-tooltip]="getSendEmailAllTeamsDisabledReason() || null"
-                (click)="openEmailAllTeamsConfirm()">
-                <span nz-icon nzType="mail"></span>
-                Gửi mail
               </button>
             </ng-container>
             <!-- Đã có team được duyệt ít nhất 1 bước: hiện cả duyệt và hủy -->

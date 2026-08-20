@@ -1052,12 +1052,17 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
 
                 // Reusable border definitions
                 const borderThin = { style: 'thin' as const };
+                const borderLight = { style: 'thin' as const, color: { argb: 'FFD0D0D0' } }; // Nét kẻ ngang mờ giữa các dòng con
+
+                // Border đầy đủ chuẩn (khi tài sản chỉ có 1 dòng)
                 const borderFull = {
                     top: borderThin,
                     left: borderThin,
                     bottom: borderThin,
                     right: borderThin,
                 };
+
+                // Borders cho cột thông tin tài sản (liền khối, không có đường kẻ ngang bên trong)
                 const borderTopOnly = {
                     top: borderThin,
                     left: borderThin,
@@ -1070,6 +1075,26 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
                 };
                 const borderMiddleOnly = {
                     left: borderThin,
+                    right: borderThin,
+                };
+
+                // Borders cho 5 cột Lịch sử cấp phát (đường kẻ ngang phân cách giữa các dòng con được làm mờ)
+                const borderHistoryFirst = {
+                    top: borderThin,
+                    left: borderThin,
+                    bottom: borderLight,
+                    right: borderThin,
+                };
+                const borderHistoryMiddle = {
+                    top: borderLight,
+                    left: borderThin,
+                    bottom: borderLight,
+                    right: borderThin,
+                };
+                const borderHistoryLast = {
+                    top: borderLight,
+                    left: borderThin,
+                    bottom: borderThin,
                     right: borderThin,
                 };
 
@@ -1088,18 +1113,24 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
                     row.font = fontStyle;
 
                     let assetBorder: any;
+                    let historyBorder: any;
+
                     if (meta.isFirst && meta.isLast) {
                         assetBorder = borderFull;
+                        historyBorder = borderFull;
                     } else if (meta.isFirst) {
                         assetBorder = borderTopOnly;
+                        historyBorder = borderHistoryFirst;
                     } else if (meta.isLast) {
                         assetBorder = borderBottomOnly;
+                        historyBorder = borderHistoryLast;
                     } else {
                         assetBorder = borderMiddleOnly;
+                        historyBorder = borderHistoryMiddle;
                     }
 
                     row.eachCell({ includeEmpty: true }, (cell, colNum) => {
-                        cell.border = historyColIndexes.has(colNum) ? borderFull : assetBorder;
+                        cell.border = historyColIndexes.has(colNum) ? historyBorder : assetBorder;
                         cell.alignment = centerColIndexes.has(colNum) ? alignCenter : alignLeft;
                     });
                 }

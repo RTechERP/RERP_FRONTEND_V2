@@ -4,12 +4,17 @@
     </h6>
     <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
 </div>
-<div class="modal-body fs-12 p-3">
+<div class="modal-body fs-12 p-3" style="max-height: 80vh; overflow-y: auto;">
     <nz-spin [nzSpinning]="isLoading">
         <form nz-form [formGroup]="form" nzLayout="vertical">
-            <!-- Row 1 -->
+
+            <!-- Section 1: Thông tin cá nhân -->
+            <div class="border-bottom pb-2 mb-3">
+                <span class="fw-bold text-primary"><i class="fa-solid fa-user me-1"></i> THÔNG TIN CÁ NHÂN & NHÂN
+                    VIÊN</span>
+            </div>
             <nz-row [nzGutter]="16">
-                <nz-col [nzSpan]="8">
+                <nz-col [nzSpan]="6">
                     <nz-form-item class="mb-2">
                         <nz-form-label>Mã nhân viên</nz-form-label>
                         <nz-form-control>
@@ -17,7 +22,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </nz-col>
-                <nz-col [nzSpan]="8">
+                <nz-col [nzSpan]="6">
                     <nz-form-item class="mb-2">
                         <nz-form-label nzRequired>Tên nhân viên</nz-form-label>
                         <nz-form-control nzErrorTip="Vui lòng nhập tên NV">
@@ -25,7 +30,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </nz-col>
-                <nz-col [nzSpan]="8">
+                <nz-col [nzSpan]="6">
                     <nz-form-item class="mb-2">
                         <nz-form-label>Giới tính</nz-form-label>
                         <nz-form-control>
@@ -36,11 +41,19 @@
                         </nz-form-control>
                     </nz-form-item>
                 </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Đoàn</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="GroupNumber" placeholder="Nhập tên/số đoàn"
+                                nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
             </nz-row>
 
-            <!-- Row 2 -->
             <nz-row [nzGutter]="16">
-                <nz-col [nzSpan]="8">
+                <nz-col [nzSpan]="6">
                     <nz-form-item class="mb-2">
                         <nz-form-label>Phòng ban</nz-form-label>
                         <nz-form-control>
@@ -48,7 +61,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </nz-col>
-                <nz-col [nzSpan]="8">
+                <nz-col [nzSpan]="6">
                     <nz-form-item class="mb-2">
                         <nz-form-label>Chức vụ</nz-form-label>
                         <nz-form-control>
@@ -56,7 +69,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </nz-col>
-                <nz-col [nzSpan]="4">
+                <nz-col [nzSpan]="3">
                     <nz-form-item class="mb-2">
                         <nz-form-label>Tuổi</nz-form-label>
                         <nz-form-control>
@@ -65,7 +78,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </nz-col>
-                <nz-col [nzSpan]="4">
+                <nz-col [nzSpan]="3">
                     <nz-form-item class="mb-2">
                         <nz-form-label>Chiều cao</nz-form-label>
                         <nz-form-control>
@@ -73,57 +86,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </nz-col>
-            </nz-row>
-
-            <!-- Row 3 -->
-            <nz-row [nzGutter]="16">
-                <nz-col [nzSpan]="8">
-                    <nz-form-item class="mb-2">
-                        <nz-form-label nzRequired>CCCD / CMND</nz-form-label>
-                        <nz-form-control nzErrorTip="Vui lòng nhập CCCD">
-                            <input nz-input formControlName="CCCD" placeholder="Số CCCD" nzSize="small" />
-                        </nz-form-control>
-                    </nz-form-item>
-                </nz-col>
-                <nz-col [nzSpan]="8">
-                    <nz-form-item class="mb-2">
-                        <nz-form-label>Ngày cấp CCCD</nz-form-label>
-                        <nz-form-control>
-                            <nz-date-picker formControlName="CCCDIssueDate" nzFormat="dd/MM/yyyy" nzSize="small"
-                                style="width: 100%"></nz-date-picker>
-                        </nz-form-control>
-                    </nz-form-item>
-                </nz-col>
-                <nz-col [nzSpan]="8">
-                    <nz-form-item class="mb-2">
-                        <nz-form-label>Nơi cấp CCCD</nz-form-label>
-                        <nz-form-control>
-                            <input nz-input formControlName="CCCDIssuePlace" placeholder="Nơi cấp" nzSize="small" />
-                        </nz-form-control>
-                    </nz-form-item>
-                </nz-col>
-            </nz-row>
-
-            <!-- Row 4 -->
-            <nz-row [nzGutter]="16">
-                <nz-col [nzSpan]="8">
-                    <nz-form-item class="mb-2">
-                        <nz-form-label>Ngày sinh</nz-form-label>
-                        <nz-form-control>
-                            <nz-date-picker formControlName="BirthDay" nzFormat="dd/MM/yyyy" nzSize="small"
-                                style="width: 100%"></nz-date-picker>
-                        </nz-form-control>
-                    </nz-form-item>
-                </nz-col>
-                <nz-col [nzSpan]="8">
-                    <nz-form-item class="mb-2">
-                        <nz-form-label>Số điện thoại</nz-form-label>
-                        <nz-form-control>
-                            <input nz-input formControlName="PhoneNumber" placeholder="Số điện thoại" nzSize="small" />
-                        </nz-form-control>
-                    </nz-form-item>
-                </nz-col>
-                <nz-col [nzSpan]="8">
+                <nz-col [nzSpan]="6">
                     <nz-form-item class="mb-2">
                         <nz-form-label>Mối quan hệ</nz-form-label>
                         <nz-form-control>
@@ -133,9 +96,53 @@
                 </nz-col>
             </nz-row>
 
-            <!-- Row 5 -->
             <nz-row [nzGutter]="16">
-                <nz-col [nzSpan]="12">
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label nzRequired>CCCD / CMND</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng nhập CCCD">
+                            <input nz-input formControlName="CCCD" placeholder="Số CCCD" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Ngày cấp CCCD</nz-form-label>
+                        <nz-form-control>
+                            <nz-date-picker formControlName="CCCDIssueDate" nzFormat="dd/MM/yyyy" nzSize="small"
+                                style="width: 100%"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Nơi cấp CCCD</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="CCCDIssuePlace" placeholder="Nơi cấp" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Ngày sinh</nz-form-label>
+                        <nz-form-control>
+                            <nz-date-picker formControlName="BirthDay" nzFormat="dd/MM/yyyy" nzSize="small"
+                                style="width: 100%"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Số điện thoại</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="PhoneNumber" placeholder="Số điện thoại" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="9">
                     <nz-form-item class="mb-2">
                         <nz-form-label>Địa chỉ</nz-form-label>
                         <nz-form-control>
@@ -143,7 +150,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </nz-col>
-                <nz-col [nzSpan]="12">
+                <nz-col [nzSpan]="9">
                     <nz-form-item class="mb-2">
                         <nz-form-label>Khởi hành/Về</nz-form-label>
                         <nz-form-control>
@@ -154,27 +161,166 @@
                 </nz-col>
             </nz-row>
 
-            <!-- Row 6 -->
+            <!-- Section 2: Lịch bay chiều đi & chiều về -->
+            <div class="border-bottom pb-2 mb-3 mt-3">
+                <span class="fw-bold text-primary"><i class="fa-solid fa-plane me-1"></i> LỊCH BAY</span>
+            </div>
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Ngày bay chiều đi</nz-form-label>
+                        <nz-form-control>
+                            <nz-date-picker formControlName="DepartureDate" nzFormat="dd/MM/yyyy" nzSize="small"
+                                style="width: 100%"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Mã chuyến bay đi</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="DepartureFlightCode" placeholder="Mã chuyến đi"
+                                nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Giờ bay chiều đi</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="DepartureFlightTime" placeholder="VD: 05h45 - 07h35"
+                                nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>HLKG (kg) chiều đi</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="DepartureHLKG" placeholder="HLKG chuyến đi"
+                                nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Ngày bay chiều về</nz-form-label>
+                        <nz-form-control>
+                            <nz-date-picker formControlName="ReturnDate" nzFormat="dd/MM/yyyy" nzSize="small"
+                                style="width: 100%"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Mã chuyến bay về</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="ReturnFlightCode" placeholder="Mã chuyến về"
+                                nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Giờ bay chiều về</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="ReturnFlightTime" placeholder="VD: 15h25 - 17h15"
+                                nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>HLKG (kg) chiều về</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="ReturnHLKG" placeholder="HLKG chuyến về" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <!-- Section 3: Xếp xe -->
+            <div class="border-bottom pb-2 mb-3 mt-3">
+                <span class="fw-bold text-primary"><i class="fa-solid fa-bus me-1"></i> XẾP XE</span>
+            </div>
             <nz-row [nzGutter]="16">
                 <nz-col [nzSpan]="8">
                     <nz-form-item class="mb-2">
-                        <nz-form-label>HLKG chiều đi</nz-form-label>
+                        <nz-form-label>Xe tiễn VP ➝ SB</nz-form-label>
                         <nz-form-control>
-                            <input nz-input formControlName="DangKyHLKGChieuDi" placeholder="Đăng ký HLKG chiều đi"
+                            <input nz-input formControlName="XeVPSB" placeholder="VP Nội Bài / Tân Sơn Nhất"
                                 nzSize="small" />
                         </nz-form-control>
                     </nz-form-item>
                 </nz-col>
                 <nz-col [nzSpan]="8">
                     <nz-form-item class="mb-2">
-                        <nz-form-label>HLKG chiều về</nz-form-label>
+                        <nz-form-label>Xe đón tại SB Cam Ranh</nz-form-label>
                         <nz-form-control>
-                            <input nz-input formControlName="DangKyHLKGChieuVe" placeholder="Đăng ký HLKG chiều về"
+                            <input nz-input formControlName="XeSBKS" placeholder="Đón tại SB Cam Ranh" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Xe đi Vinwonders 12/9</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="XeVinWonder" placeholder="Xe đi Vinwonder"
+                                nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Xe đi Gala Dinner</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="XeGalaDinner" placeholder="Xe đi Gala Dinner"
                                 nzSize="small" />
                         </nz-form-control>
                     </nz-form-item>
                 </nz-col>
                 <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Xe tiễn KS ➝ SB Cam Ranh</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="XeKSSB" placeholder="Khách sạn ➝ Cam Ranh"
+                                nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Xe đón SB ➝ VP</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="XeSBVP" placeholder="Nội Bài / Tân Sơn Nhất ➝ VP"
+                                nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <!-- Section 4: Vinwonders & Xếp phòng & Gala -->
+            <div class="border-bottom pb-2 mb-3 mt-3">
+                <span class="fw-bold text-primary"><i class="fa-solid fa-hotel me-1"></i> VINWONDERS - XẾP PHÒNG - GALA
+                    DINNER</span>
+            </div>
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Ngày đi Vinwonders</nz-form-label>
+                        <nz-form-control>
+                            <nz-date-picker formControlName="DateDepartureVinWonder" nzFormat="dd/MM/yyyy"
+                                nzSize="small" style="width: 100%"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
                     <nz-form-item class="mb-2">
                         <nz-form-label>Đăng ký VinWonders</nz-form-label>
                         <nz-form-control>
@@ -186,12 +332,152 @@
                         </nz-form-control>
                     </nz-form-item>
                 </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Số phòng</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="RoomNumber" placeholder="Số phòng" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Mã phòng (cung cấp sau)</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="RommCode" placeholder="Mã phòng" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
             </nz-row>
 
-            <!-- Row 7 -->
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Loại giường</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="RoomType" placeholder="Single/Double..." nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Xếp bàn Gala Dinner</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="TableNumberGala" placeholder="Số bàn Gala"
+                                nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Ghi chú của BTC</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="Note" placeholder="Ghi chú BTC" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Ghi chú 2</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="Note2" placeholder="Ghi chú 2" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <!-- Section 5: Thanh toán & Hỗ trợ -->
+            <div class="border-bottom pb-2 mb-3 mt-3">
+                <span class="fw-bold text-primary"><i class="fa-solid fa-coins me-1"></i> CBNV THANH TOÁN & CÔNG TY HỖ
+                    TRỢ</span>
+            </div>
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Đồng thanh toán (CBNV)</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="TripCost" placeholder="Chính thức / Thử việc / Người thân"
+                                nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Chiều cao ≥ 1m Vinwonders</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="VinWonderCost" placeholder="+200k/người" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Mua HLKG</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="HLKGCost" placeholder="Chi phí HLKG" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Tổng cộng CBNV thanh toán</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="TotalCost" placeholder="Tổng cộng" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
             <nz-row [nzGutter]="16">
                 <nz-col [nzSpan]="8">
-                    <nz-form-item class="mb-0">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Công ty hỗ trợ bữa ăn (≥ 5 tuổi)</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="SupportLunchCost" placeholder="Hỗ trợ bữa ăn"
+                                nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Hỗ trợ tự túc VMB</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="SupportFlightCost" placeholder="Hỗ trợ vé máy bay"
+                                nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Tổng công ty hỗ trợ</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="SupportTotalCost" placeholder="Tổng công ty hỗ trợ"
+                                nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Quyết toán T9 theo từng người</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="SeptemberDeductionAmount"
+                                placeholder="Số tiền trích lương T9" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Tổng số tiền CBNV phải thanh toán</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="TotalPaymentAmount" placeholder="Gồm cả người thân"
+                                nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
                         <nz-form-label>Trạng thái xác nhận</nz-form-label>
                         <nz-form-control>
                             <nz-select formControlName="ConfirmStatus" nzSize="small" style="width: 100%;">
@@ -202,6 +488,7 @@
                     </nz-form-item>
                 </nz-col>
             </nz-row>
+
         </form>
     </nz-spin>
 </div>

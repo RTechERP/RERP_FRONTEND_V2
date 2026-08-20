@@ -39,9 +39,40 @@ export interface TravelFlatRow {
   CCCDIssuePlace: string;
   PhoneNumber: string;
   DepartureLocation: string;
+  GroupNumber: string;
+  DepartureDate: string;
+  DepartureFlightCode: string;
+  DepartureFlightTime: string;
+  DepartureHLKG: string;
+  ReturnDate: string;
+  ReturnFlightCode: string;
+  ReturnFlightTime: string;
+  ReturnHLKG: string;
+  XeVPSB: string;
+  XeSBKS: string;
+  XeVinWonder: string;
+  XeGalaDinner: string;
+  XeKSSB: string;
+  XeSBVP: string;
+  DateDepartureVinWonder: string;
+  DangKyVinwonders: boolean | null;
+  RoomNumber: string;
+  RommCode: string;
+  RoomType: string;
+  Note: string;
+  TableNumberGala: string;
+  Note2: string;
+  TripCost: string;
+  VinWonderCost: string;
+  HLKGCost: string;
+  TotalCost: string;
+  SupportLunchCost: string;
+  SupportFlightCost: string;
+  SupportTotalCost: string;
+  SeptemberDeductionAmount: string;
+  TotalPaymentAmount: string;
   DangKyHLKGChieuDi: string;
   DangKyHLKGChieuVe: string;
-  DangKyVinwonders: boolean | null;
   ConfirmStatus: string;
   ConfirmDate: string;
   ConfirmBy: string;
@@ -88,7 +119,13 @@ function stripDiacritics(s: string): string {
 }
 function norm(s: any): string {
   if (s == null) return '';
-  return stripDiacritics(String(s)).toLowerCase().replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+  return stripDiacritics(String(s))
+    .toLowerCase()
+    .replace(/[≥]/g, '>=')
+    .replace(/[≤]/g, '<=')
+    .replace(/\u00a0/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 const COL_ALIASES = {
@@ -107,17 +144,65 @@ const COL_ALIASES = {
   CCCDIssueDate: ['ngay cap', 'issue date'],
   CCCDIssuePlace: ['noi cap', 'issue place'],
   PhoneNumber: ['so dien thoai', 'sdt', 'dien thoai', 'phone'],
-  DepartureLocation: ['noi xuat phat', 'xuat phat', 'departure', 'khoi hanh'],
-  DangKyHLKGChieuDi: ['dang ky hlkg chieu di', 'hlkg chieu di', 'hanh ly chieu di', 'hlkg di', 'hlkg chieu đi', 'hanh ly ky gui chieu di'],
-  DangKyHLKGChieuVe: ['dang ky hlkg chieu ve', 'hlkg chieu ve', 'hanh ly chieu ve', 'hlkg ve', 'hlkg chieu ve', 'hanh ly ky gui chieu ve'],
-  DangKyVinwonders: ['dang ky vinwonders', 'vinwonders', 'dk vinwonders', 'vin wonders', 'vinwoder'],
+  DepartureLocation: ['khoi hanh/ve', 'khoi hanh', 'xuat phat', 'departure'],
+  GroupNumber: ['doan', 'so doan', 'group'],
+
+  // Lịch bay chiều đi
+  DepartureDate: ['ngay bay chieu di', 'ngay bay', 'departure date'],
+  DepartureFlightCode: ['ma chuyen bay chieu di', 'ma chuyen bay', 'departure flight code'],
+  DepartureFlightTime: ['gio bay chieu di', 'gio bay', 'departure flight time'],
+  DepartureHLKG: ['hlkg (kg) chieu di', 'hlkg chieu di', 'dang ky hlkg chieu di', 'hlkg (kg)', 'hlkg', 'departure hlkg'],
+
+  // Lịch bay chiều về
+  ReturnDate: ['ngay bay chieu ve', 'return date'],
+  ReturnFlightCode: ['ma chuyen bay chieu ve', 'return flight code'],
+  ReturnFlightTime: ['gio bay chieu ve', 'return flight time'],
+  ReturnHLKG: ['hlkg (kg) chieu ve', 'hlkg chieu ve', 'dang ky hlkg chieu ve', 'return hlkg'],
+
+  // Xếp xe
+  XeVPSB: ['xe tien vphn', 'xe tien', 'xe vpsb'],
+  XeSBKS: ['xe don tai sb cam ranh', 'xe don sb cam ranh', 'xe sbks'],
+  XeVinWonder: ['xe di vinwonder', 'xe vinwonder'],
+  XeGalaDinner: ['xe di gala dinner', 'xe gala dinner', 'xe gala'],
+  XeKSSB: ['xe tien k.san', 'xe tien ks', 'xe kssb'],
+  XeSBVP: ['xe don sb noi bai', 'xe don sbvp', 'xe sbvp'],
+  DateDepartureVinWonder: ['ngay di vinwonder', 'ngay di vinwonders', 'ngay di'],
+  DangKyVinwonders: ['vinwonders', 'vinwoder', 'dang ky vinwonders', 'dk vinwonders'],
+  RoomNumber: ['so phong', 'room number'],
+  RommCode: ['ma phong', 'room code'],
+  RoomType: ['loai giuong', 'room type'],
+  Note: ['ghi chu cua btc', 'ghi chu btc', 'note'],
+  TableNumberGala: ['xep ban gala dinner', 'xep ban gala', 'ban gala'],
+  Note2: ['ghi chu 2', 'note 2'],
+  TripCost: ['dong thanh toan', 'trip cost'],
+  VinWonderCost: [
+    'cbnv thanh toan|chieu cao >= 1m',
+    'cbnv thanh toan|chieu cao >= 1m di vinwonders',
+    'cbnv thanh toan|chieu cao >= 1m vinwonders',
+    'cbnv thanh toan|chieu cao',
+    'chieu cao >= 1m di vinwonders',
+    'chieu cao >= 1m vinwonders',
+    'chieu cao >= 1m',
+    'chieu cao >=1m',
+    'vinwonder cost'
+  ],
+  HLKGCost: ['mua hlkg', 'hlkg cost'],
+  TotalCost: ['tong cong cbnv thanh toan', 'tong cong cbnv', 'cbnv thanh toan|tong cong', 'tong cong', 'total cost'],
+  SupportLunchCost: ['ho tro tu tuc bua an', 'ho tro bua an', 'ho tro >= 5 tuoi', 'ho tro tua truc', 'support lunch cost'],
+  SupportFlightCost: ['ho tro tu tuc vmb', 'support flight cost'],
+  SupportTotalCost: ['tong cong cong ty ho tro', 'tong cong cty ho tro', 'cong ty ho tro|tong cong', 'tong cong cong ty', 'tong cong cty', 'support total cost'],
+  SeptemberDeductionAmount: ['theo tung nguoi', 'so tien trich luong t9', 'september deduction'],
+  TotalPaymentAmount: ['tong so tien thanh toan', 'tong so tien cbnv phai thanh toan', 'tong thanh toan', 'total payment'],
+  DangKyHLKGChieuDi: ['dang ky hlkg chieu di'],
+  DangKyHLKGChieuVe: ['dang ky hlkg chieu ve'],
   ConfirmStatus: ['trang thai', 'status'],
   ConfirmDate: ['ngay xn', 'ngay xac nhan', 'confirm date'],
   ConfirmBy: ['nguoi xn', 'nguoi xac nhan', 'confirm by']
 };
 
-function pickHeaderRow(ws: ExcelJS.Worksheet): number {
-  let bestRow = 1, bestScore = -1;
+function pickHeaderRows(ws: ExcelJS.Worksheet): { groupRowIdx: number; headerRowIdx: number } {
+  // Tìm 2 dòng header liên tiếp có nhiều alias khớp nhất
+  let bestHeaderRow = 1, bestScore = -1;
   const maxScan = Math.min(30, ws.rowCount);
   const aliases = Object.values(COL_ALIASES).flat().map(a => norm(a));
   for (let r = 1; r <= maxScan; r++) {
@@ -128,26 +213,88 @@ function pickHeaderRow(ws: ExcelJS.Worksheet): number {
     });
     if (!texts.length) continue;
     const score = texts.reduce((acc, t) => acc + (aliases.some(a => t.includes(a)) ? 1 : 0), 0);
-    if (score > bestScore) { bestScore = score; bestRow = r; }
+    if (score > bestScore) { bestScore = score; bestHeaderRow = r; }
   }
-  return bestRow;
+  // Nếu dòng trước bestHeaderRow cũng có nội dung, coi đó là dòng nhóm
+  const groupRowIdx = bestHeaderRow > 1 ? bestHeaderRow - 1 : bestHeaderRow;
+  return { groupRowIdx, headerRowIdx: bestHeaderRow };
 }
 
-function mapColumnsByAliases(headers: string[]): Record<keyof typeof COL_ALIASES, number> {
+/** Lấy text của 1 row thành mảng theo cột (1-indexed), merged cell trả về text cell gốc */
+function getRowTexts(ws: ExcelJS.Worksheet, rowIdx: number, totalCols: number): string[] {
+  const row = ws.getRow(rowIdx);
+  const result: string[] = new Array(totalCols).fill('');
+  for (let c = 1; c <= totalCols; c++) {
+    const cell = row.getCell(c);
+    const text = getCellText(cell);
+    result[c - 1] = text;
+  }
+  return result;
+}
+
+function mapColumnsByAliases(
+  headers: string[],
+  groupHeaders?: string[]
+): Record<keyof typeof COL_ALIASES, number> {
   const nh = headers.map(h => norm(h));
-  const find = (list: string[]) => {
+  // Tạo composite header = "group|header" nếu có groupHeaders
+  const composite = headers.map((h, i) => {
+    const g = groupHeaders ? norm(groupHeaders[i] || '') : '';
+    const hh = norm(h);
+    return g ? `${g}|${hh}` : hh;
+  });
+
+  const find = (list: string[], skipCols: number[] = [], isHeight = false, isDep = false) => {
     const normList = list.map(a => norm(a));
-    for (let i = 0; i < nh.length; i++)
+    for (let i = 0; i < nh.length; i++) {
+      if (skipCols.includes(i + 1)) continue;
+      // Nếu đang tìm Height (thông tin cá nhân), tránh cột VinWonderCost / thanh toán
+      if (isHeight && (nh[i]?.includes('vinwonder') || nh[i]?.includes('1m') || composite[i]?.includes('cbnv thanh toan'))) {
+        continue;
+      }
+      // Nếu đang tìm Chiều đi, tránh các cột có hậu tố chiều về
+      if (isDep && (nh[i]?.includes('chieu ve') || composite[i]?.includes('chieu ve'))) {
+        continue;
+      }
       if (normList.some(a => nh[i]?.includes(a))) return i + 1;
+    }
     return 0;
   };
 
   const out: any = {};
+
+  // Map tuần tự - theo thứ tự khai báo trong COL_ALIASES
+  const usedCols: number[] = [];
+
   for (const key of Object.keys(COL_ALIASES)) {
-    out[key] = find((COL_ALIASES as any)[key]);
+    const aliases = (COL_ALIASES as any)[key] as string[];
+    const isHeightKey = key === 'Height';
+    const isDepKey = ['DepartureDate', 'DepartureFlightCode', 'DepartureFlightTime', 'DepartureHLKG'].includes(key);
+
+    // Ưu tiên tìm trên composite header (group|sub)
+    let found = 0;
+    for (let i = 0; i < composite.length; i++) {
+      if (usedCols.includes(i + 1)) continue;
+      if (isHeightKey && (composite[i]?.includes('vinwonder') || composite[i]?.includes('1m') || composite[i]?.includes('cbnv thanh toan'))) {
+        continue;
+      }
+      if (isDepKey && (composite[i]?.includes('chieu ve') || nh[i]?.includes('chieu ve'))) {
+        continue;
+      }
+      if (aliases.some(a => composite[i]?.includes(norm(a)))) { found = i + 1; break; }
+    }
+    // Fallback: tìm trên header thường, tránh cột đã dùng
+    if (!found) {
+      found = find(aliases, usedCols, isHeightKey, isDepKey);
+    }
+
+    out[key] = found;
+    if (found > 0) usedCols.push(found);
   }
+
   return out;
 }
+
 
 function getCellSafe(row: ExcelJS.Row, colIndex: number): string {
   if (!colIndex || colIndex < 1) return '';
@@ -178,6 +325,7 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
   totalRowsAfterFileRead = 0;
   isSaving = false;
   employeeList: any[] = [];
+  existingRegistrationList: any[] = [];
 
   constructor(
     public activeModal: NgbActiveModal,
@@ -188,6 +336,18 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
 
   ngOnInit(): void {
     this.loadEmployee();
+    this.loadExistingRegistrations();
+  }
+
+  loadExistingRegistrations() {
+    this.travelRegistrationService.getAll().subscribe({
+      next: (res: any) => {
+        if (res?.status === 1) {
+          this.existingRegistrationList = res.data || [];
+        }
+      },
+      error: (err: any) => console.error('Lỗi lấy danh sách đăng ký hiện có', err)
+    });
   }
 
   loadEmployee() {
@@ -242,17 +402,86 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
       { title: 'Nơi cấp', field: 'CCCDIssuePlace', hozAlign: 'left', headerHozAlign: 'center', width: 120 },
       { title: 'SĐT', field: 'PhoneNumber', hozAlign: 'left', headerHozAlign: 'center', width: 100 },
       { title: 'Khởi hành/Về', field: 'DepartureLocation', hozAlign: 'left', headerHozAlign: 'center', width: 150 },
-      { title: 'HLKG chiều đi', field: 'DangKyHLKGChieuDi', hozAlign: 'left', headerHozAlign: 'center', width: 120 },
-      { title: 'HLKG chiều về', field: 'DangKyHLKGChieuVe', hozAlign: 'left', headerHozAlign: 'center', width: 120 },
+      { title: 'Đoàn', field: 'GroupNumber', hozAlign: 'center', headerHozAlign: 'center', width: 100 },
       {
-        title: 'VinWonders', field: 'DangKyVinwonders', hozAlign: 'center', headerHozAlign: 'center', width: 100,
-        formatter: (cell: any) => {
-          const val = cell.getValue();
-          if (val === true || val === 'true' || val === 1) return 'Có';
-          if (val === false || val === 'false' || val === 0) return 'Không';
-          return '';
-        }
+        title: 'Lịch bay chiều đi',
+        columns: [
+          { title: 'Ngày bay', field: 'DepartureDate', hozAlign: 'center', headerHozAlign: 'center', width: 100 },
+          { title: 'Mã chuyến bay', field: 'DepartureFlightCode', hozAlign: 'left', headerHozAlign: 'center', width: 110 },
+          { title: 'Giờ bay', field: 'DepartureFlightTime', hozAlign: 'center', headerHozAlign: 'center', width: 120 },
+          { title: 'HLKG (kg)', field: 'DepartureHLKG', hozAlign: 'left', headerHozAlign: 'center', width: 110 }
+        ]
       },
+      {
+        title: 'Lịch bay chiều về',
+        columns: [
+          { title: 'Ngày bay', field: 'ReturnDate', hozAlign: 'center', headerHozAlign: 'center', width: 100 },
+          { title: 'Mã chuyến bay', field: 'ReturnFlightCode', hozAlign: 'left', headerHozAlign: 'center', width: 110 },
+          { title: 'Giờ bay', field: 'ReturnFlightTime', hozAlign: 'center', headerHozAlign: 'center', width: 120 },
+          { title: 'HLKG (kg)', field: 'ReturnHLKG', hozAlign: 'left', headerHozAlign: 'center', width: 110 }
+        ]
+      },
+      {
+        title: 'Xếp xe',
+        columns: [
+          { title: 'Xe tiễn VP ➝ SB', field: 'XeVPSB', hozAlign: 'left', headerHozAlign: 'center', width: 130 },
+          { title: 'Xe đón SB Cam Ranh', field: 'XeSBKS', hozAlign: 'left', headerHozAlign: 'center', width: 130 },
+          { title: 'Xe đi Vinwonder 12/9', field: 'XeVinWonder', hozAlign: 'left', headerHozAlign: 'center', width: 130 },
+          { title: 'Xe đi Gala Dinner', field: 'XeGalaDinner', hozAlign: 'left', headerHozAlign: 'center', width: 130 },
+          { title: 'Xe tiễn KS ➝ SB', field: 'XeKSSB', hozAlign: 'left', headerHozAlign: 'center', width: 130 },
+          { title: 'Xe đón SB ➝ VP', field: 'XeSBVP', hozAlign: 'left', headerHozAlign: 'center', width: 130 }
+        ]
+      },
+      {
+        title: 'Vinwonders',
+        columns: [
+          { title: 'Ngày đi', field: 'DateDepartureVinWonder', hozAlign: 'center', headerHozAlign: 'center', width: 100 },
+          {
+            title: 'VinWonders', field: 'DangKyVinwonders', hozAlign: 'center', headerHozAlign: 'center', width: 100,
+            formatter: (cell: any) => {
+              const val = cell.getValue();
+              if (val === true || val === 'true' || val === 1) return 'Có';
+              if (val === false || val === 'false' || val === 0) return 'Không';
+              return '';
+            }
+          }
+        ]
+      },
+      {
+        title: 'Xếp phòng',
+        columns: [
+          { title: 'Số phòng', field: 'RoomNumber', hozAlign: 'center', headerHozAlign: 'center', width: 90 },
+          { title: 'Mã phòng', field: 'RommCode', hozAlign: 'center', headerHozAlign: 'center', width: 100 },
+          { title: 'Loại giường', field: 'RoomType', hozAlign: 'center', headerHozAlign: 'center', width: 100 },
+          { title: 'Ghi chú của BTC', field: 'Note', hozAlign: 'left', headerHozAlign: 'center', width: 150 }
+        ]
+      },
+      { title: 'Xếp bàn Gala Dinner', field: 'TableNumberGala', hozAlign: 'center', headerHozAlign: 'center', width: 130 },
+      { title: 'Ghi chú 2', field: 'Note2', hozAlign: 'left', headerHozAlign: 'center', width: 130 },
+      {
+        title: 'CBNV thanh toán',
+        columns: [
+          { title: 'Đồng thanh toán', field: 'TripCost', hozAlign: 'left', headerHozAlign: 'center', width: 140 },
+          { title: 'Chiều cao ≥ 1m Vinwonders', field: 'VinWonderCost', hozAlign: 'left', headerHozAlign: 'center', width: 140 },
+          { title: 'Mua HLKG', field: 'HLKGCost', hozAlign: 'left', headerHozAlign: 'center', width: 110 },
+          { title: 'Tổng cộng', field: 'TotalCost', hozAlign: 'right', headerHozAlign: 'center', width: 120 }
+        ]
+      },
+      {
+        title: 'Công ty hỗ trợ',
+        columns: [
+          { title: 'Hỗ trợ tự túc bữa ăn', field: 'SupportLunchCost', hozAlign: 'left', headerHozAlign: 'center', width: 140 },
+          { title: 'Hỗ trợ tự túc VMB', field: 'SupportFlightCost', hozAlign: 'left', headerHozAlign: 'center', width: 130 },
+          { title: 'Tổng cộng', field: 'SupportTotalCost', hozAlign: 'right', headerHozAlign: 'center', width: 120 }
+        ]
+      },
+      {
+        title: 'Quyết toán vào kỳ lương T9',
+        columns: [
+          { title: 'Theo từng người', field: 'SeptemberDeductionAmount', hozAlign: 'right', headerHozAlign: 'center', width: 140 },
+          { title: 'Tổng số tiền thanh toán', field: 'TotalPaymentAmount', hozAlign: 'right', headerHozAlign: 'center', width: 150 }
+        ]
+      }
     ];
   }
 
@@ -341,11 +570,23 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
     const ws = workbook.getWorksheet(sheetName);
     if (!ws) { this.resetExcelImportState(); return; }
 
-    const headerRowIndex = pickHeaderRow(ws);
-    const headerRow = ws.getRow(headerRowIndex);
-    const headers: string[] = [];
-    headerRow.eachCell((cell, colNumber) => headers[colNumber - 1] = getCellText(cell) || `C${colNumber}`);
-    const col = mapColumnsByAliases(headers);
+    const { groupRowIdx, headerRowIdx } = pickHeaderRows(ws);
+    // Tính tổng số cột (dùng actualColumnCount hoặc columnCount)
+    const totalCols = Math.max(ws.actualColumnCount || 0, ws.columnCount || 0, 60);
+
+    // Đọc cả group header (row 1) và sub header (row 2)
+    const groupHeaders = getRowTexts(ws, groupRowIdx, totalCols);
+    const subHeaders = getRowTexts(ws, headerRowIdx, totalCols);
+
+    // Với merged cell ở group row: lan giá trị sang các cột con
+    let lastGroup = '';
+    const filledGroupHeaders = groupHeaders.map(g => {
+      if (g) lastGroup = g;
+      return lastGroup;
+    });
+
+    const col = mapColumnsByAliases(subHeaders, filledGroupHeaders);
+    const headerRowIndex = headerRowIdx;
 
     const data: TravelFlatRow[] = [];
     let total = 0;
@@ -356,7 +597,6 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
       const EmployeeID = getCellSafe(row, col.EmployeeID);
       const EmployeeCode = getCellSafe(row, col.EmployeeCode);
       const EmployeeName = getCellSafe(row, col.EmployeeName);
-
       const Department = getCellSafe(row, col.Department);
 
       // Bỏ qua dòng trống
@@ -371,6 +611,7 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
       ) {
         return; // Bỏ qua dòng tiêu đề phụ
       }
+
       const PositionName = getCellSafe(row, col.PositionName);
       const BirthDay = getCellSafe(row, col.BirthDay);
       const Age = getCellSafe(row, col.Age);
@@ -383,10 +624,49 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
       const CCCDIssuePlace = getCellSafe(row, col.CCCDIssuePlace);
       const PhoneNumber = getCellSafe(row, col.PhoneNumber);
       const DepartureLocation = getCellSafe(row, col.DepartureLocation);
-      const DangKyHLKGChieuDi = getCellSafe(row, col.DangKyHLKGChieuDi);
-      const DangKyHLKGChieuVe = getCellSafe(row, col.DangKyHLKGChieuVe);
+
+      const GroupNumber = getCellSafe(row, col.GroupNumber);
+      const DepartureDate = getCellSafe(row, col.DepartureDate);
+      const DepartureFlightCode = getCellSafe(row, col.DepartureFlightCode);
+      const DepartureFlightTime = getCellSafe(row, col.DepartureFlightTime);
+      const DepartureHLKG = getCellSafe(row, col.DepartureHLKG) || getCellSafe(row, col.DangKyHLKGChieuDi);
+
+      const ReturnDate = getCellSafe(row, col.ReturnDate);
+      const ReturnFlightCode = getCellSafe(row, col.ReturnFlightCode);
+      const ReturnFlightTime = getCellSafe(row, col.ReturnFlightTime);
+      const ReturnHLKG = getCellSafe(row, col.ReturnHLKG) || getCellSafe(row, col.DangKyHLKGChieuVe);
+
+      const XeVPSB = getCellSafe(row, col.XeVPSB);
+      const XeSBKS = getCellSafe(row, col.XeSBKS);
+      const XeVinWonder = getCellSafe(row, col.XeVinWonder);
+      const XeGalaDinner = getCellSafe(row, col.XeGalaDinner);
+      const XeKSSB = getCellSafe(row, col.XeKSSB);
+      const XeSBVP = getCellSafe(row, col.XeSBVP);
+
+      const DateDepartureVinWonder = getCellSafe(row, col.DateDepartureVinWonder);
       const DangKyVinwondersRaw = getCellSafe(row, col.DangKyVinwonders);
       const DangKyVinwonders = parseBoolSmart(DangKyVinwondersRaw);
+
+      const RoomNumber = getCellSafe(row, col.RoomNumber);
+      const RommCode = getCellSafe(row, col.RommCode);
+      const RoomType = getCellSafe(row, col.RoomType);
+      const Note = getCellSafe(row, col.Note);
+
+      const TableNumberGala = getCellSafe(row, col.TableNumberGala);
+      const Note2 = getCellSafe(row, col.Note2);
+
+      const TripCost = getCellSafe(row, col.TripCost);
+      const VinWonderCost = getCellSafe(row, col.VinWonderCost);
+      const HLKGCost = getCellSafe(row, col.HLKGCost);
+      const TotalCost = getCellSafe(row, col.TotalCost);
+
+      const SupportLunchCost = getCellSafe(row, col.SupportLunchCost);
+      const SupportFlightCost = getCellSafe(row, col.SupportFlightCost);
+      const SupportTotalCost = getCellSafe(row, col.SupportTotalCost);
+
+      const SeptemberDeductionAmount = getCellSafe(row, col.SeptemberDeductionAmount);
+      const TotalPaymentAmount = getCellSafe(row, col.TotalPaymentAmount);
+
       const ConfirmStatus = getCellSafe(row, col.ConfirmStatus) || '0';
       const ConfirmDate = getCellSafe(row, col.ConfirmDate);
       const ConfirmBy = getCellSafe(row, col.ConfirmBy);
@@ -408,9 +688,40 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
         CCCDIssuePlace,
         PhoneNumber,
         DepartureLocation,
-        DangKyHLKGChieuDi: DangKyHLKGChieuDi ? String(DangKyHLKGChieuDi).trim() : '',
-        DangKyHLKGChieuVe: DangKyHLKGChieuVe ? String(DangKyHLKGChieuVe).trim() : '',
+        GroupNumber,
+        DepartureDate,
+        DepartureFlightCode,
+        DepartureFlightTime,
+        DepartureHLKG,
+        ReturnDate,
+        ReturnFlightCode,
+        ReturnFlightTime,
+        ReturnHLKG,
+        XeVPSB,
+        XeSBKS,
+        XeVinWonder,
+        XeGalaDinner,
+        XeKSSB,
+        XeSBVP,
+        DateDepartureVinWonder,
         DangKyVinwonders,
+        RoomNumber,
+        RommCode,
+        RoomType,
+        Note,
+        TableNumberGala,
+        Note2,
+        TripCost,
+        VinWonderCost,
+        HLKGCost,
+        TotalCost,
+        SupportLunchCost,
+        SupportFlightCost,
+        SupportTotalCost,
+        SeptemberDeductionAmount,
+        TotalPaymentAmount,
+        DangKyHLKGChieuDi: DepartureHLKG,
+        DangKyHLKGChieuVe: ReturnHLKG,
         ConfirmStatus,
         ConfirmDate,
         ConfirmBy
@@ -520,7 +831,23 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
         lastCBNVEmployeeID = parsedEmployeeID;
       }
 
+      // Tìm bản ghi đã tồn tại theo Mã nhân viên hoặc Tên nhân viên
+      let existingRecord: any = null;
+      if (r.EmployeeCode && r.EmployeeCode.trim()) {
+        const code = r.EmployeeCode.trim().toLowerCase();
+        existingRecord = this.existingRegistrationList.find(x => x.EmployeeCode && x.EmployeeCode.trim().toLowerCase() === code);
+      }
+      if (!existingRecord && r.EmployeeName && r.EmployeeName.trim()) {
+        const name = r.EmployeeName.trim().toLowerCase();
+        if (isCBNV && parsedEmployeeID > 0) {
+          existingRecord = this.existingRegistrationList.find(x => x.EmployeeID === parsedEmployeeID && x.EmployeeName && x.EmployeeName.trim().toLowerCase() === name);
+        } else if (!isCBNV && lastCBNVEmployeeID > 0) {
+          existingRecord = this.existingRegistrationList.find(x => x.OwnerEmployeeID === lastCBNVEmployeeID && x.EmployeeName && x.EmployeeName.trim().toLowerCase() === name && (!r.Relationship || x.Relationship === r.Relationship));
+        }
+      }
+
       return {
+        ID: existingRecord ? existingRecord.ID : 0,
         EmployeeID: isCBNV ? parsedEmployeeID : 0,
         EmployeeCode: r.EmployeeCode || '',
         EmployeeName: r.EmployeeName || '',
@@ -537,12 +864,43 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
         CCCDIssuePlace: r.CCCDIssuePlace || '',
         PhoneNumber: r.PhoneNumber || '',
         DepartureLocation: r.DepartureLocation || '',
-        DangKyHLKGChieuDi: r.DangKyHLKGChieuDi || '',
-        DangKyHLKGChieuVe: r.DangKyHLKGChieuVe || '',
+        DangKyHLKGChieuDi: r.DepartureHLKG || r.DangKyHLKGChieuDi || '',
+        DangKyHLKGChieuVe: r.ReturnHLKG || r.DangKyHLKGChieuVe || '',
+        GroupNumber: r.GroupNumber || '',
+        DepartureDate: this.parseDateString(r.DepartureDate),
+        DepartureFlightCode: r.DepartureFlightCode || '',
+        DepartureFlightTime: r.DepartureFlightTime || '',
+        DepartureHLKG: r.DepartureHLKG || r.DangKyHLKGChieuDi || '',
+        ReturnDate: this.parseDateString(r.ReturnDate),
+        ReturnFlightCode: r.ReturnFlightCode || '',
+        ReturnFlightTime: r.ReturnFlightTime || '',
+        ReturnHLKG: r.ReturnHLKG || r.DangKyHLKGChieuVe || '',
+        XeVPSB: r.XeVPSB || '',
+        XeSBKS: r.XeSBKS || '',
+        XeVinWonder: r.XeVinWonder || '',
+        XeGalaDinner: r.XeGalaDinner || '',
+        XeKSSB: r.XeKSSB || '',
+        XeSBVP: r.XeSBVP || '',
+        DateDepartureVinWonder: this.parseDateString(r.DateDepartureVinWonder),
         DangKyVinwonders: r.DangKyVinwonders,
-        ConfirmStatus: r.ConfirmStatus === '0' ? 0 : r.ConfirmStatus === '1' ? 1 : Number(r.ConfirmStatus) || 0,
-        ConfirmDate: this.parseDateString(r.ConfirmDate),
-        ConfirmBy: r.ConfirmBy || '',
+        RoomNumber: r.RoomNumber || '',
+        RommCode: r.RommCode || '',
+        RoomType: r.RoomType || '',
+        Note: r.Note || '',
+        TableNumberGala: r.TableNumberGala || '',
+        Note2: r.Note2 || '',
+        TripCost: r.TripCost || '',
+        VinWonderCost: r.VinWonderCost || '',
+        HLKGCost: r.HLKGCost || '',
+        TotalCost: r.TotalCost || '',
+        SupportLunchCost: r.SupportLunchCost || '',
+        SupportFlightCost: r.SupportFlightCost || '',
+        SupportTotalCost: r.SupportTotalCost || '',
+        SeptemberDeductionAmount: r.SeptemberDeductionAmount || '',
+        TotalPaymentAmount: r.TotalPaymentAmount || '',
+        ConfirmStatus: existingRecord ? (existingRecord.ConfirmStatus ?? 0) : 0,
+        ConfirmDate: existingRecord ? existingRecord.ConfirmDate : null,
+        ConfirmBy: existingRecord ? (existingRecord.ConfirmBy || '') : '',
         OwnerEmployeeID: lastCBNVEmployeeID
       };
     });
@@ -561,7 +919,6 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
           this.setSavingProgress(savedCount, total);
         } catch (res: any) {
           console.error('Lỗi khi lưu dòng:', dto, res);
-          // Tiếp tục vòng lặp dù lỗi
         }
       }
 

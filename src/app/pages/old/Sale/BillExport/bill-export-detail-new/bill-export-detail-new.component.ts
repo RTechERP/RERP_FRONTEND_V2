@@ -45,7 +45,6 @@ import { Subject, firstValueFrom, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
-import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BillExportService } from '../bill-export-service/bill-export.service';
 import { ProductsaleServiceService } from '../../ProductSale/product-sale-service/product-sale-service.service';
@@ -59,6 +58,8 @@ import { AppUserService } from '../../../../../services/app-user.service';
 import { BillImportDetailNewComponent } from '../../BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
 import { BillExportDetailFileComponent } from '../bill-export-detail-file/bill-export-detail-file.component';
 import { HolidayServiceService } from '../../../../hrm/holiday/holiday-service/holiday-service.service';
+import { makeTextRowHeightProvider } from '../../../../../shared/utils/slickgrid-row-height.util';
+import { isBillViewOnly } from '../../../../../shared/utils/bill-permission.util';
 
 
 interface ProductSale {
@@ -121,7 +122,6 @@ interface BillExport {
         NzModalModule,
         NzCheckboxModule,
         NzSpinModule,
-        HasPermissionDirective,
         AngularSlickgridComponent,
         BillExportDetailFileComponent,
     ],
@@ -134,6 +134,10 @@ export class BillExportDetailNewComponent
     isLoading: boolean = false;
     isSaving: boolean = false;
     isFormDisabled: boolean = false;
+    /** Nhóm quyền N118 - chỉ được xem phiếu nhập/xuất, không thao tác. */
+    isBillViewOnly: boolean = false;
+    /** Được thêm sản phẩm / dự án / PO trên phiếu. */
+    canEditBillDetail: boolean = false;
 
     // Unique grid ID for this component instance
     gridUniqueId: string = `billExportDetail_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -282,6 +286,11 @@ export class BillExportDetailNewComponent
         private appUserService: AppUserService,
         private holidayService: HolidayServiceService
     ) {
+        this.isBillViewOnly = isBillViewOnly(this.appUserService);
+        this.canEditBillDetail =
+            !this.isBillViewOnly &&
+            this.permissionService.hasPermission('N27,N1,N33,N34,N69');
+
         this.validateForm = this.fb.group({
             Code: [''],
             UserID: [{ value: 0 }, [Validators.required, Validators.min(1)]],
@@ -1058,7 +1067,7 @@ export class BillExportDetailNewComponent
             gridWidth: '100%',
             datasetIdPropertyName: 'ID',
             enableCellNavigation: true,
-            editable: true,
+            editable: !this.isBillViewOnly,
             autoEdit: true,
             autoCommitEdit: true,
             enableFiltering: true,
@@ -1079,6 +1088,17 @@ export class BillExportDetailNewComponent
                 selectActiveRow: false,
             },
             rowHeight: 60,
+            // VARIABLE ROW HEIGHT (SlickGrid v10): dòng tự giãn theo nội dung dài
+            // nhất thay vì để rowHeight cao cố định cho mọi dòng. min = 60 nên
+            // không dòng nào thấp hơn hiện tại (giao diện cũ giữ nguyên).
+            // Đi kèm CSS wrap cho .slick-cell ở cuối file .css của component.
+            enableVariableRowHeight: true,
+            rowHeightProvider: makeTextRowHeightProvider('*', {
+                lineHeight: 18,
+                padding: 10,
+                min: 60,
+                max: 220,
+            }),
             enableCellMenu: true,
             cellMenu: {
                 commandItems: [
@@ -1800,6 +1820,8 @@ export class BillExportDetailNewComponent
         modalRef.componentInstance.fileData = [...currentFiles];
         modalRef.componentInstance.fileName = rowData.ProductCode || 'Sản phẩm';
         modalRef.componentInstance.billExportDetailId = rowData.ID > 0 ? rowData.ID : 0;
+        // Nhóm N118 xem + phóng to ảnh được, nhưng không upload/xóa/lưu.
+        modalRef.componentInstance.isViewOnly = this.isBillViewOnly;
 
         modalRef.result.then(
             (result) => {
@@ -2156,7 +2178,10 @@ export class BillExportDetailNewComponent
                     this.validateForm.get('Code')?.disable();
                     this.validateForm.get('Address')?.disable();
 
-                    if (this.newBillExport.IsApproved && !this.appUserService.isAdmin) {
+                    if (
+                        this.isBillViewOnly ||
+                        (this.newBillExport.IsApproved && !this.appUserService.isAdmin)
+                    ) {
                         this.isFormDisabled = true;
                         this.validateForm.disable();
                     }
@@ -3523,6 +3548,10 @@ export class BillExportDetailNewComponent
         // --- 2. KIỂM TRA QUYỀN & FORM ---
         let formValues = this.validateForm.getRawValue();
         const billID = this.newBillExport.Id || 0;
+        if (this.isBillViewOnly) {
+            this.showErrorNotification('Bạn chỉ có quyền xem phiếu nhập/xuất!');
+            return;
+        }
         if ((billID > 0 || this.id > 0) && !this.permissionService.hasPermission('N27,N1,N33,N34,N69')) {
             this.showErrorNotification('Bạn không có quyền thực hiện hành động này!');
             return;

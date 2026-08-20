@@ -6,15 +6,15 @@
   <nz-spin [nzSpinning]="isLoading">
     <div class="d-flex gap-2 pb-2 border-bottom" *ngIf="!newBillExport.IsApproved">
       <button type="button" class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Them san pham"
-        *hasPermission="'N27,N1,N33,N34,N69'" (click)="openModalNewProduct()">
+        *ngIf="canEditBillDetail" (click)="openModalNewProduct()">
         <nz-icon nzType="file-text"></nz-icon> Thêm sản phẩm
       </button>
       <button type="button" class="fs-12 btn" nz-button nzType="default" nzSize="small"
-        *hasPermission="'N27,N1,N33,N34,N69'" title="Them du an">
+        *ngIf="canEditBillDetail" title="Them du an">
         <nz-icon nzType="exception"></nz-icon> Thêm dự án
       </button>
       <button type="button" class="fs-12 btn" nz-button nzType="default" nzSize="small"
-        *hasPermission="'N27,N1,N33,N34,N69'" title="Chon PO">
+        *ngIf="canEditBillDetail" title="Chon PO">
         <nz-icon nzType="file-excel"></nz-icon> Chọn PO
       </button>
     </div>
@@ -461,7 +461,7 @@
   <button type="button" class="fs-12 btn" nz-button nzDanger (click)="closeModal()">
     Đóng
   </button>
-  <ng-container *ngIf="!newBillExport.IsApproved">
+  <ng-container *ngIf="!newBillExport.IsApproved && !isBillViewOnly">
     <button type="button" class="fs-12 btn" nz-button nzType="primary" [nzLoading]="isSaving" [disabled]="isSaving"
       (click)="saveDataBillExport()">
       Lưu

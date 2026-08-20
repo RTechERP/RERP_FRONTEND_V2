@@ -1,6 +1,6 @@
 
 
-import { Component, OnInit, AfterViewInit, OnDestroy, Inject, Optional, HostListener, ElementRef, NgZone, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, Inject, Optional, HostListener, ElementRef, NgZone } from '@angular/core';
 import {
   AngularGridInstance,
   AngularSlickgridComponent,
@@ -52,6 +52,8 @@ import { SafeUrlPipe } from '../../../../../../safeUrl.pipe';
 import pdfMake from 'pdfmake/build/pdfmake';
 import vfs from '../../../../../shared/pdf/vfs_fonts_custom.js';
 import { LOGO_RTC_BASE64 } from '../../../../../shared/pdf/logo-base64';
+import { makeTextRowHeightProvider } from '../../../../../shared/utils/slickgrid-row-height.util';
+import { isBillViewOnly } from '../../../../../shared/utils/bill-permission.util';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -135,6 +137,8 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
     canShippedOut: boolean = false;
     canExcelKT: boolean = false;
     canDocumentFile: boolean = false;
+    /** Nhóm quyền N118 - chỉ được xem phiếu nhập/xuất, không thao tác. */
+    isBillViewOnly: boolean = false;
     cbbStatus: any[] = [
         { ID: -1, Name: '--Tất cả--' },
         { ID: 0, Name: 'Phiếu xuất kho' },
@@ -174,15 +178,6 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
     private resizeObserver: ResizeObserver | null = null;
     private lastVisibleWidth: number = 0;
 
-    // Splitter panes: kéo splitter không kích hoạt autoResize của SlickGrid
-    // nên phải tự quan sát wrapper nội dung của từng panel.
-    @ViewChild('masterPaneRef', { read: ElementRef })
-    masterPaneRef?: ElementRef<HTMLElement>;
-    @ViewChild('detailPaneRef', { read: ElementRef })
-    detailPaneRef?: ElementRef<HTMLElement>;
-    private masterPaneObserver?: ResizeObserver;
-    private detailPaneObserver?: ResizeObserver;
-
     isMobile: boolean = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
     isShowModal: boolean = false;
 
@@ -206,10 +201,17 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
         }
     }
 
+    // Các tab đang mở đều còn nằm trong DOM (chỉ bị [hidden]) nên listener document:keydown
+    // của mọi tab đều chạy khi bấm Ctrl+C -> chỉ xử lý khi tab này đang hiển thị.
+    private get isTabActive(): boolean {
+      const host = this.elementRef.nativeElement as HTMLElement;
+      return host.isConnected && host.offsetParent !== null;
+    }
+
     @HostListener('document:keydown', ['$event'])
     onKeyDown(event: KeyboardEvent) {
         // Ctrl+C: copy ô đang focus (chỉ khi không có text nào được bôi đen)
-        if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
+        if ((event.ctrlKey || event.metaKey) && event.key === 'c' && this.isTabActive) {
             const selection = window.getSelection();
             if (selection && selection.toString().length > 0) {
                 // Có text được bôi đen → để trình duyệt tự xử lý
@@ -271,37 +273,12 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
 
     ngAfterViewInit() {
         this.setupResizeObserver();
-        setTimeout(() => this.setupSplitterPaneObservers(), 300);
-    }
-
-    /**
-     * Kéo splitter không kích hoạt autoResize của SlickGrid, nên tự quan sát
-     * wrapper nội dung của từng panel và gọi resizeCanvas() khi kích thước đổi.
-     */
-    private setupSplitterPaneObservers(): void {
-        const masterEl = this.masterPaneRef?.nativeElement;
-        if (masterEl) {
-            this.masterPaneObserver = new ResizeObserver(() => {
-                this.angularGridMaster?.slickGrid?.resizeCanvas();
-            });
-            this.masterPaneObserver.observe(masterEl);
-        }
-
-        const detailEl = this.detailPaneRef?.nativeElement;
-        if (detailEl) {
-            this.detailPaneObserver = new ResizeObserver(() => {
-                this.angularGridDetail?.slickGrid?.resizeCanvas();
-            });
-            this.detailPaneObserver.observe(detailEl);
-        }
     }
 
     ngOnDestroy() {
         this.destroy$.next();
         this.destroy$.complete();
         this.destroyGrids();
-        this.masterPaneObserver?.disconnect();
-        this.detailPaneObserver?.disconnect();
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
             this.resizeObserver = null;
@@ -338,12 +315,15 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     private initializeComponent() {
-        this.canAddEditDelete = this.permissionService.hasPermission('N27,N1,N33,N34,N69,N35');
-        this.canReceiveDocument = this.permissionService.hasPermission('N11,N50,N1');
-        this.canCancelDocument = this.permissionService.hasPermission('N11,N1,N18');
-        this.canShippedOut = this.permissionService.hasPermission('N27,N1');
+        this.isBillViewOnly = isBillViewOnly(this.appUserService);
+
+        this.canAddEditDelete = !this.isBillViewOnly && this.permissionService.hasPermission('N27,N1,N33,N34,N69,N35');
+        this.canReceiveDocument = !this.isBillViewOnly && this.permissionService.hasPermission('N11,N50,N1');
+        this.canCancelDocument = !this.isBillViewOnly && this.permissionService.hasPermission('N11,N1,N18');
+        this.canShippedOut = !this.isBillViewOnly && this.permissionService.hasPermission('N27,N1');
         this.canExcelKT = this.permissionService.hasPermission('N10,N11,N27,N29,N1');
-        this.canDocumentFile = this.permissionService.hasPermission('N52,N36,N1,N34');
+        // Nhóm N118 vào được hồ sơ chứng từ nhưng modal tự khoá ở chế độ chỉ xem.
+        this.canDocumentFile = this.isBillViewOnly || this.permissionService.hasPermission('N52,N36,N1,N34');
 
         if (!this.isInitialized) {
             this.initMasterGrid();
@@ -755,10 +735,16 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
         ];
 
         this.gridOptionsMaster = {
+            // Cho phép bôi đen text trong ô; nếu false SlickGrid chặn sự kiện
+            // selectstart trên viewport nên không quét chọn chữ được.
+            enableTextSelectionOnCells: true,
+            autoResize: {
+                container: '.grid-container-master-' + this.componentId,
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
             gridWidth: '100%',
-            // Chiều cao do nz-splitter quản lý; resize được xử lý bằng
-            // ResizeObserver trong setupSplitterPaneObservers().
-            enableAutoResize: false,
+            enableAutoResize: true,
             enableSorting: true,
             enableFiltering: true,
             enablePagination: false,
@@ -779,6 +765,17 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
             autoHeight: false,
             gridHeight: 450,
             rowHeight: 66, // Height for 3 lines: 12px * 1.5 * 3 + padding
+            // VARIABLE ROW HEIGHT (SlickGrid v10): trước đây rowHeight 66 cố định
+            // cho MỌI dòng để chứa 3 dòng chữ; dòng dài hơn vẫn bị cắt. Nay dòng tự
+            // giãn theo nội dung, min = 66 nên không dòng nào thấp hơn hiện tại.
+            // CSS wrap cho .slick-cell đã có sẵn trong file .css của component.
+            enableVariableRowHeight: true,
+            rowHeightProvider: makeTextRowHeightProvider('*', {
+                lineHeight: 18,
+                padding: 10,
+                min: 66,
+                max: 220,
+            }),
             enableCellMenu: true,
             cellMenu: {
                 commandItems: [
@@ -1009,8 +1006,14 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
         ];
 
         this.gridOptionsDetail = {
+            enableTextSelectionOnCells: true,
+            autoResize: {
+                container: '.grid-container-detail-' + this.componentId,
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
             gridWidth: '100%',
-            enableAutoResize: false,
+            enableAutoResize: true,
             enableSorting: true,
             enableFiltering: true,
             enablePagination: false,
@@ -1555,12 +1558,15 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
         );
     }
 
-    openModalBillExportDetail(isCheckmode: boolean) {
+    openModalBillExportDetail(isCheckmode: boolean, isView: boolean = false) {
         this.isCheckmode = isCheckmode;
         console.log('Parameter :>> ', isCheckmode, this.id)
 
         if (this.isCheckmode === true && this.id === 0) {
-            this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất để sửa');
+            this.notification.info(
+                'Thông báo',
+                isView ? 'Vui lòng chọn 1 phiếu xuất để xem' : 'Vui lòng chọn 1 phiếu xuất để sửa'
+            );
             return;
         }
 
@@ -2507,6 +2513,14 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
             visible: this.canAddEditDelete,
         });
 
+        // Xem phiếu - nhóm N118 không có nút "Sửa" nên cần lối vào màn chi tiết ở chế độ xem.
+        allItems.push({
+            label: 'Xem phiếu',
+            icon: 'fa-solid fa-eye fa-lg text-primary',
+            command: () => this.openModalBillExportDetail(true, true),
+            visible: this.isBillViewOnly,
+        });
+
         // Xóa
         allItems.push({
             label: 'Xóa',
@@ -2534,7 +2548,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
         // TBP duyệt
         allItems.push({
             label: 'TBP duyệt',
-            visible: this.permissionService.hasPermission('N32') || this.appUserService.isAdmin,
+            visible: !this.isBillViewOnly && (this.permissionService.hasPermission('N32') || this.appUserService.isAdmin),
             icon: 'fa-solid fa-user-check fa-lg text-primary',
             items: [
                 {
@@ -2653,6 +2667,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
         allItems.push({
             label: 'Trạng thái nhận hàng',
             icon: 'fa-solid fa-user-check fa-lg text-primary',
+            visible: !this.isBillViewOnly,
             items: [
                 {
                     label: 'Đã chuẩn bị hàng',

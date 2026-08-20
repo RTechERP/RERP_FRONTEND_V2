@@ -47,7 +47,7 @@ import { Subject, firstValueFrom } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../../app.config';
-import { HasPermissionDirective } from '../../../../../../directives/has-permission.directive';
+import { PermissionService } from '../../../../../../services/permission.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BillExportService } from '../../../BillExport/bill-export-service/bill-export.service';
 import { BillImportServiceService } from '../../bill-import-service/bill-import-service.service';
@@ -64,6 +64,8 @@ import { BillImportQcService } from '../../../bill-import-qc/bill-import-qc-serv
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { log } from 'ng-zorro-antd/core/logger';
 import { Formatter } from 'tabulator-tables';
+import { makeTextRowHeightProvider } from '../../../../../../shared/utils/slickgrid-row-height.util';
+import { isBillViewOnly } from '../../../../../../shared/utils/bill-permission.util';
 
 interface ProductSale {
     Id?: number;
@@ -118,7 +120,6 @@ interface BillImport {
         NzModalModule,
         NzCheckboxModule,
         NzSpinModule,
-        HasPermissionDirective,
         AngularSlickgridComponent,
         NzTabsModule,
     ],
@@ -130,6 +131,10 @@ export class BillImportDetailNewComponent
     //#region Khai bao
     isLoading: boolean = false;
     isSaving: boolean = false;
+    /** Nhóm quyền N118 - chỉ được xem phiếu nhập/xuất, không thao tác. */
+    isBillViewOnly: boolean = false;
+    /** Được thêm sản phẩm / dự án / PO / QC trên phiếu. */
+    canEditBillDetail: boolean = false;
     isFormDisabled: boolean = false;
     isApproved: boolean = false;
     isBillApproved: boolean = false; // raw status, không loại trừ admin, dùng để truyền vào serial modal
@@ -259,8 +264,14 @@ export class BillImportDetailNewComponent
         private clipboardService: ClipboardService,
         private productSaleService: ProductsaleServiceService,
         private projectService: ProjectService,
-        private billImportQcService: BillImportQcService
+        private billImportQcService: BillImportQcService,
+        private permissionService: PermissionService
     ) {
+        this.isBillViewOnly = isBillViewOnly(this.appUserService);
+        this.canEditBillDetail =
+            !this.isBillViewOnly &&
+            this.permissionService.hasPermission('N27,N1,N33,N34,N69');
+
         this.validateForm = this.fb.group({
             BillImportCode: ['', [Validators.required]],
             BillTypeNew: [0, [Validators.required]],
@@ -696,8 +707,19 @@ export class BillImportDetailNewComponent
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
             rowHeight: 55,
+            // VARIABLE ROW HEIGHT (SlickGrid v10): dòng tự giãn theo nội dung dài
+            // nhất thay vì để rowHeight cao cố định cho mọi dòng. min = 55 nên
+            // không dòng nào thấp hơn hiện tại (giao diện cũ giữ nguyên).
+            // Đi kèm CSS wrap cho .slick-cell ở cuối file .css của component.
+            enableVariableRowHeight: true,
+            rowHeightProvider: makeTextRowHeightProvider('*', {
+                lineHeight: 18,
+                padding: 10,
+                min: 55,
+                max: 220,
+            }),
             enableCellNavigation: true,
-            editable: true,
+            editable: !this.isBillViewOnly,
             autoEdit: true,
             autoCommitEdit: true,
             enableFiltering: true,
@@ -1831,6 +1853,11 @@ export class BillImportDetailNewComponent
                     this.updateLabels(data.BillTypeNew);
                     this.isInitialLoad = false;
                     this.changeProductGroup(this.validateForm.get('KhoTypeID')?.value);
+
+                    if (this.isBillViewOnly) {
+                        this.isFormDisabled = true;
+                        this.validateForm.disable({ emitEvent: false });
+                    }
                 } else {
                     this.notification.warning(
                         'Thông báo',
@@ -2486,6 +2513,14 @@ export class BillImportDetailNewComponent
     }
 
     async saveDataBillImport(): Promise<void> {
+        if (this.isBillViewOnly) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                'Bạn chỉ có quyền xem phiếu nhập/xuất!'
+            );
+            return;
+        }
+
         if (!this.validateForm.valid) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
@@ -2717,8 +2752,16 @@ if (
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
             rowHeight: 40,
+            // VARIABLE ROW HEIGHT - xem ghi chú ở grid phía trên
+            enableVariableRowHeight: true,
+            rowHeightProvider: makeTextRowHeightProvider('*', {
+                lineHeight: 18,
+                padding: 10,
+                min: 40,
+                max: 220,
+            }),
             enableCellNavigation: true,
-            editable: true,
+            editable: !this.isBillViewOnly,
             autoEdit: true,
             autoCommitEdit: true,
             enableFiltering: true,

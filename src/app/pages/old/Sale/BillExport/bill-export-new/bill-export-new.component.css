@@ -156,7 +156,7 @@
   height: 100% !important;
 }
 
-:host ::ng-deep .master-detail-splitter > .ant-splitter-panel {
+:host ::ng-deep .master-detail-splitter>.ant-splitter-panel {
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -248,13 +248,19 @@
   overflow: visible !important;
 }
 
-::ng-deep
-  .slickgrid-container
-  .slick-footerrow
-  .slick-footerrow-columns
-  .slick-footerrow-column {
+::ng-deep .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
   border-right: 1px solid #ddd !important;
   padding: 4px 6px;
   font-size: 0.75rem;
   justify-content: end !important;
+}
+/* Cho phép bôi đen (select) text trong ô lưới phiếu xuất.
+   Các cột không có formatter (Số phiếu, Phòng ban...) render text trần nên
+   bị kế thừa user-select của lưới; ép lại text ở đây cho đồng nhất. */
+::ng-deep div[id^="gridMaster-"][id*="billexport"] .slick-cell,
+::ng-deep div[id^="gridDetail-"][id*="billexport"] .slick-cell,
+::ng-deep div[id^="gridMaster-"][id*="billexport"] .slick-cell *,
+::ng-deep div[id^="gridDetail-"][id*="billexport"] .slick-cell * {
+  user-select: text !important;
+  -webkit-user-select: text !important;
 }

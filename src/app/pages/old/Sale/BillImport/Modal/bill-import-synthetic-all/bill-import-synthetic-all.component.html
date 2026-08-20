@@ -57,6 +57,16 @@
           <i nz-icon nzType="save" nzTheme="outline"></i>
           Lưu hóa đơn
         </button>
+        <button nz-button nzType="default" *hasPermission="'N50'" (click)="nhanChungTu()" [disabled]="isLoading"
+          style="background-color: #52c41a; color: white; border-color: #52c41a;">
+          <i nz-icon nzType="check-circle" nzTheme="outline"></i>
+          Nhận chứng từ
+        </button>
+        <button nz-button nzType="default" *hasPermission="'N50'" (click)="huyNhanChungTu()" [disabled]="isLoading"
+          nzDanger>
+          <i nz-icon nzType="close-circle" nzTheme="outline"></i>
+          Hủy nhận CT
+        </button>
       </div>
 
     </div>

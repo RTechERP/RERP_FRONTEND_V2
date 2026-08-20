@@ -31,6 +31,7 @@ import {
 } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import * as ExcelJS from 'exceljs';
+import { makeTextRowHeightProvider } from '../../../../../../shared/utils/slickgrid-row-height.util';
 // Interface cho Document Import
 interface DocumentImport {
   ID: number;
@@ -65,7 +66,7 @@ interface data {
   templateUrl: './bill-import-synthetic-all.component.html',
   styleUrl: './bill-import-synthetic-all.component.css'
 })
-export class BillImportSyntheticAllComponent {
+export class BillImportSyntheticAllComponent implements OnInit, AfterViewInit {
   @Input() warehouseCode: string = 'HN';
 
   dataProductGroup: any[] = [];
@@ -103,7 +104,7 @@ export class BillImportSyntheticAllComponent {
     keyword: '',
     checkAll: false,
     pageNumber: 1,
-    pageSize: 1000000,
+    pageSize: 1000,
     isDeleted: false,
   };
 
@@ -117,7 +118,7 @@ export class BillImportSyntheticAllComponent {
   gridOptions: GridOption = {};
   dataset: any[] = [];
   excelExportService = new ExcelExportService();
-  activeFilters: { columnId: string; columnName: string; operator: string; searchTerm: string }[] = [];
+  activeFilters: Array<{ columnId: string; columnName: string; operator: string; searchTerm: string }> = [];
   showFilterPopup = false;
   filterPopupPosition: 'top' | 'bottom' = 'top';
   private filterCollectionUpdateTimer: any = null;
@@ -188,9 +189,98 @@ export class BillImportSyntheticAllComponent {
       filter: { model: Filters['compoundInputText'] },
     }));
 
+    const isKeToan = this.appUserService.departmentID != 4;
+
     // Note: Checkbox selector column is automatically added by SlickGrid
     // when enableCheckboxSelector: true is set in gridOptions
-    this.columnDefinitions = [
+    if (isKeToan) {
+      // Phòng Kế toán (ID=4): dùng multipleSelect filters
+      this.columnDefinitions = this.getColumnDefinitionsKeToan();
+    } else {
+      // Các phòng ban khác: dùng compoundInputText filters (giống bill-import-synthetic-new)
+      this.columnDefinitions = this.getColumnDefinitionsOther();
+    }
+
+    this.gridOptions = {
+      autoResize: {
+        container: '#gridContainer',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container'
+      },
+      datasetIdPropertyName: 'id',
+      enableAutoResize: true,
+      enableFiltering: true,
+      enableSorting: true,
+      enableCellNavigation: true,
+      enableSelection: true,
+      enableCheckboxSelector: true,
+      enableExcelExport: true,
+      externalResources: [this.excelExportService],
+      checkboxSelector: {
+        hideSelectAllCheckbox: false,
+      },
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+      selectionOptions: {
+        selectActiveRow: false,
+      },
+      editable: true,
+      autoEdit: false,
+      autoCommitEdit: true,
+      frozenColumn: isKeToan ? 9 : 6,
+      gridHeight: 600,
+      enableContextMenu: true,
+      rowHeight: 30,
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 28,
+
+      // VARIABLE ROW HEIGHT: dòng tự giãn theo nội dung dài nhất (Wrap Text)
+      enableVariableRowHeight: true,
+      rowHeightProvider: makeTextRowHeightProvider('*', {
+        lineHeight: 18,
+        padding: 10,
+        min: 30,
+        max: 200,
+      }),
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'nhan_chung_tu',
+            title: 'Nhận chứng từ',
+            iconCssClass: 'fa fa-check-circle',
+            action: () => {
+              this.nhanChungTu();
+            }
+          },
+          {
+            command: 'huy_nhan_chung_tu',
+            title: 'Hủy nhận chứng từ',
+            iconCssClass: 'fa fa-times-circle',
+            action: () => {
+              this.huyNhanChungTu();
+            }
+          },
+          {
+            command: 'divider_1',
+            divider: true,
+          },
+          {
+            command: 'history_header',
+            title: '——Bổ sung chứng từ——',
+            disabled: true
+          },
+        ]
+      },
+    };
+  }
+
+  /**
+   * Column definitions cho phòng Kế toán (departmentID === 4)
+   * Dùng multipleSelect filters, thứ tự cột kế toán
+   */
+  private getColumnDefinitionsKeToan(): Column[] {
+    return [
       {
         id: 'BillImportCode',
         name: 'Số phiếu',
@@ -485,17 +575,6 @@ export class BillImportSyntheticAllComponent {
         filter: { model: Filters['compoundDate'] },
         cssClass: 'text-center',
       },
-      // {
-      //   id: 'CreatedDate',
-      //   name: 'Ngày nhận',
-      //   field: 'CreatedDate',
-      //   width: 120,
-      //   sortable: true,
-      //   filterable: true,
-      //   formatter: this.dateFormatter,
-      //   filter: { model: Filters['compoundDate'] },
-      //   cssClass: 'text-center',
-      // },
       {
         id: 'DepartmentName',
         name: 'Phòng ban',
@@ -662,7 +741,6 @@ export class BillImportSyntheticAllComponent {
           } as MultipleSelectOption,
         },
       },
-
       {
         id: 'Status',
         name: 'Nhận chứng từ',
@@ -709,7 +787,15 @@ export class BillImportSyntheticAllComponent {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['compoundInputText'],
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
         },
       },
       {
@@ -758,16 +844,15 @@ export class BillImportSyntheticAllComponent {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['compoundInputText'],
-          //   collection: [],
-          //   model: Filters['multipleSelect'],
-          //   collectionOptions: {
-          //     addBlankEntry: true
-          //   },
-          //   options: {
-          //     autoAdjustDropHeight: true,
-          //     filter: true,
-          //   } as MultipleSelectOption,
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
         },
       },
       {
@@ -838,7 +923,17 @@ export class BillImportSyntheticAllComponent {
         width: 100,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'SerialNumber',
@@ -847,7 +942,17 @@ export class BillImportSyntheticAllComponent {
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'Note',
@@ -865,79 +970,729 @@ export class BillImportSyntheticAllComponent {
         width: 250,
         sortable: true,
         filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+    ];
+  }
+
+  /**
+   * Column definitions cho các phòng ban khác (departmentID !== 4)
+   * Dùng multipleSelect filters cho các cột text (trừ Ghi chú), thứ tự cột giống bill-import-synthetic-new
+   */
+  private getColumnDefinitionsOther(): Column[] {
+    return [
+      {
+        id: 'Status',
+        name: 'Nhận chứng từ',
+        field: 'Status',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        formatter: this.checkboxFormatter,
+        cssClass: 'text-center',
+        filter: {
+          collection: [
+            { value: '', label: '' },
+            { value: true, label: 'Đã nhận' },
+            { value: false, label: 'Chưa nhận' },
+          ],
+          model: Filters['singleSelect'],
+          options: {
+            autoAdjustDropHeight: true,
+          } as MultipleSelectOption,
+        },
+        exportCustomFormatter: (_row, _cell, value) => {
+          return value === true || value === 1 ? 'V' : 'X';
+        },
+      },
+      {
+        id: 'DateStatus',
+        name: 'Ngày nhận/hủy CT',
+        field: 'DateStatus',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center',
+      },
+      {
+        id: 'DoccumentReceiver',
+        name: 'Người nhận/hủy CT',
+        field: 'DoccumentReceiver',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'BillTypeText',
+        name: 'Loại phiếu',
+        field: 'BillTypeText',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'DateRequestImport',
+        name: 'Ngày Y/c nhập',
+        field: 'DateRequestImport',
+        width: 130,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center',
+      },
+      {
+        id: 'BillImportCode',
+        name: 'Số phiếu',
+        field: 'BillImportCode',
+        width: 160,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'CodeNCC',
+        name: 'Mã NCC',
+        field: 'CodeNCC',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'NameNCC',
+        name: 'Nhà cung cấp / Bộ phận',
+        field: 'NameNCC',
+        width: 300,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'DepartmentName',
+        name: 'Phòng ban',
+        field: 'DepartmentName',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'Code',
+        name: 'Mã NV',
+        field: 'Code',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'Deliver',
+        name: 'Người giao / Người trả',
+        field: 'Deliver',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'Reciver',
+        name: 'Người nhận',
+        field: 'Reciver',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'CreatDateActual',
+        name: 'Ngày nhập kho',
+        field: 'CreatDateActual',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center',
+      },
+      {
+        id: 'KhoType',
+        name: 'Loại vật tư',
+        field: 'KhoType',
+        width: 160,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'WarehouseName',
+        name: 'Kho',
+        field: 'WarehouseName',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'ProductCode',
+        name: 'Mã hàng',
+        field: 'ProductCode',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'Unit',
+        name: 'ĐVT',
+        field: 'Unit',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'ProductNewCode',
+        name: 'Mã nội bộ',
+        field: 'ProductNewCode',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'Qty',
+        name: 'SL thực tế',
+        field: 'Qty',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+        filter: { model: Filters['compoundInputNumber'] },
+        cssClass: 'text-right',
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value),
+      },
+      {
+        id: 'Maker',
+        name: 'Loại hàng',
+        field: 'Maker',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'IsBill',
+        name: 'Hóa đơn',
+        field: 'IsBill',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        formatter: this.checkboxFormatter,
+        exportCustomFormatter: (_row, _cell, value) => {
+          return value === true || value === 1 ? 'V' : 'X';
+        },
+        cssClass: 'text-center',
+        filter: {
+          collection: [
+            { value: '', label: '' },
+            { value: true, label: 'Có' },
+            { value: false, label: 'Không' },
+          ],
+          model: Filters['singleSelect'],
+          options: {
+            autoAdjustDropHeight: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'SomeBill',
+        name: 'Số hóa đơn',
+        field: 'SomeBill',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+        editor: { model: Editors['text'] },
+      },
+      {
+        id: 'DateSomeBill',
+        name: 'Ngày hóa đơn',
+        field: 'DateSomeBill',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+        editor: { model: Editors['date'] },
+        cssClass: 'text-center',
+      },
+      {
+        id: 'DPO',
+        name: 'Số ngày công nợ',
+        field: 'DPO',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+        filter: { model: Filters['compoundInputNumber'] },
+        editor: { model: Editors['integer'] },
+        cssClass: 'text-right',
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value),
+      },
+      {
+        id: 'DueDate',
+        name: 'Ngày tới hạn',
+        field: 'DueDate',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center',
+      },
+      {
+        id: 'TaxReduction',
+        name: 'Tiền thuế giảm',
+        field: 'TaxReduction',
+        width: 130,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value),
+        filter: { model: Filters['compoundInputNumber'] },
+        editor: { model: Editors['float'] },
+        cssClass: 'text-right',
+      },
+      {
+        id: 'COFormE',
+        name: 'Chi phí FE',
+        field: 'COFormE',
+        width: 130,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value),
+        filter: { model: Filters['compoundInputNumber'] },
+        editor: { model: Editors['float'] },
+        cssClass: 'text-right',
+      },
+      {
+        id: 'ProjectCodeText',
+        name: 'Mã dự án',
+        field: 'ProjectCodeText',
+        width: 130,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'DeliverFullName',
+        name: 'Người giao',
+        field: 'Deliver',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'ProductName',
+        name: 'Tên sản phẩm',
+        field: 'ProductName',
+        width: 300,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'ProjectCode',
+        name: 'Mã theo dự án',
+        field: 'ProjectCode',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'ProjectNameText',
+        name: 'Tên dự án',
+        field: 'ProjectNameText',
+        width: 300,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'BillCodePO',
+        name: 'Đơn mua hàng',
+        field: 'BillCodePO',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'UnitPricePO',
+        name: 'Đơn giá',
+        field: 'UnitPricePO',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+        formatter: (_row, _cell, value) => {
+          if (!value) return '0';
+          return Number(value).toLocaleString('en-US');
+        },
+        filter: { model: Filters['compoundInputNumber'] },
+        cssClass: 'text-right',
+      },
+      {
+        id: 'VATPO',
+        name: 'Thuế',
+        field: 'VATPO',
+        cssClass: 'text-end',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value),
+      },
+      {
+        id: 'TotalPricePO',
+        name: 'Tổng tiền',
+        field: 'TotalPricePO',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+        formatter: (_row, _cell, value) => {
+          if (!value) return '0';
+          return Number(value).toLocaleString('en-US');
+        },
+        filter: { model: Filters['compoundInputNumber'] },
+        cssClass: 'text-right',
+      },
+      {
+        id: 'CurrencyCode',
+        name: 'Loại tiền',
+        field: 'CurrencyCode',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'SerialNumber',
+        name: 'Serial Number',
+        field: 'SerialNumber',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'Note',
+        name: 'Ghi chú',
+        field: 'Note',
+        width: 200,
+        sortable: true,
+        filterable: true,
         filter: { model: Filters['compoundInputText'] },
       },
-      // Dynamic document columns
-      //...dynamicDocumentColumns,
+      {
+        id: 'IsSuccessText',
+        name: 'Trạng thái chứng từ',
+        field: 'IsSuccessText',
+        width: 250,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          options: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
     ];
-
-    this.gridOptions = {
-      autoResize: {
-        container: '#gridContainer',
-        calculateAvailableSizeBy: 'container',
-        resizeDetection: 'container'
-      },
-      datasetIdPropertyName: 'id',
-      enableAutoResize: true,
-      enableFiltering: true,
-      enableSorting: true,
-      enableCellNavigation: true,
-      enableSelection: true,
-      enableCheckboxSelector: true,
-      enableExcelExport: true,
-      externalResources: [this.excelExportService],
-      checkboxSelector: {
-        hideSelectAllCheckbox: false,
-      },
-      autoFitColumnsOnFirstLoad: false,
-      enableAutoSizeColumns: false,
-      selectionOptions: {
-        selectActiveRow: false,
-      },
-      editable: true,
-      autoEdit: false,
-      autoCommitEdit: true,
-      frozenColumn: 9,
-      gridHeight: 600,
-      enableContextMenu: true,
-      rowHeight: 30,
-      createFooterRow: true,
-      showFooterRow: true,
-      footerRowHeight: 28,
-      contextMenu: {
-        commandItems: [
-          // {
-          //   command: 'history_header',
-          //   title: '——Bổ sung chứng từ——',
-          //   disabled: true
-          // },
-          // {
-          //   command: 'PO',
-          //   title: '↳ PO',
-          //   iconCssClass: 'fa fa-file-alt',
-          //   action: () => {
-          //     this.onUpdateDocument(1);
-          //   }
-          // },
-          // {
-          //   command: 'BBBG',
-          //   title: '↳ Biên bản bàn giao',
-          //   iconCssClass: 'fa fa-handshake',
-          //   action: () => {
-          //     this.onUpdateDocument(2);
-          //   },
-          // },
-          // {
-          //   command: 'PXK',
-          //   title: '↳ Phiếu Xuất Kho',
-          //   iconCssClass: 'fa fa-truck-loading',
-          //   action: () => {
-          //     this.onUpdateDocument(3);
-          //   }
-          // },
-        ]
-      },
-    };
   }
 
 
@@ -1232,6 +1987,110 @@ export class BillImportSyntheticAllComponent {
         this.notification.error(
           NOTIFICATION_TITLE.error,
           err.error?.message || 'Có lỗi xảy ra khi lưu dữ liệu!'
+        );
+      },
+    });
+  }
+  // #endregion
+
+  // #region Nhận / Hủy chứng từ
+  /**
+   * Nhận chứng từ - cập nhật Status = true cho các phiếu đã chọn
+   */
+  nhanChungTu() {
+    if (!this.angularGrid) return;
+
+    const selectedRows = this.angularGrid.slickGrid.getSelectedRows();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn ít nhất một phiếu!'
+      );
+      return;
+    }
+
+    const selectedData = selectedRows.map((rowIndex: number) =>
+      this.angularGrid.dataView.getItem(rowIndex)
+    );
+
+    // Lấy danh sách BillImportID unique
+    const billImportIDs = [...new Set(selectedData.map((r: any) => r.BillImportID))];
+    const dataToSend = billImportIDs.map(id => ({ BillImportID: id }));
+
+    this.isLoading = true;
+    this.billImportService.approveDocumentImport(dataToSend, true).subscribe({
+      next: (res: any) => {
+        this.isLoading = false;
+        if (res?.status === 1) {
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            res.message || 'Nhận chứng từ thành công!'
+          );
+          this.loadDataBillImportSynthetic();
+        } else {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            res?.message || 'Nhận chứng từ thất bại!'
+          );
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Lỗi khi nhận chứng từ:', err);
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          err.error?.message || 'Có lỗi xảy ra khi nhận chứng từ!'
+        );
+      },
+    });
+  }
+
+  /**
+   * Hủy nhận chứng từ - cập nhật Status = false cho các phiếu đã chọn
+   */
+  huyNhanChungTu() {
+    if (!this.angularGrid) return;
+
+    const selectedRows = this.angularGrid.slickGrid.getSelectedRows();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn ít nhất một phiếu!'
+      );
+      return;
+    }
+
+    const selectedData = selectedRows.map((rowIndex: number) =>
+      this.angularGrid.dataView.getItem(rowIndex)
+    );
+
+    // Lấy danh sách BillImportID unique
+    const billImportIDs = [...new Set(selectedData.map((r: any) => r.BillImportID))];
+    const dataToSend = billImportIDs.map(id => ({ BillImportID: id }));
+
+    this.isLoading = true;
+    this.billImportService.approveDocumentImport(dataToSend, false).subscribe({
+      next: (res: any) => {
+        this.isLoading = false;
+        if (res?.status === 1) {
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            res.message || 'Hủy nhận chứng từ thành công!'
+          );
+          this.loadDataBillImportSynthetic();
+        } else {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            res?.message || 'Hủy nhận chứng từ thất bại!'
+          );
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Lỗi khi hủy nhận chứng từ:', err);
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          err.error?.message || 'Có lỗi xảy ra khi hủy nhận chứng từ!'
         );
       },
     });
@@ -1715,6 +2574,43 @@ export class BillImportSyntheticAllComponent {
       allColumns.push(...dynamicDocumentColumns);
       this.columnDefinitions = [...allColumns];
     }
+
+    // Cập nhật context menu với các document items động
+    this.updateDynamicContextMenu();
+  }
+
+  /**
+   * Cập nhật context menu với danh sách chứng từ động từ API
+   */
+  private updateDynamicContextMenu(): void {
+    if (!this.angularGrid || !this.dataContextMenu || this.dataContextMenu.length === 0) return;
+
+    const dynamicDocumentItems = this.dataContextMenu.map((item: any) => ({
+      command: `doc_${item.ID}`,
+      title: `↳ ${item.DocumentImportName}`,
+      iconCssClass: 'fa fa-file-alt',
+      action: () => {
+        this.onUpdateDocument(item.ID);
+      }
+    }));
+
+    // Lấy context menu hiện tại và thêm các document items
+    const currentOptions = this.angularGrid.slickGrid.getOptions();
+    const currentCommandItems = currentOptions?.contextMenu?.commandItems || [];
+
+    // Giữ lại các items cố định (Nhận CT, Hủy CT, divider, header) và thêm dynamic items
+    const fixedItems = currentCommandItems.filter((item: any) =>
+      ['nhan_chung_tu', 'huy_nhan_chung_tu', 'divider_1', 'history_header'].includes(item.command)
+    );
+
+    const updatedCommandItems = [...fixedItems, ...dynamicDocumentItems];
+
+    this.angularGrid.slickGrid.setOptions({
+      contextMenu: {
+        ...currentOptions.contextMenu,
+        commandItems: updatedCommandItems,
+      }
+    });
   }
 
   UpdateDocument() {
@@ -1782,6 +2678,10 @@ export class BillImportSyntheticAllComponent {
       'ProductName',
       'ProjectCode',
       'ProjectNameText',
+      'DoccumentReceiver',
+      'CurrencyCode',
+      'SerialNumber',
+      'IsSuccessText',
     ];
 
     let hasChanges = false;
@@ -1865,6 +2765,7 @@ export class BillImportSyntheticAllComponent {
       'Code', 'Deliver', 'Reciver', 'KhoType', 'WarehouseName', 'ProjectCodeText',
       'BillCodePO', 'ProductCode', 'Unit', 'ProductNewCode', 'Maker', 'SomeBill',
       'DeliverFullName', 'ProductName', 'ProjectCode', 'ProjectNameText',
+      'DoccumentReceiver', 'CurrencyCode', 'SerialNumber', 'IsSuccessText',
     ];
 
     let hasChanges = false;

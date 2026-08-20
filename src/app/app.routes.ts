@@ -436,6 +436,7 @@ import { ReturnedInventoryProductComponent } from './pages/old/Sale/Inventory/re
 import { buildDeepLinkAliasRoutes } from './services/deep-link/deep-link.config';
 import { PublicViewComponent } from './pages/public-view/public-view.component';
 import { ProjectTaskTimeLineAllProjectComponent } from './pages/project_task/project-task-time-line-all-project/project-task-time-line-all-project.component';
+import { KpiSummaryWithRankingComponent } from './pages/old/KPISale/kpi-summary-with-ranking/kpi-summary-with-ranking.component';
 export const routes: Routes = [
 
   {
@@ -1371,15 +1372,23 @@ export const routes: Routes = [
       //KPISALE
       { path: 'kpi-sale-v2', component: KpiSaleV2Component, canActivate: [authGuard] },
       { path: 'kpi-template-index-tab', component: KpiTemplateIndexTabComponent, canActivate: [authGuard] },
+      { path: 'kpi-sale-v2', component: KpiSaleV2Component, canActivate: [authGuard] },
       { path: 'kpi-period-tab', component: KpiPeriodTabComponent, canActivate: [authGuard] },
       { path: 'kpi-mapping-tab', component: KpiMappingTabComponent, canActivate: [authGuard] },
       { path: 'kpi-target-tab', component: KpiTargetTabComponent, canActivate: [authGuard] },
+      { path: 'kpi-target-tab-sales', component: KpiTargetTabComponent, canActivate: [authGuard] },
+      { path: 'kpi-target-tab-pm', component: KpiTargetTabComponent, canActivate: [authGuard] },
+      { path: 'kpi-target-tab-admin', component: KpiTargetTabComponent, canActivate: [authGuard] },
       { path: 'kpi-summary-tab', component: KpiSummaryComponent, canActivate: [authGuard] },
       { path: 'kpi-team-tab', component: KpiTeamTabComponent, canActivate: [authGuard] },
       { path: 'kpi-ranking-tab', component: KpiRankingTabComponent, canActivate: [authGuard] },
       { path: 'kpi-reward-config-tab', component: KpiRewardConfigTabComponent, canActivate: [authGuard] },
-      { path: 'team-employee-project', component: TeamEmployeeProjectComponent, canActivate: [authGuard] },
+      { path: 'kpi-summary-with-ranking', component: KpiSummaryWithRankingComponent, canActivate: [authGuard] },
+      { path: 'kpi-summary-with-ranking-sales', component: KpiSummaryWithRankingComponent, canActivate: [authGuard] },
+      { path: 'kpi-summary-with-ranking-pm', component: KpiSummaryWithRankingComponent, canActivate: [authGuard] },
+      { path: 'kpi-summary-with-ranking-admin', component: KpiSummaryWithRankingComponent, canActivate: [authGuard] },
 
+      { path: 'team-employee-project', component: TeamEmployeeProjectComponent, canActivate: [authGuard] },
       { path: 'org-chart-rtc-new', component: OrgChartRtcNewComponent, canActivate: [authGuard] },
       { path: 'vehicle-rental-request', component: VehicleRentalRequestComponent, canActivate: [authGuard] },
       { path: 'business-visa-request', component: VisaRequestComponent, canActivate: [authGuard] },
@@ -1410,6 +1419,7 @@ export const routes: Routes = [
       // Sinh tự động từ DEEP_LINK_PAGES, redirect vẫn giữ nguyên query string.
       // Phải đứng CUỐI để không chiếm chỗ của các route khai báo ở trên.
       ...buildDeepLinkAliasRoutes(),
+
     ],
   },
 

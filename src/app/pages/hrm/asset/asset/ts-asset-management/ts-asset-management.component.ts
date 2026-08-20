@@ -856,13 +856,18 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     onDisposeAsset() { }
     async exportToExcelAdvanced() {
         this.isLoading = true;
+        const departmentString =
+            this.department.length > 0
+                ? this.department.join(',')
+                : '';
+
         const request = {
             filterText: this.filterText || '',
             pageNumber: 1,
             pageSize: 9999999,
             dateStart: this.dateStart || '2024-05-22',
             dateEnd: this.dateEnd || '2027-05-22',
-
+            department: departmentString,
         };
 
         this.assetManagementService.exportExcelAssetManagement(request).subscribe({

@@ -88,6 +88,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   filesToDelete: number[] = [];
   legacyImagePath: string | null = null;
   hadLegacyImage = false;
+  isDuplicateMode = false;
   productGroupData: any[] = [];
   CreateDate = new Date();
   isSubmitted = false;
@@ -112,6 +113,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     }
     if (this.dataInput && this.dataInput.isDuplicate) {
       // Chế độ copy/duplicate
+      this.isDuplicateMode = true;
       this.patchFormData(this.dataInput);
       this.dataInput.ID = 0; // Ensure it saves as new
       this.dataInput.BorrowCustomer = this.dataInput.BorrowCustomer ?? false;
@@ -361,6 +363,12 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   removeSavedFile(file: any): void {
     if (file?.isLegacyImage) {
       this.legacyImagePath = null;
+      this.productFiles = this.productFiles.filter((f) => f !== file);
+      return;
+    }
+    if (this.isDuplicateMode) {
+      // Chế độ copy: file thuộc sản phẩm gốc, chỉ bỏ khỏi danh sách sẽ copy,
+      // không được xóa file của sản phẩm gốc
       this.productFiles = this.productFiles.filter((f) => f !== file);
       return;
     }
@@ -690,6 +698,32 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     });
   }
 
+  private copyDuplicatedFilesThenContinue(productRTCID: number, done: () => void): void {
+    if (!this.isDuplicateMode || !productRTCID) {
+      done();
+      return;
+    }
+    const filesToCopy = this.productFiles.filter((f) => !f.isLegacyImage);
+    if (!filesToCopy.length) {
+      done();
+      return;
+    }
+    const rows = filesToCopy.map((f) => ({
+      ID: 0,
+      ProductRTCID: productRTCID,
+      FileName: f.FileName,
+      OriginPath: f.OriginPath || '',
+      ServerPath: f.ServerPath,
+    }));
+    this.tbProductRtcService.saveProductFiles(rows).subscribe({
+      next: () => done(),
+      error: () => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Copy ảnh từ sản phẩm gốc thất bại!');
+        done();
+      },
+    });
+  }
+
   private uploadPendingFiles(productRTCID: number, done: () => void): void {
     if (!this.pendingFiles.length || !productRTCID) {
       done();
@@ -794,12 +828,14 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
         if (res.status === 1) {
           const savedID = res.data?.productRTCs?.[0]?.ID || this.dataInput.ID;
           this.deleteStagedFiles(() => {
-            this.migrateLegacyImageThenUploadPendingFiles(savedID, () => {
-              this.notification.success(
-                NOTIFICATION_TITLE.success,
-                res.message || 'Lưu dữ liệu thành công'
-              );
-              this.activeModal.close({ refresh: true });
+            this.copyDuplicatedFilesThenContinue(savedID, () => {
+              this.migrateLegacyImageThenUploadPendingFiles(savedID, () => {
+                this.notification.success(
+                  NOTIFICATION_TITLE.success,
+                  res.message || 'Lưu dữ liệu thành công'
+                );
+                this.activeModal.close({ refresh: true });
+              });
             });
           });
         } else {

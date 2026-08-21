@@ -173,6 +173,7 @@ export class KpiSummaryWithRankingComponent implements OnInit {
   tabApproveNote = '';
   approvingAllTeams = false;
   readonly stepOrder: ApprovalCurrentStep[] = ['PENDING', 'P0_APPROVED', 'P1_APPROVED', 'P2_APPROVED', 'P3_APPROVED', 'P4_APPROVED', 'P5_HR_DISBURSE'];
+  targetTeamIdFromUrl: number | null = null;
 
   /** Expose stepOrder for template use */
   get approvalStepOrder(): ApprovalCurrentStep[] {
@@ -234,10 +235,12 @@ export class KpiSummaryWithRankingComponent implements OnInit {
   private async applyQueryParams(): Promise<void> {
     const mode = this.route.snapshot.queryParamMap.get('mode');
     const periodIdStr = this.route.snapshot.queryParamMap.get('periodId');
+    const teamIdStr = this.route.snapshot.queryParamMap.get('teamId');
 
     this._queryParams = {
       periodId: periodIdStr ? parseInt(periodIdStr, 10) : null,
     };
+    this.targetTeamIdFromUrl = teamIdStr ? parseInt(teamIdStr, 10) : null;
 
     // 1. Switch mode if mode=team
     if (mode === 'team' && !this.isTeamMode) {
@@ -563,7 +566,13 @@ export class KpiSummaryWithRankingComponent implements OnInit {
       approveModalVisible: false,
       approveNote: '',
     }));
-    this.activeTeamTabIndex = 0;
+    // Auto-select tab: URL teamId if provided, otherwise first tab
+    if (this.targetTeamIdFromUrl != null) {
+      const idx = this.teamTabs.findIndex(t => t.teamId === this.targetTeamIdFromUrl);
+      this.activeTeamTabIndex = idx >= 0 ? idx : 0;
+    } else {
+      this.activeTeamTabIndex = 0;
+    }
 
     // Auto-recalc ranking cho cả kỳ rồi load ALL teams data
     // → đảm bảo bảng ranking của mỗi team tab luôn hiển thị data mới nhất

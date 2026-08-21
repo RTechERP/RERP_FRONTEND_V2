@@ -201,6 +201,8 @@
                           </th>
                           <th style="width: 200px" pSortableColumn="TSAssetName">Tên tài sản <p-sortIcon
                               field="TSAssetName" /></th>
+                          <th style="width: 160px" pSortableColumn="FullName">Người quản lý <p-sortIcon
+                              field="FullName" /></th>
                           <th style="width: 100px" pSortableColumn="UnitName">Đơn vị <p-sortIcon field="UnitName" />
                           </th>
                           <th style="min-width: 200px" pSortableColumn="Note">Ghi chú <p-sortIcon field="Note" /></th>
@@ -212,13 +214,14 @@
                           <td>{{ row.TSCodeNCC }}</td>
                           <td class="text-center">{{ row.Quantity }}</td>
                           <td><span [title]="row.TSAssetName || ''">{{ row.TSAssetName }}</span></td>
+                          <td><span>{{ row.FullName }}</span></td>
                           <td class="text-center">{{ row.UnitName }}</td>
                           <td><span [title]="row.Note || ''">{{ row.Note }}</span></td>
                         </tr>
                       </ng-template>
                       <ng-template pTemplate="emptymessage">
                         <tr>
-                          <td colspan="6" class="text-center" style="padding: 20px;">Chọn biên bản để xem chi tiết</td>
+                          <td colspan="7" class="text-center" style="padding: 20px;">Chọn biên bản để xem chi tiết</td>
                         </tr>
                       </ng-template>
                     </p-table>

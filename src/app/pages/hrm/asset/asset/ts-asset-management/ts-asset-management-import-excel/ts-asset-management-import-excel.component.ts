@@ -770,7 +770,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     this.displayProgress = 30;
     this.displayText = `Đang gửi ${totalAssetsToSave} bản ghi...`;
 
-    this.assetsManagementService.saveDataAsset(payload).subscribe({
+    this.assetsManagementService.saveDataImportExcel(payload).subscribe({
       next: (response: any) => {
 
         // Đếm số bản ghi có ID trong response (đã lưu thành công)

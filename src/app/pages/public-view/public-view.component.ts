@@ -1,11 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, Injector, OnInit, Type } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzResultModule } from 'ng-zorro-antd/result';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 
 import { PublicLinkService } from '../../services/deep-link/public-link.service';
+import { findDeepLinkPage } from '../../services/deep-link/deep-link.config';
 import { ProjectHistoryProblemNewComponent } from '../project/project-history-problem-new/project-history-problem-new.component';
 import { ProjectGateStepMasterPlanComponent } from '../project/project-gate/project-gate-step/project-gate-step-master-plan/project-gate-step-master-plan.component';
 
@@ -82,7 +84,8 @@ export class PublicViewComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private publicLink: PublicLinkService,
-    private injector: Injector
+    private injector: Injector,
+    private titleService: Title
   ) { }
 
   ngOnInit(): void {
@@ -116,6 +119,27 @@ export class PublicViewComponent implements OnInit {
         for (const [key, value] of Object.entries(data.filters ?? {})) {
           const n = Number(value);
           filters[key] = value !== '' && Number.isFinite(n) ? n : value;
+        }
+
+        const firstItem = data.timelineData?.[0] || data.dtMaster?.[0] || data.dtDetail?.[0];
+        if (firstItem) {
+          if (!filters['projectCode'] && firstItem.ProjectCode) {
+            filters['projectCode'] = firstItem.ProjectCode;
+          }
+          if (!filters['projectName'] && firstItem.ProjectName) {
+            filters['projectName'] = firstItem.ProjectName;
+          }
+          if (!filters['projectStatusName'] && firstItem.ProjectStatusName) {
+            filters['projectStatusName'] = firstItem.ProjectStatusName;
+          }
+        }
+
+        const page = findDeepLinkPage(data.route);
+        if (page) {
+          const title = typeof page.title === 'function' ? page.title(filters) : page.title;
+          if (title) {
+            this.titleService.setTitle(title);
+          }
         }
 
         this.childInjector = Injector.create({

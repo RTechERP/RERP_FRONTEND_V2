@@ -1,66 +1,95 @@
 <div class="modal-header bg-primary p-2">
-    <h6 class="modal-title text-white" id="assetModalLabel">CẤP PHÁT TÀI SẢN</h6>
+    <h6 class="modal-title text-white fs-12" id="assetModalLabel">CẤP PHÁT TÀI SẢN</h6>
     <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
 </div>
 
 <div class="modal-body">
-    <form nz-form nzLayout="vertical" class="fs-7 mt-2 me-2">
-        <nz-row [nzGutter]="24" class="fs-7 mt-2 me-2">
+    <form nz-form nzLayout="vertical" class="fs-12 mt-2 me-2">
+        <nz-row [nzGutter]="24" class="fs-12 mt-2 me-2">
             <nz-col [nzSpan]="12">
-                <nz-form-label>Số biên bản <span class="text-danger">(*)</span></nz-form-label>
+                <nz-form-label class="fs-12">Số biên bản <span class="text-danger">(*)</span></nz-form-label>
                 <nz-form-control>
-                    <input nz-input [(ngModel)]="dataInput.Code" name="Code" disabled />
+                    <input nz-input [(ngModel)]="dataInput.Code" name="Code" class="fs-12" disabled />
                 </nz-form-control>
             </nz-col>
             <nz-col [nzSpan]="12">
-                <nz-form-label>Ngày cấp phát <span class="text-danger">(*)</span></nz-form-label>
+                <nz-form-label class="fs-12">Ngày cấp phát <span class="text-danger">(*)</span></nz-form-label>
                 <nz-form-control>
-                    <input nz-input type="date" [(ngModel)]="dataInput.DateAllocation" name="DateAllocation" />
+                    <input nz-input type="date" [(ngModel)]="dataInput.DateAllocation" name="DateAllocation" class="fs-12" />
                 </nz-form-control>
             </nz-col>
         </nz-row>
 
         <nz-row [nzGutter]="24" class="mt-2 me-2">
             <nz-col [nzSpan]="12" class="pe-0">
-                <nz-form-label class="fs-12" [nzSpan]="12">Chọn nhân viên<span class="text-danger ps-1 me-1">
+                <nz-form-label class="fs-12" [nzSpan]="24">Người cấp phát<span class="text-danger ps-1 me-1">
                         (*)</span></nz-form-label>
                 <nz-form-control [nzSpan]="24" class="pe-0">
-                    <nz-select class="w-100 fs-12 pe-0" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên..."
+                    <nz-select class="w-100 fs-12 pe-0" nzShowSearch nzAllowClear nzPlaceHolder="Chọn người cấp phát..."
+                        [(ngModel)]="dataInput.AllocationID" name="allocationID" (ngModelChange)="onAllocationChange($event)">
+                        <nz-option *ngFor="let emp of emPloyeeLists" [nzLabel]="emp.Code + ' - ' + emp.FullName"
+                            [nzValue]="emp.ID"></nz-option>
+                    </nz-select>
+                </nz-form-control>
+            </nz-col>
+            <nz-col [nzSpan]="12" class="pe-0">
+                <nz-form-label class="fs-12" [nzSpan]="24">Người nhận<span class="text-danger ps-1 me-1">
+                        (*)</span></nz-form-label>
+                <nz-form-control [nzSpan]="24" class="pe-0">
+                    <nz-select class="w-100 fs-12 pe-0" nzShowSearch nzAllowClear nzPlaceHolder="Chọn người nhận..."
                         [(ngModel)]="dataInput.EmployeeID" name="employeeID" (ngModelChange)="onEmployeeChange($event)">
                         <nz-option *ngFor="let emp of emPloyeeLists" [nzLabel]="emp.Code + ' - ' + emp.FullName"
                             [nzValue]="emp.ID"></nz-option>
                     </nz-select>
-
-                </nz-form-control>
-            </nz-col>
-            <nz-col [nzSpan]="12">
-                <nz-form-label>Phòng ban</nz-form-label>
-                <nz-form-control>
-                    <input nz-input [(ngModel)]="dataInput.Name" name="DepartmentName" disabled />
                 </nz-form-control>
             </nz-col>
         </nz-row>
+
         <nz-row [nzGutter]="24" class="mt-2 me-2">
             <nz-col [nzSpan]="12">
-                <nz-form-label>Chức vụ</nz-form-label>
+                <nz-form-label class="fs-12">Phòng ban (Người cấp phát)</nz-form-label>
                 <nz-form-control>
-                    <input nz-input [(ngModel)]="dataInput.ChucVuHD" name="PositionName" disabled />
+                    <input nz-input [(ngModel)]="dataInput.DepartmentAllocation" name="DepartmentAllocation" class="fs-12" disabled />
                 </nz-form-control>
             </nz-col>
             <nz-col [nzSpan]="12">
-                <nz-form-label>Ghi chú</nz-form-label>
+                <nz-form-label class="fs-12">Phòng ban (Người nhận)</nz-form-label>
                 <nz-form-control>
-                    <textarea nz-input [(ngModel)]="dataInput.Note" name="Note" rows="3"
+                    <input nz-input [(ngModel)]="dataInput.Name" name="DepartmentName" class="fs-12" disabled />
+                </nz-form-control>
+            </nz-col>
+        </nz-row>
+
+        <nz-row [nzGutter]="24" class="mt-2 me-2">
+            <nz-col [nzSpan]="12">
+                <nz-form-label class="fs-12">Chức vụ (Người cấp phát)</nz-form-label>
+                <nz-form-control>
+                    <input nz-input [(ngModel)]="dataInput.PosittionAllocation" name="PosittionAllocation" class="fs-12" disabled />
+                </nz-form-control>
+            </nz-col>
+            <nz-col [nzSpan]="12">
+                <nz-form-label class="fs-12">Chức vụ (Người nhận)</nz-form-label>
+                <nz-form-control>
+                    <input nz-input [(ngModel)]="dataInput.ChucVuHD" name="PositionName" class="fs-12" disabled />
+                </nz-form-control>
+            </nz-col>
+        </nz-row>
+
+        <nz-row [nzGutter]="24" class="mt-2 me-2">
+            <nz-col [nzSpan]="24">
+                <nz-form-label class="fs-12">Ghi chú</nz-form-label>
+                <nz-form-control>
+                    <textarea nz-input [(ngModel)]="dataInput.Note" name="Note" rows="2" class="fs-12"
                         placeholder="Nhập ghi chú..."></textarea>
                 </nz-form-control>
             </nz-col>
         </nz-row>
+
         <nz-row class="mt-3">
             <nz-col [nzSpan]="24">
-                <button nz-button nzType="dashed" class="me-2 mt-2" (click)="openModalAsset()">
+                <button nz-button nzType="dashed" class="me-2 mt-2 fs-12" (click)="openModalAsset()">
                     <i class="fas fa-plus me-2"></i>Chọn tài sản
                 </button>
-
             </nz-col>
         </nz-row>
 
@@ -72,6 +101,6 @@
     </form>
 </div>
 <div class="modal-footer">
-    <button nz-button nzDanger nzType="default" (click)="close()">Đóng</button>
-    <button nz-button nzType="primary" (click)="saveAllocation()" *hasPermission="'N1,N23'">Lưu</button>
+    <button nz-button nzDanger nzType="default" class="fs-12" (click)="close()">Đóng</button>
+    <button nz-button nzType="primary" class="fs-12" (click)="saveAllocation()" *hasPermission="'N1,N23'">Lưu</button>
 </div>

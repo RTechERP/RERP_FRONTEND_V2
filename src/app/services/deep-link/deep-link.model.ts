@@ -49,8 +49,8 @@ export interface DeepLinkPage {
     /** Tên ngắn dùng trên URL, ví dụ 'issuelog'. Có thể khai nhiều tên. */
     alias?: string | string[];
 
-    /** Tiêu đề tab. Bỏ trống thì lấy title của menu. */
-    title?: string;
+    /** Tiêu đề tab. Bỏ trống thì lấy title của menu. Có thể là hàm nhận bộ lọc để sinh tên động. */
+    title?: string | ((filters: Record<string, any>) => string);
 
     /**
      * Các trường filter cho phép truyền qua URL.

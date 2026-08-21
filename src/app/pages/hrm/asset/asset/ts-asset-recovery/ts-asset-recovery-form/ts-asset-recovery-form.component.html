@@ -90,14 +90,14 @@
         <input id="positionReturn" type="text" name="positionReturn" [(ngModel)]="dataInput.PossitionReturn" class="form-control form-control-sm fs-12" disabled />
       </div>
     </div>
-    <!-- Lý do -->
+    <!-- Lý do / Ghi chú -->
     <div class="col-12 col-md-12 me-2">
       <div class="form-group">
         <label for="reportLossDescription" class="fs-12">
-          Ghi chú <span style="color: red;">(*)</span>
+          Ghi chú
         </label>
         <textarea id="reportLossDescription" [(ngModel)]="dataInput.Note" class="form-control form-control-sm fs-12" name="reportLossDescription"
-          rows="4" required></textarea>
+          rows="4" placeholder="Nhập ghi chú..."></textarea>
       </div>
     </div>
   </form>

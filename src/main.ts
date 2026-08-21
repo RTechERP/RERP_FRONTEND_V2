@@ -5,6 +5,8 @@ import { NZ_I18N, vi_VN } from 'ng-zorro-antd/i18n';
 import { registerLocaleData } from '@angular/common';
 import vi from '@angular/common/locales/vi';
 import { warn } from 'ng-zorro-antd/core/logger';
+import './app/tabulator-text-selection.patch';
+import './app/slickgrid-text-selection.patch';
 
 declare const Slick: any;
 

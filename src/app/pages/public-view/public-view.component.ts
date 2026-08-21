@@ -7,6 +7,7 @@ import { NzAlertModule } from 'ng-zorro-antd/alert';
 
 import { PublicLinkService } from '../../services/deep-link/public-link.service';
 import { ProjectHistoryProblemNewComponent } from '../project/project-history-problem-new/project-history-problem-new.component';
+import { ProjectGateStepMasterPlanComponent } from '../project/project-gate/project-gate-step/project-gate-step-master-plan/project-gate-step-master-plan.component';
 
 /**
  * Bản đồ route -> component được phép xem công khai.
@@ -15,9 +16,12 @@ import { ProjectHistoryProblemNewComponent } from '../project/project-history-pr
  * backend. Mở thêm trang nào thì sửa cả hai nơi.
  */
 const PUBLIC_VIEW_COMPONENTS: Record<string, Type<any>> = {
-    'issuelog': ProjectHistoryProblemNewComponent,
-    'issue-log': ProjectHistoryProblemNewComponent,
-    'project-history-problem-new': ProjectHistoryProblemNewComponent,
+  'issuelog': ProjectHistoryProblemNewComponent,
+  'issue-log': ProjectHistoryProblemNewComponent,
+  'project-history-problem-new': ProjectHistoryProblemNewComponent,
+  'masterplan': ProjectGateStepMasterPlanComponent,
+  'master-plan': ProjectGateStepMasterPlanComponent,
+  'project-gate-step-master-plan': ProjectGateStepMasterPlanComponent,
 };
 
 /**
@@ -31,10 +35,10 @@ const PUBLIC_VIEW_COMPONENTS: Record<string, Type<any>> = {
  * dùng `tabData.publicData` nếu có thay vì tự gọi API.
  */
 @Component({
-    selector: 'app-public-view',
-    standalone: true,
-    imports: [CommonModule, NzSpinModule, NzResultModule, NzAlertModule],
-    template: `
+  selector: 'app-public-view',
+  standalone: true,
+  imports: [CommonModule, NzSpinModule, NzResultModule, NzAlertModule],
+  template: `
     <div class="public-view">
       <div *ngIf="loading" class="public-view__center">
         <nz-spin nzSize="large" nzTip="Đang mở dữ liệu..."></nz-spin>
@@ -61,79 +65,79 @@ const PUBLIC_VIEW_COMPONENTS: Record<string, Type<any>> = {
       </ng-container>
     </div>
   `,
-    styles: [`
+  styles: [`
     .public-view { height: 100%; display: flex; flex-direction: column; }
     .public-view__center { display: flex; justify-content: center; align-items: center; height: 60vh; }
     .public-view__body { flex: 1; min-height: 0; overflow: auto; }
   `],
 })
 export class PublicViewComponent implements OnInit {
-    loading = true;
-    errorMessage = '';
-    comp: Type<any> | null = null;
-    // Phải là undefined chứ không phải null: ngComponentOutletInjector
-    // nhận `Injector | undefined`.
-    childInjector?: Injector;
+  loading = true;
+  errorMessage = '';
+  comp: Type<any> | null = null;
+  // Phải là undefined chứ không phải null: ngComponentOutletInjector
+  // nhận `Injector | undefined`.
+  childInjector?: Injector;
 
-    constructor(
-        private route: ActivatedRoute,
-        private publicLink: PublicLinkService,
-        private injector: Injector
-    ) { }
+  constructor(
+    private route: ActivatedRoute,
+    private publicLink: PublicLinkService,
+    private injector: Injector
+  ) { }
 
-    ngOnInit(): void {
-        const token = this.route.snapshot.queryParamMap.get('t') ?? '';
+  ngOnInit(): void {
+    const token = this.route.snapshot.queryParamMap.get('t') ?? '';
 
-        if (!token) {
-            this.loading = false;
-            this.errorMessage = 'Link không hợp lệ.';
-            return;
+    if (!token) {
+      this.loading = false;
+      this.errorMessage = 'Link không hợp lệ.';
+      return;
+    }
+
+    this.publicLink.getData(token).subscribe({
+      next: res => {
+        this.loading = false;
+
+        if (res?.status !== 1 || !res?.data) {
+          this.errorMessage = res?.message || 'Link không hợp lệ hoặc đã hết hạn.';
+          return;
         }
 
-        this.publicLink.getData(token).subscribe({
-            next: res => {
-                this.loading = false;
+        const data = res.data;
+        const comp = PUBLIC_VIEW_COMPONENTS[String(data.route ?? '').toLowerCase()];
 
-                if (res?.status !== 1 || !res?.data) {
-                    this.errorMessage = res?.message || 'Link không hợp lệ hoặc đã hết hạn.';
-                    return;
-                }
+        if (!comp) {
+          this.errorMessage = 'Trang này không hỗ trợ xem công khai.';
+          return;
+        }
 
-                const data = res.data;
-                const comp = PUBLIC_VIEW_COMPONENTS[String(data.route ?? '').toLowerCase()];
+        // Ép kiểu số cho các filter vì backend trả về dạng chuỗi.
+        const filters: Record<string, any> = {};
+        for (const [key, value] of Object.entries(data.filters ?? {})) {
+          const n = Number(value);
+          filters[key] = value !== '' && Number.isFinite(n) ? n : value;
+        }
 
-                if (!comp) {
-                    this.errorMessage = 'Trang này không hỗ trợ xem công khai.';
-                    return;
-                }
-
-                // Ép kiểu số cho các filter vì backend trả về dạng chuỗi.
-                const filters: Record<string, any> = {};
-                for (const [key, value] of Object.entries(data.filters ?? {})) {
-                    const n = Number(value);
-                    filters[key] = value !== '' && Number.isFinite(n) ? n : value;
-                }
-
-                this.childInjector = Injector.create({
-                    providers: [{
-                        provide: 'tabData',
-                        useValue: {
-                            ...filters,
-                            readOnly: true,
-                            publicData: data,
-                            // Trang con cần token để tự gọi API chi tiết khi click 1 dòng.
-                            publicToken: token,
-                        },
-                    }],
-                    parent: this.injector,
-                });
-
-                this.comp = comp;
+        this.childInjector = Injector.create({
+          providers: [{
+            provide: 'tabData',
+            useValue: {
+              ...filters,
+              readOnly: true,
+              publicData: data,
+              // Trang con cần token để tự gọi API chi tiết khi click 1 dòng.
+              publicToken: token,
             },
-            error: err => {
-                this.loading = false;
-                this.errorMessage = err?.error?.message || 'Không mở được link chia sẻ.';
-            },
+          }],
+          parent: this.injector,
         });
-    }
+
+        this.comp = comp;
+      },
+      error: err => {
+        this.loading = false;
+        this.errorMessage = err?.error?.message || 'Không mở được link chia sẻ.';
+      },
+    });
+  }
 }

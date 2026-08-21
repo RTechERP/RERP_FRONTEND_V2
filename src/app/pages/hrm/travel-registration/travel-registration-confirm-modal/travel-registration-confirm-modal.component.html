@@ -37,10 +37,8 @@
                 <i nz-icon nzType="warning" nzTheme="fill" class="text-warning mt-1" style="font-size: 16px;"></i>
                 <div style="font-size: 12px; line-height: 1.6; color: #1f2937;" class="text-danger">
                   <strong>Lưu ý quan trọng:</strong> Vui lòng rà soát chính xác các thông tin: Họ tên, Ngày sinh, CCCD,
-                  Điện thoại liên hệ, HLKG và VinWonders.
-                  Trường hợp thông tin không chính xác, vui lòng liên hệ ngay <strong>Phòng HCNS</strong> để cập nhật
-                  kịp
-                  thời trước khi bấm nút xác nhận bên dưới.
+                  Điện thoại liên hệ, Lịch bay, Xếp xe, Xếp phòng, HLKG và VinWonders.
+                  Trường hợp thông tin không chính xác, vui lòng liên hệ ngay <strong>Phòng HCNS</strong> để cập nhật kịp thời trước khi bấm nút xác nhận bên dưới.
                 </div>
               </div>
             </div>
@@ -48,35 +46,104 @@
 
           <!-- Table Content Container -->
           <div class="travel-table-wrapper">
-            <div class="table-responsive" style="max-height: 55vh; overflow-y: auto;">
-              <table class="table table-bordered table-hover travel-table mb-0" style="white-space: nowrap;">
+            <div class="table-responsive" style="max-height: 55vh; overflow: auto;">
+              <table class="table table-bordered table-hover travel-table mb-0">
                 <thead>
+                  <!-- Header Row 1 -->
                   <tr>
-                    <th class="text-center" style="width: 45px;">STT</th>
-                    <th class="text-center">Mã NV</th>
-                    <th class="text-center">Họ và tên</th>
-                    <th class="text-center">Phòng ban</th>
-                    <th class="text-center">Chức vụ</th>
-                    <th class="text-center">Mối quan hệ</th>
-                    <th class="text-center">Ngày sinh</th>
-                    <th class="text-center">Tuổi</th>
-                    <th class="text-center">Chiều cao</th>
-                    <th class="text-center">Giới tính</th>
-                    <th class="text-center">Địa chỉ thường trú</th>
-                    <th class="text-center">CCCD</th>
-                    <th class="text-center">Ngày cấp</th>
-                    <th class="text-center">Nơi cấp</th>
-                    <th class="text-center">Điện thoại</th>
-                    <th class="text-center">Khởi hành / Về</th>
-                    <th class="text-center">HLKG chiều đi</th>
-                    <th class="text-center">HLKG chiều về</th>
-                    <th class="text-center">VinWonders</th>
+                    <th rowspan="2" class="text-center" style="min-width: 45px; width: 45px;">STT</th>
+                    <th rowspan="2" class="text-center" style="min-width: 110px;">Trạng thái</th>
+                    <th rowspan="2" class="text-center" style="min-width: 100px;">Mã NV</th>
+                    <th rowspan="2" class="text-center" style="min-width: 160px;">Họ và tên</th>
+                    <th rowspan="2" class="text-center" style="min-width: 140px;">Phòng ban</th>
+                    <th rowspan="2" class="text-center" style="min-width: 130px;">Chức vụ</th>
+                    <th rowspan="2" class="text-center" style="min-width: 110px;">Mối quan hệ</th>
+                    <th rowspan="2" class="text-center" style="min-width: 100px;">Ngày sinh</th>
+                    <th rowspan="2" class="text-center" style="min-width: 60px;">Tuổi</th>
+                    <th rowspan="2" class="text-center" style="min-width: 80px;">Chiều cao</th>
+                    <th rowspan="2" class="text-center" style="min-width: 80px;">Giới tính</th>
+                    <th rowspan="2" class="text-center" style="min-width: 200px;">Địa chỉ thường trú</th>
+                    <th rowspan="2" class="text-center" style="min-width: 120px;">CCCD</th>
+                    <th rowspan="2" class="text-center" style="min-width: 100px;">Ngày cấp</th>
+                    <th rowspan="2" class="text-center" style="min-width: 160px;">Nơi cấp</th>
+                    <th rowspan="2" class="text-center" style="min-width: 110px;">Điện thoại</th>
+                    <th rowspan="2" class="text-center" style="min-width: 140px;">Khởi hành / Về</th>
+                    <th rowspan="2" class="text-center" style="min-width: 80px;">Đoàn</th>
+
+                    <th colspan="4" class="text-center header-group-yellow">Lịch bay chiều đi</th>
+                    <th colspan="4" class="text-center header-group-yellow">Lịch bay chiều về</th>
+                    <th colspan="6" class="text-center header-group-blue">Xếp xe</th>
+                    <th colspan="2" class="text-center header-group-green">Vinwonders</th>
+                    <th colspan="4" class="text-center header-group-yellow">Xếp phòng</th>
+
+                    <th rowspan="2" class="text-center" style="min-width: 120px;">Xếp bàn Gala</th>
+                    <th rowspan="2" class="text-center" style="min-width: 130px;">Ghi chú 2</th>
+
+                    <th colspan="4" class="text-center header-group-yellow">CBNV thanh toán</th>
+                    <th colspan="3" class="text-center header-group-cyan">Công ty hỗ trợ</th>
+                    <th colspan="2" class="text-center header-group-gray">Quyết toán vào kỳ lương T9</th>
+
+                    <th rowspan="2" class="text-center" style="min-width: 110px;">Ngày xác nhận</th>
+                    <th rowspan="2" class="text-center" style="min-width: 130px;">Người xác nhận</th>
+                  </tr>
+                  <!-- Header Row 2 (Sub-headers) -->
+                  <tr>
+                    <!-- Lịch bay chiều đi -->
+                    <th class="text-center header-group-yellow" style="min-width: 100px;">Ngày bay</th>
+                    <th class="text-center header-group-yellow" style="min-width: 110px;">Mã chuyến bay</th>
+                    <th class="text-center header-group-yellow" style="min-width: 90px;">Giờ bay</th>
+                    <th class="text-center header-group-yellow" style="min-width: 100px;">HLKG (kg)</th>
+
+                    <!-- Lịch bay chiều về -->
+                    <th class="text-center header-group-yellow" style="min-width: 100px;">Ngày bay</th>
+                    <th class="text-center header-group-yellow" style="min-width: 110px;">Mã chuyến bay</th>
+                    <th class="text-center header-group-yellow" style="min-width: 90px;">Giờ bay</th>
+                    <th class="text-center header-group-yellow" style="min-width: 100px;">HLKG (kg)</th>
+
+                    <!-- Xếp xe -->
+                    <th class="text-center header-group-blue" style="min-width: 160px;">Xe tiễn VPHN ➝ SB Nội Bài / VPHCM ➝ SB TSN</th>
+                    <th class="text-center header-group-blue" style="min-width: 140px;">Xe đón SB Cam Ranh</th>
+                    <th class="text-center header-group-blue" style="min-width: 130px;">Xe đi Vinwonder</th>
+                    <th class="text-center header-group-blue" style="min-width: 130px;">Xe đi Gala Dinner</th>
+                    <th class="text-center header-group-blue" style="min-width: 140px;">Xe tiễn KS ➝ SB Cam Ranh</th>
+                    <th class="text-center header-group-blue" style="min-width: 160px;">Xe đón SB Nội Bài ➝ VPHN / SB TSN ➝ VPHCM</th>
+
+                    <!-- Vinwonders -->
+                    <th class="text-center header-group-green" style="min-width: 100px;">Ngày đi</th>
+                    <th class="text-center header-group-green" style="min-width: 100px;">VinWonders</th>
+
+                    <!-- Xếp phòng -->
+                    <th class="text-center header-group-yellow" style="min-width: 90px;">Số phòng</th>
+                    <th class="text-center header-group-yellow" style="min-width: 110px;">Mã phòng</th>
+                    <th class="text-center header-group-yellow" style="min-width: 100px;">Loại giường</th>
+                    <th class="text-center header-group-yellow" style="min-width: 150px;">Ghi chú BTC</th>
+
+                    <!-- CBNV thanh toán -->
+                    <th class="text-center header-group-yellow" style="min-width: 150px;">Đồng thanh toán</th>
+                    <th class="text-center header-group-yellow" style="min-width: 140px;">Chiều cao ≥ 1m Vinwonders</th>
+                    <th class="text-center header-group-yellow" style="min-width: 110px;">Mua HLKG</th>
+                    <th class="text-center header-group-yellow" style="min-width: 120px;">Tổng cộng</th>
+
+                    <!-- Công ty hỗ trợ -->
+                    <th class="text-center header-group-cyan" style="min-width: 140px;">Hỗ trợ bữa ăn</th>
+                    <th class="text-center header-group-cyan" style="min-width: 130px;">Hỗ trợ tự túc VMB</th>
+                    <th class="text-center header-group-cyan" style="min-width: 120px;">Tổng cộng</th>
+
+                    <!-- Quyết toán T9 -->
+                    <th class="text-center header-group-gray" style="min-width: 140px;">Theo từng người</th>
+                    <th class="text-center header-group-gray" style="min-width: 150px;">Tổng số tiền thanh toán</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr *ngFor="let item of travelRegistrations; let i = index">
                     <td class="text-center">
                       <span class="stt-badge">{{ i + 1 }}</span>
+                    </td>
+                    <td class="text-center">
+                      <span class="badge"
+                        [ngClass]="{'bg-success': item.ConfirmStatus == 1, 'bg-warning': item.ConfirmStatus != 1}">
+                        {{ item.ConfirmStatus === 1 ? 'Đã xác nhận' : 'Chưa xác nhận' }}
+                      </span>
                     </td>
                     <td class="text-center fw-semibold text-secondary" style="font-size: 12px;">
                       {{ item.EmployeeCode }}
@@ -91,7 +158,7 @@
                     <td class="text-center" style="font-size: 12px;">{{ item.PositionName }}</td>
                     <td class="text-center">
                       <span class="rel-badge"
-                        [ngClass]="item.Relationship === 'Bản thân' || !item.Relationship ? 'rel-badge-self' : 'rel-badge-other'">
+                        [ngClass]="item.Relationship === 'Bản thân' || item.Relationship === 'CBNV' || !item.Relationship ? 'rel-badge-self' : 'rel-badge-other'">
                         {{ item.Relationship || 'Bản thân' }}
                       </span>
                     </td>
@@ -104,29 +171,77 @@
                         {{ item.Gender }}
                       </span>
                     </td>
-                    <td style="font-size: 12px; max-width: 250px; overflow: hidden; text-overflow: ellipsis;"
-                      [title]="item.Address || ''">
+                    <td style="font-size: 12px;">
                       {{ item.Address }}
                     </td>
                     <td class="text-center font-monospace" style="font-size: 12px;">{{ item.CCCD }}</td>
                     <td class="text-center" style="font-size: 12px;">{{ item.CCCDIssueDate | date: 'dd/MM/yyyy' }}</td>
-                    <td style="font-size: 12px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;"
-                      [title]="item.CCCDIssuePlace || ''">
+                    <td style="font-size: 12px;">
                       {{ item.CCCDIssuePlace }}
                     </td>
                     <td class="text-center fw-medium" style="font-size: 12px;">{{ item.PhoneNumber }}</td>
                     <td class="text-center" style="font-size: 12px;">{{ item.DepartureLocation }}</td>
-                    <td class="text-center" style="font-size: 12px;">{{ item.DangKyHLKGChieuDi }}</td>
-                    <td class="text-center" style="font-size: 12px;">{{ item.DangKyHLKGChieuVe }}</td>
+                    <td class="text-center" style="font-size: 12px;">{{ item.GroupNumber }}</td>
+
+                    <!-- Lịch bay chiều đi -->
+                    <td class="text-center" style="font-size: 12px;">{{ item.DepartureDate | date: 'dd/MM/yyyy' }}</td>
+                    <td class="text-center" style="font-size: 12px;">{{ item.DepartureFlightCode }}</td>
+                    <td class="text-center" style="font-size: 12px;">{{ item.DepartureFlightTime }}</td>
+                    <td class="text-center" style="font-size: 12px;">{{ item.DepartureHLKG || item.DangKyHLKGChieuDi }}</td>
+
+                    <!-- Lịch bay chiều về -->
+                    <td class="text-center" style="font-size: 12px;">{{ item.ReturnDate | date: 'dd/MM/yyyy' }}</td>
+                    <td class="text-center" style="font-size: 12px;">{{ item.ReturnFlightCode }}</td>
+                    <td class="text-center" style="font-size: 12px;">{{ item.ReturnFlightTime }}</td>
+                    <td class="text-center" style="font-size: 12px;">{{ item.ReturnHLKG || item.DangKyHLKGChieuVe }}</td>
+
+                    <!-- Xếp xe -->
+                    <td style="font-size: 12px;">{{ item.XeVPSB }}</td>
+                    <td style="font-size: 12px;">{{ item.XeSBKS }}</td>
+                    <td style="font-size: 12px;">{{ item.XeVinWonder }}</td>
+                    <td style="font-size: 12px;">{{ item.XeGalaDinner }}</td>
+                    <td style="font-size: 12px;">{{ item.XeKSSB }}</td>
+                    <td style="font-size: 12px;">{{ item.XeSBVP }}</td>
+
+                    <!-- Vinwonders -->
+                    <td class="text-center" style="font-size: 12px;">{{ item.DateDepartureVinWonder | date: 'dd/MM/yyyy' }}</td>
                     <td class="text-center" style="font-size: 12px;">
                       <span *ngIf="item.DangKyVinwonders === true || item.DangKyVinwonders === 1"
                         class="badge bg-success">Có</span>
                       <span *ngIf="item.DangKyVinwonders === false || item.DangKyVinwonders === 0"
                         class="badge bg-secondary">Không</span>
                     </td>
+
+                    <!-- Xếp phòng -->
+                    <td class="text-center" style="font-size: 12px;">{{ item.RoomNumber }}</td>
+                    <td class="text-center" style="font-size: 12px;">{{ item.RommCode }}</td>
+                    <td class="text-center" style="font-size: 12px;">{{ item.RoomType }}</td>
+                    <td style="font-size: 12px;">{{ item.Note }}</td>
+
+                    <td class="text-center" style="font-size: 12px;">{{ item.TableNumberGala }}</td>
+                    <td style="font-size: 12px;">{{ item.Note2 }}</td>
+
+                    <!-- CBNV thanh toán -->
+                    <td style="font-size: 12px;">{{ item.TripCost }}</td>
+                    <td style="font-size: 12px;">{{ item.VinWonderCost }}</td>
+                    <td style="font-size: 12px;">{{ item.HLKGCost }}</td>
+                    <td class="text-end" style="font-size: 12px; font-weight: 600;">{{ item.TotalCost }}</td>
+
+                    <!-- Công ty hỗ trợ -->
+                    <td style="font-size: 12px;">{{ item.SupportLunchCost }}</td>
+                    <td style="font-size: 12px;">{{ item.SupportFlightCost }}</td>
+                    <td class="text-end" style="font-size: 12px; font-weight: 600;">{{ item.SupportTotalCost }}</td>
+
+                    <!-- Quyết toán T9 -->
+                    <td class="text-end" style="font-size: 12px;">{{ item.SeptemberDeductionAmount }}</td>
+                    <td class="text-end" style="font-size: 12px; font-weight: 600; color: #b45309;">{{ item.TotalPaymentAmount }}</td>
+
+                    <!-- Xác nhận -->
+                    <td class="text-center" style="font-size: 12px;">{{ item.ConfirmDate | date: 'dd/MM/yyyy' }}</td>
+                    <td style="font-size: 12px;">{{ item.ConfirmBy }}</td>
                   </tr>
                   <tr *ngIf="travelRegistrations.length === 0">
-                    <td colspan="19" class="text-center text-muted py-4" style="font-size: 12px;">
+                    <td colspan="51" class="text-center text-muted py-4" style="font-size: 12px;">
                       <i nz-icon nzType="inbox" nzTheme="outline" style="font-size: 32px; opacity: 0.4;"
                         class="d-block mb-2"></i>
                       Không có dữ liệu đăng ký du lịch
@@ -144,6 +259,10 @@
       <div class="d-flex align-items-center justify-content-end w-100 gap-2">
         <button nz-button nzType="default" (click)="close()" style="font-size: 12px; height: 32px; border-radius: 6px;">
           <i nz-icon nzType="close-circle" nzTheme="outline"></i> Đóng
+        </button>
+        <button nz-button nzType="default" (click)="onExportExcel()"
+          style="font-size: 12px; height: 32px; border-radius: 6px; font-weight: 600; color: #15803d; border-color: #86efac; background-color: #f0fdf4;">
+          <i nz-icon nzType="file-excel" nzTheme="outline" style="color: #16a34a;"></i> Xuất Excel
         </button>
         <button nz-button nzType="primary" (click)="onConfirmAll()" [nzLoading]="isConfirming"
           [disabled]="isAllConfirmed" style="font-size: 12px; height: 32px; border-radius: 6px; font-weight: 600;">

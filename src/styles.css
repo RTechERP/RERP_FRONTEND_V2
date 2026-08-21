@@ -1,5 +1,9 @@
 /* You can add global styles to this file, and also import other style files */
+/* Angular CDK 17+ yêu cầu import overlay-prebuilt.css để dropdown/select hoạt động đúng vị trí */
+@import '@angular/cdk/overlay-prebuilt.css';
+
 .cdk-overlay-container {
+  position: fixed !important;
   z-index: 1060 !important;
 }
 

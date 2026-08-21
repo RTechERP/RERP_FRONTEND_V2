@@ -24,46 +24,94 @@
                         styleClass="p-datatable-sm p-datatable-gridlines" dataKey="ID" [paginator]="true" [rows]="20"
                         [rowsPerPageOptions]="[10, 20, 50, 100]">
                         <ng-template pTemplate="header">
+                            <!-- Header Row 1 -->
                             <tr style="font-size: 12px; white-space: nowrap;">
-                                <th style="width: 40px; text-align: center">
+                                <th rowspan="2" style="width: 40px; text-align: center">
                                     <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                                 </th>
-                                <th style="width: 60px; text-align: center" pSortableColumn="STT">STT <p-sortIcon
-                                        field="STT"></p-sortIcon></th>
-                                <th style="width: 150px; text-align: center" pSortableColumn="ConfirmStatus">Trạng
-                                    thái<p-sortIcon field="ConfirmStatus"></p-sortIcon></th>
-                                <th style="width: 150px;" pSortableColumn="EmployeeCode">Mã nhân viên <p-sortIcon
-                                        field="EmployeeCode"></p-sortIcon></th>
-                                <th style="width: 200px;" pSortableColumn="EmployeeName">Tên nhân viên <p-sortIcon
-                                        field="EmployeeName"></p-sortIcon></th>
-                                <th style="width: 150px;" pSortableColumn="Department">Phòng ban <p-sortIcon
-                                        field="Department"></p-sortIcon></th>
-                                <th style="width: 150px;" pSortableColumn="PositionName">Chức vụ <p-sortIcon
-                                        field="PositionName"></p-sortIcon></th>
-                                <th style="width: 120px; text-align: center" pSortableColumn="BirthDay">Ngày sinh
-                                    <p-sortIcon field="BirthDay"></p-sortIcon>
-                                </th>
-                                <th style="width: 80px; text-align: center" pSortableColumn="Age">Tuổi <p-sortIcon
-                                        field="Age"></p-sortIcon></th>
-                                <th style="width: 100px; text-align: center" pSortableColumn="Height">Chiều cao
-                                    <p-sortIcon field="Height"></p-sortIcon>
-                                </th>
-                                <th style="width: 100px; text-align: center" pSortableColumn="Gender">Giới tính
-                                    <p-sortIcon field="Gender"></p-sortIcon>
-                                </th>
-                                <th style="width: 150px;">Mối quan hệ</th>
-                                <th style="width: 250px;">Địa chỉ</th>
-                                <th style="width: 150px;">CCCD</th>
-                                <th style="width: 120px; text-align: center">Ngày cấp</th>
-                                <th style="width: 200px;">Nơi cấp</th>
-                                <th style="width: 120px;">SĐT</th>
-                                <th style="width: 200px;">Khởi hành/Về</th>
-                                <th style="width: 160px;" pSortableColumn="DangKyHLKGChieuDi">HLKG chiều đi <p-sortIcon field="DangKyHLKGChieuDi"></p-sortIcon></th>
-                                <th style="width: 160px;" pSortableColumn="DangKyHLKGChieuVe">HLKG chiều về <p-sortIcon field="DangKyHLKGChieuVe"></p-sortIcon></th>
-                                <th style="width: 150px; text-align: center" pSortableColumn="DangKyVinwonders">VinWonders <p-sortIcon field="DangKyVinwonders"></p-sortIcon></th>
-                                <th style="width: 120px; text-align: center">Ngày xác nhận</th>
-                                <th style="width: 150px;">Người xác nhận</th>
+                                <th rowspan="2" style="width: 60px; text-align: center" pSortableColumn="STT">STT <p-sortIcon field="STT"></p-sortIcon></th>
+                                <th rowspan="2" style="width: 130px; text-align: center" pSortableColumn="ConfirmStatus">Trạng thái <p-sortIcon field="ConfirmStatus"></p-sortIcon></th>
+                                <th rowspan="2" style="width: 130px;" pSortableColumn="EmployeeCode">Mã nhân viên <p-sortIcon field="EmployeeCode"></p-sortIcon></th>
+                                <th rowspan="2" style="width: 180px;" pSortableColumn="EmployeeName">Tên nhân viên <p-sortIcon field="EmployeeName"></p-sortIcon></th>
+                                <th rowspan="2" style="width: 140px;" pSortableColumn="Department">Phòng ban <p-sortIcon field="Department"></p-sortIcon></th>
+                                <th rowspan="2" style="width: 140px;" pSortableColumn="PositionName">Chức vụ <p-sortIcon field="PositionName"></p-sortIcon></th>
+                                <th rowspan="2" style="width: 110px; text-align: center" pSortableColumn="BirthDay">Ngày sinh <p-sortIcon field="BirthDay"></p-sortIcon></th>
+                                <th rowspan="2" style="width: 70px; text-align: center" pSortableColumn="Age">Tuổi <p-sortIcon field="Age"></p-sortIcon></th>
+                                <th rowspan="2" style="width: 90px; text-align: center" pSortableColumn="Height">Chiều cao <p-sortIcon field="Height"></p-sortIcon></th>
+                                <th rowspan="2" style="width: 90px; text-align: center" pSortableColumn="Gender">Giới tính <p-sortIcon field="Gender"></p-sortIcon></th>
+                                <th rowspan="2" style="width: 130px;">Mối quan hệ</th>
+                                <th rowspan="2" style="width: 220px;">Địa chỉ</th>
+                                <th rowspan="2" style="width: 130px;">CCCD</th>
+                                <th rowspan="2" style="width: 110px; text-align: center">Ngày cấp</th>
+                                <th rowspan="2" style="width: 180px;">Nơi cấp</th>
+                                <th rowspan="2" style="width: 110px;">Điện thoại</th>
+                                <th rowspan="2" style="width: 160px;">Khởi hành/ Về</th>
+                                <th rowspan="2" style="width: 110px; text-align: center" pSortableColumn="GroupNumber">Đoàn <p-sortIcon field="GroupNumber"></p-sortIcon></th>
+
+                                <th colspan="4" class="text-center" style="background-color: #fff3cd;">Lịch bay chiều đi</th>
+                                <th colspan="4" class="text-center" style="background-color: #fff3cd;">Lịch bay chiều về</th>
+                                <th colspan="6" class="text-center" style="background-color: #cfe2ff;">Xếp xe</th>
+                                <th colspan="2" class="text-center" style="background-color: #d1e7dd;">Vinwonders</th>
+                                <th colspan="4" class="text-center" style="background-color: #fff3cd;">Xếp phòng</th>
+
+                                <th rowspan="2" style="width: 130px; text-align: center" pSortableColumn="TableNumberGala">Xếp bàn Gala Dinner <p-sortIcon field="TableNumberGala"></p-sortIcon></th>
+                                <th rowspan="2" style="width: 140px;" pSortableColumn="Note2">Ghi chú 2 <p-sortIcon field="Note2"></p-sortIcon></th>
+
+                                <th colspan="4" class="text-center" style="background-color: #fff3cd;">CBNV thanh toán</th>
+                                <th colspan="3" class="text-center" style="background-color: #cff4fc;">Công ty hỗ trợ</th>
+                                <th colspan="2" class="text-center" style="background-color: #e2e3e5;">Quyết toán vào kỳ lương T9 (Y/c: hoàn cuống vé + hóa đơn Vat)</th>
+
+                                <th rowspan="2" style="width: 110px; text-align: center">Ngày xác nhận</th>
+                                <th rowspan="2" style="width: 140px;">Người xác nhận</th>
                             </tr>
+                            <!-- Header Row 2 (Sub-headers) -->
+                            <tr style="font-size: 12px; white-space: nowrap;">
+                                <!-- Lịch bay chiều đi -->
+                                <th style="width: 110px; text-align: center" pSortableColumn="DepartureDate">Ngày bay <p-sortIcon field="DepartureDate"></p-sortIcon></th>
+                                <th style="width: 120px;" pSortableColumn="DepartureFlightCode">Mã chuyến bay <p-sortIcon field="DepartureFlightCode"></p-sortIcon></th>
+                                <th style="width: 120px; text-align: center" pSortableColumn="DepartureFlightTime">Giờ bay <p-sortIcon field="DepartureFlightTime"></p-sortIcon></th>
+                                <th style="width: 140px;" pSortableColumn="DepartureHLKG">HLKG (kg) <p-sortIcon field="DepartureHLKG"></p-sortIcon></th>
+
+                                <!-- Lịch bay chiều về -->
+                                <th style="width: 110px; text-align: center" pSortableColumn="ReturnDate">Ngày bay <p-sortIcon field="ReturnDate"></p-sortIcon></th>
+                                <th style="width: 120px;" pSortableColumn="ReturnFlightCode">Mã chuyến bay <p-sortIcon field="ReturnFlightCode"></p-sortIcon></th>
+                                <th style="width: 120px; text-align: center" pSortableColumn="ReturnFlightTime">Giờ bay <p-sortIcon field="ReturnFlightTime"></p-sortIcon></th>
+                                <th style="width: 140px;" pSortableColumn="ReturnHLKG">HLKG (kg) <p-sortIcon field="ReturnHLKG"></p-sortIcon></th>
+
+                                <!-- Xếp xe -->
+                                <th style="width: 180px;">Xe tiễn VPHN ➝ SB Nội Bài / VPHCM ➝ SB TSN</th>
+                                <th style="width: 140px;">Xe đón tại SB Cam Ranh</th>
+                                <th style="width: 140px;">Xe đi Vinwonder</th>
+                                <th style="width: 140px;">Xe đi Gala Dinner</th>
+                                <th style="width: 140px;">Xe tiễn KS ➝ SB Cam Ranh</th>
+                                <th style="width: 180px;">Xe đón SB Nội Bài ➝ VPHN / SB TSN ➝ VPHCM</th>
+
+                                <!-- Vinwonders -->
+                                <th style="width: 110px; text-align: center" pSortableColumn="DateDepartureVinWonder">Ngày đi <p-sortIcon field="DateDepartureVinWonder"></p-sortIcon></th>
+                                <th style="width: 110px; text-align: center" pSortableColumn="DangKyVinwonders">VinWonders <p-sortIcon field="DangKyVinwonders"></p-sortIcon></th>
+
+                                <!-- Xếp phòng -->
+                                <th style="width: 100px; text-align: center" pSortableColumn="RoomNumber">Số phòng <p-sortIcon field="RoomNumber"></p-sortIcon></th>
+                                <th style="width: 130px; text-align: center" pSortableColumn="RommCode">Mã phòng <p-sortIcon field="RommCode"></p-sortIcon></th>
+                                <th style="width: 110px; text-align: center" pSortableColumn="RoomType">Loại giường <p-sortIcon field="RoomType"></p-sortIcon></th>
+                                <th style="width: 160px;" pSortableColumn="Note">Ghi chú của BTC <p-sortIcon field="Note"></p-sortIcon></th>
+
+                                <!-- CBNV thanh toán -->
+                                <th style="width: 220px;" pSortableColumn="TripCost">Đồng thanh toán (Chính thức/Thử việc/Người thân)</th>
+                                <th style="width: 180px;" pSortableColumn="VinWonderCost">Chiều cao ≥ 1m Đi Vinwonders</th>
+                                <th style="width: 120px;" pSortableColumn="HLKGCost">Mua HLKG</th>
+                                <th style="width: 130px; text-align: right;" pSortableColumn="TotalCost">Tổng cộng</th>
+
+                                <!-- Công ty hỗ trợ -->
+                                <th style="width: 220px;" pSortableColumn="SupportLunchCost">Hỗ trợ bữa ăn (≥ 5 tuổi)</th>
+                                <th style="width: 140px;" pSortableColumn="SupportFlightCost">Hỗ trợ tự túc VMB</th>
+                                <th style="width: 130px; text-align: right;" pSortableColumn="SupportTotalCost">Tổng cộng</th>
+
+                                <!-- Quyết toán vào kỳ lương T9 -->
+                                <th style="width: 220px;" pSortableColumn="SeptemberDeductionAmount">Theo từng người</th>
+                                <th style="width: 240px;" pSortableColumn="TotalPaymentAmount">Tổng số tiền thanh toán</th>
+                            </tr>
+                            <!-- Header Row 3 (Filters) -->
                             <tr style="font-size: 12px;">
                                 <th></th>
                                 <th></th>
@@ -76,47 +124,45 @@
                                         <option value="0">Chưa xác nhận</option>
                                     </select>
                                 </th>
-                                <th><input type="text" class="form-control form-control-sm"
-                                        (input)="dt.filter($any($event.target).value, 'EmployeeCode', 'contains')"
-                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
-                                <th><input type="text" class="form-control form-control-sm"
-                                        (input)="dt.filter($any($event.target).value, 'EmployeeName', 'contains')"
-                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
-                                <th><input type="text" class="form-control form-control-sm"
-                                        (input)="dt.filter($any($event.target).value, 'Department', 'contains')"
-                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
-                                <th><input type="text" class="form-control form-control-sm"
-                                        (input)="dt.filter($any($event.target).value, 'PositionName', 'contains')"
-                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'EmployeeCode', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'EmployeeName', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'Department', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'PositionName', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
                                 <th></th>
                                 <th></th>
                                 <th></th>
                                 <th></th>
-                                <th><input type="text" class="form-control form-control-sm"
-                                        (input)="dt.filter($any($event.target).value, 'Relationship', 'contains')"
-                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
-                                <th><input type="text" class="form-control form-control-sm"
-                                        (input)="dt.filter($any($event.target).value, 'Address', 'contains')"
-                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
-                                <th><input type="text" class="form-control form-control-sm"
-                                        (input)="dt.filter($any($event.target).value, 'CCCD', 'contains')"
-                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'Relationship', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'Address', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'CCCD', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
                                 <th></th>
-                                <th><input type="text" class="form-control form-control-sm"
-                                        (input)="dt.filter($any($event.target).value, 'CCCDIssuePlace', 'contains')"
-                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
-                                <th><input type="text" class="form-control form-control-sm"
-                                        (input)="dt.filter($any($event.target).value, 'PhoneNumber', 'contains')"
-                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
-                                <th><input type="text" class="form-control form-control-sm"
-                                        (input)="dt.filter($any($event.target).value, 'DepartureLocation', 'contains')"
-                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
-                                <th><input type="text" class="form-control form-control-sm"
-                                        (input)="dt.filter($any($event.target).value, 'DangKyHLKGChieuDi', 'contains')"
-                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
-                                <th><input type="text" class="form-control form-control-sm"
-                                        (input)="dt.filter($any($event.target).value, 'DangKyHLKGChieuVe', 'contains')"
-                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'CCCDIssuePlace', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'PhoneNumber', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'DepartureLocation', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'GroupNumber', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+
+                                <!-- Lịch bay chiều đi -->
+                                <th></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'DepartureFlightCode', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'DepartureFlightTime', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'DepartureHLKG', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+
+                                <!-- Lịch bay chiều về -->
+                                <th></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'ReturnFlightCode', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'ReturnFlightTime', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'ReturnHLKG', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+
+                                <!-- Xếp xe -->
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'XeVPSB', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'XeSBKS', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'XeVinWonder', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'XeGalaDinner', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'XeKSSB', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'XeSBVP', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+
+                                <!-- Vinwonders -->
+                                <th></th>
                                 <th>
                                     <select class="form-control form-control-sm"
                                         (change)="dt.filter($any($event.target).value, 'DangKyVinwonders', 'equals')"
@@ -126,10 +172,33 @@
                                         <option value="false">Không</option>
                                     </select>
                                 </th>
+
+                                <!-- Xếp phòng -->
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'RoomNumber', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'RommCode', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'RoomType', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'Note', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'TableNumberGala', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'Note2', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+
+                                <!-- CBNV thanh toán -->
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'TripCost', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'VinWonderCost', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'HLKGCost', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'TotalCost', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+
+                                <!-- Công ty hỗ trợ -->
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'SupportLunchCost', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'SupportFlightCost', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'SupportTotalCost', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+
+                                <!-- Quyết toán T9 -->
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'SeptemberDeductionAmount', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'TotalPaymentAmount', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+
                                 <th></th>
-                                <th><input type="text" class="form-control form-control-sm"
-                                        (input)="dt.filter($any($event.target).value, 'ConfirmBy', 'contains')"
-                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm" (input)="dt.filter($any($event.target).value, 'ConfirmBy', 'contains')" placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
                             </tr>
                         </ng-template>
                         <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
@@ -155,27 +224,71 @@
                                 <td style="text-align: center">{{ item.Gender }}</td>
                                 <td>{{ item.Relationship }}</td>
                                 <td class="cell-wrap" [pTooltip]="item.Address" tooltipPosition="top">
-                                    <span
-                                        style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width: 230px;">
+                                    <span style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width: 200px;">
                                         {{ item.Address }}
                                     </span>
                                 </td>
                                 <td>{{ item.CCCD }}</td>
                                 <td style="text-align: center">{{ formatDate(item.CCCDIssueDate) }}</td>
                                 <td class="cell-wrap" [pTooltip]="item.CCCDIssuePlace" tooltipPosition="top">
-                                    <span
-                                        style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width: 180px;">
+                                    <span style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width: 160px;">
                                         {{ item.CCCDIssuePlace }}
                                     </span>
                                 </td>
                                 <td>{{ item.PhoneNumber }}</td>
                                 <td>{{ item.DepartureLocation }}</td>
-                                <td>{{ item.DangKyHLKGChieuDi }}</td>
-                                <td>{{ item.DangKyHLKGChieuVe }}</td>
+                                <td style="text-align: center">{{ item.GroupNumber }}</td>
+
+                                <!-- Lịch bay chiều đi -->
+                                <td style="text-align: center">{{ formatDate(item.DepartureDate) }}</td>
+                                <td>{{ item.DepartureFlightCode }}</td>
+                                <td style="text-align: center">{{ item.DepartureFlightTime }}</td>
+                                <td>{{ item.DepartureHLKG || item.DangKyHLKGChieuDi }}</td>
+
+                                <!-- Lịch bay chiều về -->
+                                <td style="text-align: center">{{ formatDate(item.ReturnDate) }}</td>
+                                <td>{{ item.ReturnFlightCode }}</td>
+                                <td style="text-align: center">{{ item.ReturnFlightTime }}</td>
+                                <td>{{ item.ReturnHLKG || item.DangKyHLKGChieuVe }}</td>
+
+                                <!-- Xếp xe -->
+                                <td>{{ item.XeVPSB }}</td>
+                                <td>{{ item.XeSBKS }}</td>
+                                <td>{{ item.XeVinWonder }}</td>
+                                <td>{{ item.XeGalaDinner }}</td>
+                                <td>{{ item.XeKSSB }}</td>
+                                <td>{{ item.XeSBVP }}</td>
+
+                                <!-- Vinwonders -->
+                                <td style="text-align: center">{{ formatDate(item.DateDepartureVinWonder) }}</td>
                                 <td style="text-align: center">
                                     <span *ngIf="item.DangKyVinwonders === true || item.DangKyVinwonders === 1" class="badge bg-success">Có</span>
                                     <span *ngIf="item.DangKyVinwonders === false || item.DangKyVinwonders === 0" class="badge bg-secondary">Không</span>
                                 </td>
+
+                                <!-- Xếp phòng -->
+                                <td style="text-align: center">{{ item.RoomNumber }}</td>
+                                <td style="text-align: center">{{ item.RommCode }}</td>
+                                <td style="text-align: center">{{ item.RoomType }}</td>
+                                <td>{{ item.Note }}</td>
+
+                                <td style="text-align: center">{{ item.TableNumberGala }}</td>
+                                <td>{{ item.Note2 }}</td>
+
+                                <!-- CBNV thanh toán -->
+                                <td>{{ item.TripCost }}</td>
+                                <td>{{ item.VinWonderCost }}</td>
+                                <td>{{ item.HLKGCost }}</td>
+                                <td style="text-align: right;">{{ item.TotalCost }}</td>
+
+                                <!-- Công ty hỗ trợ -->
+                                <td>{{ item.SupportLunchCost }}</td>
+                                <td>{{ item.SupportFlightCost }}</td>
+                                <td style="text-align: right;">{{ item.SupportTotalCost }}</td>
+
+                                <!-- Quyết toán T9 -->
+                                <td style="text-align: right;">{{ item.SeptemberDeductionAmount }}</td>
+                                <td style="text-align: right;">{{ item.TotalPaymentAmount }}</td>
 
                                 <td style="text-align: center">{{ formatDate(item.ConfirmDate) }}</td>
                                 <td>{{ item.ConfirmBy }}</td>
@@ -183,7 +296,7 @@
                         </ng-template>
                         <ng-template pTemplate="emptymessage">
                             <tr>
-                                <td colspan="23"
+                                <td colspan="52"
                                     style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
                                     Không có dữ liệu.
                                 </td>

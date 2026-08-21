@@ -6,6 +6,12 @@
   overflow: hidden !important;
 }
 
+:host ::ng-deep .modal-xl,
+::ng-deep .modal-xl {
+  max-width: 95vw !important;
+  width: 95vw !important;
+}
+
 .summer-modal-bg {
   background-repeat: no-repeat;
   background-position: center center;
@@ -149,26 +155,63 @@
   --bs-table-bg: transparent !important;
   --bs-table-accent-bg: transparent !important;
   background-color: transparent !important;
+  table-layout: auto;
 }
 
 .travel-table th {
-  background: rgba(224, 242, 254, 0.8) !important;
+  background: rgba(224, 242, 254, 0.9) !important;
   color: #0284c7 !important;
   font-weight: 700 !important;
   font-size: 12px !important;
-  padding: 10px 12px !important;
-  border-bottom: 2px solid rgba(125, 211, 252, 0.85) !important;
+  padding: 8px 10px !important;
+  border: 1px solid rgba(125, 211, 252, 0.85) !important;
   vertical-align: middle !important;
   backdrop-filter: blur(6px);
+  white-space: normal !important;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.header-group-yellow {
+  background: rgba(254, 243, 199, 0.95) !important;
+  color: #92400e !important;
+  border-color: rgba(253, 230, 138, 0.9) !important;
+}
+
+.header-group-blue {
+  background: rgba(207, 226, 255, 0.95) !important;
+  color: #084298 !important;
+  border-color: rgba(182, 210, 252, 0.9) !important;
+}
+
+.header-group-green {
+  background: rgba(209, 231, 221, 0.95) !important;
+  color: #0f5132 !important;
+  border-color: rgba(186, 218, 203, 0.9) !important;
+}
+
+.header-group-cyan {
+  background: rgba(207, 244, 252, 0.95) !important;
+  color: #055160 !important;
+  border-color: rgba(182, 235, 247, 0.9) !important;
+}
+
+.header-group-gray {
+  background: rgba(226, 227, 229, 0.95) !important;
+  color: #41464b !important;
+  border-color: rgba(211, 212, 215, 0.9) !important;
 }
 
 .travel-table td {
   font-size: 12px !important;
-  padding: 8px 12px !important;
+  padding: 8px 10px !important;
   vertical-align: middle !important;
-  border-color: rgba(226, 232, 240, 0.65) !important;
+  border: 1px solid rgba(226, 232, 240, 0.65) !important;
   color: #0f172a;
   font-weight: 500;
+  white-space: normal !important;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .travel-table tbody tr {

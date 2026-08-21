@@ -214,6 +214,12 @@ export class HotelBookingManagementComponent implements OnInit {
         icon: 'fa-solid fa-file-excel fa-lg text-success',
         command: () => this.onExportExcel(),
         visible: this.permissionService.hasPermission("N1,N2,N34"),
+      },
+      {
+        label: 'Xuất chi tiết',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => this.onExportExcelDetail(),
+        visible: this.permissionService.hasPermission("N1,N2,N34"),
       }
     ];
   }
@@ -520,6 +526,48 @@ export class HotelBookingManagementComponent implements OnInit {
         a.remove();
 
         this.message.success('Xuất Excel thành công');
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  onExportExcelDetail(): void {
+    if (this.selectedBookings.length !== 1) {
+      this.message.warning('Vui lòng chọn 1 bản ghi để xuất chi tiết');
+      return;
+    }
+
+    const selectedItem = this.selectedBookings[0];
+    this.isLoading = true;
+
+    this.service.exportExcelDetail(selectedItem.ID).subscribe({
+      next: (res) => {
+        const url = window.URL.createObjectURL(res);
+        const a = document.createElement('a');
+        document.body.appendChild(a);
+        a.setAttribute('style', 'display: none');
+        a.href = url;
+
+        a.download = `ChiTietDatPhong_${selectedItem.ID}.xlsx`;
+
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+
+        this.message.success('Xuất Excel chi tiết thành công');
         this.isLoading = false;
         this.cdr.detectChanges();
       },

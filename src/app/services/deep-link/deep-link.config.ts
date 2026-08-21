@@ -62,6 +62,14 @@ export const DEEP_LINK_PAGES: DeepLinkPage[] = [
             pm: { key: 'pmID', type: 'number', label: 'PM', aliases: ['pmid'] },
         },
     },
+    {
+        route: 'project-gate-step-master-plan',
+        alias: ['masterplan', 'master-plan'],
+        title: 'Master Plan',
+        fields: {
+            projectid: { key: 'projectId', type: 'number', label: 'Dự án' },
+        },
+    },
 ];
 
 // ---------------------------------------------------------------------------

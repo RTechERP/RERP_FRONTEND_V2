@@ -356,9 +356,17 @@
     }
 
     ::ng-deep .form-paper nz-form-label,
+    ::ng-deep .form-paper .ant-form-item-label,
     ::ng-deep .form-paper .ant-form-item-label>label {
         padding: 0 !important;
         font-size: 12px !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+    }
+
+    ::ng-deep .form-paper .ant-form-item-control,
+    ::ng-deep .form-paper .ant-form-item-control-input-content {
+        text-align: left !important;
     }
 
     ::ng-deep .form-paper .ant-select-selector,

@@ -856,13 +856,20 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     onDisposeAsset() { }
     async exportToExcelAdvanced() {
         this.isLoading = true;
+        const departmentString =
+            this.department.length > 0
+                ? this.department.join(',')
+                : '';
+        const statusString =
+            this.status.length > 0 ? this.status.join(',') : '0,1,2,3,4,5,6,7,8';
         const request = {
             filterText: this.filterText || '',
             pageNumber: 1,
             pageSize: 9999999,
             dateStart: this.dateStart || '2024-05-22',
             dateEnd: this.dateEnd || '2027-05-22',
-
+            status: statusString,
+            department: departmentString,
         };
 
         this.assetManagementService.exportExcelAssetManagement(request).subscribe({
@@ -940,61 +947,191 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
                     });
                 });
 
-                // Add all data rows in bulk (super fast, no mergeCells bottleneck)
-                const allRowsData = exportData.map((row: any, index: number) => [
-                    index + 1,
-                    row.TSCodeNCC || '',
-                    row.KeyWin || '',
-                    row.DateActiveWin ? DateTime.fromISO(row.DateActiveWin).toFormat('dd/MM/yyyy') : '',
-                    row.KeyOffice || row.keyOffice || '',
-                    row.DateActiveOffice ? DateTime.fromISO(row.DateActiveOffice).toFormat('dd/MM/yyyy') : '',
-                    row.DateExpireOffice ? DateTime.fromISO(row.DateExpireOffice).toFormat('dd/MM/yyyy') : '',
-                    row.TSAssetName || '',
-                    row.AssetCode || '',
-                    row.AssetType || '',
-                    row.SourceCode || '',
-                    row.SourceName || '',
-                    row.SupplierCode || '',
-                    row.SupplierName || '',
-                    row.Seri || '',
-                    row.Model || '',
-                    row.Quantity ?? '',
-                    row.Status || '',
-                    row.SpecificationsAsset || '',
-                    row.UnitName || '',
-                    row.DepartmentCode || '',
-                    row.Name || '',
-                    row.EmployeeCode || '',
-                    row.FullName || '',
-                    row.DateBuy ? DateTime.fromISO(row.DateBuy).toFormat('dd/MM/yyyy') : '',
-                    row.Insurance || '',
-                    row.DateEffect ? DateTime.fromISO(row.DateEffect).toFormat('dd/MM/yyyy') : '',
-                    row.AllocationAction || '',
-                    row.AllocationDeliver || '',
-                    row.AllocationReceiver || '',
-                    row.AllocationDate || '',
-                    row.AllocationStatus || '',
-                    row.Note || ''
-                ]);
+                const parseLines = (val: any): string[] => {
+                    if (!val || typeof val !== 'string') return [];
+                    return val.split(/\r?\n/).map(s => s.trim());
+                };
 
+                const allRowsData: any[][] = [];
+                // Lưu meta thông tin dòng: isFirst (dòng đầu của tài sản), isLast (dòng cuối của tài sản)
+                const rowMeta: Array<{ isFirst: boolean; isLast: boolean }> = [];
+
+                exportData.forEach((row: any, index: number) => {
+                    const actions = parseLines(row.AllocationAction);
+                    const delivers = parseLines(row.AllocationDeliver);
+                    const receivers = parseLines(row.AllocationReceiver);
+                    const dates = parseLines(row.AllocationDate);
+                    const statuses = parseLines(row.AllocationStatus);
+
+                    const maxLines = Math.max(
+                        actions.length,
+                        delivers.length,
+                        receivers.length,
+                        dates.length,
+                        statuses.length
+                    );
+
+                    const validEvents: Array<{ action: string; deliver: string; receiver: string; date: string; status: string }> = [];
+                    for (let i = 0; i < maxLines; i++) {
+                        const act = actions[i] || '';
+                        const del = delivers[i] || '';
+                        const rec = receivers[i] || '';
+                        const dat = dates[i] || '';
+                        const sta = statuses[i] || '';
+                        if (act || del || rec || dat || sta) {
+                            validEvents.push({ action: act, deliver: del, receiver: rec, date: dat, status: sta });
+                        }
+                    }
+
+                    const numRows = Math.max(validEvents.length, 1);
+
+                    const dateActiveWin = row.DateActiveWin ? DateTime.fromISO(row.DateActiveWin).toFormat('dd/MM/yyyy') : '';
+                    const dateActiveOffice = row.DateActiveOffice ? DateTime.fromISO(row.DateActiveOffice).toFormat('dd/MM/yyyy') : '';
+                    const dateExpireOffice = row.DateExpireOffice ? DateTime.fromISO(row.DateExpireOffice).toFormat('dd/MM/yyyy') : '';
+                    const dateBuy = row.DateBuy ? DateTime.fromISO(row.DateBuy).toFormat('dd/MM/yyyy') : '';
+                    const dateEffect = row.DateEffect ? DateTime.fromISO(row.DateEffect).toFormat('dd/MM/yyyy') : '';
+
+                    for (let i = 0; i < numRows; i++) {
+                        const isFirst = (i === 0);
+                        const isLast = (i === numRows - 1);
+                        rowMeta.push({ isFirst, isLast });
+
+                        const ev = validEvents[i] || { action: '', deliver: '', receiver: '', date: '', status: '' };
+                        if (isFirst) {
+                            allRowsData.push([
+                                index + 1,
+                                row.TSCodeNCC || '',
+                                row.KeyWin || '',
+                                dateActiveWin,
+                                row.KeyOffice || row.keyOffice || '',
+                                dateActiveOffice,
+                                dateExpireOffice,
+                                row.TSAssetName || '',
+                                row.AssetCode || '',
+                                row.AssetType || '',
+                                row.SourceCode || '',
+                                row.SourceName || '',
+                                row.SupplierCode || '',
+                                row.SupplierName || '',
+                                row.Seri || '',
+                                row.Model || '',
+                                row.Quantity ?? '',
+                                row.Status || '',
+                                row.SpecificationsAsset || '',
+                                row.UnitName || '',
+                                row.DepartmentCode || '',
+                                row.Name || '',
+                                row.EmployeeCode || '',
+                                row.FullName || '',
+                                dateBuy,
+                                row.Insurance || '',
+                                dateEffect,
+                                ev.action,
+                                ev.deliver,
+                                ev.receiver,
+                                ev.date,
+                                ev.status,
+                                row.Note || ''
+                            ]);
+                        } else {
+                            allRowsData.push([
+                                '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+                                ev.action,
+                                ev.deliver,
+                                ev.receiver,
+                                ev.date,
+                                ev.status,
+                                ''
+                            ]);
+                        }
+                    }
+                });
+
+                // Add all data rows in a single batch
                 worksheet.addRows(allRowsData);
 
-                // Style data rows in bulk
-                const borderStyle = {
-                    top: { style: 'thin' as const },
-                    left: { style: 'thin' as const },
-                    bottom: { style: 'thin' as const },
-                    right: { style: 'thin' as const },
-                };
-                const fontStyle = { name: 'Times New Roman', size: 11 };
+                // Reusable border definitions
+                const borderThin = { style: 'thin' as const };
+                const borderLight = { style: 'thin' as const, color: { argb: 'FFD0D0D0' } }; // Nét kẻ ngang mờ giữa các dòng con
 
-                const endRowNum = worksheet.rowCount;
-                for (let rNum = 3; rNum <= endRowNum; rNum++) {
+                // Border đầy đủ chuẩn (khi tài sản chỉ có 1 dòng)
+                const borderFull = {
+                    top: borderThin,
+                    left: borderThin,
+                    bottom: borderThin,
+                    right: borderThin,
+                };
+
+                // Borders cho cột thông tin tài sản (liền khối, không có đường kẻ ngang bên trong)
+                const borderTopOnly = {
+                    top: borderThin,
+                    left: borderThin,
+                    right: borderThin,
+                };
+                const borderBottomOnly = {
+                    bottom: borderThin,
+                    left: borderThin,
+                    right: borderThin,
+                };
+                const borderMiddleOnly = {
+                    left: borderThin,
+                    right: borderThin,
+                };
+
+                // Borders cho 5 cột Lịch sử cấp phát (đường kẻ ngang phân cách giữa các dòng con được làm mờ)
+                const borderHistoryFirst = {
+                    top: borderThin,
+                    left: borderThin,
+                    bottom: borderLight,
+                    right: borderThin,
+                };
+                const borderHistoryMiddle = {
+                    top: borderLight,
+                    left: borderThin,
+                    bottom: borderLight,
+                    right: borderThin,
+                };
+                const borderHistoryLast = {
+                    top: borderLight,
+                    left: borderThin,
+                    bottom: borderThin,
+                    right: borderThin,
+                };
+
+                const fontStyle = { name: 'Times New Roman', size: 11 };
+                const alignCenter = { horizontal: 'center' as const, vertical: 'top' as const, wrapText: true };
+                const alignLeft = { horizontal: 'left' as const, vertical: 'top' as const, wrapText: true };
+                const centerColIndexes = new Set([1, 4, 6, 7, 17, 25, 27, 28, 31]);
+                const historyColIndexes = new Set([28, 29, 30, 31, 32]);
+
+                // Style all rows in 1 single fast pass without mergeCells overhead
+                const totalRows = rowMeta.length;
+                for (let rIdx = 0; rIdx < totalRows; rIdx++) {
+                    const rNum = rIdx + 3;
                     const row = worksheet.getRow(rNum);
+                    const meta = rowMeta[rIdx];
                     row.font = fontStyle;
-                    row.eachCell({ includeEmpty: true }, (cell) => {
-                        cell.border = borderStyle;
-                        cell.alignment = { wrapText: true, vertical: 'top' };
+
+                    let assetBorder: any;
+                    let historyBorder: any;
+
+                    if (meta.isFirst && meta.isLast) {
+                        assetBorder = borderFull;
+                        historyBorder = borderFull;
+                    } else if (meta.isFirst) {
+                        assetBorder = borderTopOnly;
+                        historyBorder = borderHistoryFirst;
+                    } else if (meta.isLast) {
+                        assetBorder = borderBottomOnly;
+                        historyBorder = borderHistoryLast;
+                    } else {
+                        assetBorder = borderMiddleOnly;
+                        historyBorder = borderHistoryMiddle;
+                    }
+
+                    row.eachCell({ includeEmpty: true }, (cell, colNum) => {
+                        cell.border = historyColIndexes.has(colNum) ? historyBorder : assetBorder;
+                        cell.alignment = centerColIndexes.has(colNum) ? alignCenter : alignLeft;
                     });
                 }
 

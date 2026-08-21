@@ -56,7 +56,10 @@ export class TravelRegistrationDetailComponent implements OnInit {
         ...this.dataInput,
         BirthDay: this.dataInput.BirthDay ? new Date(this.dataInput.BirthDay) : null,
         CCCDIssueDate: this.dataInput.CCCDIssueDate ? new Date(this.dataInput.CCCDIssueDate) : null,
-        ConfirmDate: this.dataInput.ConfirmDate ? new Date(this.dataInput.ConfirmDate) : null
+        ConfirmDate: this.dataInput.ConfirmDate ? new Date(this.dataInput.ConfirmDate) : null,
+        DepartureDate: this.dataInput.DepartureDate ? new Date(this.dataInput.DepartureDate) : null,
+        ReturnDate: this.dataInput.ReturnDate ? new Date(this.dataInput.ReturnDate) : null,
+        DateDepartureVinWonder: this.dataInput.DateDepartureVinWonder ? new Date(this.dataInput.DateDepartureVinWonder) : null
       });
     }
   }
@@ -83,6 +86,37 @@ export class TravelRegistrationDetailComponent implements OnInit {
       DangKyHLKGChieuDi: [''],
       DangKyHLKGChieuVe: [''],
       DangKyVinwonders: [null],
+      GroupNumber: [''],
+      DepartureDate: [null],
+      DepartureFlightCode: [''],
+      DepartureFlightTime: [''],
+      DepartureHLKG: [''],
+      ReturnDate: [null],
+      ReturnFlightCode: [''],
+      ReturnFlightTime: [''],
+      ReturnHLKG: [''],
+      XeVPSB: [''],
+      XeSBKS: [''],
+      XeVinWonder: [''],
+      XeGalaDinner: [''],
+      XeKSSB: [''],
+      XeSBVP: [''],
+      DateDepartureVinWonder: [null],
+      RoomNumber: [''],
+      RommCode: [''],
+      RoomType: [''],
+      Note: [''],
+      TableNumberGala: [''],
+      Note2: [''],
+      TripCost: [''],
+      VinWonderCost: [''],
+      HLKGCost: [''],
+      TotalCost: [''],
+      SupportLunchCost: [''],
+      SupportFlightCost: [''],
+      SupportTotalCost: [''],
+      SeptemberDeductionAmount: [''],
+      TotalPaymentAmount: [''],
       ConfirmStatus: [0],
       ConfirmDate: [null],
       ConfirmBy: [''],
@@ -127,7 +161,10 @@ export class TravelRegistrationDetailComponent implements OnInit {
       ...this.form.value,
       BirthDay: this.formatDateForSubmit(this.form.value.BirthDay),
       CCCDIssueDate: this.formatDateForSubmit(this.form.value.CCCDIssueDate),
-      ConfirmDate: this.formatDateForSubmit(this.form.value.ConfirmDate)
+      ConfirmDate: this.formatDateForSubmit(this.form.value.ConfirmDate),
+      DepartureDate: this.formatDateForSubmit(this.form.value.DepartureDate),
+      ReturnDate: this.formatDateForSubmit(this.form.value.ReturnDate),
+      DateDepartureVinWonder: this.formatDateForSubmit(this.form.value.DateDepartureVinWonder)
     };
 
     this.travelRegistrationService.saveData(submitData).subscribe({

@@ -1,0 +1,739 @@
+/* ========================================
+   KPI SUMMARY WITH RANKING - COMBINED STYLES
+   ======================================== */
+
+/* Container chính */
+.kpi-summary-container {
+  display: flex;
+  flex-direction: column;
+  height: 93dvh;
+  padding: 16px;
+  gap: 12px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* ===== Toolbar ===== */
+.kpi-summary-toolbar {
+  background: #fff;
+  border-radius: 6px;
+  padding: 12px 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+.toolbar-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.toolbar-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toolbar-field label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+  margin: 0;
+}
+
+.toolbar-badge {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.toolbar-actions {
+  margin-left: auto;
+}
+
+/* ===== Table Mode Banner (Team) ===== */
+.table-mode-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: #f0f5ff;
+  border-left: 3px solid #2f54eb;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #333;
+  flex-shrink: 0;
+}
+
+.table-mode-banner .text-muted {
+  color: #666;
+  font-size: 12px;
+}
+
+/* ===== Table ===== */
+.table-wrapper {
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.table-scroll {
+  overflow: auto;
+  max-height: 400px;
+}
+
+.kpi-summary-table {
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 100%;
+  font-size: 13px;
+}
+
+.kpi-summary-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  box-shadow: 0 1px 0 #999;
+}
+
+.kpi-summary-table thead th {
+  background: #fff !important;
+}
+
+.kpi-summary-table th,
+.kpi-summary-table td {
+  border: 1px solid #e8e8e8;
+  padding: 6px 10px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Header */
+.header-row-1 th {
+  font-size: 13px;
+}
+
+.col-period-group {
+  background: #fff !important;
+}
+
+.col-quarter {
+  background: #fff !important;
+  border-left: 2px solid #999 !important;
+}
+
+.col-index {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  min-width: 280px;
+  max-width: 400px;
+  width: 300px;
+  text-align: left !important;
+  background-color: #fff;
+  border-right: 2px solid #d9d9d9;
+  vertical-align: middle;
+}
+
+.kpi-summary-table thead .header-row-1 .col-index {
+  z-index: 30 !important;
+}
+
+.kpi-summary-table thead .header-row-2 .col-index {
+  z-index: 30 !important;
+}
+
+.col-goal,
+.col-result,
+.col-score {
+  min-width: 90px;
+}
+
+/* Body rows */
+.kpi-summary-table tbody tr:hover {
+  background: #fafafa;
+}
+
+.kpi-summary-table tbody tr:hover > td {
+  background: #e6f7ff !important;
+}
+
+.kpi-summary-table tbody tr.row-even {
+  background: #fafafa;
+}
+
+.kpi-summary-table tbody tr.row-even:hover > td {
+  background: #d9eaff !important;
+}
+
+.row-bold td {
+  font-weight: 700;
+}
+
+.row-parent td {
+  font-weight: 600;
+}
+
+/* Tree view: chỉ tiêu nhóm (GROUP) */
+.kpi-summary-table tbody tr.row-group > td {
+  font-weight: 600;
+  background-color: #e6f4ff !important;
+  border-top: 1px solid #91caff;
+  border-bottom: 1px solid #91caff;
+}
+
+.kpi-summary-table tbody tr.row-group > td.col-index {
+  border-left: 3px solid #1677ff;
+  background-color: #e6f4ff !important;
+}
+
+.kpi-summary-table tbody tr.row-group > td:last-child {
+  border-right: 1px solid #91caff;
+}
+
+.kpi-summary-table tbody tr.row-group:hover > td {
+  background-color: #bae0ff !important;
+}
+
+.tree-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: #1677ff;
+  font-size: 10px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.tree-toggle:hover {
+  background: #bae0ff;
+  border-radius: 3px;
+}
+
+.tree-toggle .caret {
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: center;
+}
+
+.tree-toggle .caret-down {
+  transform: rotate(90deg);
+}
+
+.tree-leaf-spacer {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* Index cell */
+.index-cell {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  text-align: left;
+}
+
+.index-name {
+  color: #000;
+  word-break: break-word;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.weight-badge {
+  font-size: 10px;
+  background: #f0f0f0;
+  color: #666;
+  padding: 1px 4px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* Value cells */
+.val-text {
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+}
+
+.val-non-zero {
+  color: #333;
+}
+
+.val-zero {
+  color: #ccc;
+}
+
+.score-text {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Score coloring */
+.score-good .score-text,
+.score-good {
+  color: #52c41a;
+}
+
+.score-warning .score-text,
+.score-warning {
+  color: #fa8c16;
+}
+
+.score-bad .score-text,
+.score-bad {
+  color: #f5222d;
+}
+
+.score-positive .score-text,
+.score-positive {
+  color: #52c41a;
+}
+
+.score-neutral .score-text,
+.score-neutral {
+  color: #999;
+}
+
+/* Result coloring */
+.result-good {
+  color: #52c41a;
+}
+
+.result-warning {
+  color: #fa8c16;
+}
+
+.result-bad {
+  color: #f5222d;
+}
+
+.result-neutral {
+  color: #d9d9d9;
+}
+
+/* ===== Total Performance ===== */
+.report-table-wrapper {
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  margin-top: 12px;
+}
+
+.report-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e8e8e8;
+  background: #fafafa;
+}
+
+.report-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.report-table-scroll {
+  overflow: auto;
+  max-height: 300px;
+}
+
+.kpi-report-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 400px;
+  font-size: 13px;
+}
+
+.kpi-report-table th,
+.kpi-report-table td {
+  border: 1px solid #e8e8e8;
+  padding: 8px 12px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.kpi-report-table thead th {
+  background: #fff;
+  font-weight: 600;
+  font-size: 12px;
+  color: #000;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.kpi-total-table tbody tr td {
+  font-size: 15px;
+  font-weight: 700;
+  padding: 12px;
+}
+
+/* ===== Approval Workflow Bar ===== */
+.approval-workflow-bar {
+  background: linear-gradient(135deg, #f0f5ff 0%, #e6f7ff 100%);
+  border: 1px solid #d6e4ff;
+  border-left: 4px solid #2f54eb;
+  border-radius: 6px;
+  padding: 12px 16px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 1px 3px rgba(47, 84, 235, 0.08);
+}
+
+.approval-workflow-bar__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.approval-workflow-bar__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1d39c4;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.approval-workflow-bar__current {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.approval-workflow-bar__steps {
+  background: rgba(255, 255, 255, 0.6);
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+/* ===== Empty State ===== */
+.empty-state {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 6px;
+  padding: 48px;
+  text-align: center;
+  color: #999;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.empty-icon {
+  font-size: 48px;
+  color: #d9d9d9;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.empty-state p {
+  font-size: 14px;
+  margin: 0;
+  color: #999;
+}
+
+.empty-state strong {
+  color: #1890ff;
+}
+
+/* ===== Loading Overlay ===== */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 100;
+  gap: 12px;
+}
+
+.loading-overlay p {
+  color: #1890ff;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* ========================================
+   RANKING TABLE STYLES (from kpi-ranking-tab)
+   ======================================== */
+
+.ranking-section {
+  margin-top: 16px;
+}
+
+.reward-config-info {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: #e6f7ff;
+  border-radius: 4px;
+  border: 1px solid #91d5ff;
+  flex-wrap: wrap;
+}
+
+.config-item {
+  font-size: 13px;
+  color: #1890ff;
+}
+
+.config-item strong {
+  color: #096dd9;
+}
+
+.ranking-table-container {
+  width: 100%;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 4px;
+  border: 1px solid #e8e8e8;
+}
+
+.ranking-table-container ::ng-deep .p-datatable-wrapper {
+  width: 100%;
+}
+
+.ranking-table-container ::ng-deep .p-datatable .p-datatable-wrapper {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+}
+
+.money-value {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 12px;
+}
+
+.percent-value {
+  font-weight: 500;
+}
+
+.percent-value.high-achievement {
+  color: #52c41a;
+}
+
+.percent-value.mid-achievement {
+  color: #1890ff;
+}
+
+.percent-value.low-achievement {
+  color: #faad14;
+}
+
+.bonus-value {
+  color: #1890ff;
+}
+
+.bonus-value.ranking-bonus.has-bonus {
+  color: #fa8c16;
+  font-weight: 600;
+}
+
+.new-account-count {
+  background: #fff7e6;
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: #fa8c16;
+  font-weight: 600;
+}
+
+.total-bonus {
+  color: #52c41a;
+  font-size: 13px;
+}
+
+/* PrimeNG p-tag rank colors override */
+.ranking-table-container ::ng-deep .p-tag.p-tag-warn {
+  background: #ffe58f !important;
+  color: #874d00 !important;
+}
+
+.ranking-table-container ::ng-deep .p-tag.p-tag-secondary {
+  background: #d9d9d9 !important;
+  color: #595959 !important;
+}
+
+.ranking-table-container ::ng-deep .p-tag.p-tag-danger {
+  background: #d4380d !important;
+  color: #ffffff !important;
+}
+
+/* Row hover effect (PrimeNG) */
+.ranking-table-container ::ng-deep .p-datatable-tbody > tr:hover > td {
+  background: #e6f7ff !important;
+}
+
+/* Leader row highlight */
+.ranking-table-container ::ng-deep .p-datatable-tbody > tr.leader-row > td {
+  background: #fff7e6 !important;
+  font-weight: 600;
+}
+
+/* Column alignment helpers */
+.ranking-table-container ::ng-deep .col-center {
+  text-align: center !important;
+}
+
+.ranking-table-container ::ng-deep .col-money {
+  text-align: right !important;
+}
+
+.ranking-table-container ::ng-deep .col-center > * {
+  justify-content: center;
+}
+
+.config-hint {
+  font-weight: 400;
+  color: #8c8c8c;
+  font-size: 11px;
+  font-style: italic;
+  margin-left: 2px;
+}
+
+.auto-label {
+  color: #8c8c8c;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.team-revenue-summary {
+  background: #fff7e6;
+  border-color: #ffd591;
+  margin-top: -6px;
+}
+
+.team-revenue-summary .config-item {
+  color: #d46b08;
+}
+
+.team-revenue-summary .config-item strong {
+  color: #ad4e00;
+}
+
+.money-value.highlight {
+  color: #d4380d;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.header-hint {
+  font-size: 11px;
+  color: #8c8c8c;
+  margin-left: 2px;
+  vertical-align: middle;
+}
+
+.empty-row {
+  text-align: center;
+  padding: 32px 12px !important;
+  color: #8c8c8c;
+  font-style: italic;
+}
+
+.text-muted {
+  color: #bfbfbf;
+}
+
+.kpi-ranking-page {
+  display: block;
+}
+
+/* ========== PRIMENG TABS STYLING ========== */
+.team-tabset {
+  margin-top: 4px;
+}
+
+/* Override PrimeNG Tabs default styles */
+:host ::ng-deep .team-tabset .p-tabs .p-tablist .p-tab {
+  background-color: #f5f5f5 !important;
+  border: 1px solid #d9d9d9 !important;
+  border-radius: 4px 4px 0 0;
+  margin-right: 4px;
+  padding: 0.75rem 1rem !important;
+  color: #595959 !important;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+:host ::ng-deep .team-tabset .p-tabs .p-tablist .p-tab:hover {
+  background-color: #e6f7ff !important;
+  color: #1890ff !important;
+}
+
+:host ::ng-deep .team-tabset .p-tabs .p-tablist .p-tab[data-p-active="true"] {
+  background-color: #1890ff !important;
+  border-color: #1890ff !important;
+  color: #fff !important;
+}
+
+:host ::ng-deep .team-tabset .p-tabs .p-tabpanels {
+  padding: 1rem 0;
+  background: transparent;
+  border: none;
+}
+
+/* Leader row highlight (ant-table variant kept for safety) */
+.ranking-table-container ::ng-deep .ant-table-tbody > tr.leader-row > td {
+  background: #fff7e6 !important;
+  font-weight: 600;
+}
+
+/* Compact paginator styling */
+:host ::ng-deep .reward-ranking-grid .p-paginator {
+  padding: 0.5rem 0.75rem !important;
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .reward-ranking-grid .p-paginator .p-paginator-pages .p-paginator-page,
+:host ::ng-deep .reward-ranking-grid .p-paginator .p-paginator-first,
+:host ::ng-deep .reward-ranking-grid .p-paginator .p-paginator-prev,
+:host ::ng-deep .reward-ranking-grid .p-paginator .p-paginator-next,
+:host ::ng-deep .reward-ranking-grid .p-paginator .p-paginator-last {
+  min-width: 1.75rem !important;
+  height: 1.75rem !important;
+  font-size: 11px !important;
+}
+
+:host ::ng-deep .reward-ranking-grid .p-paginator .p-dropdown {
+  height: 1.75rem !important;
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .reward-ranking-grid .p-paginator .p-paginator-current {
+  font-size: 12px !important;
+  padding: 0 0.5rem !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .approval-workflow-bar {
+    padding: 10px 12px;
+  }
+}

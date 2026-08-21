@@ -80,6 +80,7 @@
 
                             <!-- Course List (No Title) -->
                             <app-course-list [data]="courseData" [isLoading]="isLoadingCourses" [autoSelectFirst]="true"
+                                [selectedCourseId]="selectedCourseId"
                                 (courseSelected)="onCourseSelected($event)" class="flex-grow-1"
                                 style="overflow: hidden;">
                             </app-course-list>

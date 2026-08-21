@@ -51,11 +51,9 @@
     </div>
 
     <!-- ---- IMAGE ---- -->
-    <div *ngIf="!isLoading && !errorMsg && fileType === 'image'" class="fp-scroll fp-center">
-      <div [style.transform]="'scale(' + zoom + ')'"
-           style="transform-origin: top center; display: inline-block;">
-        <img *ngIf="imageUrl" [src]="imageUrl" class="fp-image" alt="{{ fileName }}" />
-      </div>
+    <div *ngIf="!isLoading && !errorMsg && fileType === 'image'" class="fp-scroll fp-image-container">
+      <img *ngIf="imageUrl" [src]="imageUrl" class="fp-image"
+        [style.transform]="'scale(' + zoom + ')'" alt="{{ fileName }}" />
     </div>
 
     <!-- ---- PDF ---- -->

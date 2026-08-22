@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
+import { environment } from '../../../../environments/environment';
 import { CourseData, QuestionData, AnswerData, CourseLesson } from './course-exam.types';
 import { ExamListComponent } from './components/exam-list/exam-list.component';
 import { QuestionListComponent } from './components/question-list/question-list.component';
@@ -894,11 +895,44 @@ export class CourseExamComponent implements OnInit, AfterViewInit {
     });
     headerRow.height = 24;
 
-    data.forEach((item: any, index: number) => {
+    // Lấy server path cho ảnh
+    const imagePath = await this.getImageServerPath();
+    
+    // Track images to add to worksheet
+    const imageMap = new Map<number, number>();
+
+    // Fetch images first (for URL-based images)
+    for (let i = 0; i < data.length; i++) {
+      const item = data[i];
+      if (item.Image && typeof item.Image === 'string' && item.Image.trim() !== '' && item.Image !== 'null') {
+        try {
+          // Construct full URL using same logic as question-list component
+          const imageUrl = this.getImageUrl(item.Image, imagePath);
+          
+          // Fetch image from server
+          const response = await fetch(imageUrl);
+          if (response.ok) {
+            const imageData = await response.arrayBuffer();
+            const ext = this.getImageExtension(item.Image);
+            const imgId = workbook.addImage({
+              buffer: imageData,
+              extension: ext,
+            });
+            imageMap.set(i, imgId);
+          }
+        } catch (err) {
+          console.error('Error loading image for row', i, err);
+        }
+      }
+    }
+
+    // Add rows with data
+    for (let i = 0; i < data.length; i++) {
+      const item = data[i];
       const rowData: any = {
-        STT: item.STT ?? (index + 1),
+        STT: item.STT ?? (i + 1),
         QuestionText: item.QuestionText || '',
-        Image: item.Image ? 'Có ảnh' : '',
+        Image: '', // Will add image separately
       };
       if (showAnswers) {
         rowData['1'] = item['1'] || '';
@@ -914,17 +948,83 @@ export class CourseExamComponent implements OnInit, AfterViewInit {
           bottom: { style: 'thin' }, right: { style: 'thin' }
         };
       });
-      if (index % 2 === 1) {
+      if (i % 2 === 1) {
         row.eachCell({ includeEmpty: true }, (cell) => {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE9EFF8' } };
         });
       }
-    });
+
+      // Add image to the Image column (column C, index 3)
+      if (imageMap.has(i)) {
+        const imgId = imageMap.get(i)!;
+        // Set row height to accommodate image
+        row.height = 80;
+        
+        worksheet.addImage(imgId, {
+          tl: { col: 2, row: i + 1 }, // Column C (0-indexed), row starts at 1 for header
+          ext: { width: 80, height: 70 },
+        });
+      }
+    }
 
     const fileName = `DanhSachCauHoi_${examCode}.xlsx`;
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     saveAs(blob, fileName);
     this.notification.success(NOTIFICATION_TITLE.success, `Xuất file thành công: ${fileName}`);
+  }
+
+  /**
+   * Get server path for CourseExamExerciseImages
+   */
+  private getImageServerPath(): Promise<string> {
+    return new Promise((resolve) => {
+      this.courseExamService.getPathServer('CourseExamExerciseImages').subscribe({
+        next: (res: any) => {
+          let serverPath = (res?.data ?? '') + '/';
+          // Remove UNC path prefix
+          serverPath = serverPath.replace("\\\\192.168.1.190\\", "");
+          // Use the same URL pattern as in question-list component
+          const host = environment.host + 'api/share/';
+          serverPath = host + serverPath.replace(/\\/g, '/');
+          resolve(serverPath);
+        },
+        error: () => {
+          // Fallback to environment host
+          resolve(environment.host + 'api/share/');
+        }
+      });
+    });
+  }
+
+  /**
+   * Construct full image URL from relative path
+   */
+  private getImageUrl(imagePath: string, serverPath: string): string {
+    if (!imagePath) return '';
+    return serverPath + imagePath;
+  }
+
+  /**
+   * Get image extension from URL or base64 string
+   */
+  private getImageExtension(imageData: string): 'png' | 'jpeg' | 'gif' {
+    if (!imageData) return 'png';
+    
+    // Check if base64
+    if (imageData.startsWith('data:')) {
+      const mimeType = imageData.split(';')[0].split('/')[1];
+      if (mimeType === 'jpeg') return 'jpeg';
+      if (mimeType === 'png') return 'png';
+      if (mimeType === 'gif') return 'gif';
+      return 'png';
+    }
+    
+    // Check URL extension
+    const url = imageData.toLowerCase();
+    if (url.includes('.png')) return 'png';
+    if (url.includes('.gif')) return 'gif';
+    
+    return 'jpeg'; // default
   }
 }

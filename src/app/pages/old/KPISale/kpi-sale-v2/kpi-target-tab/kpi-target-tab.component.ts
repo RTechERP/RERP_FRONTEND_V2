@@ -1467,6 +1467,10 @@ export class KpiTargetTabComponent implements OnInit {
   onEmployeeSelect(employeeId: number): void {
     this.selectedEmployeeId = employeeId;
     this.selectedTemplateId = 0; // reset để onFilterChange tự derive từ assignment mới
+    if (this.isTeamWeightMode) {
+      this.userToggledTeamWeight = true; // ngăn auto-enable chạy lại sau onFilterChange
+      this.isTeamWeightMode = false; // tắt mode thông số team khi chọn nhân viên
+    }
     void this.onFilterChange();
   }
 
@@ -1478,6 +1482,10 @@ export class KpiTargetTabComponent implements OnInit {
       this.selectedEmployeeId = 0;
     }
     this.selectedTemplateId = 0; // reset để onFilterChange tự derive từ assignment mới
+    if (this.isTeamWeightMode) {
+      this.userToggledTeamWeight = true; // ngăn auto-enable chạy lại sau onFilterChange
+      this.isTeamWeightMode = false; // tắt mode thông số team khi chọn nhân viên
+    }
     void this.onFilterChange();
   }
 
@@ -2125,8 +2133,9 @@ export class KpiTargetTabComponent implements OnInit {
 
     this.isTeamWeightMode = !this.isTeamWeightMode;
     if (this.isTeamWeightMode) {
-      await this.loadTeamWeights();
-      await this.loadTeamTargets(); // Load luôn team target data
+      this.selectedEmployeeId = 0; // clear lựa chọn bên bảng nhân viên
+      void this.loadTeamWeights();
+      void this.loadTeamTargets(); // Load luôn team target data
     }
   }
 

@@ -3,6 +3,7 @@ import {
   OnInit,
   Input,
   ChangeDetectorRef,
+  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -27,6 +28,11 @@ import {
   CopyCourseCounts,
   CopyCourseRequest,
 } from '../course-management.types';
+import { Popover } from 'primeng/popover';
+import { TableModule } from 'primeng/table';
+import { InputTextModule } from 'primeng/inputtext';
+import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 
 interface CourseCatalog {
   ID: number;
@@ -47,6 +53,11 @@ interface CourseCatalog {
     NzInputModule,
     NzButtonModule,
     NzFormModule,
+    Popover,
+    TableModule,
+    InputTextModule,
+    ButtonModule,
+    CheckboxModule,
   ],
   templateUrl: './copy-course-modal.component.html',
   styleUrls: ['./copy-course-modal.component.css'],
@@ -56,11 +67,17 @@ export class CopyCourseModalComponent implements OnInit {
   @Input() dataCatalog: CourseCatalog[] = [];
   @Input() mode: 'copy' | 'move' = 'copy';
 
+  @ViewChild('catalogLookupPanel') catalogLookupPanel!: Popover;
+
   formGroup: FormGroup;
   saving: boolean = false;
   loadingPreview: boolean = false;
   copyCounts: CopyCourseCounts | null = null;
   moveCounts: any = null;
+
+  // Catalog lookup state
+  catalogSearchText: string = '';
+  catalogFilteredData: CourseCatalog[] = [];
 
   get isMoveMode(): boolean {
     return this.mode === 'move';
@@ -248,5 +265,55 @@ export class CopyCourseModalComponent implements OnInit {
 
   close(): void {
     this.activeModal.close(false);
+  }
+
+  // Catalog lookup methods
+  get catalogFilteredList(): CourseCatalog[] {
+    if (!this.catalogSearchText) {
+      return this.dataCatalog;
+    }
+    const search = this.catalogSearchText.toLowerCase();
+    return this.dataCatalog.filter(c =>
+      (c.Code && c.Code.toLowerCase().includes(search)) ||
+      (c.Name && c.Name.toLowerCase().includes(search))
+    );
+  }
+
+  openCatalogLookup(event: Event): void {
+    this.catalogSearchText = '';
+    setTimeout(() => {
+      if (this.catalogLookupPanel) {
+        this.catalogLookupPanel.toggle(event);
+      }
+    }, 0);
+  }
+
+  onCatalogSearch(): void {
+    this.catalogFilteredData = this.catalogFilteredList;
+  }
+
+  clearCatalogSelection(): void {
+    this.formGroup.patchValue({ TargetCatalogId: null });
+    if (this.catalogLookupPanel) {
+      this.catalogLookupPanel.hide();
+    }
+  }
+
+  selectCatalog(catalog: CourseCatalog): void {
+    this.formGroup.patchValue({ TargetCatalogId: catalog.ID });
+    if (this.catalogLookupPanel) {
+      this.catalogLookupPanel.hide();
+    }
+  }
+
+  isCatalogSelected(catalog: CourseCatalog): boolean {
+    return this.formGroup.get('TargetCatalogId')?.value === catalog.ID;
+  }
+
+  getSelectedCatalogDisplay(): string {
+    const selectedId = this.formGroup.get('TargetCatalogId')?.value;
+    if (!selectedId) return '';
+    const catalog = this.dataCatalog.find(c => c.ID === selectedId);
+    return catalog ? `${catalog.Code} - ${catalog.Name}` : '';
   }
 }

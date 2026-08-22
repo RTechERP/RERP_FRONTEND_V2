@@ -290,7 +290,7 @@ export class KpiSummaryWithRankingComponent implements OnInit {
     } else {
       // Employee mode: auto-select current user if not already set
       if (!this.selectedEmployeeId && this.currentUserId) {
-        const userExists = this.employees.some(e => e.UserID === this.currentUserId);
+        const userExists = this.teamEmployees.some(e => e.UserID === this.currentUserId);
         if (userExists) {
           this.selectedEmployeeId = this.currentUserId;
         }
@@ -1021,6 +1021,8 @@ export class KpiSummaryWithRankingComponent implements OnInit {
 
     // Sau khi recalc (hoặc nếu không có template nào), reload từng tab để lấy data mới nhất
     await this.loadAllTeamsData();
+    // Build special summary tab at the end (aggregated bonus view)
+    this.buildSummaryTab();
   }
 
   private calculateRankings(): void {
@@ -1645,6 +1647,84 @@ export class KpiSummaryWithRankingComponent implements OnInit {
 
   trackById(index: number, item: KpiRankingRow): number {
     return item.employeeId;
+  }
+
+  // ====== Tổng thưởng team tab ======
+
+  /** Filter out the special summary tab, returns only real team tabs */
+  get teamOnlyTabs(): TeamTabState[] {
+    return this.teamTabs.filter(t => !t.isSummaryTab);
+  }
+
+  /** Filter employees to only those belonging to any active team (same logic as kpi-team-tab) */
+  get teamEmployees(): any[] {
+    const allMemberIds = new Set<number>();
+    for (const team of this.teams) {
+      if (team.isActive && Array.isArray(team.employeeIds)) {
+        for (const id of team.employeeIds) {
+          allMemberIds.add(id);
+        }
+      }
+    }
+    return this.employees.filter(e => allMemberIds.has(e.UserID));
+  }
+
+  /** The special summary tab (last tab) */
+  get summaryTeamTab(): TeamTabState | undefined {
+    return this.teamTabs.find(t => t.isSummaryTab);
+  }
+
+  /** Total bonus across ALL teams (for the summary label) */
+  getGrandTotalBonus(): number {
+    return this.teamOnlyTabs.reduce((sum, tab) => sum + this.getTotalBonus(tab.rankingData), 0);
+  }
+
+  /** Total revenue across ALL teams */
+  getGrandTotalRevenue(): number {
+    return this.teamOnlyTabs.reduce((sum, tab) => sum + this.getTeamTotalRevenue(tab.rankingData), 0);
+  }
+
+  /** Total ranking bonus across ALL teams */
+  getGrandTotalRankingBonus(): number {
+    return this.teamOnlyTabs.reduce((sum, tab) => sum + this.getTotalRankingBonus(tab.rankingData), 0);
+  }
+
+  /** Total new account bonus across ALL teams */
+  getGrandTotalNewAccountBonus(): number {
+    return this.teamOnlyTabs.reduce((sum, tab) => sum + this.getTotalNewAccountBonus(tab.rankingData), 0);
+  }
+
+  /** Total sales bonus across ALL teams */
+  getGrandTotalSalesBonus(): number {
+    return this.teamOnlyTabs.reduce((sum, tab) => sum + this.getTotalSalesBonus(tab.rankingData), 0);
+  }
+
+  /** Check if the special summary tab should be added */
+  shouldShowSummaryTab(): boolean {
+    return this.isAllTeamsMode && this.teamOnlyTabs.length > 0;
+  }
+
+  /** Build the special summary tab and append it after real team tabs */
+  buildSummaryTab(): void {
+    if (!this.shouldShowSummaryTab()) return;
+    const summaryTab: TeamTabState = {
+      teamId: -1,
+      teamCode: 'ALL',
+      teamName: 'Tổng thưởng team',
+      loaded: true,
+      loading: false,
+      summaryData: null,
+      rankingData: [],
+      rewardConfigs: [],
+      rewardConfig: null,
+      currentApproval: null,
+      expandedGroups: new Set<number>(),
+      approving: false,
+      approveModalVisible: false,
+      approveNote: '',
+      isSummaryTab: true,
+    };
+    this.teamTabs = [...this.teamOnlyTabs, summaryTab];
   }
 
   // ============================================================

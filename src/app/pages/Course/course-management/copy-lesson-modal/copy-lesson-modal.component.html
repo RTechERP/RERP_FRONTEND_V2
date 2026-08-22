@@ -36,11 +36,12 @@
                 ? 'Vui lòng chọn danh mục!'
                 : undefined
             ">
-            <nz-select formControlName="TargetCatalogId" [nzPlaceHolder]="'Chọn danh mục'" style="width: 100%"
-              name="TargetCatalogId" nzAllowClear nzShowSearch (ngModelChange)="onCatalogChange($event)">
-              <nz-option *ngFor="let item of dataCatalog" [nzLabel]="item.Code + ' - ' + item.Name"
-                [nzValue]="item.ID"></nz-option>
-            </nz-select>
+            <div class="custom-select-wrapper cursor-pointer" (click)="openCatalogLookup($event)">
+              <input nz-input [value]="getSelectedCatalogDisplay()" [placeholder]="'Chọn danh mục...'"
+                [readonly]="true" style="cursor: pointer;" class="custom-select-input" />
+              <i class="fa-solid fa-chevron-down select-arrow-icon"></i>
+            </div>
+            <input type="hidden" name="TargetCatalogId" [value]="formGroup.get('TargetCatalogId')?.value" />
           </nz-form-control>
         </nz-form-item>
 
@@ -52,11 +53,12 @@
                 ? 'Vui lòng chọn khóa học!'
                 : undefined
             ">
-            <nz-select formControlName="TargetCourseId" [nzPlaceHolder]="'Chọn khóa học'" style="width: 100%"
-              name="TargetCourseId" nzAllowClear nzShowSearch [nzLoading]="loadingCourses">
-              <nz-option *ngFor="let item of availableCourses" [nzLabel]="item.Code + ' - ' + item.NameCourse"
-                [nzValue]="item.ID"></nz-option>
-            </nz-select>
+            <div class="custom-select-wrapper cursor-pointer" (click)="openCourseLookup($event)">
+              <input nz-input [value]="getSelectedCourseDisplay()" [placeholder]="'Chọn khóa học...'"
+                [readonly]="true" style="cursor: pointer;" class="custom-select-input" />
+              <i class="fa-solid fa-chevron-down select-arrow-icon"></i>
+            </div>
+            <input type="hidden" name="TargetCourseId" [value]="formGroup.get('TargetCourseId')?.value" />
           </nz-form-control>
         </nz-form-item>
 
@@ -97,3 +99,104 @@
     </div>
   </form>
 </div>
+
+<!-- Popover tra cứu danh mục -->
+<p-popover #catalogLookupPanel appendTo="body"
+  [style]="{ 'min-width': '400px', 'max-width': '600px', 'font-size': '12px' }">
+  <div class="p-2 d-flex flex-column" style="max-height: 400px;">
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <input pInputText type="text" [(ngModel)]="catalogSearchText" (input)="onCatalogSearch()"
+        placeholder="Tìm theo Mã, Tên danh mục..." class="p-inputtext-sm flex-grow-1" style="font-size: 12px;" />
+      <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" size="small"
+        (click)="clearCatalogSelection()"></p-button>
+    </div>
+
+    <div class="table-container flex-grow-1 overflow-auto">
+      <p-table [value]="catalogFilteredList" [scrollable]="true" scrollHeight="280px" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 50px;" class="text-center">Chọn</th>
+            <th style="width: 100px;">Mã</th>
+            <th>Tên danh mục</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr class="lookup-row cursor-pointer" [class.lookup-row-selected]="isCatalogSelected(row)"
+            (click)="selectCatalog(row)">
+            <td class="text-center" style="width: 50px;" (click)="$event.stopPropagation()">
+              <p-checkbox [binary]="true" [ngModel]="isCatalogSelected(row)"
+                (ngModelChange)="selectCatalog(row)"></p-checkbox>
+            </td>
+            <td class="fw-bold">{{ row.Code }}</td>
+            <td>{{ row.Name }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="3" class="text-center p-3 text-muted">Không tìm thấy danh mục</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-2 border-top pt-2">
+      <span class="text-muted">
+        Tổng: <b style="color: var(--p-primary-color);">{{ catalogFilteredList.length }}</b> danh mục
+      </span>
+      <p-button label="Đóng" size="small" [text]="true" severity="primary"
+        (click)="catalogLookupPanel.hide()"></p-button>
+    </div>
+  </div>
+</p-popover>
+
+<!-- Popover tra cứu khóa học -->
+<p-popover #courseLookupPanel appendTo="body"
+  [style]="{ 'min-width': '400px', 'max-width': '700px', 'font-size': '12px' }">
+  <div class="p-2 d-flex flex-column" style="max-height: 400px;">
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <input pInputText type="text" [(ngModel)]="courseSearchText"
+        placeholder="Tìm theo Mã, Tên khóa học..." class="p-inputtext-sm flex-grow-1" style="font-size: 12px;" />
+      <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" size="small"
+        (click)="clearCourseSelection()"></p-button>
+    </div>
+
+    <div class="table-container flex-grow-1 overflow-auto">
+      <p-table [value]="courseFilteredList" [scrollable]="true" scrollHeight="280px" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 50px;" class="text-center">Chọn</th>
+            <th style="width: 100px;">Mã</th>
+            <th>Tên khóa học</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr class="lookup-row cursor-pointer" [class.lookup-row-selected]="isCourseSelected(row)"
+            (click)="selectCourse(row)">
+            <td class="text-center" style="width: 50px;" (click)="$event.stopPropagation()">
+              <p-checkbox [binary]="true" [ngModel]="isCourseSelected(row)"
+                (ngModelChange)="selectCourse(row)"></p-checkbox>
+            </td>
+            <td class="fw-bold">{{ row.Code }}</td>
+            <td>{{ row.NameCourse }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="3" class="text-center p-3 text-muted">
+              <ng-container *ngIf="loadingCourses">Đang tải khóa học...</ng-container>
+              <ng-container *ngIf="!loadingCourses">Không tìm thấy khóa học</ng-container>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-2 border-top pt-2">
+      <span class="text-muted">
+        Tổng: <b style="color: var(--p-primary-color);">{{ courseFilteredList.length }}</b> khóa học
+      </span>
+      <p-button label="Đóng" size="small" [text]="true" severity="primary"
+        (click)="courseLookupPanel.hide()"></p-button>
+    </div>
+  </div>
+</p-popover>

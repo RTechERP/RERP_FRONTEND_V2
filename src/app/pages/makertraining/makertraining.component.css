@@ -81,3 +81,10 @@
     font-weight: 500;
     white-space: nowrap;
 }
+
+/* Table cell wrap for Note field */
+:host ::ng-deep .tabulator-cell.white-space-pre-wrap {
+    white-space: pre-wrap !important;
+    word-break: break-word;
+    line-height: 1.4;
+}

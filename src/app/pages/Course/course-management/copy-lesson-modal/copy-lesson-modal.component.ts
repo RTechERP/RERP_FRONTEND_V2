@@ -3,6 +3,7 @@ import {
   OnInit,
   Input,
   ChangeDetectorRef,
+  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -27,6 +28,11 @@ import {
   CopyLessonCounts,
   CopyLessonRequest,
 } from '../course-management.types';
+import { Popover } from 'primeng/popover';
+import { TableModule } from 'primeng/table';
+import { InputTextModule } from 'primeng/inputtext';
+import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 
 interface Course {
   ID: number;
@@ -53,6 +59,11 @@ interface CourseCatalog {
     NzInputModule,
     NzButtonModule,
     NzFormModule,
+    Popover,
+    TableModule,
+    InputTextModule,
+    ButtonModule,
+    CheckboxModule,
   ],
   templateUrl: './copy-lesson-modal.component.html',
   styleUrls: ['./copy-lesson-modal.component.css'],
@@ -64,6 +75,9 @@ export class CopyLessonModalComponent implements OnInit {
   @Input() currentCatalogId: number = 0;
   @Input() mode: 'copy' | 'move' = 'copy';
 
+  @ViewChild('catalogLookupPanel') catalogLookupPanel!: Popover;
+  @ViewChild('courseLookupPanel') courseLookupPanel!: Popover;
+
   formGroup: FormGroup;
   saving: boolean = false;
   loadingPreview: boolean = false;
@@ -71,6 +85,11 @@ export class CopyLessonModalComponent implements OnInit {
   copyCounts: CopyLessonCounts | null = null;
   moveCounts: any = null;
   availableCourses: Course[] = [];
+
+  // Catalog lookup state
+  catalogSearchText: string = '';
+  // Course lookup state
+  courseSearchText: string = '';
 
   get isMoveMode(): boolean {
     return this.mode === 'move';
@@ -273,5 +292,104 @@ export class CopyLessonModalComponent implements OnInit {
 
   close(): void {
     this.activeModal.close(false);
+  }
+
+  // Catalog lookup methods
+  get catalogFilteredList(): CourseCatalog[] {
+    if (!this.catalogSearchText) {
+      return this.dataCatalog;
+    }
+    const search = this.catalogSearchText.toLowerCase();
+    return this.dataCatalog.filter(c =>
+      (c.Code && c.Code.toLowerCase().includes(search)) ||
+      (c.Name && c.Name.toLowerCase().includes(search))
+    );
+  }
+
+  onCatalogSearch(): void {
+    // Filter is handled by the getter
+  }
+
+  openCatalogLookup(event: Event): void {
+    this.catalogSearchText = '';
+    setTimeout(() => {
+      if (this.catalogLookupPanel) {
+        this.catalogLookupPanel.toggle(event);
+      }
+    }, 0);
+  }
+
+  selectCatalog(catalog: CourseCatalog): void {
+    this.formGroup.patchValue({ TargetCatalogId: catalog.ID });
+    // Reload courses when catalog changes
+    this.loadCoursesByCatalog(catalog.ID);
+    this.formGroup.patchValue({ TargetCourseId: null });
+    if (this.catalogLookupPanel) {
+      this.catalogLookupPanel.hide();
+    }
+  }
+
+  isCatalogSelected(catalog: CourseCatalog): boolean {
+    return this.formGroup.get('TargetCatalogId')?.value === catalog.ID;
+  }
+
+  getSelectedCatalogDisplay(): string {
+    const selectedId = this.formGroup.get('TargetCatalogId')?.value;
+    if (!selectedId) return '';
+    const catalog = this.dataCatalog.find(c => c.ID === selectedId);
+    return catalog ? `${catalog.Code} - ${catalog.Name}` : '';
+  }
+
+  clearCatalogSelection(): void {
+    this.formGroup.patchValue({ TargetCatalogId: null });
+    if (this.catalogLookupPanel) {
+      this.catalogLookupPanel.hide();
+    }
+  }
+
+  // Course lookup methods
+  get courseFilteredList(): Course[] {
+    if (!this.courseSearchText) {
+      return this.availableCourses;
+    }
+    const search = this.courseSearchText.toLowerCase();
+    return this.availableCourses.filter(c =>
+      (c.Code && c.Code.toLowerCase().includes(search)) ||
+      (c.NameCourse && c.NameCourse.toLowerCase().includes(search))
+    );
+  }
+
+  openCourseLookup(event: Event): void {
+    this.courseSearchText = '';
+    setTimeout(() => {
+      if (this.courseLookupPanel) {
+        this.courseLookupPanel.toggle(event);
+      }
+    }, 0);
+  }
+
+  selectCourse(course: Course): void {
+    this.formGroup.patchValue({ TargetCourseId: course.ID });
+    if (this.courseLookupPanel) {
+      this.courseLookupPanel.hide();
+    }
+  }
+
+  isCourseSelected(course: Course): boolean {
+    return this.formGroup.get('TargetCourseId')?.value === course.ID;
+  }
+
+  getSelectedCourseDisplay(): string {
+    const selectedId = this.formGroup.get('TargetCourseId')?.value;
+    if (!selectedId) return '';
+    const course = this.availableCourses.find(c => c.ID === selectedId);
+    return course ? `${course.Code} - ${course.NameCourse}` : '';
+  }
+
+  clearCourseSelection(): void {
+    this.formGroup.patchValue({ TargetCourseId: null });
+    if (this.courseLookupPanel) {
+      this.courseLookupPanel.hide();
+    }
   }
 }

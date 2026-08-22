@@ -189,7 +189,7 @@ export class BillImportSyntheticAllComponent implements OnInit, AfterViewInit {
       filter: { model: Filters['compoundInputText'] },
     }));
 
-    const isKeToan = this.appUserService.departmentID != 4;
+    const isKeToan = this.appUserService.departmentID == 4;
 
     // Note: Checkbox selector column is automatically added by SlickGrid
     // when enableCheckboxSelector: true is set in gridOptions
@@ -1760,28 +1760,35 @@ export class BillImportSyntheticAllComponent implements OnInit, AfterViewInit {
             : [];
 
           if (rowsToUpdate.length > 0) {
-            rowsToUpdate.forEach((rowIndex: number) => {
-              const item = this.angularGrid.slickGrid.getDataItem(rowIndex);
-              if (item) {
-                // Update the same field with the new value
-                item[field] = newValue;
-                this.dirtyItems.add(item);
+            // Snapshot the actual data items BEFORE mutating any of them.
+            // If we read getDataItem(rowIndex) lazily inside the loop, each
+            // dataView.updateItem() call below can re-run the active filter
+            // and remove rows from the view mid-loop, shifting the row
+            // indices of the rows still pending and causing them to be
+            // skipped (e.g. only half of a large selection gets updated).
+            const itemsToUpdate = rowsToUpdate
+              .map((rowIndex: number) => this.angularGrid.slickGrid.getDataItem(rowIndex))
+              .filter((item: any) => !!item);
 
-                // If DateSomeBill or DPO changed, recalculate DueDate
-                if (field === 'DateSomeBill' || field === 'DPO') {
-                  if (item.DateSomeBill && item.DPO) {
-                    const dateSomeBill = DateTime.fromISO(item.DateSomeBill);
-                    if (dateSomeBill.isValid) {
-                      item.DueDate = dateSomeBill.plus({ days: item.DPO || 0 }).toISO();
-                    }
+            itemsToUpdate.forEach((item: any) => {
+              // Update the same field with the new value
+              item[field] = newValue;
+              this.dirtyItems.add(item);
+
+              // If DateSomeBill or DPO changed, recalculate DueDate
+              if (field === 'DateSomeBill' || field === 'DPO') {
+                if (item.DateSomeBill && item.DPO) {
+                  const dateSomeBill = DateTime.fromISO(item.DateSomeBill);
+                  if (dateSomeBill.isValid) {
+                    item.DueDate = dateSomeBill.plus({ days: item.DPO || 0 }).toISO();
                   }
                 }
+              }
 
-                // Update the item in dataView
-                const itemId = item.id !== undefined ? item.id : item.IDDetail;
-                if (itemId !== undefined) {
-                  this.angularGrid.dataView.updateItem(itemId, item);
-                }
+              // Update the item in dataView
+              const itemId = item.id !== undefined ? item.id : item.IDDetail;
+              if (itemId !== undefined) {
+                this.angularGrid.dataView.updateItem(itemId, item);
               }
             });
 

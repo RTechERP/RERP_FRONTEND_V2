@@ -252,7 +252,13 @@ export class MakertrainingComponent implements OnInit {
       sortable: true,
       filterType: 'text',
     },
-    { field: 'Note', header: 'Ghi chú', sortable: true, filterType: 'text' },
+    {
+      field: 'Note',
+      header: 'Ghi chú',
+      sortable: true,
+      filterType: 'text',
+      textWrap: true,
+    },
   ];
 
   // Column definitions for Employee table

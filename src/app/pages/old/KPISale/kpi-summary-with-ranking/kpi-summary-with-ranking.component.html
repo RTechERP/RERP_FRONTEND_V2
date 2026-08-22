@@ -19,9 +19,10 @@
           nzPlaceHolder="Chọn nhân viên"
           nzShowSearch
           nzAllowClear
+          nzDropdownClassName="select-dropdown"
           style="width: 220px">
           <nz-option
-            *ngFor="let emp of employees"
+            *ngFor="let emp of teamEmployees"
             [nzValue]="emp.UserID"
             [nzLabel]="(emp.Code || '') + ' - ' + (emp.FullName || emp.fullName || emp.name || emp.loginName || emp.userName || emp.id)">
           </nz-option>
@@ -324,7 +325,7 @@
           <span class="approval-workflow-bar__title">
             <span nz-icon nzType="audit"></span>
             Quy trình phê duyệt KPI
-            <nz-tag nzColor="geekblue">Tất cả Team ({{teamTabs.length}})</nz-tag>
+            <nz-tag nzColor="geekblue">Tất cả Team ({{teamOnlyTabs.length}})</nz-tag>
           </span>
           <div class="approval-workflow-bar__current">
             <!-- PENDING (bước thấp nhất = 0): chỉ hiện nút duyệt đầu tiên -->
@@ -414,7 +415,8 @@
         </p-tab>
       </p-tablist>
       <p-tabpanels>
-        <p-tabpanel *ngFor="let tab of teamTabs; let idx = index" [value]="idx">
+        <!-- Real team tabs -->
+        <p-tabpanel *ngFor="let tab of teamOnlyTabs; let idx = index" [value]="idx">
           <nz-spin [nzSpinning]="tab.loading" nzTip="Đang tải dữ liệu team...">
             <ng-container *ngIf="tab.loaded && tab.summaryData">
 
@@ -539,7 +541,48 @@
               </div>
             </div>
           </ng-container>
-        </nz-spin>
+          </nz-spin>
+        </p-tabpanel>
+
+        <!-- Special "Tổng thưởng team" tab (always last) -->
+        <p-tabpanel *ngIf="summaryTeamTab" [value]="teamOnlyTabs.length">
+          <div class="kpi-ranking-page" style="padding: 0; margin-top: 24px;">
+            <!-- Grand total summary bar -->
+            <div class="grand-total-bar">
+              <span class="grand-total-label">
+                <span nz-icon nzType="trophy" nzTheme="outline"></span>
+                Tổng thưởng tất cả team
+              </span>
+              <span class="grand-total-amount">
+                {{ formatMoney(getGrandTotalBonus()) }}
+              </span>
+            </div>
+
+            <!-- Ranking table for each team -->
+            <ng-container *ngFor="let teamTab of teamOnlyTabs; let ti = index">
+              <div class="summary-team-section" *ngIf="teamTab.rankingData.length > 0">
+                <div class="summary-team-header">
+                  <span nz-icon nzType="team" nzTheme="outline"></span>
+                  {{ teamTab.teamName }}
+                  <span class="team-total-badge">
+                    Tổng: {{ formatMoney(getTotalBonus(teamTab.rankingData)) }}
+                  </span>
+                </div>
+                <ng-container *ngTemplateOutlet="rankingTableTemplate; context: {
+                  data: teamTab.rankingData,
+                  config: teamTab.rewardConfig,
+                  loading: false,
+                  teamName: teamTab.teamName
+                }"></ng-container>
+              </div>
+            </ng-container>
+
+            <!-- Empty state -->
+            <div class="empty-state" *ngIf="teamOnlyTabs.every(t => t.rankingData.length === 0)">
+              <span nz-icon nzType="info-circle" nzTheme="outline" class="empty-icon"></span>
+              <p>Chưa có dữ liệu ranking cho kỳ này.</p>
+            </div>
+          </div>
         </p-tabpanel>
       </p-tabpanels>
     </p-tabs>

@@ -671,26 +671,33 @@
 }
 
 /* Override PrimeNG Tabs default styles */
-:host ::ng-deep .team-tabset .p-tabs .p-tablist .p-tab {
-  background-color: #f5f5f5 !important;
-  border: 1px solid #d9d9d9 !important;
-  border-radius: 4px 4px 0 0;
-  margin-right: 4px;
-  padding: 0.75rem 1rem !important;
-  color: #595959 !important;
+:host ::ng-deep .p-tablist-tab-list .p-tab {
+  background-color: #f0f5ff !important;
+  border: 2px solid #d9e8ff !important;
+  border-bottom: none !important;
+  border-radius: 6px 6px 0 0 !important;
+  margin-right: 4px !important;
+  padding: 0.5rem 1rem !important;
+  color: #1d39c4 !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.25s;
+  box-shadow: 0 1px 4px rgba(26, 86, 199, 0.08) !important;
 }
 
-:host ::ng-deep .team-tabset .p-tabs .p-tablist .p-tab:hover {
-  background-color: #e6f7ff !important;
-  color: #1890ff !important;
+:host ::ng-deep .p-tablist-tab-list .p-tab:hover {
+  background-color: #e6f4ff !important;
+  border-color: #91caff !important;
+  color: #0958d9 !important;
+  box-shadow: 0 2px 8px rgba(26, 86, 199, 0.15) !important;
 }
 
-:host ::ng-deep .team-tabset .p-tabs .p-tablist .p-tab[data-p-active="true"] {
-  background-color: #1890ff !important;
-  border-color: #1890ff !important;
+:host ::ng-deep .p-tablist-tab-list .p-tab[aria-selected="true"] {
+  background-color: #1677ff !important;
+  border-color: #1677ff !important;
   color: #fff !important;
+  box-shadow: 0 2px 10px rgba(22, 119, 255, 0.3) !important;
 }
 
 :host ::ng-deep .team-tabset .p-tabs .p-tabpanels {
@@ -736,4 +743,71 @@
   .approval-workflow-bar {
     padding: 10px 12px;
   }
+}
+
+/* ====== Tổng thưởng team tab ====== */
+
+/* Grand total summary bar at top of the summary tab */
+.grand-total-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #f0f5ff;
+  border: 1.5px solid #adc6ff;
+  border-radius: 10px;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 20px;
+}
+
+.grand-total-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1d39c4;
+  white-space: nowrap;
+}
+
+.grand-total-amount {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #c41e3a;
+  letter-spacing: 0.3px;
+}
+
+.grand-total-stats { display: none; }
+.grand-total-stats .stat-item { display: none; }
+.grand-total-stats .stat-divider { display: none; }
+.grand-total-stats .grand-total-bonus { display: none; }
+.grand-total-stats .money-value.highlight.big { display: none; }
+
+/* Section header for each team in summary tab */
+.summary-team-section {
+  margin-bottom: 32px;
+}
+
+.summary-team-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1d39c4;
+  margin-bottom: 12px;
+  padding: 0.5rem 1rem;
+  background: #f0f5ff;
+  border: 1.5px solid #d9e8ff;
+  border-radius: 8px;
+}
+
+.summary-team-header .team-total-badge {
+  margin-left: auto;
+  background: #1677ff;
+  color: #fff;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
 }

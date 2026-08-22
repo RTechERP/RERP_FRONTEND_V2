@@ -5,25 +5,43 @@
     height: calc(100vh - 60px);
 }
 
-.custom-tabs {
+/* PrimeNG Tabs container */
+:host ::ng-deep p-tabs,
+:host ::ng-deep .p-tabs {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0;
+    height: 100%;
 }
 
-:host ::ng-deep .custom-tabs .ant-tabs-content {
+:host ::ng-deep .p-tablist {
+    flex-shrink: 0;
+}
+
+:host ::ng-deep .p-tabpanels {
     flex: 1;
-    height: 100%;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+    height: 100%;
+    padding: 0 !important;
 }
 
-:host ::ng-deep .custom-tabs .ant-tabs-tabpane {
+:host ::ng-deep .p-tabpanel {
+    flex: 1;
     height: 100%;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    padding: 0 !important;
+}
+
+:host ::ng-deep .p-tabpanel[hidden] {
+    display: none !important;
 }
 
 .filter-bar {

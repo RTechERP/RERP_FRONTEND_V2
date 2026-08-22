@@ -2,18 +2,19 @@ import { Component, Inject, OnInit, Optional } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { AngularSlickgridComponent, Column, GridOption, AngularGridInstance, Aggregators, GroupTotalFormatters, Formatters } from 'angular-slickgrid';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { SummaryKpiErrorEmployeeMonthService } from './summary-kpi-error-employee-month-service/summary-kpi-error-employee-month.service';
 import { ChartModule } from 'primeng/chart';
+import { TabsModule } from 'primeng/tabs';
 import * as ExcelJS from 'exceljs';
 
 @Component({
@@ -22,13 +23,14 @@ import * as ExcelJS from 'exceljs';
     imports: [
         CommonModule,
         FormsModule,
-        NzTabsModule,
+        TabsModule,
         NzSelectModule,
         NzButtonModule,
         NzIconModule,
         NzInputModule,
         NzGridModule,
         NzCardModule,
+        NzFormModule,
         AngularSlickgridComponent,
         NzSplitterModule,
         ChartModule
@@ -539,8 +541,9 @@ export class SummaryKpiErrorEmployeeMonthComponent implements OnInit {
     }
 
     // Handle Tab Change to Resize Grid
-    onTabSelect(event: any): void {
-        if (event.index === 1) { // Index 1 is the Chart/Grid Tab
+    onTabChange(event: any): void {
+        const index = typeof event === 'object' && event !== null && 'index' in event ? event.index : Number(event);
+        if (index === 1) { // Index 1 is the Chart/Grid Tab
             setTimeout(() => {
                 if (this.angularGrid_BD && this.angularGrid_BD.resizerService) {
                     this.angularGrid_BD.resizerService.resizeGrid();

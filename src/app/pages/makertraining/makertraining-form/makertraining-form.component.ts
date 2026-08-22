@@ -177,7 +177,7 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
   dataTrainingType: any[] = [];
 
   dataDocument: any[] = [];
-  dateFormat = 'dd-MM-YYYY HH:mm:ss';
+  dateFormat = 'dd-MM-yyyy HH:mm:ss';
 
   isCheckmode: boolean = false;
   MakerTrainingID: number = 0;

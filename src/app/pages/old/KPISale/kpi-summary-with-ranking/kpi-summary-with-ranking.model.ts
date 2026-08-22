@@ -237,4 +237,6 @@ export interface TeamTabState {
   approving: boolean;
   approveModalVisible: boolean;
   approveNote: string;
+  /** True for the special "Tổng thưởng team" tab that aggregates all teams */
+  isSummaryTab?: boolean;
 }

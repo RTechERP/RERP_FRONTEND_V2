@@ -130,7 +130,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     private authService: AuthService,
     private permissionService: PermissionService,
     private modal: NzModalService,
-    
+
   ) { }
   selectedRow: any = "";
   modalData: any = [];
@@ -275,39 +275,39 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     ];
   }
 
-   initContextMenu() {
-        this.contextMenuItems = [
-            {
-                label: 'Xem lịch sử thay đổi',
-                icon: 'fa-solid fa-clock-rotate-left text-primary',
-                command: () => this.openAssetLogModal(this.selectedContextRow)
-            }
-        ];
-    }
+  initContextMenu() {
+    this.contextMenuItems = [
+      {
+        label: 'Xem lịch sử thay đổi',
+        icon: 'fa-solid fa-clock-rotate-left text-primary',
+        command: () => this.openAssetLogModal(this.selectedContextRow)
+      }
+    ];
+  }
 
-    openAssetLogModal(row: any) {
-        if (!row || !row.ID) {
-            this.notification.warning('Thông báo', 'Dữ liệu tài sản không hợp lệ!');
-            return;
-        }
-        import('./ts-asset-allocation-log/ts-asset-allocation-log.component').then((m) => {
-            const modalRef = this.modal.create({
-                nzTitle: 'Lịch sử thay đổi mã tài sản cấp phát ' + (row.Code || ''),
-                nzContent: m.TsAssetAllocationLogComponent,
-                nzWidth: '1000px',
-                nzFooter: null,
-                nzStyle: { top: '20px' },
-                nzBodyStyle: {
-                    height: 'calc(100vh - 100px)',
-                    overflowY: 'auto',
-                    padding: '0 !important',
-                },
-            });
-            if (modalRef.componentInstance) {
-                modalRef.componentInstance.assetID = row.ID;
-            }
-        });
+  openAssetLogModal(row: any) {
+    if (!row || !row.ID) {
+      this.notification.warning('Thông báo', 'Dữ liệu tài sản không hợp lệ!');
+      return;
     }
+    import('./ts-asset-allocation-log/ts-asset-allocation-log.component').then((m) => {
+      const modalRef = this.modal.create({
+        nzTitle: 'Lịch sử thay đổi mã tài sản cấp phát ' + (row.Code || ''),
+        nzContent: m.TsAssetAllocationLogComponent,
+        nzWidth: '1000px',
+        nzFooter: null,
+        nzStyle: { top: '20px' },
+        nzBodyStyle: {
+          height: 'calc(100vh - 100px)',
+          overflowY: 'auto',
+          padding: '0 !important',
+        },
+      });
+      if (modalRef.componentInstance) {
+        modalRef.componentInstance.assetID = row.ID;
+      }
+    });
+  }
 
   ngAfterViewInit(): void {
     this.getAllocation();
@@ -616,6 +616,23 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
         },
         customTooltip: { useRegularTooltip: true }
       },
+      {
+        id: 'FullName',
+        name: 'Người quản lý',
+        field: 'FullName',
+        width: 160,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          options: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
+      },
       { id: 'UnitName', name: 'Đơn vị', field: 'UnitName', width: 100, sortable: true, cssClass: 'text-center' },
       {
         id: 'Note',
@@ -739,6 +756,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       ID: 0,
       DateAllocation: DateTime.now().toISODate(),
       EmployeeID: null,
+      AllocationID: this.currentUser?.EmployeeID || null,
       Note: '',
       // nếu cần thêm field default thì khai báo thêm ở đây
     };
@@ -756,7 +774,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     const selectedData = this.selectedRows || [];
 
     if (!selectedData || selectedData.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một biên bản để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một biên bản để sửa!');
       return;
     }
 
@@ -769,14 +787,14 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
 
     if (isPersonalApproved) {
       this.notification.warning(
-        'Thông báo',
+        NOTIFICATION_TITLE.warning,
         `Biên bản ${selectedAssets.Code} đã được cá nhân duyệt, không thể sửa.`
       );
       return;
     }
 
     const modalRef = this.ngbModal.open(TsAssetAllocationFormComponent, {
-      size: 'lg',
+      size: 'xl',
       backdrop: 'static',
       keyboard: false,
       centered: true

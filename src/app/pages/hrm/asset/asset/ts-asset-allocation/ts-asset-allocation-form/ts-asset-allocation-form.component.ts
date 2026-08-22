@@ -28,6 +28,8 @@ import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { TsAssetChooseAssetsComponent } from '../ts-asset-choose-assets/ts-asset-choose-assets.component';
 import { HasPermissionDirective } from "../../../../../../directives/has-permission.directive";
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
+
 @Component({
   standalone: true,
   selector: 'app-ts-asset-allocation-form',
@@ -62,7 +64,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
   allocationDetailData: any[] = [];
   modalData: any = [];
   assetTable: Tabulator | null = null;
-  currentUser: any[] = [];
+  currentUser: any = null;
 
   constructor(private notification: NzNotificationService,
     private authService: AuthService
@@ -81,7 +83,17 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
   }
   getCurrentUser() {
     this.authService.getCurrentUser().subscribe((res: any) => {
-      this.currentUser = res.data;
+      const data = res?.data;
+      this.currentUser = Array.isArray(data) ? data[0] : data;
+      if (!this.dataInput?.ID && !this.dataInput?.AllocationID && this.currentUser) {
+        const currentEmpId = this.currentUser.EmployeeID || this.currentUser.ID;
+        if (currentEmpId) {
+          this.dataInput.AllocationID = currentEmpId;
+          if (this.emPloyeeLists && this.emPloyeeLists.length > 0) {
+            this.onAllocationChange(currentEmpId);
+          }
+        }
+      }
     });
   }
   formatDateForInput(dateString: string): string {
@@ -107,29 +119,57 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
   getListEmployee() {
     const request = { status: 0, departmentid: 0, keyword: '' };
     this.assetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
-      this.emPloyeeLists = respon.data;
+      this.emPloyeeLists = respon.data || [];
       if (this.dataInput?.EmployeeID) {
         // không clear detail khi set giá trị lúc mở form
         this.onEmployeeChange(this.dataInput.EmployeeID, false);
+      }
+      if (this.dataInput?.AllocationID) {
+        this.onAllocationChange(this.dataInput.AllocationID);
+      } else if (!this.dataInput?.ID && this.currentUser) {
+        const currentEmpId = this.currentUser.EmployeeID || this.currentUser.ID;
+        if (currentEmpId) {
+          this.dataInput.AllocationID = currentEmpId;
+          this.onAllocationChange(currentEmpId);
+        }
       }
     });
   }
   // Lấy cấp phát detail
   getAllocationDetail() {
+    if (!this.dataInput?.ID) return;
     this.assetAllocationService.getAssetAllocationDetail(this.dataInput.ID).subscribe(res => {
-      const details = Array.isArray(res.data.assetsAllocationDetail)
+      const details = Array.isArray(res?.data?.assetsAllocationDetail)
         ? res.data.assetsAllocationDetail
         : [];
       this.allocationDetailData = details;
-      this.drawTbSelectAsset();
+      if (this.assetTable) {
+        this.assetTable.setData(this.allocationDetailData);
+      } else {
+        this.drawTbSelectAsset();
+      }
     });
   }
   private resetDetails(): void {
     this.allocationDetailData = [];
     if (this.assetTable) this.assetTable.setData([]);
   }
-  // Bắt sự kiện thay đổi nhân viên khi chọn
-  // Bắt sự kiện thay đổi nhân viên khi chọn
+
+  // Bắt sự kiện thay đổi người cấp phát
+  onAllocationChange(allocationID: number): void {
+    const selectedEmp = this.emPloyeeLists.find(emp => emp.ID === allocationID);
+    if (selectedEmp) {
+      this.dataInput.AllocationID = selectedEmp.ID;
+      this.dataInput.DepartmentAllocation = selectedEmp.DepartmentName;
+      this.dataInput.PosittionAllocation = selectedEmp.ChucVuHD;
+    } else {
+      this.dataInput.AllocationID = null;
+      this.dataInput.DepartmentAllocation = '';
+      this.dataInput.PosittionAllocation = '';
+    }
+  }
+
+  // Bắt sự kiện thay đổi nhân viên nhận khi chọn
   onEmployeeChange(employeeID: number, clearDetails: boolean = true): void {
     if (clearDetails) this.resetDetails();
 
@@ -169,15 +209,20 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
         _action: true,
         assetCode: '',
         assetName: '',
+        FullName: '',
         note: ''
       });
     }
   }
   drawTbSelectAsset() {
     this.assetTable = new Tabulator('#tableAsset11111', {
+      ...DEFAULT_TABLE_CONFIG,
       height: "40vh",
       data: this.allocationDetailData,
       layout: "fitDataStretch",
+      pagination: false,
+      reactiveData: false,
+      rowHeader: undefined,
       columns: [
         {
           title: "",
@@ -198,10 +243,11 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
         },
         { title: 'AssetManagementID', field: 'AssetManagementID', hozAlign: 'center', width: 60, visible: false },
         { title: 'ID', field: 'ID', hozAlign: 'center', visible: false, headerHozAlign: 'center' },
-        { title: 'STT', field: 'STT', formatter: 'rownum', hozAlign: 'center', headerHozAlign: 'center', width: 60, headerSort: false },
-        { title: "Mã tài sản", field: "TSCodeNCC", editor: "input", headerHozAlign: 'center' },
-        { title: "Tên tài sản", field: "TSAssetName", editor: "input", headerHozAlign: 'center', width: 300, formatter: 'textarea' },
-        { title: "Số Lượng", field: "Quantity", editor: "input", headerHozAlign: 'center', hozAlign: "right" },
+        { title: 'STT', field: 'STT', formatter: 'rownum', hozAlign: 'center', headerHozAlign: 'center', width: 50, headerSort: false },
+        { title: "Mã tài sản", field: "TSCodeNCC", editor: "input", headerHozAlign: 'center', width: 140 },
+        { title: "Tên tài sản", field: "TSAssetName", editor: "input", headerHozAlign: 'center', width: 250, formatter: 'textarea' },
+        { title: "Người quản lý", field: "FullName", headerHozAlign: 'center', width: 160 },
+        { title: "Số Lượng", field: "Quantity", editor: "input", headerHozAlign: 'center', hozAlign: "right", width: 90 },
         { title: "Ghi chú", field: "Note", editor: "input", headerHozAlign: 'center', formatter: 'textarea' }
       ]
     });
@@ -219,7 +265,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
     const existingIds = (this.assetTable?.getData() || []).map((r: any) => r.AssetManagementID);
 
     modalRef.componentInstance.dataInput = this.modalData;
-    modalRef.componentInstance.existingIds = existingIds; // <-- thêm dòng này
+    modalRef.componentInstance.existingIds = existingIds;
 
     modalRef.componentInstance.formSubmitted.subscribe((selectedAssets: any[]) => {
       if (!selectedAssets?.length) return;
@@ -230,16 +276,20 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
 
       const skipped = selectedAssets.length - dedup.length;
       if (skipped > 0) {
-        this.notification.warning('Thông báo', `Bỏ qua ${skipped} tài sản trùng.`);
+        this.notification.warning(NOTIFICATION_TITLE.warning, `Bỏ qua ${skipped} tài sản trùng.`);
       }
 
-      if (dedup.length && this.assetTable) this.assetTable.addData(dedup);
-      this.allocationDetailData.push(...dedup);
+      if (dedup.length && this.assetTable) {
+        this.assetTable.addData(dedup);
+      }
     });
 
     modalRef.result.catch(() => { });
   }
   private validateAllocation(): string | null {
+    // Người cấp phát
+    if (!this.dataInput?.AllocationID) return 'Vui lòng chọn người cấp phát.';
+
     // Nhân viên nhận tài sản
     if (!this.dataInput?.EmployeeID) return 'Vui lòng chọn nhân viên nhận tài sản.';
 
@@ -272,7 +322,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
   saveAllocation() {
     const msg = this.validateAllocation();
     if (msg) {
-      this.notification.warning('Thông báo', msg);
+      this.notification.warning(NOTIFICATION_TITLE.warning, msg);
       return;
     }
 
@@ -315,6 +365,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
         ID: this.dataInput.ID || 0,
         Code: this.dataInput.Code,
         DateAllocation: this.dataInput.DateAllocation,
+        AllocationID: this.dataInput.AllocationID,
         EmployeeID: this.dataInput.EmployeeID,
         Note: this.dataInput.Note,
 
@@ -331,15 +382,15 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
     console.log("payloadAllocation", payloadAllocation);
     this.assetAllocationService.saveData(payloadAllocation).subscribe({
       next: () => {
-        this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
+        this.notification.success(NOTIFICATION_TITLE.success, "Lưu dữ liệu thành công");
         this.deletedDetailIds = [];
         this.getAllocation();
         this.formSubmitted.emit();
         this.activeModal.close(true);
       },
-      error: () => {
-        this.notification.success(NOTIFICATION_TITLE.success, "Lỗi");
-        console.error('Lỗi khi lưu đơn vị!');
+      error: (err: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || "Lỗi khi lưu dữ liệu!");
+        console.error('Lỗi khi lưu đơn vị!', err);
       }
     });
   }

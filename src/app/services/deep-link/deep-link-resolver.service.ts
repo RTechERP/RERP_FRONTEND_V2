@@ -26,6 +26,8 @@ export class DeepLinkResolverService {
     ) {
         // Mã dự án -> ProjectID
         this.register('projectCodeToId', code => this.lookupProjectIdByCode(code));
+        // ProjectID -> Mã dự án
+        this.register('projectIdToCode', id => this.lookupProjectCodeById(id));
     }
 
     register(name: string, fn: DeepLinkResolverFn): void {
@@ -63,6 +65,18 @@ export class DeepLinkResolverService {
                 );
                 const id = Number(found?.ID);
                 return Number.isFinite(id) && id > 0 ? id : undefined;
+            })
+        );
+    }
+
+    private lookupProjectCodeById(id: any): Observable<string | undefined> {
+        const numId = Number(id);
+        if (!Number.isFinite(numId) || numId <= 0) return of(undefined);
+
+        return this.projectList().pipe(
+            map(list => {
+                const found = list.find(p => Number(p?.ID) === numId);
+                return found?.ProjectCode ? String(found.ProjectCode) : undefined;
             })
         );
     }

@@ -285,24 +285,18 @@ export class TsAssetTransferFormComponent implements OnInit {
     }
 
     if (!this.dataInput?.TranferDate) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ngày điều chuyển.');
-      return;
-    }
-
-    if (!this.dataInput?.Reason || this.dataInput.Reason.trim() === '') {
-      this.notification.warning('Thông báo', 'Vui lòng nhập lý do điều chuyển.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ngày điều chuyển.');
       return;
     }
 
     if (!this.assetTranferDetailTable) {
-      this.notification.warning('Thông báo', 'Chưa có dữ liệu tài sản để lưu.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa có dữ liệu tài sản để lưu.');
       return;
     }
 
-    const selectedAssets = this.assetTranferDetailTable.getData();
     const rows = this.assetTranferDetailTable.getData();
-    if (rows.length === 0) {
-      this.notification.warning('Thông báo', 'Chưa có tài sản trong danh sách.');
+    if (!rows || rows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa có tài sản trong danh sách.');
       return;
     }
     const detailPayload = rows.map((item: any, index: number) => ({
@@ -359,16 +353,16 @@ export class TsAssetTransferFormComponent implements OnInit {
 
     this.tsAssetTransferService.saveData(payloadTransfer).subscribe({
       next: () => {
-        this.notification.success("Thông báo", "Thành công");
+        this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
         this.getTranferAsset();
         this.resetModal();
         this.formSubmitted.emit();
         this.activeModal.close(true);
         this.deletedDetailIds = [];
       },
-      error: () => {
-        this.notification.success("Thông báo", "Lỗi");
-        console.error('Lỗi khi lưu đơn vị!');
+      error: (err: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || "Lỗi khi lưu dữ liệu!");
+        console.error('Lỗi khi lưu đơn vị!', err);
       }
     });
   }

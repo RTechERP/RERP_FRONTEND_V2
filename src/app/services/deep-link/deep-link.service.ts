@@ -121,9 +121,11 @@ export class DeepLinkService {
             filters['readOnly'] = true;
         }
 
+        const titleStr = typeof page.title === 'function' ? page.title(filters) : page.title;
+
         return {
             route: page.route,
-            title: page.title,
+            title: titleStr,
             page,
             filters,
             isDeepLink: Object.keys(filters).length > 0,
@@ -189,7 +191,12 @@ export class DeepLinkService {
     parseAndResolve(url: string): Observable<ParsedDeepLink> {
         const parsed = this.parse(url);
         if (!parsed.isDeepLink) return of(parsed);
-        return this.resolve(parsed).pipe(map(filters => ({ ...parsed, filters })));
+        return this.resolve(parsed).pipe(
+            map(filters => {
+                const titleStr = typeof parsed.page?.title === 'function' ? parsed.page.title(filters) : (parsed.page?.title ?? parsed.title);
+                return { ...parsed, filters, title: titleStr };
+            })
+        );
     }
 
     // =======================================================================

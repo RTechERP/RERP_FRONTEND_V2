@@ -673,7 +673,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
             statusID = 3;
             statusText = 'Đã thu hồi';
           } else if (statusLower.includes('hỏng')) {
-            statusID = 3;
+            statusID = 5;
             statusText = 'Hỏng';
           } else if (statusLower.includes('mất')) {
             statusID = 4;
@@ -685,7 +685,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
             statusID = 7;
             statusText = 'Đề nghị thanh lý';
           } else if (statusLower.includes('sửa chữa') || statusLower.includes('bảo dưỡng')) {
-            statusID = 5;
+            statusID = 3;
             statusText = 'Sữa chữa, Bảo dưỡng';
           }
         }
@@ -770,7 +770,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     this.displayProgress = 30;
     this.displayText = `Đang gửi ${totalAssetsToSave} bản ghi...`;
 
-    this.assetsManagementService.saveDataAsset(payload).subscribe({
+    this.assetsManagementService.saveDataImportExcel(payload).subscribe({
       next: (response: any) => {
 
         // Đếm số bản ghi có ID trong response (đã lưu thành công)

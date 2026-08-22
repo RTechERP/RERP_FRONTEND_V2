@@ -1,0 +1,18 @@
+:host {
+    font-size: 12px;
+}
+
+.fs-12 {
+    font-size: 12px !important;
+}
+
+:host ::ng-deep .ant-form-item-label > label {
+    font-size: 12px;
+}
+
+:host ::ng-deep .ant-input,
+:host ::ng-deep .ant-select-selection-item,
+:host ::ng-deep .ant-select-selection-placeholder,
+:host ::ng-deep .ant-select-item-option-content {
+    font-size: 12px;
+}

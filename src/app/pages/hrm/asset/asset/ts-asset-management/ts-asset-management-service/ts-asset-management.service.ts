@@ -11,9 +11,13 @@ import { environment } from '../../../../../../../environments/environment';
 export class AssetsManagementService {
   urlGetAssets = `${environment.host}api/Assets/get-asset`;
   urlDepartment = `${environment.host}api/Department/get-all`;
-  constructor(private httpclient: HttpClient) {}
+  constructor(private httpclient: HttpClient) { }
   saveDataAsset(assets: any): Observable<any> {
     const url = `${environment.host}api/Assets/save-data`;
+    return this.httpclient.post<any>(url, assets);
+  }
+  saveDataImportExcel(assets: any): Observable<any> {
+    const url = `${environment.host}api/Assets/save-data-excel`;
     return this.httpclient.post<any>(url, assets);
   }
   checkAssetExist(assets: any[]): Observable<any> {

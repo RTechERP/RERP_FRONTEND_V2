@@ -281,23 +281,18 @@ export class TsAssetRecoveryFormComponent implements OnInit, AfterViewInit {
     }
 
     if (!this.dataInput?.DateRecovery) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ngày thu hồi.');
-      return;
-    }
-
-    if (!this.dataInput?.Note || this.dataInput.Note.trim() === '') {
-      this.notification.warning('Thông báo', 'Vui lòng nhập ghi chú.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ngày thu hồi.');
       return;
     }
 
     if (!this.recoveryTable) {
-      this.notification.warning('Thông báo', 'Bảng chi tiết chưa khởi tạo.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bảng chi tiết chưa khởi tạo.');
       return;
     }
 
     const selectedAssets = this.recoveryTable.getData();
     if (!selectedAssets || selectedAssets.length === 0) {
-      this.notification.warning('Thông báo', 'Chưa có tài sản trong danh sách.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa có tài sản trong danh sách.');
       return;
     }
     const rows = this.recoveryTable.getData();
@@ -356,9 +351,9 @@ export class TsAssetRecoveryFormComponent implements OnInit, AfterViewInit {
         this.formSubmitted.emit();
         this.activeModal.close(true);
       },
-      error: () => {
-        this.notification.success(NOTIFICATION_TITLE.success, "Lỗi");
-        console.error('Lỗi khi lưu đơn vị!');
+      error: (err: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || "Lỗi khi lưu dữ liệu!");
+        console.error('Lỗi khi lưu đơn vị!', err);
       }
     });
   }

@@ -65,9 +65,25 @@ export const DEEP_LINK_PAGES: DeepLinkPage[] = [
     {
         route: 'project-gate-step-master-plan',
         alias: ['masterplan', 'master-plan'],
-        title: 'Master Plan',
+        title: (filters) => {
+            const code = filters['projectCode'] || filters['ProjectCode'] || filters['projectcode'];
+            return code ? `Master Plan - ${code}` : 'Master Plan';
+        },
         fields: {
-            projectid: { key: 'projectId', type: 'number', label: 'Dự án' },
+            projectcode: {
+                key: 'projectCode',
+                type: 'string',
+                label: 'Mã dự án',
+                resolver: 'projectCodeToId',
+                resolveTo: 'projectId',
+            },
+            projectid: {
+                key: 'projectId',
+                type: 'number',
+                label: 'Dự án',
+                resolver: 'projectIdToCode',
+                resolveTo: 'projectCode',
+            },
         },
     },
 ];
